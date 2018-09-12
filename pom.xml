@@ -86,10 +86,11 @@
             <version>RELEASE</version>
         </dependency>
 
-        <!-- rabbitmq依赖 -->
+        <!-- 阿里云mq -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-amqp</artifactId>
+            <groupId>com.mo9</groupId>
+            <artifactId>mq-client</artifactId>
+            <version>1.0.1</version>
         </dependency>
 
     </dependencies>
