@@ -46,6 +46,7 @@ public class GatewayUtils {
      * @return
      */
     public ResCodeEnum verifyBank(){
+        String method = "" ;
         //TODO
         return ResCodeEnum.SUCCESS ;
     }
