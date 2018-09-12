@@ -21,7 +21,7 @@ public class PayOrderEntity extends AbstractOrderEntity {
     private String payCurrency;
 
     /**
-     * 还款订单
+     * 还的借款订单
      */
     @Column(name = "loan_order_id")
     private String loanOrderId;
@@ -79,6 +79,7 @@ public class PayOrderEntity extends AbstractOrderEntity {
 
     /**
      * 还除本金之外的所有金额时, 可推迟还款时间, 一般为一个账期
+     * TODO: 可能删掉
      */
     @Column(name = "postpone_days")
     private Integer postponeDays = 0;
