@@ -21,24 +21,24 @@ public class PayOrderLogEntity extends BaseEntity {
     /**
      * 还款订单号
      */
-    @Column(name = "mo9_receipt_id")
+    @Column(name = "pay_order_id")
     private String payOrderId;
 
     /**
      * 还款渠道
      */
     @Column(name = "repay_channel")
-    private String channel;
+    private String repayChannel;
 
     /**
      * 客户端Id
      */
-    @Column(name = "origin_client_id")
+    @Column(name = "client_id")
     private Integer clientId;
     /**
      * 客户端版本号
      */
-    @Column(name = "origin_client_version")
+    @Column(name = "client_version")
     private String clientVersion;
 
     /**
@@ -67,12 +67,12 @@ public class PayOrderLogEntity extends BaseEntity {
         this.payOrderId = payOrderId;
     }
 
-    public String getChannel() {
-        return channel;
+    public String getRepayChannel() {
+        return repayChannel;
     }
 
-    public void setChannel(String channel) {
-        this.channel = channel;
+    public void setRepayChannel(String repayChannel) {
+        this.repayChannel = repayChannel;
     }
 
     public Integer getClientId() {
