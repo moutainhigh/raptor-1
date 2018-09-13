@@ -5,6 +5,7 @@ import com.mo9.raptor.redis.RedisServiceApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
@@ -17,6 +18,8 @@ import java.util.Arrays;
  * @author zma
  * @date 2018/9/13
  */
+
+@Component
 public class AuthInterceptor extends HandlerInterceptorAdapter {
 
     private static Logger logger = LoggerFactory.getLogger(AuthInterceptor.class);

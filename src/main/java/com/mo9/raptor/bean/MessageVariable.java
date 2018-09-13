@@ -1,4 +1,4 @@
-package com.mo9.libracredit.bean;
+package com.mo9.raptor.bean;
 
 /**
  * 发送邮件或短信消息所需要的变量
@@ -9,11 +9,11 @@ public interface MessageVariable {
     /**
      * 产品名称
      */
-    String  LIBRA_CREDIT = "Libra Credit";
+    String  RAPTOR = "超级飞鼠";
     /**
      * 系统码
      */
-    String  SYSTEM_CODE = "LIBRA";
+    String  SYSTEM_CODE = "RAPTOR";
     /**
      * 主题
      */
@@ -31,7 +31,7 @@ public interface MessageVariable {
      */
     String CURRENCY = "currency";
     /**
-     * 金额（包含数字和币种名称,示例：1.255000 ETH）
+     * 金额
      */
     String AMOUNT = "amount";
     /**
@@ -43,12 +43,8 @@ public interface MessageVariable {
      */
     String AMOUNT_B = "amountB";
     /**
-     * 时间 示例： 2018-03-14 23:59:59（UTC）
+     * 时间
      */
     String TIME = "time";
-    /**
-     * 用户名字
-     */
-    String USER_NAME = "userName";
 
 }

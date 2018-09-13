@@ -1,6 +1,7 @@
-package com.mo9.libracredit.bean;
+package com.mo9.raptor.bean;
 
-import com.mo9.libracredit.enums.ResCodeEnum;
+
+import com.mo9.raptor.enums.ResCodeEnum;
 
 /**
  * 基础响应前端服务封装类

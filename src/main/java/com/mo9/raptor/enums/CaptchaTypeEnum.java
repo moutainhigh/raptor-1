@@ -1,4 +1,4 @@
-package com.mo9.libracredit.enums;
+package com.mo9.raptor.enums;
 
 /**
  * 验证码类型

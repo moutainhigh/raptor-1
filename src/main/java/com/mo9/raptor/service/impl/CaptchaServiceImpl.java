@@ -1,23 +1,16 @@
-package com.mo9.libracredit.service.impl;
+package com.mo9.raptor.service.impl;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.mo9.libracredit.bean.ReqHeaderParams;
-import com.mo9.libracredit.bean.vo.GoogleAuthVo;
-import com.mo9.libracredit.entity.UserEntity;
-import com.mo9.libracredit.enums.*;
-import com.mo9.libracredit.redis.RedisParams;
-import com.mo9.libracredit.redis.RedisServiceApi;
-import com.mo9.libracredit.service.CaptchaService;
-import com.mo9.libracredit.service.UserService;
-import com.mo9.libracredit.util.MessageSend;
-import com.mo9.libracredit.util.RandomUtils;
-import com.mo9.libracredit.util.httpclient.HttpClientApi;
-import com.mo9.libracredit.util.httpclient.bean.HttpResult;
+import com.mo9.raptor.bean.ReqHeaderParams;
+import com.mo9.raptor.enums.*;
+import com.mo9.raptor.redis.RedisParams;
+import com.mo9.raptor.redis.RedisServiceApi;
+import com.mo9.raptor.service.CaptchaService;
+import com.mo9.raptor.utils.MessageSend;
+import com.mo9.raptor.utils.RandomUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -28,9 +21,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.mo9.libracredit.bean.MessageVariable.*;
-import static com.mo9.libracredit.enums.MessageNotifyEventEnum.GENERAL_CAPTCHA;
-import static com.mo9.libracredit.enums.MessageNotifyEventEnum.resetTradePasswordCaptcha;
+import static com.mo9.raptor.bean.MessageVariable.CAPTCHA;
+
 
 /**
  * 验证码相关服务
@@ -41,24 +33,12 @@ import static com.mo9.libracredit.enums.MessageNotifyEventEnum.resetTradePasswor
 @Service(value = "captchaService")
 public class CaptchaServiceImpl implements CaptchaService {
     private static final Logger logger = LoggerFactory.getLogger(CaptchaServiceImpl.class);
-
-    @Autowired
-    private HttpClientApi httpClientApi;
-
-    @Value("${suona.google.binding.url}")
-    private String googleBindingUrl;
-
-    @Value("${suona.google.check.url}")
-    private String googleCheckUrl;
-
     @Resource
     private RedisServiceApi redisServiceApi;
 
-    @Resource(name = "libracreditRedis")
+    @Resource(name = "raptorRedis")
     private RedisTemplate redisTemplate;
 
-    @Resource
-    private UserService userService;
 
     @Resource
     private MessageSend messageSend;
@@ -68,26 +48,6 @@ public class CaptchaServiceImpl implements CaptchaService {
 
 
 
-    @Override
-    public ResCodeEnum checkGoogleCaptcha(String captcha, CaptchaBusinessEnum businessCode, String userCode) throws IOException {
-        String token = null;
-        String successCode = "0";
-        // 发送谷歌验证请求
-        JSONObject params = new JSONObject();
-        params.put("userCode", userCode);
-        params.put("systemCode", SYSTEM_CODE);
-        params.put("authCode", captcha);
-        HttpResult httpResult = httpClientApi.doPostJson(googleCheckUrl, params.toJSONString());
-        JSONObject resultData = JSON.parseObject(httpResult.getData());
-        String code = resultData.getString("code");
-        if (successCode.equals(code)) {
-            Boolean checkResult = resultData.getBoolean("data");
-            if (checkResult) {
-                return ResCodeEnum.SUCCESS;
-            }
-        }
-        return ResCodeEnum.CAPTCHA_CHECK_ERROR;
-    }
 
     @Override
     public Boolean checkRateLimitIp(HttpServletRequest request, Long limitSecond, Integer limitCount) {
@@ -123,39 +83,9 @@ public class CaptchaServiceImpl implements CaptchaService {
         return true;
     }
 
-    @Override
-    public GoogleAuthVo bindingGoogleAuth(String userCode) throws IOException {
-        String successCode = "0";
-        // 发送谷歌验证请求
-        JSONObject params = new JSONObject();
-        params.put("userCode", userCode);
-        params.put("systemCode", SYSTEM_CODE);
-        params.put("userName", "userName");
-        params.put("issuer", "LibraCredit");
-        HttpResult httpResult = httpClientApi.doPostJson(googleBindingUrl, params.toJSONString());
-        JSONObject resultData = JSON.parseObject(httpResult.getData());
-        String code = resultData.getString("code");
-        if (successCode.equals(code)) {
-            String dataJson = resultData.getString("data");
-            GoogleAuthVo googleAuthVo = JSON.parseObject(dataJson, GoogleAuthVo.class);
-            return googleAuthVo;
-        }
-        return null;
-    }
 
     @Override
-    public ResCodeEnum sendCaptcha(CaptchaTypeEnum captchaType, CaptchaBusinessEnum businessCode, String receive, String internationalCode, String language) {
-        if (captchaType == CaptchaTypeEnum.EMAIL) {
-            return sendEmailCaptcha(businessCode, receive, language);
-        } else if (captchaType == CaptchaTypeEnum.MOBILE) {
-            return sendMobileCaptcha(businessCode, receive, internationalCode, language);
-        } else {
-            return ResCodeEnum.NOT_SUPPORT_CAPTCHA_TYPE;
-        }
-    }
-
-    @Override
-    public ResCodeEnum sendMobileCaptcha(CaptchaBusinessEnum businessCode, String mobile, String internationalCode, String language) {
+    public ResCodeEnum sendMobileCaptchaCN(CaptchaBusinessEnum businessCode, String mobile) {
         String key = getRedisKey(RedisParams.MOBILE_CAPTCHA_KEY, mobile, businessCode);
         String pinCode = (String) redisServiceApi.get(key, redisTemplate);
         //验证码
@@ -181,77 +111,10 @@ public class CaptchaServiceImpl implements CaptchaService {
     }
 
 
-    @Override
-    public ResCodeEnum sendEmailCaptcha(CaptchaBusinessEnum businessCode, String email, String language) {
-        AreaCodeEnum areaCodeEnum = AreaCodeEnum.getAreaCodeBuyLanguage(language);
-        String key = getRedisKey(RedisParams.EMAIL_CAPTCHA_KEY, email, businessCode);
-        String pinCode = (String) redisServiceApi.get(key, redisTemplate);
-        //验证码
-        if (StringUtils.isBlank(pinCode)) {
-            pinCode = RandomUtils.generateNumString(6);
-            redisServiceApi.set(key, pinCode, businessCode.getExpireTime(), redisTemplate);
-        }
-        //30s内同一帐号只可获取一次验证码
-        boolean existence = redisServiceApi.exists(RedisParams.LIMIT_CAPTCHA_KEY + email, redisTemplate);
-        if (!existence) {
-            redisServiceApi.set(RedisParams.LIMIT_CAPTCHA_KEY + email, email, RedisParams.EXPIRE_30S, redisTemplate);
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put(CAPTCHA, pinCode);
-            MessageNotifyEventEnum messageNotifyEvent = getMessageNotifyEventEnum(businessCode);
-            messageSend.sendMail(email, messageNotifyEvent, areaCodeEnum, jsonObject);
-            logger.info("验证码发送成功，receive={},businessCode={},captcha={}", email, businessCode, pinCode);
-        } else {
-            logger.warn("发送邮箱验证码过于频繁，receive={},businessCode={}", email, businessCode);
-            return ResCodeEnum.CAPTCHA_GET_TOO_OFTEN;
-        }
-        return ResCodeEnum.SUCCESS;
-    }
-
-    @Override
-    public ResCodeEnum sendCaptchaByUserCode(CaptchaBusinessEnum businessCode, String userCode, String language) {
-        UserEntity userEntity = userService.findByUserCodeAndIsDeleted(userCode, false);
-        if (userEntity == null) {
-            return ResCodeEnum.USER_ACCOUNT_NOT_EXIT_OR_DISABLED;
-        }
-        return sendCaptchaByUserEntity(businessCode, userEntity, language);
-    }
-
-    @Override
-    public ResCodeEnum sendCaptchaByUserEntity(CaptchaBusinessEnum businessCode, UserEntity userEntity, String language) {
-        String mobile = userEntity.getMobile();
-        String email = userEntity.getEmail();
-        Boolean verifyGoogle = userEntity.getVerifyGoogle();
-        String bindingAreaCode = userEntity.getBindingAreaCode();
-        if(StringUtils.isBlank(language)){
-            language = UserEntity.getLanguage(userEntity);
-        }
-        if (verifyGoogle) {
-            return ResCodeEnum.SUCCESS;
-        }
-        AccountMethodEnum registerMethod = userEntity.getRegisterMethod();
-        if (registerMethod == AccountMethodEnum.EMAIL) {
-            return sendEmailCaptcha(businessCode, email, language);
-        } else {
-            return sendMobileCaptcha(businessCode, mobile, bindingAreaCode, language);
-        }
-    }
 
     @Override
     public ResCodeEnum checkCaptcha(CaptchaTypeEnum captchaType, CaptchaBusinessEnum businessCode, String receive, String captcha, boolean isClearCaptcha) throws IOException {
-        String key = null;
-        if (captchaType == CaptchaTypeEnum.MOBILE) {
-            key = getRedisKey(RedisParams.MOBILE_CAPTCHA_KEY, receive, businessCode);
-        } else if (captchaType == CaptchaTypeEnum.EMAIL) {
-            key = getRedisKey(RedisParams.EMAIL_CAPTCHA_KEY, receive, businessCode);
-        } else if (captchaType == CaptchaTypeEnum.GOOGLE) {
-            return checkGoogleCaptcha(captcha, businessCode, receive);
-//            return ResCodeEnum.SUCCESS;
-        } else if (captchaType == CaptchaTypeEnum.BEHAVIOR) {
-            //TODO ukar 行为验证待实现
-            return ResCodeEnum.SUCCESS;
-        } else {
-            return ResCodeEnum.NOT_SUPPORT_CAPTCHA_TYPE;
-        }
+        String key = getRedisKey(RedisParams.MOBILE_CAPTCHA_KEY, receive, businessCode);
         String redisCaptcha = (String) redisServiceApi.get(key, redisTemplate);
         if (StringUtils.isBlank(redisCaptcha)) {
             return ResCodeEnum.CAPTCHA_IS_INVALID;
@@ -265,37 +128,6 @@ public class CaptchaServiceImpl implements CaptchaService {
         return ResCodeEnum.SUCCESS;
     }
 
-    @Override
-    public ResCodeEnum checkCaptcha(UserEntity userEntity, CaptchaBusinessEnum businessCode, String captcha, boolean isClearCaptcha) throws IOException {
-        String receive = null;
-        String key = null;
-        Boolean verifyGoogle = userEntity.getVerifyGoogle();
-        AccountMethodEnum registerMethod = userEntity.getRegisterMethod();
-        if (verifyGoogle) {
-            return checkGoogleCaptcha(captcha, businessCode, userEntity.getUserCode());
-        } else {
-            if (registerMethod == AccountMethodEnum.MOBILE) {
-                receive = userEntity.getMobile();
-                key = getRedisKey(RedisParams.MOBILE_CAPTCHA_KEY, receive, businessCode);
-            }
-            if (registerMethod == AccountMethodEnum.EMAIL) {
-                receive = userEntity.getEmail();
-                key = getRedisKey(RedisParams.EMAIL_CAPTCHA_KEY, receive, businessCode);
-            }
-        }
-        String redisCaptcha = (String) redisServiceApi.get(key, redisTemplate);
-        if (StringUtils.isBlank(redisCaptcha)) {
-            return ResCodeEnum.CAPTCHA_IS_INVALID;
-        }
-        if (!redisCaptcha.equals(captcha)) {
-            logger.warn("用户验证码校验失败，userCode={}，redisCaptcha={}，captcha={}", userEntity.getUserCode(), redisCaptcha, captcha);
-            return ResCodeEnum.CAPTCHA_CHECK_ERROR;
-        }
-        if(isClearCaptcha){
-            redisServiceApi.remove(key, redisTemplate);
-        }
-        return ResCodeEnum.SUCCESS;
-    }
 
     @Override
     public boolean checkCaptchaLimit(String receive, CaptchaBusinessEnum reason) {
@@ -347,23 +179,8 @@ public class CaptchaServiceImpl implements CaptchaService {
     private MessageNotifyEventEnum getMessageNotifyEventEnum(CaptchaBusinessEnum businessCode) {
         MessageNotifyEventEnum messageNotifyEvent;
         switch (businessCode) {
-            case REGISTER:
-                messageNotifyEvent = MessageNotifyEventEnum.registerCaptcha;
-                break;
             case LOGIN:
                 messageNotifyEvent = MessageNotifyEventEnum.loginCaptcha;
-                break;
-            case RESET_DEAL_PASSWORD:
-                messageNotifyEvent = MessageNotifyEventEnum.setTradePasswordCaptcha;
-                break;
-            case RESET_PASSWORD:
-                messageNotifyEvent = MessageNotifyEventEnum.forgetPasswordCaptcha;
-                break;
-            case BINDING_MOBILE:
-                messageNotifyEvent = MessageNotifyEventEnum.bindingMobileCaptcha;
-                break;
-            case BINDING_EMAIL:
-                messageNotifyEvent = MessageNotifyEventEnum.bindingEmailCaptcha;
                 break;
             default:
                 messageNotifyEvent = MessageNotifyEventEnum.GENERAL_CAPTCHA;

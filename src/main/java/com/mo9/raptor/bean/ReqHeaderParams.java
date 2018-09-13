@@ -1,4 +1,4 @@
-package com.mo9.libracredit.bean;
+package com.mo9.raptor.bean;
 
 /**
  * @author jyou
