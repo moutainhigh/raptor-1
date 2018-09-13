@@ -145,7 +145,7 @@ public class GatewayUtils {
             String invoice = data.getString("invoice") ;  //订单号
             String dealcode = data.getString("dealcode") ; //先玩后付订单号
             String orderStatus = data.getString("orderStatus") ;  //订单状态
-            String amount = data.getString("amount") ; //金额
+            String amount = data.getString("amount") ; //金额(分)
             String statusTime = data.getString("statusTime") ;  // 状态时间
             String channel = data.getString("channel") ;  //渠道
             String thirdDealcode = data.getString("status") ;  //第三方订单号
