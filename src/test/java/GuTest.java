@@ -2,9 +2,11 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.RaptorApplicationTest;
 import com.mo9.raptor.service.BankService;
+import com.mo9.raptor.utils.GatewayUtils;
 import com.mo9.raptor.utils.Md5Encrypt;
 import com.mo9.raptor.utils.httpclient.HttpClientApi;
 import com.mo9.raptor.utils.httpclient.bean.HttpResult;
+import net.bytebuddy.asm.Advice;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -83,7 +86,7 @@ public class GuTest {
     @Autowired
     private BankService bankService ;
     /**
-     * 银行卡相关
+     * 银行卡相关 - 接口
      */
     @Test
     public void bank (){
@@ -93,4 +96,40 @@ public class GuTest {
         String mobile = "13916393513" ;
         bankService.verify( bankNo , cardId , userName , mobile);
     }
+
+    /**
+     * 银行卡相关 - web
+     */
+    @Test
+    public void bankWeb (){
+
+        try {
+            String bankNo = "6217001210032584250" ;
+            String cardId = "320684199109100052" ;
+            String userName = "顾晓桐" ;
+            String mobile = "13916393513" ;
+            JSONObject json = new JSONObject() ;
+            json.put("card" , bankNo);
+            json.put("" , cardId);
+            json.put("cardName" , userName);
+            json.put("cardMobile" , mobile);
+            String url = "http://localhost/raptorApi/auth/modify_bank_card_info";
+            HttpResult resJson = httpClientApi.doPostJson(url, json.toJSONString());
+            System.out.println(111);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Autowired
+    private GatewayUtils gatewayUtils ;
+    /**
+     * 查询先玩后付订单状态 - 本地订单号查询 invoice
+     */
+    @Test
+    public void getOrderMsg (){
+        gatewayUtils.getOrderMsg("990354214320");
+    }
+
+
 }
