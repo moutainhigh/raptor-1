@@ -2,11 +2,13 @@ package com.mo9.raptor.controller;
 
 import com.mo9.raptor.bean.BaseResponse;
 import com.mo9.raptor.bean.ReqHeaderParams;
+import com.mo9.raptor.bean.req.BankReq;
 import com.mo9.raptor.bean.req.LoginByCodeReq;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.redis.RedisParams;
 import com.mo9.raptor.redis.RedisServiceApi;
+import com.mo9.raptor.service.BankService;
 import com.mo9.raptor.service.CaptchaService;
 import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.RegexUtils;
@@ -16,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -48,6 +51,9 @@ public class UserController {
 
     @Resource
     private CaptchaService captchaService;
+
+    @Autowired
+    private BankService bankService ;
 
     @RequestMapping(value = "/login_by_code")
     public BaseResponse loginByCode(@RequestBody @Validated LoginByCodeReq loginByCodeReq, HttpServletRequest request) {
@@ -91,5 +97,36 @@ public class UserController {
         return response.buildSuccessResponse(resMap);
     }
 
+
+    /**
+     * 修改银行卡信息 -- 包含验证四要素 , 第一次新增
+     * @param bankReq
+     * @param request
+     * @return
+     */
+    @PostMapping(value = "/modify_bank_card_info")
+    public BaseResponse modifyBankCardInfo(@RequestBody @Validated BankReq bankReq, HttpServletRequest request) {
+        BaseResponse response = new BaseResponse();
+        UserEntity userEntity = userService.findByMobile(bankReq.getCardMobile());
+        if(userEntity == null ){
+            //用户不存在
+            response.setCode(ResCodeEnum.NOT_WHITE_LIST_USER.getCode());
+            response.setMessage(ResCodeEnum.NOT_WHITE_LIST_USER.getMessage());
+            return response;
+        }
+        if(userEntity.getIdCard() == null){
+            //身份证不存在
+            response.setCode(ResCodeEnum.USER_CARD_ID_NOT_EXIST.getCode());
+            response.setMessage(ResCodeEnum.USER_CARD_ID_NOT_EXIST.getMessage());
+            return response;
+        }
+        ResCodeEnum resCodeEnum = bankService.verify(bankReq.getCard() , userEntity.getIdCard() , bankReq.getCardName() , bankReq.getCardMobile());
+        if(ResCodeEnum.SUCCESS != resCodeEnum){
+            response.setCode(resCodeEnum.getCode());
+            response.setMessage(resCodeEnum.getMessage());
+            return response;
+        }
+        return response;
+    }
 
 }
