@@ -1,5 +1,6 @@
 package com.mo9.raptor.utils.httpclient.bean;
 
+
 import org.apache.http.conn.HttpClientConnectionManager;
 
 /**
