@@ -27,6 +27,12 @@ public class PayOrderEntity extends AbstractOrderEntity {
     private String loanOrderId;
 
     /**
+     * 还款渠道
+     */
+    @Column(name = "channel")
+    private String channel;
+
+    /**
      * 请求支付数量
      */
     @Column(name = "apply_number")
@@ -125,5 +131,13 @@ public class PayOrderEntity extends AbstractOrderEntity {
 
     public void setPostponeDays(Integer postponeDays) {
         this.postponeDays = postponeDays;
+    }
+
+    public String getChannel() {
+        return channel;
+    }
+
+    public void setChannel(String channel) {
+        this.channel = channel;
     }
 }

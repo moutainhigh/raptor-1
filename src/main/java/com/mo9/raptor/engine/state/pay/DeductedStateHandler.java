@@ -19,7 +19,6 @@ public class DeductedStateHandler implements IStateHandler<PayOrderEntity> {
 
     @Override
     public PayOrderEntity handle(PayOrderEntity payOrder, IEvent event, IActionExecutor actionExecutor) throws InvalidEventException {
-
         if (event instanceof EntryResponseEvent) {
             EntryResponseEvent entryResponseEvent = (EntryResponseEvent) event;
             payOrder.setEntryNumber(payOrder.getEntryNumber().add(entryResponseEvent.getActualEntry()));
