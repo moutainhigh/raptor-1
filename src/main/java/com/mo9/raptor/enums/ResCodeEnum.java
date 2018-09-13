@@ -11,8 +11,25 @@ public enum ResCodeEnum {
      * <p>
      */
     SUCCESS(11150000, "成功", "成功"),
-    BANK_VERIFY_ERROR(11150001, "银行卡验证失败", "银行卡验证失败"),
-    BANK_VERIFY_EXCPTION(11150002, "银行卡验证超时", "银行卡验证超时"),
+    EXCEPTION_CODE(11150001, "成功", "成功"),
+
+    // xx=10 银行卡验证
+    BANK_VERIFY_ERROR(11151001, "银行卡验证失败", "银行卡验证失败"),
+    BANK_VERIFY_EXCEPTION(11151002, "银行卡验证超时", "银行卡验证超时"),
+
+    // xx=20 验证码
+    CAPTCHA_GET_TOO_OFTEN(11152001, "验证码获取过于频繁", "验证码获取过于频繁"),
+    NOT_SUPPORT_CAPTCHA_TYPE(11152002, "不支持的验证码类型", "不支持的验证码类型"),
+    CAPTCHA_IS_INVALID(11152003, "验证码已失效", "验证码已失效"),
+    CAPTCHA_CHECK_ERROR(11152004, "验证码校验未通过", "验证码校验未通过"),
+    CAPTCHA_NOT_NULL(11152005, "验证码不能为空", "验证码不能为空"),
+    CAPTCHA_TOKEN_INVALID(11152006, "验证码token已失效", "验证码token已失效"),
+    CAPTCHA_SEND_FAILED(11152007, "验证码发送失败", "验证码发送失败"),
+    CAPTCHA_CHECK_TOO_OFTEN(11152008, "验证码校验过于频繁", "验证码校验过于频繁"),
+
+    // xx=30 登录相关
+    MOBILE_NOT_MEET_THE_REQUIRE(11153001, "手机号不符合要求", "手机号不符合要求"),
+    NOT_WHITE_LIST_USER(11153002, "非白名单用户", "非白名单用户"),
 
     ;
     /**
