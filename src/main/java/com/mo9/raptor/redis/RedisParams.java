@@ -114,8 +114,8 @@ public class RedisParams {
     public static String getActionToken(String actionToken){
         return ACTION_TOKEN_LONG + actionToken;
     }
-    public static String getAccessToken(String clientId ,String accountMobile){
-        return ACCESS_TOKEN_KEY + clientId + accountMobile;
+    public static String getAccessToken(String clientId ,String accessCode){
+        return ACCESS_TOKEN_KEY + clientId + accessCode;
     }
     public static String getUpdateTradePwdLimit(String userCode){
         return UPDATE_TRADE_PWD_LIMIT_TIMES + userCode;

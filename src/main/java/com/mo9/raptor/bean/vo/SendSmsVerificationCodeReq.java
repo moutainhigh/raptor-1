@@ -4,7 +4,6 @@ package com.mo9.raptor.bean.vo;
 import com.mo9.raptor.enums.CaptchaBusinessEnum;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 
 /**
  * 发送短信

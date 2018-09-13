@@ -128,6 +128,11 @@ public class CaptchaServiceImpl implements CaptchaService {
         return ResCodeEnum.SUCCESS;
     }
 
+    @Override
+    public ResCodeEnum checkLoginMobileCaptcha(String receive, String captcha) throws IOException {
+        return checkCaptcha(CaptchaTypeEnum.MOBILE,CaptchaBusinessEnum.LOGIN,receive,captcha,true);
+    }
+
 
     @Override
     public boolean checkCaptchaLimit(String receive, CaptchaBusinessEnum reason) {

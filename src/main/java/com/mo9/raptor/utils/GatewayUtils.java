@@ -68,12 +68,12 @@ public class GatewayUtils {
             String result = httpClientApi.doGet(gatewayUrl + method , params) ;
             logger.info(bankNo + " - " + cardId + " - " + userName + " - " + mobile + " 银行卡四要素验证返回参数 " + result);
             if(result == null){
-                return ResCodeEnum.BANK_VERIFY_EXCPTION ;
+                return ResCodeEnum.BANK_VERIFY_EXCEPTION ;
             }
             JSONObject data = JSON.parseObject(result) ;
             if(data.get("status") == null){
                 //渠道验证超时
-                return ResCodeEnum.BANK_VERIFY_EXCPTION ;
+                return ResCodeEnum.BANK_VERIFY_EXCEPTION ;
             }
             Boolean status = data.getBoolean("status") ;
             if(status){
@@ -83,7 +83,7 @@ public class GatewayUtils {
             }
         } catch (Exception e) {
             logger.error(bankNo + " - " + cardId + " - " + userName + " - " + mobile + " 银行卡四要素验证 异常" , e);
-            return ResCodeEnum.BANK_VERIFY_EXCPTION ;
+            return ResCodeEnum.BANK_VERIFY_EXCEPTION ;
         }
     }
 

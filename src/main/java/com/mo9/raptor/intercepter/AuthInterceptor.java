@@ -4,6 +4,8 @@ import com.mo9.raptor.redis.RedisParams;
 import com.mo9.raptor.redis.RedisServiceApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -20,6 +22,7 @@ import java.util.Arrays;
  */
 
 @Component
+@EnableAutoConfiguration
 public class AuthInterceptor extends HandlerInterceptorAdapter {
 
     private static Logger logger = LoggerFactory.getLogger(AuthInterceptor.class);
@@ -29,6 +32,7 @@ public class AuthInterceptor extends HandlerInterceptorAdapter {
     @Resource(name = "raptorRedis")
     private RedisTemplate raptorRedis;
 
+    @Value("${raptor.exclude.urls}")
     private String[] excludeUrls = new String[0];
 
     @Override
@@ -40,11 +44,11 @@ public class AuthInterceptor extends HandlerInterceptorAdapter {
             return true;
         }
         //须登录，检查是否在登录状态 延长登录时间
-        String accountMobile = getAccountMobile(request);
+        String accountMobile = getAccountCode(request);
         String accessToken = getAccessToken(request);
         if (!StringUtils.isEmpty(accountMobile) && !StringUtils.isEmpty(accessToken)) {
             String clientId = getClientId(request);
-            if (!StringUtils.isEmpty(clientId)){
+            if (StringUtils.isEmpty(clientId)){
                 httpError(response);
                 return false;
             }
@@ -83,8 +87,8 @@ public class AuthInterceptor extends HandlerInterceptorAdapter {
     }
 
 
-    public String getAccountMobile(HttpServletRequest request) {
-        return request.getHeader("Account-Mobile");
+    public String getAccountCode(HttpServletRequest request) {
+        return request.getHeader("Account-Code");
     }
     public String getAccessToken(HttpServletRequest request) {
         return request.getHeader("Access-Token");

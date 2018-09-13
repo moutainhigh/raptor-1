@@ -43,7 +43,6 @@ public class CaptchaController {
     private CaptchaService captchaService;
 
 
-
     /**
      * 发送登录短信验证码
      * （1）判断ip是否超出频率限制
@@ -76,7 +75,7 @@ public class CaptchaController {
             response.setData(sendRes);
             return response;
         }catch (Exception e){
-            logger.error("已登录状态用户发送手机验证码出现异常mobile={},reason={}",mobile, reason);
+            logger.error("已登录状态用户发送手机验证码出现异常mobile={},reason={},{}",mobile, reason,e);
             return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
         }
     }

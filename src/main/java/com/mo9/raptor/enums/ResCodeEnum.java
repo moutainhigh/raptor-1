@@ -26,6 +26,11 @@ public enum ResCodeEnum {
     CAPTCHA_TOKEN_INVALID(11152006, "验证码token已失效", "验证码token已失效"),
     CAPTCHA_SEND_FAILED(11152007, "验证码发送失败", "验证码发送失败"),
     CAPTCHA_CHECK_TOO_OFTEN(11152008, "验证码校验过于频繁", "验证码校验过于频繁"),
+
+    // xx=30 登录相关
+    MOBILE_NOT_MEET_THE_REQUIRE(11153001, "手机号不符合要求", "手机号不符合要求"),
+    NOT_WHITE_LIST_USER(11153002, "非白名单用户", "非白名单用户"),
+
     ;
     /**
      * 错误码

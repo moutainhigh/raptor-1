@@ -49,6 +49,14 @@ public interface CaptchaService {
      */
     ResCodeEnum checkCaptcha(CaptchaTypeEnum captchaType, CaptchaBusinessEnum businessCode, String receive, String captcha, boolean isClearCaptcha) throws IOException;
 
+    /**
+     * 检查登录状态
+     * @param receive
+     * @param captcha
+     * @return
+     */
+    ResCodeEnum checkLoginMobileCaptcha(String receive, String captcha) throws IOException;
+
 
     /**
      * 检验验证码校验频率,目前规则定义1min只允许校验10次

@@ -1,0 +1,97 @@
+package com.mo9.raptor.controller;
+
+import com.mo9.raptor.bean.BaseResponse;
+import com.mo9.raptor.bean.ReqHeaderParams;
+import com.mo9.raptor.bean.req.LoginByCodeReq;
+import com.mo9.raptor.entity.UserEntity;
+import com.mo9.raptor.enums.ResCodeEnum;
+import com.mo9.raptor.redis.RedisParams;
+import com.mo9.raptor.redis.RedisServiceApi;
+import com.mo9.raptor.service.CaptchaService;
+import com.mo9.raptor.service.UserService;
+import com.mo9.raptor.utils.RegexUtils;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+/**
+ * @author zma
+ * @date 2018/9/13
+ */
+@RestController
+@RequestMapping(value = "/auth")
+public class UserController {
+
+    private static Logger logger = LoggerFactory.getLogger(UserController.class);
+
+    @Autowired
+    UserService userService;
+
+    @Resource
+    private RedisServiceApi redisServiceApi;
+
+    @Resource(name = "raptorRedis")
+    private RedisTemplate raptorRedis;
+
+    @Resource
+    private CaptchaService captchaService;
+
+    @RequestMapping(value = "/login_by_code")
+    public BaseResponse loginByCode(@RequestBody @Validated LoginByCodeReq loginByCodeReq, HttpServletRequest request) {
+        BaseResponse<Map<String, Object>> response = new BaseResponse<>();
+        Map<String, Object> resMap = new HashMap<>(16);
+        Map<String, String> entity = new HashMap<>(16);
+        String clientId = request.getHeader(ReqHeaderParams.CLIENT_ID);
+        String mobile = loginByCodeReq.getMobile();
+        //校验手机号是否合法，不合法登录失败
+        boolean check = RegexUtils.checkChinaMobileNumber(mobile);
+        if (!check) {
+            return response.buildFailureResponse(ResCodeEnum.MOBILE_NOT_MEET_THE_REQUIRE);
+        }
+        try {
+            //检查用户是否在白名单，并可用
+            //TODO 白名单 查询方法
+            UserEntity userEntity = userService.findByMobile(mobile);
+            if (userEntity == null) {
+                return response.buildFailureResponse(ResCodeEnum.NOT_WHITE_LIST_USER);
+            }
+            //校验验证码是否正确
+            String code = loginByCodeReq.getCode();
+            ResCodeEnum resCodeEnum = captchaService.checkLoginMobileCaptcha(mobile, code);
+            if (ResCodeEnum.SUCCESS != resCodeEnum) {
+                return response.buildFailureResponse(resCodeEnum);
+            }
+            //返回token
+            String token = UUID.randomUUID().toString().replaceAll("-", StringUtils.EMPTY);
+            redisServiceApi.set(RedisParams.getAccessToken(clientId,userEntity.getUserCode()),token,RedisParams.EXPIRE_30M,raptorRedis);
+            entity.put("userId",userEntity.getUserId());
+            entity.put("mobile",userEntity.getMobile());
+            entity.put("userId",userEntity.getUserId());
+            entity.put("accessToken",token);
+            entity.put("accessCode",userEntity.getUserCode());
+            resMap.put("entity",entity);
+        } catch (IOException e) {
+            logger.error("用户登录----->>>>验证码发送发生异常{}",e);
+            return response.buildFailureResponse(ResCodeEnum.CAPTCHA_SEND_FAILED);
+        } catch (Exception e) {
+            logger.error("用户登录----->>>>发生异常{}",e);
+            return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
+        }
+        return response.buildSuccessResponse(resMap);
+    }
+
+
+}
