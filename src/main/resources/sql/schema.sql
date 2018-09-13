@@ -5,6 +5,7 @@ CREATE TABLE `t_raptor_pay_order` (
   `order_id`                  VARCHAR(64)     NOT NULL                  COMMENT '订单ID - 业务流水号',
   `owner_id`                  VARCHAR(64)     NOT NULL                  COMMENT '用户code - 用户中心uesrCode',
   `type`                      VARCHAR(64)     NOT NULL                  COMMENT '订单类型',
+  `channel`                   VARCHAR(64)     NOT NULL                  COMMENT '还款渠道',
   `status`                    VARCHAR(64)     NOT NULL                  COMMENT '订单状态',
   `pay_currency`              VARCHAR(64)     NOT NULL                  COMMENT '币种 - 用户还款币种',
   `loan_order_id`             VARCHAR(64)     NOT NULL                  COMMENT '还的借款订单',
