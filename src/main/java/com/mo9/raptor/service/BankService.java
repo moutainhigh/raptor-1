@@ -14,7 +14,7 @@ public interface BankService {
      * @param bankNo
      * @return
      */
-    BankEntity findByBankNo(String bankNo);
+    BankEntity findByBankNoByLoan(String bankNo);
 
     /**
      * 验证四要素
@@ -27,12 +27,22 @@ public interface BankService {
     public ResCodeEnum verify(String bankNo , String cardId , String userName , String mobile);
 
     /**
-     * 创建
+     * 创建还款渠道
      * @param bankNo
      * @param cardId
      * @param userName
      * @param mobile
-     * @param type
+     * @param channel
+     * @param bankName
      */
-    public void create(String bankNo , String cardId , String userName , String mobile , BankEntity.Type type) ;
+    public void createRepayBank(String bankNo , String cardId , String userName , String mobile, String channel , String bankName);
+
+    /**
+     * 根据银行卡 , 类型 , 渠道查询
+     * @param bankNo
+     * @param type
+     * @param channel
+     * @return
+     */
+    BankEntity findByBankNoAndTypeAndChannel(String bankNo, BankEntity.Type type, String channel);
 }
