@@ -1,6 +1,6 @@
 package com.mo9.raptor.utils.httpclient;
 
-import com.mo9.libracredit.util.httpclient.bean.HttpResult;
+import com.mo9.raptor.utils.httpclient.bean.HttpResult;
 import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
