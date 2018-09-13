@@ -45,27 +45,6 @@ public class PayOrderEntity extends AbstractOrderEntity {
     private BigDecimal entryNumber = BigDecimal.ZERO;
 
     /**
-     * 还的本金
-     */
-    @Column(name = "paid_principal")
-    private BigDecimal paidPrincipal = BigDecimal.ZERO;
-    /**
-     * 还的利息
-     */
-    @Column(name = "paid_interest")
-    private BigDecimal paidInterest = BigDecimal.ZERO;
-    /**
-     * 还的罚息
-     */
-    @Column(name = "paid_penalty")
-    private BigDecimal paidPenalty = BigDecimal.ZERO;
-    /**
-     * 还的服务费
-     */
-    @Column(name = "paid_fee")
-    private BigDecimal paidFee = BigDecimal.ZERO;
-
-    /**
      * 支付时间
      */
     @Column(name = "pay_time")
@@ -138,38 +117,6 @@ public class PayOrderEntity extends AbstractOrderEntity {
 
     public void setLoanOrderId(String loanOrderId) {
         this.loanOrderId = loanOrderId;
-    }
-
-    public BigDecimal getPaidPrincipal() {
-        return paidPrincipal;
-    }
-
-    public void setPaidPrincipal(BigDecimal paidPrincipal) {
-        this.paidPrincipal = paidPrincipal;
-    }
-
-    public BigDecimal getPaidInterest() {
-        return paidInterest;
-    }
-
-    public void setPaidInterest(BigDecimal paidInterest) {
-        this.paidInterest = paidInterest;
-    }
-
-    public BigDecimal getPaidPenalty() {
-        return paidPenalty;
-    }
-
-    public void setPaidPenalty(BigDecimal paidPenalty) {
-        this.paidPenalty = paidPenalty;
-    }
-
-    public BigDecimal getPaidFee() {
-        return paidFee;
-    }
-
-    public void setPaidFee(BigDecimal paidFee) {
-        this.paidFee = paidFee;
     }
 
     public Integer getPostponeDays() {
