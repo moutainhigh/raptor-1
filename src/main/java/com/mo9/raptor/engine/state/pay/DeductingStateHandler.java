@@ -26,7 +26,7 @@ public class DeductingStateHandler implements IStateHandler<PayOrderEntity> {
     private static final Logger logger = LoggerFactory.getLogger(DeductingStateHandler.class);
 
     @Autowired
-    private IEventLauncher payOrderEventLauncher;
+    private IEventLauncher entryEventLauncher;
 
     @Autowired
     private IPayOrderService payOrderService;
@@ -41,7 +41,7 @@ public class DeductingStateHandler implements IStateHandler<PayOrderEntity> {
                 payOrder.setPayNumber(deductResponseEvent.getActualDeducted());
                 payOrder.setPayTime(deductResponseEvent.getEventTime());
                 /** 此处相当于在扣款成功后，自动发起入账 */
-                actionExecutor.append(new EntryLaunchAction(payOrder.getOrderId(), payOrderEventLauncher, payOrderService));
+                actionExecutor.append(new EntryLaunchAction(payOrder.getOrderId(), entryEventLauncher, payOrderService));
             } else {
                 payOrder.setStatus(StatusEnum.DEDUCT_FAILED.name());
             }

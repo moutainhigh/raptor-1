@@ -33,6 +33,12 @@ public enum ResCodeEnum {
 
     // xx=40 用户相关
     USER_CARD_ID_NOT_EXIST(11154000 , "用户身份证号不存在" , "用户身份证号不存在"),
+
+    /**
+     * xx=50, 还款
+     */
+    INVALID_RENEWAL_DAYS(11155000, "无效的延期天数", "无效的延期天数"),
+
     ;
     /**
      * 错误码
