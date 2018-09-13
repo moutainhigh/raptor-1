@@ -78,6 +78,28 @@ public class RedisServiceApi {
     }
 
     /**
+     * 充值key的过期时间
+     * @param key
+     * @param expireTime
+     * @param redisTemplate
+     * @return
+     */
+    public boolean expireSeconds(final String key,Long expireTime, RedisTemplate redisTemplate) {
+       return redisTemplate.expire(key, expireTime, TimeUnit.SECONDS);
+    }
+
+
+
+    /**
+     * 获取key剩余时间(秒)
+     * @param key
+     * @param redisTemplate
+     * @return
+     */
+    public long getExpireSeconds(String key,RedisTemplate redisTemplate){
+        return redisTemplate.getExpire(key,TimeUnit.SECONDS);
+    }
+    /**
      * 删除对应key的value
      * @param key
      */

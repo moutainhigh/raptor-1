@@ -1,6 +1,6 @@
 package com.mo9.raptor.utils.httpclient;
 
-import com.mo9.libracredit.util.httpclient.bean.IdleConnectionEvictor;
+import com.mo9.raptor.utils.httpclient.bean.IdleConnectionEvictor;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;

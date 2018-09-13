@@ -50,7 +50,7 @@ public class RedisParams {
     /**
      * 存储token
      */
-    public static final String TOKEN_KEY = "token_key_";
+    public static final String ACCESS_TOKEN_KEY = "access_token_key_";
 
     /**
      * 限制获取验证码频率
@@ -114,7 +114,9 @@ public class RedisParams {
     public static String getActionToken(String actionToken){
         return ACTION_TOKEN_LONG + actionToken;
     }
-
+    public static String getAccessToken(String clientId ,String accountMobile){
+        return ACCESS_TOKEN_KEY + clientId + accountMobile;
+    }
     public static String getUpdateTradePwdLimit(String userCode){
         return UPDATE_TRADE_PWD_LIMIT_TIMES + userCode;
     }
