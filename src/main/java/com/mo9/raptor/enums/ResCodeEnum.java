@@ -10,7 +10,9 @@ public enum ResCodeEnum {
      * 1115xxyy，1115：代表业务系统， xx代表业务模块， yy：代表具体错误码
      * <p>
      */
-    SUCCESS(11140000, "成功", "成功"),
+    SUCCESS(11150000, "成功", "成功"),
+    BANK_VERIFY_ERROR(11150001, "银行卡验证失败", "银行卡验证失败"),
+    BANK_VERIFY_EXCPTION(11150002, "银行卡验证超时", "银行卡验证超时"),
 
     ;
     /**
