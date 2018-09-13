@@ -31,6 +31,8 @@ public enum ResCodeEnum {
     MOBILE_NOT_MEET_THE_REQUIRE(11153001, "手机号不符合要求", "手机号不符合要求"),
     NOT_WHITE_LIST_USER(11153002, "非白名单用户", "非白名单用户"),
 
+    // xx=40 用户相关
+    USER_CARD_ID_NOT_EXIST(11154000 , "用户身份证号不存在" , "用户身份证号不存在"),
     ;
     /**
      * 错误码
