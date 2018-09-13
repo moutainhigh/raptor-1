@@ -99,12 +99,12 @@ public class GatewayUtils {
             String result = httpClientApi.doGet(gatewayUrl + method , params) ;
             logger.info(bankNo + " - " + cardId + " - " + userName + " - " + mobile + " 银行卡四要素验证返回参数 " + result);
             if(result == null){
-                return ResCodeEnum.BANK_VERIFY_EXCPTION ;
+                return ResCodeEnum.BANK_VERIFY_EXCEPTION ;
             }
             JSONObject data = JSON.parseObject(result) ;
             if(data.get("status") == null){
                 //渠道验证超时
-                return ResCodeEnum.BANK_VERIFY_EXCPTION ;
+                return ResCodeEnum.BANK_VERIFY_EXCEPTION ;
             }
             Boolean status = data.getBoolean("status") ;
             if(status){
@@ -114,7 +114,7 @@ public class GatewayUtils {
             }
         } catch (Exception e) {
             logger.error(bankNo + " - " + cardId + " - " + userName + " - " + mobile + " 银行卡四要素验证 异常" , e);
-            return ResCodeEnum.BANK_VERIFY_EXCPTION ;
+            return ResCodeEnum.BANK_VERIFY_EXCEPTION ;
         }
     }
 
@@ -128,5 +128,32 @@ public class GatewayUtils {
         return ResCodeEnum.SUCCESS ;
     }
 
+    /**
+     * 查询先玩后付订单状态 - 信息
+     * @param orderNo -- 本地放款订单号
+     */
+    public void getOrderMsg(String orderNo){
+        String method = "/proxypay/queryOrderStatus.mhtml";
+        Map<String,String> params = new HashMap<String,String>(10);
+        params.put("invoice" , orderNo) ;
+        try {
+            String result = httpClientApi.doGet(gatewayUrl + method , params) ;
+            JSONObject data = JSON.parseObject(result) ;
+
+            String status = data.getString("status") ; //请求状态 success 请求成功 failed 请求失败
+            String description = data.getString("description") ;   //请求返回信息
+            String invoice = data.getString("invoice") ;  //订单号
+            String dealcode = data.getString("dealcode") ; //先玩后付订单号
+            String orderStatus = data.getString("orderStatus") ;  //订单状态
+            String amount = data.getString("amount") ; //金额
+            String statusTime = data.getString("statusTime") ;  // 状态时间
+            String channel = data.getString("channel") ;  //渠道
+            String thirdDealcode = data.getString("status") ;  //第三方订单号
+            //TODO 后续操作
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
 
 }
