@@ -152,6 +152,28 @@ public class IDWorker {
         return System.currentTimeMillis();
     }
 
+    public long generateID(){
+        return generateID(workerId, datacenterId);
+    }
+
+    /**
+     * 返回Id
+     * @param workerId 机器ID (0~31)
+     * @param datacenterId 数据中心ID (0~31)
+     * @return
+     */
+    private static long generateID(long workerId, long datacenterId){
+    	   if (workerId > maxWorkerId || workerId < 0) {
+               throw new IllegalArgumentException(String.format("worker Id can't be greater than %d or less than 0", maxWorkerId));
+           }
+    	
+    	   if (datacenterId > maxDatacenterId || datacenterId < 0) {
+               throw new IllegalArgumentException(String.format("datacenter Id can't be greater than %d or less than 0", maxDatacenterId));
+           }
+    	IDWorker idWorker = new IDWorker(workerId, datacenterId);
+        long id = idWorker.nextId();
+    	return id;
+    }
     /**
      * 解析Id 获取机器ID 
      * @param id
@@ -189,6 +211,15 @@ public class IDWorker {
         Long  timestamp = Long.parseLong(subtime, 2) +twepoch;
         Date date = new Date(timestamp);
     	return date;
+    }
+
+    public static String getNewID(){
+        long l = generateID(5L, 5L);
+        return String.valueOf(l);
+    }
+    public static String getMsgKey(){
+        long l = generateID(5L, 6L);
+        return String.valueOf(l);
     }
 
     /**

@@ -5,11 +5,13 @@ import com.mo9.mqclient.MqAction;
 import com.mo9.mqclient.MqMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 /**
  * 先玩后付相关监听器
  * @author xtgu
  */
+@Component
 public class LoanMo9mqListener implements IMqMsgListener{
 	
 	private static final Logger logger = LoggerFactory.getLogger(LoanMo9mqListener.class);
@@ -18,10 +20,10 @@ public class LoanMo9mqListener implements IMqMsgListener{
 	 public MqAction consume(MqMessage msg, Object consumeContext) {
 		String tag = msg.getTag() ;
 		logger.info("获取tag -- " + tag);
-		if("proxypay_payStatus".equals(tag)){
+		if("MQ_RAPTOR_LOAN_TAG".equals(tag)){
 			//先玩后付订单状态回调
 			return payment(msg);
-		}else if("proxypay_payStatus".equals(tag)){
+		}else if("MQ_RAPTOR_PAYOFF_TAG".equals(tag)){
 			//先玩后付订单状态回调
 			return payoff(msg);
 		}
