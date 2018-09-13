@@ -26,6 +26,33 @@ CREATE TABLE `t_raptor_pay_order` (
   INDEX `index_loan_order_id` (`loan_order_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='还款订单表';
 
+/**************************还款订单log*************************/
+DROP TABLE IF EXISTS `t_raptor_pay_order_log`;
+CREATE TABLE `t_raptor_pay_order_log` (
+  `id`                        BIGINT UNSIGNED NOT NULL AUTO_INCREMENT   COMMENT '主键',
+  `order_id`                  VARCHAR(64)     NOT NULL                  COMMENT '借款订单号',
+  `pay_order_id`              VARCHAR(64)     NOT NULL                  COMMENT '还款订单号 - 业务流水号',
+  `channel`                   VARCHAR(64)     NOT NULL                  COMMENT '还款渠道',
+  `client_id`                 INT                                       COMMENT '客户端Id',
+  `client_version`            VARCHAR(64)                               COMMENT '客户端版本号',
+  `bank_card`                 VARCHAR(64)     NOT NULL                  COMMENT '还款银行卡号',
+  `bank_mobile`               VARCHAR(64)     NOT NULL                  COMMENT '预留手机号',
+  `user_name`                 VARCHAR(64)     NOT NULL                  COMMENT '用户真实姓名',
+  `id_card`                   VARCHAR(64)     NOT NULL                  COMMENT '身份证号',
+  `deal_code`                 VARCHAR(64)                               COMMENT '先玩后付订单号',
+  `third_channel_no`          VARCHAR(64)                               COMMENT '第三方订单号',
+  `channel_response`          VARCHAR(1024)                             COMMENT '第三方渠道响应结果',
+  `create_time`               BIGINT          NOT NULL                  COMMENT '创建时间',
+  `update_time`               BIGINT          NOT NULL                  COMMENT '修改时间',
+  `remark`                    VARCHAR(1024)   NOT NULL DEFAULT ''       COMMENT '备注，一般给直接操作数据库备注使用，程序一般不使用',
+  `deleted`                   INT(1)          NOT NULL                  COMMENT '是否逻辑删除',
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX (`pay_order_id`),
+  INDEX `index_deal_code` (`deal_code`) USING BTREE,
+  INDEX `index_order_id` (`order_id`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='还款订单log表';
+
+
 /**************************用户基本信息表*************************/
 SET FOREIGN_KEY_CHECKS=0;
 
