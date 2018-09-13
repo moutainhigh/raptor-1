@@ -38,6 +38,12 @@ public class BankEntity {
 	private String bankNo ;
 
 	/**
+	 * 银行名称
+	 */
+	@Column(name = "bank_name")
+	private String bankName ;
+
+	/**
 	 * 身份证
 	 */
 	@Column(name = "card_id")
@@ -60,6 +66,12 @@ public class BankEntity {
 	 */
 	@Column(name = "type")
 	private Type type ;
+
+	/**
+	 * 渠道
+	 */
+	@Column(name = "channel")
+	private String channel ;
 
 	/**
 	 * 创建时间
@@ -135,5 +147,21 @@ public class BankEntity {
 
 	public void setUpdateTime(Long updateTime) {
 		this.updateTime = updateTime;
+	}
+
+	public String getBankName() {
+		return bankName;
+	}
+
+	public void setBankName(String bankName) {
+		this.bankName = bankName;
+	}
+
+	public String getChannel() {
+		return channel;
+	}
+
+	public void setChannel(String channel) {
+		this.channel = channel;
 	}
 }

@@ -3,7 +3,6 @@ package com.mo9.raptor.utils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.enums.ResCodeEnum;
-import com.mo9.raptor.mq.listen.LoanMo9mqListener;
 import com.mo9.raptor.utils.httpclient.HttpClientApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,8 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
