@@ -2,17 +2,28 @@ package com.mo9.raptor.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.bean.BaseResponse;
+import com.mo9.raptor.bean.ReqHeaderParams;
 import com.mo9.raptor.bean.req.CashRenewalReq;
 import com.mo9.raptor.bean.req.CashRepayReq;
 import com.mo9.raptor.bean.res.ChannelDetailRes;
+import com.mo9.raptor.bean.res.PayOderChannelRes;
+import com.mo9.raptor.engine.entity.PayOrderEntity;
+import com.mo9.raptor.engine.enums.StatusEnum;
+import com.mo9.raptor.enums.PayTypeEnum;
+import com.mo9.raptor.enums.RenewableDaysEnum;
 import com.mo9.raptor.enums.RepayChannelTypeEnum;
+import com.mo9.raptor.enums.ResCodeEnum;
+import com.mo9.raptor.service.IPayOrderService;
+import com.mo9.raptor.utils.IDWorker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,16 +37,45 @@ public class PayOrderController {
 
     private static final Logger logger = LoggerFactory.getLogger(PayOrderController.class);
 
+    @Autowired
+    private IDWorker idWorker;
+
+    @Autowired
+    private IPayOrderService payOrderService;
+
     /**
-     * TODO:还清
+     * 还清
      * @param req
      * @return
      */
     @PostMapping("/repay")
-    public BaseResponse<JSONObject> repay(@Valid @RequestBody CashRepayReq req) {
+    public BaseResponse<JSONObject> repay(@Valid @RequestBody CashRepayReq req, HttpServletRequest request) {
         BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
+        String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
+        // TODO: 检查用户
 
-        return response;
+        // 获得订单
+        String loanOrderId = req.getOrderId();
+
+        String orderId = String.valueOf(idWorker.nextId());
+        PayOrderEntity payOrder = new PayOrderEntity();
+        payOrder.setOrderId(orderId);
+        payOrder.setStatus(StatusEnum.PENDING.name());
+        payOrder.setOwnerId(userCode);
+//        payOrder.setType();
+//        payOrder.setApplyNumber();
+        payOrder.setPostponeDays(0);
+        payOrder.setLoanOrderId(loanOrderId);
+        payOrder.setChannel(req.getChannelType().name());
+        payOrderService.save(payOrder);
+
+        payOrderService.repay(payOrder);
+
+
+        PayOderChannelRes res = new PayOderChannelRes();
+        JSONObject data = new JSONObject();
+        data.put("entities", res);
+        return response.buildSuccessResponse(data);
     }
 
     /**
@@ -44,10 +84,37 @@ public class PayOrderController {
      * @return
      */
     @PostMapping("/renewal")
-    public BaseResponse<JSONObject> renewal(@Valid @RequestBody CashRenewalReq req) {
+    public BaseResponse<JSONObject> renewal(@Valid @RequestBody CashRenewalReq req, HttpServletRequest request) {
         BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
+        String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
 
-        return response;
+
+        Boolean checkRenewableDays = RenewableDaysEnum.checkRenewableDays(req.getPeriod());
+        if (checkRenewableDays) {
+            return response.buildFailureResponse(ResCodeEnum.INVALID_RENEWAL_DAYS);
+        }
+
+        // 获得订单
+        String loanOrderId = req.getOrderId();
+
+        String orderId = String.valueOf(idWorker.nextId());
+        PayOrderEntity payOrder = new PayOrderEntity();
+        payOrder.setOrderId(orderId);
+        payOrder.setStatus(StatusEnum.PENDING.name());
+        payOrder.setOwnerId(userCode);
+        payOrder.setType(PayTypeEnum.REPAY_POSTPONE.name());
+//        payOrder.setApplyNumber();
+        payOrder.setPostponeDays(req.getPeriod());
+        payOrder.setLoanOrderId(loanOrderId);
+        payOrder.setChannel(req.getChannelType().name());
+        payOrderService.save(payOrder);
+
+        payOrderService.repay(payOrder);
+
+        PayOderChannelRes res = new PayOderChannelRes();
+        JSONObject data = new JSONObject();
+        data.put("entities", res);
+        return response.buildSuccessResponse(data);
     }
 
     /**

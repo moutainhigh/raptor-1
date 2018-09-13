@@ -1,6 +1,6 @@
 package com.mo9.raptor.engine.action;
 
-import com.mo9.raptor.engine.event.pay.EntryLaunchEvent;
+import com.mo9.raptor.engine.event.pay.EntryEvent;
 import com.mo9.raptor.engine.launcher.IEventLauncher;
 import com.mo9.raptor.service.IPayOrderService;
 import org.slf4j.Logger;
@@ -12,23 +12,23 @@ public class EntryLaunchAction implements IAction {
 
     private String payOrderId;
 
-    private IEventLauncher payOrderEventLauncher;
+    private IEventLauncher entryEventLauncher;
 
     private IPayOrderService payOrderService;
 
-    public EntryLaunchAction(String payOrderId, IEventLauncher payOrderEventLauncher, IPayOrderService payOrderService) {
+    public EntryLaunchAction(String payOrderId, IEventLauncher entryEventLauncher, IPayOrderService payOrderService) {
         this.payOrderId = payOrderId;
-        this.payOrderEventLauncher = payOrderEventLauncher;
+        this.entryEventLauncher = entryEventLauncher;
         this.payOrderService = payOrderService;
     }
 
     @Override
     public void run() {
-        EntryLaunchEvent entryLaunchEvent = new EntryLaunchEvent(payOrderId);
+        EntryEvent entryEvent = new EntryEvent(payOrderId);
         try {
-            this.payOrderEventLauncher.launch(entryLaunchEvent);
+            this.entryEventLauncher.launch(entryEvent);
         } catch (Exception e) {
-            logger.error("自动发送发起入账事件异常，事件：[{}]", entryLaunchEvent, e);
+            logger.error("自动发送发起入账事件异常，事件：[{}]", entryEvent, e);
         }
     }
 

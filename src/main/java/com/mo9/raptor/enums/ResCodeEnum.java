@@ -14,6 +14,12 @@ public enum ResCodeEnum {
     BANK_VERIFY_ERROR(11150001, "银行卡验证失败", "银行卡验证失败"),
     BANK_VERIFY_EXCPTION(11150002, "银行卡验证超时", "银行卡验证超时"),
 
+
+    /**
+     * 10, 还款
+     */
+    INVALID_RENEWAL_DAYS(11151002, "无效的延期天数", "无效的延期天数"),
+
     ;
     /**
      * 错误码

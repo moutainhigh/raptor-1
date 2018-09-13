@@ -114,4 +114,9 @@ public class PayOrderServiceImpl implements IPayOrderService {
         //查询
         return payOrderRepository.findAll(specification , pageable);
     }
+
+    @Override
+    public void repay(PayOrderEntity payOrder) {
+
+    }
 }

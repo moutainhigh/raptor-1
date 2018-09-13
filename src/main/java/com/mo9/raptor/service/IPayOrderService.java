@@ -29,7 +29,7 @@ public interface IPayOrderService {
     /**
      * 保存订单
      */
-    void save(PayOrderEntity loanOrder);
+    void save(PayOrderEntity payOrder);
 
     /**
      * 所有还款订单查询
@@ -51,4 +51,10 @@ public interface IPayOrderService {
      * @return
      */
     Page<PayOrderEntity> listPayOrderByCondition(FetchPayOrderCondition condition);
+
+    /**
+     * 用户还款, 通知先玩后付
+     * @param payOrder
+     */
+    void repay(PayOrderEntity payOrder);
 }
