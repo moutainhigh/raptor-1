@@ -77,9 +77,7 @@ public class UserController {
             //返回token
             String token = UUID.randomUUID().toString().replaceAll("-", StringUtils.EMPTY);
             redisServiceApi.set(RedisParams.getAccessToken(clientId,userEntity.getUserCode()),token,RedisParams.EXPIRE_30M,raptorRedis);
-            entity.put("userId",userEntity.getUserId());
             entity.put("mobile",userEntity.getMobile());
-            entity.put("userId",userEntity.getUserId());
             entity.put("accessToken",token);
             entity.put("accessCode",userEntity.getUserCode());
             resMap.put("entity",entity);

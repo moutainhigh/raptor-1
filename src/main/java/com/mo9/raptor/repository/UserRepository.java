@@ -9,15 +9,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
  */
 public interface UserRepository extends JpaRepository<UserEntity,Long> {
 
-    UserEntity findByUserId(String userId);
+    UserEntity findByUserCode(String userCode);
     /**
-     * 根据userId查询是否禁用的用户
-     * @param userId
+     * 根据userCode查询是否禁用的用户
+     * @param userCode
      * @param isDelete
      * @return
      */
-    UserEntity findByUserIdAndDeleted(String userId, boolean isDelete);
-
+    UserEntity findByUserCodeAndDeleted(String userCode, boolean isDelete);
     /**
      * 根据绑定手机号查询用户是否存在
      * @param mobile

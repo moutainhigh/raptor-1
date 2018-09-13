@@ -17,14 +17,14 @@ public class UserServiceImpl implements UserService {
     UserRepository userRepository;
 
     @Override
-    public UserEntity findByUserId(String userId) {
-        return userRepository.findByUserId(userId);
+    public UserEntity findByUserCode(String userCode) {
+        return userRepository.findByUserCode(userCode);
     }
 
 
     @Override
-    public UserEntity findByUserIdAndDeleted(String userId, boolean isDelete) {
-        return userRepository.findByUserIdAndDeleted(userId,isDelete);
+    public UserEntity findByUserCodeAndDeleted(String userCode, boolean isDelete) {
+        return userRepository.findByUserCodeAndDeleted(userCode,isDelete);
     }
 
     @Override
