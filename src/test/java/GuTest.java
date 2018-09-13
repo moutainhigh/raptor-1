@@ -1,6 +1,7 @@
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.RaptorApplicationTest;
+import com.mo9.raptor.service.BankService;
 import com.mo9.raptor.utils.Md5Encrypt;
 import com.mo9.raptor.utils.httpclient.HttpClientApi;
 import com.mo9.raptor.utils.httpclient.bean.HttpResult;
@@ -32,14 +33,17 @@ public class GuTest {
      */
     @Test
     public void loan (){
+        /**
+         * 放款渠道配置 : 先玩后付 FAST_LOAN_CHANNEL  -- LOAN_CHANNEL 数据字典
+         */
 
         int dd = 1 ;
         for (int i = 1; i <= dd; i++) {
             try {
                 String notifyUrl = "https://riskclone.mo9.com/riskportal/limit/order/paymentCallBack.a";
                 //	String url = "http://localhost/gateway/proxypay/pay.mhtml";
-                //String url = "https://new.mo9.com/gateway/proxypay/pay.mhtml";
-                String url =  "http://localhost:8081/gateway/proxypay/pay.mhtml";
+                String url = "https://new.mo9.com/gateway/proxypay/pay.mhtml";
+                //String url =  "http://localhost:8081/gateway/proxypay/pay.mhtml";
                 //String url = "http://guxt.local.mo9.com/gateway/proxypay/queryOrderStatus.mhtml";
                 String key = "werocxofsdjnfksdf892349729lkfnnmgn/x,.zx=9=-MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAJGLeWVIS3wo0U2h8lzWjiq5RJJDi14hzsbxxwedhqje123";
                 Map<String, String> payParams = new HashMap<String, String>();
@@ -64,9 +68,9 @@ public class GuTest {
                 payParams.put("extraParameter", jsonParams.toJSONString());
                 String sign = Md5Encrypt.sign(payParams, key);
                 payParams.put("sign", sign);
-                //HttpResult resJson = httpClientApi.doPost(url, payParams);
-                HttpResult resJson1 = httpClientApi.doPostJson(url, JSON.toJSONString(payParams));
-                System.err.println(resJson1);
+                String resJson = httpClientApi.doGet(url, payParams);
+                //HttpResult resJson1 = httpClientApi.doGet(url, JSON.toJSONString(payParams));
+                System.err.println(resJson);
             } catch (Exception e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -75,4 +79,18 @@ public class GuTest {
 
     }
 
+
+    @Autowired
+    private BankService bankService ;
+    /**
+     * 银行卡相关
+     */
+    @Test
+    public void bank (){
+        String bankNo = "6217001210032584250" ;
+        String cardId = "320684199109100052" ;
+        String userName = "顾晓桐" ;
+        String mobile = "13916393513" ;
+        bankService.verify( bankNo , cardId , userName , mobile);
+    }
 }

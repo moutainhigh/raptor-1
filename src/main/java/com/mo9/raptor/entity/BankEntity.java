@@ -64,6 +64,7 @@ public class BankEntity {
 	/**
 	 * 类型
 	 */
+	@Enumerated(EnumType.STRING)
 	@Column(name = "type")
 	private Type type ;
 

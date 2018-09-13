@@ -10,6 +10,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * Created by xtgu on 2018/9/12.
  * @author xtgu
@@ -23,6 +25,15 @@ public class BankServiceImpl implements BankService {
 
     @Autowired
     private GatewayUtils gatewayUtils ;
+
+    @Override
+    public BankEntity findByMobileLastOne(String mobile , BankEntity.Type type) {
+        List<BankEntity> bankEntityList = bankRepository.findByMobileAndType(mobile , type);
+        if(bankEntityList != null && bankEntityList.size() > 0){
+            return bankEntityList.get(0);
+        }
+        return null;
+    }
 
     @Override
     public BankEntity findByBankNoByLoan(String bankNo) {
@@ -45,6 +56,10 @@ public class BankServiceImpl implements BankService {
             if(!(cardId.equals(bankEntity.getCardId()) && userName.equals(bankEntity.getUserName()) && mobile.equals(bankEntity.getMobile()))){
                 logger.error("本地 四要素验证失败" + bankNo + " - " + cardId + " - " + userName + " - " + mobile);
                 return ResCodeEnum.BANK_VERIFY_ERROR ;
+            }else{
+                bankEntity.setUpdateTime(System.currentTimeMillis());
+                bankRepository.save(bankEntity) ;
+                return ResCodeEnum.SUCCESS ;
             }
         }
         ResCodeEnum resCodeEnum = gatewayUtils.verifyBank( bankNo ,  cardId ,  userName ,  mobile) ;
@@ -55,10 +70,14 @@ public class BankServiceImpl implements BankService {
     }
 
     @Override
-    public void createRepayBank(String bankNo, String cardId, String userName, String mobile, String channel, String bankName) {
-        BankEntity bankEntity = this.findByBankNoAndTypeAndChannel(bankNo , BankEntity.Type.PAYOFF , channel) ;
+    public void createOrUpdateBank(String bankNo, String cardId, String userName, String mobile, String channel, String bankName , BankEntity.Type type) {
+        BankEntity bankEntity = this.findByBankNoAndTypeAndChannel(bankNo , type , channel) ;
         if(bankEntity == null){
             this.create( bankNo , cardId , userName , mobile , BankEntity.Type.PAYOFF , channel , bankName) ;
+        }else{
+            //更新update时间
+            bankEntity.setUpdateTime(System.currentTimeMillis());
+            bankRepository.save(bankEntity) ;
         }
     }
 
