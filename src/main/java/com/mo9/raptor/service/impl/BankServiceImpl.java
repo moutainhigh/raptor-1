@@ -10,6 +10,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * Created by xtgu on 2018/9/12.
  * @author xtgu
@@ -25,8 +27,17 @@ public class BankServiceImpl implements BankService {
     private GatewayUtils gatewayUtils ;
 
     @Override
-    public BankEntity findByBankNo(String bankNo) {
-        return bankRepository.findByBankNo(bankNo) ;
+    public BankEntity findByMobileLastOne(String mobile , BankEntity.Type type) {
+        List<BankEntity> bankEntityList = bankRepository.findByMobileAndType(mobile , type);
+        if(bankEntityList != null && bankEntityList.size() > 0){
+            return bankEntityList.get(0);
+        }
+        return null;
+    }
+
+    @Override
+    public BankEntity findByBankNoByLoan(String bankNo) {
+        return bankRepository.findByBankNoByLoan(bankNo) ;
     }
 
     /**
@@ -39,23 +50,53 @@ public class BankServiceImpl implements BankService {
      */
     @Override
     public ResCodeEnum verify(String bankNo , String cardId , String userName , String mobile){
-        BankEntity bankEntity = this.findByBankNo(bankNo) ;
+        BankEntity bankEntity = this.findByBankNoByLoan(bankNo) ;
         if(bankEntity != null){
             //判断本地数据四要素正确情况
             if(!(cardId.equals(bankEntity.getCardId()) && userName.equals(bankEntity.getUserName()) && mobile.equals(bankEntity.getMobile()))){
                 logger.error("本地 四要素验证失败" + bankNo + " - " + cardId + " - " + userName + " - " + mobile);
                 return ResCodeEnum.BANK_VERIFY_ERROR ;
+            }else{
+                bankEntity.setUpdateTime(System.currentTimeMillis());
+                bankRepository.save(bankEntity) ;
+                return ResCodeEnum.SUCCESS ;
             }
         }
         ResCodeEnum resCodeEnum = gatewayUtils.verifyBank( bankNo ,  cardId ,  userName ,  mobile) ;
         if(ResCodeEnum.SUCCESS == resCodeEnum){
-            this.create( bankNo , cardId , userName , mobile , BankEntity.Type.LOAN) ;
+            this.create( bankNo , cardId , userName , mobile , BankEntity.Type.LOAN , null , null) ;
         }
         return resCodeEnum ;
     }
 
     @Override
-    public void create(String bankNo , String cardId , String userName , String mobile , BankEntity.Type type){
+    public void createOrUpdateBank(String bankNo, String cardId, String userName, String mobile, String channel, String bankName , BankEntity.Type type) {
+        BankEntity bankEntity = this.findByBankNoAndTypeAndChannel(bankNo , type , channel) ;
+        if(bankEntity == null){
+            this.create( bankNo , cardId , userName , mobile , BankEntity.Type.PAYOFF , channel , bankName) ;
+        }else{
+            //更新update时间
+            bankEntity.setUpdateTime(System.currentTimeMillis());
+            bankRepository.save(bankEntity) ;
+        }
+    }
+
+    @Override
+    public BankEntity findByBankNoAndTypeAndChannel(String bankNo, BankEntity.Type type, String channel) {
+        return bankRepository.findByBankNoAndTypeAndChannel(bankNo , type , channel);
+    }
+
+    /**
+     * 创建
+     * @param bankNo
+     * @param cardId
+     * @param userName
+     * @param mobile
+     * @param type
+     * @param channel
+     * @param bankName
+     */
+    private void create(String bankNo , String cardId , String userName , String mobile , BankEntity.Type type , String channel , String bankName){
         //验证成功
         Long time = System.currentTimeMillis() ;
         BankEntity bankEntity = new BankEntity();
@@ -65,6 +106,8 @@ public class BankServiceImpl implements BankService {
         bankEntity.setUserName(userName);
         bankEntity.setType(type);
         bankEntity.setCreateTime(time) ;
+        bankEntity.setChannel(channel);
+        bankEntity.setBankName(bankName);
         bankEntity.setUpdateTime(time) ;
         //存储四要素信息
         bankRepository.save(bankEntity);

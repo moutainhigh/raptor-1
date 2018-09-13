@@ -109,3 +109,25 @@ CREATE TABLE `t_raptor_certify_info` (
   `update_time` bigint(20) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户认证信息表';;
+/**************************个人银行卡相关表*************************/
+DROP TABLE IF EXISTS `t_bank`;
+CREATE TABLE `t_bank` (
+`id`  bigint(20) NOT NULL AUTO_INCREMENT ,
+`mobile`  varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL ,
+`bank_no`  varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '银行卡' ,
+`bank_name`  varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL ,
+`card_id`  varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL ,
+`user_name`  varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL ,
+`channel`  varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL ,
+`type`  varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '类型 (放款 , 还款)' ,
+`create_time`  bigint(20) NULL DEFAULT NULL ,
+`update_time`  bigint(20) NULL DEFAULT NULL ,
+PRIMARY KEY (`id`),
+INDEX `mobile` (`mobile`) USING BTREE ,
+INDEX `bank_no` (`bank_no`) USING BTREE
+)
+ENGINE=InnoDB
+DEFAULT CHARACTER SET=utf8 COLLATE=utf8_general_ci
+AUTO_INCREMENT=7
+ROW_FORMAT=DYNAMIC
+;
