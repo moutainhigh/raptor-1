@@ -15,7 +15,7 @@ public abstract class AbstractEvent implements IEvent {
 
     public AbstractEvent() {
         this.eventId = IDWorker.getNewID();
-        this.eventTime = new Date().getTime();
+        this.eventTime = System.currentTimeMillis();
     }
 
     @Override

@@ -27,6 +27,12 @@ public class PayOrderEntity extends AbstractOrderEntity {
     private String loanOrderId;
 
     /**
+     * 还款渠道
+     */
+    @Column(name = "channel")
+    private String channel;
+
+    /**
      * 请求支付数量
      */
     @Column(name = "apply_number")
@@ -43,27 +49,6 @@ public class PayOrderEntity extends AbstractOrderEntity {
      */
     @Column(name = "entry_number")
     private BigDecimal entryNumber = BigDecimal.ZERO;
-
-    /**
-     * 还的本金
-     */
-    @Column(name = "paid_principal")
-    private BigDecimal paidPrincipal = BigDecimal.ZERO;
-    /**
-     * 还的利息
-     */
-    @Column(name = "paid_interest")
-    private BigDecimal paidInterest = BigDecimal.ZERO;
-    /**
-     * 还的罚息
-     */
-    @Column(name = "paid_penalty")
-    private BigDecimal paidPenalty = BigDecimal.ZERO;
-    /**
-     * 还的服务费
-     */
-    @Column(name = "paid_fee")
-    private BigDecimal paidFee = BigDecimal.ZERO;
 
     /**
      * 支付时间
@@ -140,43 +125,19 @@ public class PayOrderEntity extends AbstractOrderEntity {
         this.loanOrderId = loanOrderId;
     }
 
-    public BigDecimal getPaidPrincipal() {
-        return paidPrincipal;
-    }
-
-    public void setPaidPrincipal(BigDecimal paidPrincipal) {
-        this.paidPrincipal = paidPrincipal;
-    }
-
-    public BigDecimal getPaidInterest() {
-        return paidInterest;
-    }
-
-    public void setPaidInterest(BigDecimal paidInterest) {
-        this.paidInterest = paidInterest;
-    }
-
-    public BigDecimal getPaidPenalty() {
-        return paidPenalty;
-    }
-
-    public void setPaidPenalty(BigDecimal paidPenalty) {
-        this.paidPenalty = paidPenalty;
-    }
-
-    public BigDecimal getPaidFee() {
-        return paidFee;
-    }
-
-    public void setPaidFee(BigDecimal paidFee) {
-        this.paidFee = paidFee;
-    }
-
     public Integer getPostponeDays() {
         return postponeDays;
     }
 
     public void setPostponeDays(Integer postponeDays) {
         this.postponeDays = postponeDays;
+    }
+
+    public String getChannel() {
+        return channel;
+    }
+
+    public void setChannel(String channel) {
+        this.channel = channel;
     }
 }
