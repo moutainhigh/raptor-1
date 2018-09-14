@@ -1,6 +1,11 @@
 package com.mo9.raptor.engine.structure.item;
 
+import com.mo9.raptor.engine.exception.MergeException;
+import com.mo9.raptor.engine.structure.field.DestinationTypeEnum;
 import com.mo9.raptor.engine.structure.field.Field;
+import com.mo9.raptor.engine.structure.field.FieldTypeEnum;
+import com.mo9.raptor.engine.utils.EngineStaticValue;
+import com.mo9.raptor.engine.utils.TimeUtils;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -20,12 +25,12 @@ public class Item extends HashMap<FieldTypeEnum, Field> {
     /** 根据给定条件，计算该分期罚息，并返回罚息溢缴款余额 */
     public BigDecimal calculatePenalty (long date, long penaltyBoundaryDate, int graceRepayDays, BigDecimal penaltyOverpay, BigDecimal dailyPenaltyRate) {
 
-        long graceRepayDate = repayDate + LoanLimitation.DAY_MILLIS * graceRepayDays;
+        long graceRepayDate = repayDate + EngineStaticValue.DAY_MILLIS * graceRepayDays;
 
         penaltyBoundaryDate = penaltyBoundaryDate > graceRepayDate ? penaltyBoundaryDate : graceRepayDate;
         int overdueDays = TimeUtils.dateDiff(penaltyBoundaryDate, date);
         BigDecimal dailyPenalty = this.getFieldNumber(FieldTypeEnum.PRINCIPAL).multiply(dailyPenaltyRate)
-                .setScale(LoanLimitation.RESULT_SCALE, BigDecimal.ROUND_UP);
+                .setScale(EngineStaticValue.RESULT_SCALE, BigDecimal.ROUND_UP);
         BigDecimal penalty;
         if (penaltyOverpay.compareTo(BigDecimal.ZERO) > 0) {
             if (penaltyOverpay.compareTo(dailyPenalty) < 0) {
@@ -193,9 +198,9 @@ public class Item extends HashMap<FieldTypeEnum, Field> {
         field.setNumber(fieldNumber);
     }
 
-    public void setDestination(DestinationEnum destination, String destinationId) {
+    public void setDestination(DestinationTypeEnum destination, String destinationId) {
         for (Field field: this.values()) {
-            field.setDestination(destination);
+            field.setDestinationType(destination);
             field.setDestinationId(destinationId);
         }
     }

@@ -1,9 +1,15 @@
 package com.mo9.raptor.engine.structure;
 
-
+import com.mo9.raptor.engine.exception.InvalidSchemeFieldException;
+import com.mo9.raptor.engine.exception.MergeException;
 import com.mo9.raptor.engine.strategy.weight.Weight;
-import com.mo9.raptor.engine.structure.field.Field;
+import com.mo9.raptor.engine.strategy.weight.WeightMode;
+import com.mo9.raptor.engine.structure.field.*;
 import com.mo9.raptor.engine.structure.item.Item;
+import com.mo9.raptor.engine.structure.item.ItemTypeEnum;
+import com.mo9.raptor.engine.utils.EngineStaticValue;
+import com.mo9.raptor.engine.utils.TimeUtils;
+import com.mo9.raptor.enums.PayTypeEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,7 +62,7 @@ public class Scheme extends HashMap<Integer, Item>  {
         }
 
         /** 处理提前还款 */
-        Item prepayItem = this.get(LoanLimitation.PREPAY_ITEM);
+        Item prepayItem = this.get(EngineStaticValue.PREPAY_ITEM);
 
         if (prepayItem == null || prepayItem.size() == 0) {
             return schemeEntryMap;
@@ -64,16 +70,16 @@ public class Scheme extends HashMap<Integer, Item>  {
 
         Item prepayPayLoanItem = new Item();
         prepayPayLoanItem.setItemType(ItemTypeEnum.PREPAY);
-        prepayPayLoanItem.setSequence(LoanLimitation.PREPAY_ITEM);
+        prepayPayLoanItem.setSequence(EngineStaticValue.PREPAY_ITEM);
         Item prepayCouponLoanItem = new Item();
         prepayCouponLoanItem.setItemType(ItemTypeEnum.PREPAY);
-        prepayCouponLoanItem.setSequence(LoanLimitation.PREPAY_ITEM);
+        prepayCouponLoanItem.setSequence(EngineStaticValue.PREPAY_ITEM);
         Item prepayPayStrategyItem = new Item();
         prepayPayStrategyItem.setItemType(ItemTypeEnum.PREPAY);
-        prepayPayStrategyItem.setSequence(LoanLimitation.PREPAY_ITEM);
+        prepayPayStrategyItem.setSequence(EngineStaticValue.PREPAY_ITEM);
         Item prepayCouponStrategyItem = new Item();
         prepayCouponStrategyItem.setItemType(ItemTypeEnum.PREPAY);
-        prepayCouponStrategyItem.setSequence(LoanLimitation.PREPAY_ITEM);
+        prepayCouponStrategyItem.setSequence(EngineStaticValue.PREPAY_ITEM);
 
         for (Entry<FieldTypeEnum, Field> entry : prepayItem.entrySet()) {
             Weight strategyWeight = strategyWeightMap[ItemTypeEnum.PREPAY.getSequence()][entry.getKey().getSequence()];
@@ -110,28 +116,28 @@ public class Scheme extends HashMap<Integer, Item>  {
             payLoanScheme = new Scheme();
             schemeEntryMap.put(EntryEnum.PAY_LOAN, payLoanScheme);
         }
-        payLoanScheme.put(LoanLimitation.PREPAY_ITEM, prepayPayLoanItem);
+        payLoanScheme.put(EngineStaticValue.PREPAY_ITEM, prepayPayLoanItem);
 
         Scheme payStrategyScheme = schemeEntryMap.get(EntryEnum.PAY_STRATEGY);
         if (payStrategyScheme == null) {
             payStrategyScheme = new Scheme();
             schemeEntryMap.put(EntryEnum.PAY_STRATEGY, payStrategyScheme);
         }
-        payStrategyScheme.put(LoanLimitation.PREPAY_ITEM, prepayPayStrategyItem);
+        payStrategyScheme.put(EngineStaticValue.PREPAY_ITEM, prepayPayStrategyItem);
 
         Scheme couponLoanScheme = schemeEntryMap.get(EntryEnum.COUPON_LOAN);
         if (couponLoanScheme == null) {
             couponLoanScheme = new Scheme();
             schemeEntryMap.put(EntryEnum.COUPON_LOAN, couponLoanScheme);
         }
-        couponLoanScheme.put(LoanLimitation.PREPAY_ITEM, prepayCouponLoanItem);
+        couponLoanScheme.put(EngineStaticValue.PREPAY_ITEM, prepayCouponLoanItem);
 
         Scheme couponStrategyScheme = schemeEntryMap.get(EntryEnum.COUPON_STRATEGY);
         if (couponStrategyScheme == null) {
             couponStrategyScheme = new Scheme();
             schemeEntryMap.put(EntryEnum.COUPON_STRATEGY, couponStrategyScheme);
         }
-        couponStrategyScheme.put(LoanLimitation.PREPAY_ITEM, prepayCouponStrategyItem);
+        couponStrategyScheme.put(EngineStaticValue.PREPAY_ITEM, prepayCouponStrategyItem);
 
         for (Scheme scheme: schemeEntryMap.values()) {
             scheme.setPenaltyOverpay(this.penaltyOverpay);
@@ -208,17 +214,17 @@ public class Scheme extends HashMap<Integer, Item>  {
 
                 /** 保存到明细表 */
                 schemeEntryMap.get(EntryEnum.PAY_LOAN).createItemField(item.getSequence(), itemType, item.getRepayDate(),
-                        fieldType, fieldPayLoan, SourceEnum.PAY_ORDER, payOrderId,
-                        itemField.getDestination(), itemField.getDestinationId());
+                        fieldType, fieldPayLoan, SourceTypeEnum.PAY_ORDER, payOrderId,
+                        itemField.getDestinationType(), itemField.getDestinationId());
                 schemeEntryMap.get(EntryEnum.COUPON_LOAN).createItemField(item.getSequence(), itemType, item.getRepayDate(),
-                        fieldType, fieldCouponLoan, SourceEnum.COUPON, couponWeight.getId(),
-                        itemField.getDestination(), itemField.getDestinationId());
+                        fieldType, fieldCouponLoan, SourceTypeEnum.COUPON, couponWeight.getId(),
+                        itemField.getDestinationType(), itemField.getDestinationId());
                 schemeEntryMap.get(EntryEnum.PAY_STRATEGY).createItemField(item.getSequence(), itemType, item.getRepayDate(),
-                        fieldType, fieldPayStrategy, SourceEnum.PAY_ORDER, payOrderId,
-                        DestinationEnum.PAY_STRATEGY, strategyWeight.getId());
+                        fieldType, fieldPayStrategy, SourceTypeEnum.PAY_ORDER, payOrderId,
+                        DestinationTypeEnum.PAY_STRATEGY, strategyWeight.getId());
                 schemeEntryMap.get(EntryEnum.COUPON_STRATEGY).createItemField(item.getSequence(), itemType, item.getRepayDate(),
-                        fieldType, fieldCouponStrategy, SourceEnum.COUPON, couponWeight.getId(),
-                        DestinationEnum.PAY_STRATEGY, strategyWeight.getId());
+                        fieldType, fieldCouponStrategy, SourceTypeEnum.COUPON, couponWeight.getId(),
+                        DestinationTypeEnum.PAY_STRATEGY, strategyWeight.getId());
             }
         }
 
@@ -227,8 +233,8 @@ public class Scheme extends HashMap<Integer, Item>  {
 
     public void createItemField (int itemSequence, ItemTypeEnum itemType, long repayDate,
                                  FieldTypeEnum fieldType, BigDecimal fieldNumber,
-                                 SourceEnum source, String sourceId,
-                                 DestinationEnum destination, String destinationId) {
+                                 SourceTypeEnum sourceType, String sourceId,
+                                 DestinationTypeEnum destinationType, String destinationId) {
 
         Item item = new Item();
         item.setSequence(itemSequence);
@@ -237,9 +243,9 @@ public class Scheme extends HashMap<Integer, Item>  {
 
         Field field = new Field();
         field.setFieldType(fieldType);
-        field.setSource(source);
+        field.setSourceType(sourceType);
         field.setSourceId(sourceId);
-        field.setDestination(destination);
+        field.setDestinationType(destinationType);
         field.setDestinationId(destinationId);
         field.setNumber(fieldNumber);
 
@@ -416,7 +422,7 @@ public class Scheme extends HashMap<Integer, Item>  {
             this.fieldRemove(FieldTypeEnum.PENALTY);
 
             long graceRepayDate;
-            long graceRepayMills = this.repayGraceDays * LoanLimitation.DAY_MILLIS;
+            long graceRepayMills = this.repayGraceDays * EngineStaticValue.DAY_MILLIS;
             BigDecimal principal = BigDecimal.ZERO;
             /** 罚息结算起始日 */
             long schemeBeginDate;
@@ -462,7 +468,7 @@ public class Scheme extends HashMap<Integer, Item>  {
                 } else {
                     schemeDays = payNumber.divide(dailyPenalty, BigDecimal.ROUND_DOWN).intValue();
                     schemePenalty = dailyPenalty.multiply(new BigDecimal(schemeDays));
-                    this.penaltyBoundDate = this.penaltyBoundDate + schemeDays * LoanLimitation.DAY_MILLIS;
+                    this.penaltyBoundDate = this.penaltyBoundDate + schemeDays * EngineStaticValue.DAY_MILLIS;
                     this.penaltyOverpay = payNumber.subtract(schemePenalty);
                     payNumber = BigDecimal.ZERO;
                 }
@@ -536,17 +542,17 @@ public class Scheme extends HashMap<Integer, Item>  {
 
         /** 存在未到期分期，则配置提前还款分期的基本信息 */
         prepayItem.setItemType(ItemTypeEnum.PREPAY);
-        prepayItem.setSequence(LoanLimitation.PREPAY_ITEM);
+        prepayItem.setSequence(EngineStaticValue.PREPAY_ITEM);
         prepayItem.setRepayDate(System.currentTimeMillis());
 
         /** 配置该期本金应还利息 */
         BigDecimal prepayInterest = prepayItem.getFieldNumber(FieldTypeEnum.PRINCIPAL)
                 .multiply(dayInterestRate)
                 .multiply(new BigDecimal(passInterestDays))
-                .setScale(LoanLimitation.RESULT_SCALE, BigDecimal.ROUND_UP);
+                .setScale(EngineStaticValue.RESULT_SCALE, BigDecimal.ROUND_UP);
         prepayItem.setFieldNumber(FieldTypeEnum.INTEREST, prepayInterest);
 
-        scheme.put(LoanLimitation.PREPAY_ITEM, prepayItem);
+        scheme.put(EngineStaticValue.PREPAY_ITEM, prepayItem);
 
         return scheme;
     }
@@ -554,7 +560,7 @@ public class Scheme extends HashMap<Integer, Item>  {
     public BigDecimal schemePrepay(Item prepayPayLoanItem, Item prepayCouponLoanItem, Item prepayPayStrategyItem, Item prepayCouponStrategyItem,
                                    BigDecimal payNumber, Weight[][] strategyWeightMap, Weight[][] couponWeightMap) {
         /** 提前还款全部应还 */
-        Item should = this.get(LoanLimitation.PREPAY_ITEM).add(prepayPayStrategyItem).add(prepayCouponStrategyItem);
+        Item should = this.get(EngineStaticValue.PREPAY_ITEM).add(prepayPayStrategyItem).add(prepayCouponStrategyItem);
         /** 最多优惠 */
         Item coupon = prepayCouponLoanItem.add(prepayCouponStrategyItem);
 
@@ -568,8 +574,8 @@ public class Scheme extends HashMap<Integer, Item>  {
 
         /** 按照订单提前还款的各款项之间的比例，计算出，当将所有还款金额加上本金优惠项值作为本金支付时，将产生的各款项值 */
         BigDecimal maxPrepayPrincipal = payNumber.add(couponPrepayPrincipal);
-        BigDecimal maxPrepayInterest = maxPrepayPrincipal.multiply(shouldInterest).divide(shouldPrincipal, LoanLimitation.RESULT_SCALE, BigDecimal.ROUND_UP);
-        BigDecimal maxPrepayCharge = maxPrepayPrincipal.multiply(shouldCharge).divide(shouldPrincipal, LoanLimitation.RESULT_SCALE, BigDecimal.ROUND_UP);
+        BigDecimal maxPrepayInterest = maxPrepayPrincipal.multiply(shouldInterest).divide(shouldPrincipal, EngineStaticValue.RESULT_SCALE, BigDecimal.ROUND_UP);
+        BigDecimal maxPrepayCharge = maxPrepayPrincipal.multiply(shouldCharge).divide(shouldPrincipal, EngineStaticValue.RESULT_SCALE, BigDecimal.ROUND_UP);
 
         BigDecimal payPrepayPrincipal;
         BigDecimal payPrepayInterest;
@@ -641,9 +647,9 @@ public class Scheme extends HashMap<Integer, Item>  {
 
             payPrepayPrincipal = couponPrepayInterest.add(payNumber).multiply(shouldPrincipal)
                     .subtract(shouldInterest.multiply(couponPrepayPrincipal))
-                    .divide(shouldPrincipal.add(shouldInterest), LoanLimitation.RESULT_SCALE, BigDecimal.ROUND_DOWN);
+                    .divide(shouldPrincipal.add(shouldInterest), EngineStaticValue.RESULT_SCALE, BigDecimal.ROUND_DOWN);
             payPrepayInterest = payNumber.subtract(payPrepayPrincipal);
-            realCouponCharge = payPrepayPrincipal.add(couponPrepayPrincipal).multiply(shouldCharge).divide(shouldPrincipal, LoanLimitation.RESULT_SCALE, BigDecimal.ROUND_UP);
+            realCouponCharge = payPrepayPrincipal.add(couponPrepayPrincipal).multiply(shouldCharge).divide(shouldPrincipal, EngineStaticValue.RESULT_SCALE, BigDecimal.ROUND_UP);
 
             BigDecimal payStrategyPrincipal = strategyPrincipal.forward(payPrepayPrincipal);
             BigDecimal payLoanPrincipal = payPrepayPrincipal.subtract(payStrategyPrincipal);
@@ -677,9 +683,9 @@ public class Scheme extends HashMap<Integer, Item>  {
         } else if (maxPrepayInterest.compareTo(couponPrepayInterest) <= 0 && maxPrepayCharge.compareTo(couponPrepayCharge) > 0) {
             payPrepayPrincipal = couponPrepayCharge.add(payNumber).multiply(shouldPrincipal)
                     .subtract(shouldCharge.multiply(couponPrepayPrincipal))
-                    .divide(shouldPrincipal.add(shouldCharge), LoanLimitation.RESULT_SCALE, BigDecimal.ROUND_DOWN);
+                    .divide(shouldPrincipal.add(shouldCharge), EngineStaticValue.RESULT_SCALE, BigDecimal.ROUND_DOWN);
             payPrepayCharge = payNumber.subtract(payPrepayPrincipal);
-            realCouponInterest = payPrepayPrincipal.add(couponPrepayPrincipal).multiply(shouldInterest).divide(shouldPrincipal, LoanLimitation.RESULT_SCALE, BigDecimal.ROUND_UP);
+            realCouponInterest = payPrepayPrincipal.add(couponPrepayPrincipal).multiply(shouldInterest).divide(shouldPrincipal, EngineStaticValue.RESULT_SCALE, BigDecimal.ROUND_UP);
 
             BigDecimal payStrategyPrincipal = strategyPrincipal.forward(payPrepayPrincipal);
             BigDecimal payLoanPrincipal = payPrepayPrincipal.subtract(payStrategyPrincipal);
@@ -713,14 +719,14 @@ public class Scheme extends HashMap<Integer, Item>  {
         } else {
             BigDecimal entryNumber = coupon.sum().add(payNumber);
             BigDecimal orderNumber = should.sum();
-            entryPrepayPrincipal = shouldPrincipal.multiply(entryNumber).divide(orderNumber, LoanLimitation.RESULT_SCALE, BigDecimal.ROUND_UP);
+            entryPrepayPrincipal = shouldPrincipal.multiply(entryNumber).divide(orderNumber, EngineStaticValue.RESULT_SCALE, BigDecimal.ROUND_UP);
             if (entryPrepayPrincipal.compareTo(shouldPrincipal) > 0) {
                 logger.error("还款超额，最多可支付本金:[{}]，预算可支付本金：[{}]，将按最多支付处理！",
                         shouldPrincipal.subtract(couponPrepayPrincipal), entryPrepayPrincipal.subtract(couponPrepayPrincipal));
                 entryPrepayPrincipal = shouldPrincipal;
             }
-            entryPrepayInterest = shouldInterest.multiply(entryPrepayPrincipal).divide(shouldPrincipal, LoanLimitation.RESULT_SCALE, BigDecimal.ROUND_UP);
-            entryPrepayCharge = shouldCharge.multiply(entryPrepayPrincipal).divide(shouldPrincipal, LoanLimitation.RESULT_SCALE, BigDecimal.ROUND_UP);
+            entryPrepayInterest = shouldInterest.multiply(entryPrepayPrincipal).divide(shouldPrincipal, EngineStaticValue.RESULT_SCALE, BigDecimal.ROUND_UP);
+            entryPrepayCharge = shouldCharge.multiply(entryPrepayPrincipal).divide(shouldPrincipal, EngineStaticValue.RESULT_SCALE, BigDecimal.ROUND_UP);
 
             payPrepayInterest = entryPrepayInterest.subtract(couponPrepayInterest);
             payPrepayCharge = entryPrepayCharge.subtract(couponPrepayCharge);

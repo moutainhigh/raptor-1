@@ -57,14 +57,14 @@ public class Field {
         if (shouldPay.compareTo(BigDecimal.ZERO) <= 0) {
 
             Field couponLoanField = this.clone();
-            couponLoanField.source = SourceTypeEnum.COUPON;
+            couponLoanField.sourceType = SourceTypeEnum.COUPON;
             couponLoanField.sourceId = couponWeight.getId();
             couponLoanField.number = this.number;
 
             Field couponStrategyField = this.clone();
-            couponStrategyField.source = SourceTypeEnum.COUPON;
+            couponStrategyField.sourceType = SourceTypeEnum.COUPON;
             couponStrategyField.sourceId = couponWeight.getId();
-            couponStrategyField.destination = DestinationTypeEnum.PAY_STRATEGY;
+            couponStrategyField.destinationType = DestinationTypeEnum.PAY_STRATEGY;
             couponStrategyField.destinationId = strategyWeight.getId();
             couponStrategyField.number = strategyValue;
 
@@ -89,29 +89,29 @@ public class Field {
         couponLoan = couponValue.subtract(couponStrategy);
 
         Field payLoanField = this.clone();
-        payLoanField.source = SourceTypeEnum.PAY_ORDER;
+        payLoanField.sourceType = SourceTypeEnum.PAY_ORDER;
         payLoanField.sourceId = payOrderId;
         payLoanField.number = payLoan;
         fieldEntryMap.put(EntryEnum.PAY_LOAN, payLoanField);
 
         Field couponLoanField = this.clone();
-        couponLoanField.source = SourceTypeEnum.COUPON;
+        couponLoanField.sourceType = SourceTypeEnum.COUPON;
         couponLoanField.sourceId = couponWeight.getId();
         couponLoanField.number = couponLoan;
         fieldEntryMap.put(EntryEnum.COUPON_LOAN, couponLoanField);
 
         Field payStrategyField = this.clone();
-        payStrategyField.source = SourceTypeEnum.PAY_ORDER;
+        payStrategyField.sourceType = SourceTypeEnum.PAY_ORDER;
         payStrategyField.sourceId = payOrderId;
-        payStrategyField.destination = DestinationTypeEnum.PAY_STRATEGY;
+        payStrategyField.destinationType = DestinationTypeEnum.PAY_STRATEGY;
         payStrategyField.destinationId = strategyWeight.getId();
         payStrategyField.number = payStrategy;
         fieldEntryMap.put(EntryEnum.PAY_STRATEGY, payStrategyField);
 
         Field couponStrategyField = this.clone();
-        couponStrategyField.source = SourceTypeEnum.COUPON;
+        couponStrategyField.sourceType = SourceTypeEnum.COUPON;
         couponStrategyField.sourceId = couponWeight.getId();
-        couponStrategyField.destination = DestinationTypeEnum.PAY_STRATEGY;
+        couponStrategyField.destinationType = DestinationTypeEnum.PAY_STRATEGY;
         couponStrategyField.destinationId = strategyWeight.getId();
         couponStrategyField.number = couponStrategy;
         fieldEntryMap.put(EntryEnum.COUPON_STRATEGY, couponStrategyField);
@@ -125,9 +125,9 @@ public class Field {
 
         field.fieldType = this.fieldType;
         field.sourceId = this.sourceId;
-        field.source = this.source;
+        field.sourceType = this.sourceType;
         field.destinationId = this.destinationId;
-        field.destination = this.destination;
+        field.destinationType = this.destinationType;
         field.number = this.number;
 
         return field;
