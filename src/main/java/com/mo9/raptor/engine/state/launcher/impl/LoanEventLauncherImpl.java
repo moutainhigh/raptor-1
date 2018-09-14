@@ -11,8 +11,8 @@ import org.springframework.stereotype.Component;
 /**
  * Created by gqwu on 2018/4/4.
  */
-@Component("loanOrderEventLauncher")
-public class LoanOrderEventLauncherImpl extends AbstractStateEventLauncher<LoanOrderEntity, IStateEvent> implements IEventLauncher<IStateEvent> {
+@Component("loanEventLauncher")
+public class LoanEventLauncherImpl extends AbstractStateEventLauncher<LoanOrderEntity, IStateEvent> implements IEventLauncher<IStateEvent> {
 
     @Autowired
     private ILoanOrderService loanOrderService;

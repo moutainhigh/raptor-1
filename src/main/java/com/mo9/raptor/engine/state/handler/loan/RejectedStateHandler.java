@@ -11,6 +11,7 @@ import com.mo9.raptor.engine.exception.InvalidEventException;
 import com.mo9.raptor.engine.state.launcher.IEventLauncher;
 import com.mo9.raptor.engine.state.handler.IStateHandler;
 import com.mo9.raptor.engine.state.handler.StateHandler;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -22,8 +23,8 @@ import javax.annotation.Resource;
 @StateHandler(name = StatusEnum.REJECTED)
 public class RejectedStateHandler implements IStateHandler<LoanOrderEntity> {
 
-    @Resource(name = "loanOrderEventLauncher")
-    private IEventLauncher loanOrderEventLauncher;
+    @Autowired
+    private IEventLauncher loanEventLauncher;
 
     @Override
     public LoanOrderEntity handle(LoanOrderEntity loanOrder, IEvent event, IActionExecutor actionExecutor) throws Exception {
@@ -32,7 +33,7 @@ public class RejectedStateHandler implements IStateHandler<LoanOrderEntity> {
             loanOrder.setStatus(StatusEnum.AUDITING.name());
             if (loanOrder.getAuditMode().equals(AuditModeEnum.AUTO.name())) {
                 /** 自动审核模式的订单，则自动审核通过（目前没有业务审核），所以，附加执行一个审核通过的行为 */
-                actionExecutor.append(new LoanAuditAction(loanOrder, loanOrderEventLauncher));
+                actionExecutor.append(new LoanAuditAction(loanOrder, loanEventLauncher));
             }
         } else {
             throw new InvalidEventException("贷款订单状态与事件类型不匹配，状态：" + loanOrder.getStatus() + "，事件：" + event);

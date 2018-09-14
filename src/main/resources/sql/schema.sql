@@ -1,3 +1,42 @@
+/**************************借款订单*************************/
+DROP TABLE IF EXISTS `t_raptor_loan_order`;
+CREATE TABLE `t_raptor_loan_order` (
+  `id`                        BIGINT UNSIGNED NOT NULL AUTO_INCREMENT   COMMENT '主键',
+
+  `order_id`                  VARCHAR(64)     NOT NULL                  COMMENT '订单ID - 业务流水号',
+  `owner_id`                  VARCHAR(64)     NOT NULL                  COMMENT '用户code',
+  `type`                      VARCHAR(64)     NOT NULL                  COMMENT '订单类型',
+
+  `status`                    VARCHAR(64)     NOT NULL                  COMMENT '订单状态',
+  `description`               VARCHAR(1024)   NOT NULL DEFAULT ''       COMMENT '订单描述，记录订单状态变化过程',
+
+
+  `loan_number`               DECIMAL(10,2)   NOT NULL                  COMMENT '借贷金额',
+  `loan_term`                 INT             NOT NULL                  COMMENT '借贷期限',
+  `lent_number`               DECIMAL(10,2)   NOT NULL DEFAULT 0        COMMENT '借贷金额',
+
+  `interest_mode`             VARCHAR(64)     NOT NULL                  COMMENT '利息模式',
+  `interest_value`            DECIMAL(10,2)   NOT NULL                  COMMENT '利息值',
+  `penalty_mode`              VARCHAR(64)     NOT NULL                  COMMENT '罚息模式',
+  `penalty_value`             DECIMAL(10,2)   NOT NULL                  COMMENT '罚息值',
+  `charge_value`              DECIMAL(10,2)   NOT NULL                  COMMENT '服务费值',
+  `audit_mode`                VARCHAR(64)     NOT NULL                  COMMENT '审核方式 - 自动审核/人工审核',
+  `audit_signature`           VARCHAR(64)     NOT NULL DEFAULT ''       COMMENT '审核签名 - 给定审核结果的系统/用户',
+  `audit_time`                BIGINT          NOT NULL DEFAULT -1       COMMENT '审核时间',
+  `lend_mode`                 VARCHAR(64)     NOT NULL                  COMMENT '放款方式 - 自动放款/手动放款',
+  `lend_signature`            VARCHAR(64)     NOT NULL DEFAULT ''       COMMENT '放款签名 - 执行放款的系统代码/用户ID',
+  `lend_time`                 BIGINT          NOT NULL DEFAULT -1       COMMENT '放款时间',
+
+  `create_time`               BIGINT          NOT NULL                  COMMENT '创建时间',
+  `update_time`               BIGINT          NOT NULL                  COMMENT '修改时间',
+  `remark`                    VARCHAR(1024)   NOT NULL DEFAULT ''       COMMENT '备注，一般给直接操作数据库备注使用，程序一般不使用',
+  `deleted`                   INT(1)          NOT NULL                  COMMENT '是否逻辑删除',
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX (order_id),
+  INDEX `index_owner_id` (`owner_id`) USING BTREE,
+  INDEX `index_order_id` (`order_id`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='借款订单表';
+
 /**************************还款订单*************************/
 DROP TABLE IF EXISTS `t_raptor_pay_order`;
 CREATE TABLE `t_raptor_pay_order` (

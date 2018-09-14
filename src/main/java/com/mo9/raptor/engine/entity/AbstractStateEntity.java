@@ -1,5 +1,6 @@
 package com.mo9.raptor.engine.entity;
 
+import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.entity.BaseEntity;
 
 import javax.persistence.Column;
@@ -10,11 +11,11 @@ public abstract class AbstractStateEntity extends BaseEntity implements IStateEn
 
     /** 状态 */
     @Column
-    private String status;
+    private String status = StatusEnum.PENDING.name();
 
     /** 一般用于记录需要进行解释的一些变更，使用时请添加到尾部 */
     @Column
-    private String description;
+    private String description = "";
 
     @Override
     public String getStatus() {

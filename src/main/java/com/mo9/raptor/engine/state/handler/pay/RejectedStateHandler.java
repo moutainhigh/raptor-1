@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
 public class RejectedStateHandler implements IStateHandler<PayOrderEntity> {
 
     @Autowired
-    private IEventLauncher payOrderEventLauncher;
+    private IEventLauncher payEventLauncher;
 
     @Override
     public PayOrderEntity handle(PayOrderEntity payOrder, IEvent event, IActionExecutor actionExecutor) throws InvalidEventException {
@@ -29,7 +29,7 @@ public class RejectedStateHandler implements IStateHandler<PayOrderEntity> {
         if (event instanceof AuditLaunchEvent) {
             payOrder.setStatus(StatusEnum.AUDITING.name());
             /** 还款订单审核 */
-            actionExecutor.append(new PayAuditAction(payOrder, payOrderEventLauncher));
+            actionExecutor.append(new PayAuditAction(payOrder, payEventLauncher));
         } else {
             throw new InvalidEventException("还款订单状态与事件类型不匹配，状态：" + payOrder.getStatus() + "，事件：" + event);
         }

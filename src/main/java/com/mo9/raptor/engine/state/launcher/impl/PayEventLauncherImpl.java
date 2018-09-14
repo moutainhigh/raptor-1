@@ -11,8 +11,8 @@ import org.springframework.stereotype.Component;
 /**
  * Created by gqwu on 2018/4/4.
  */
-@Component("payOrderEventLauncher")
-public class PayOrderEventLauncherImpl extends AbstractStateEventLauncher<PayOrderEntity, IStateEvent> implements IEventLauncher<IStateEvent> {
+@Component("payEventLauncher")
+public class PayEventLauncherImpl extends AbstractStateEventLauncher<PayOrderEntity, IStateEvent> implements IEventLauncher<IStateEvent> {
 
     @Autowired
     private IPayOrderService payOrderService;

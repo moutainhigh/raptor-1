@@ -1,6 +1,6 @@
 package com.mo9.raptor.engine.simulator;
 
-import com.mo9.raptor.daily.LoanOrderDaily;
+import com.mo9.raptor.engine.daily.LoanOrderDaily;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

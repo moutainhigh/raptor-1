@@ -1,5 +1,7 @@
 package com.mo9.raptor.engine.entity;
 
+import com.mo9.raptor.engine.enums.AuditModeEnum;
+import com.mo9.raptor.engine.enums.LendModeEnum;
 import com.mo9.raptor.engine.enums.NumberMode;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
@@ -19,7 +21,7 @@ import java.math.BigDecimal;
 public class LoanOrderEntity extends AbstractOrderEntity {
 
     public boolean verify () {
-        return false;
+        return true;
     }
 
     /** 借贷数目 */
@@ -40,7 +42,7 @@ public class LoanOrderEntity extends AbstractOrderEntity {
 
     /** 利息模式下对应值 */
     @Column(name = "interest_value")
-    private BigDecimal interestValue;
+    private BigDecimal interestValue = new BigDecimal(7);
 
     /** 罚息模式 */
     @Column(name = "penalty_mode")
@@ -48,35 +50,35 @@ public class LoanOrderEntity extends AbstractOrderEntity {
 
     /** 利息模式下对应值 */
     @Column(name = "penalty_value")
-    private BigDecimal penaltyValue;
+    private BigDecimal penaltyValue = new BigDecimal(30);
 
     /** 借贷服务费 */
-    @Column(name = "charge")
-    private BigDecimal charge;
+    @Column(name = "charge_value")
+    private BigDecimal chargeValue = new BigDecimal(250);
 
     /** 订单审核方式 */
     @Column(name = "audit_mode")
-    private String auditMode;
+    private String auditMode = AuditModeEnum.AUTO.name();
 
     /** 审核者签名 - 给定审核结果的系统/用户 */
     @Column(name = "audit_signature")
-    private String auditSignature;
+    private String auditSignature = "";
 
     /** 审核时间 */
     @Column(name = "audit_time")
-    private Long auditTime;
+    private Long auditTime = -1L;
 
     /** 放款方式 - 自动放款/手动放款 */
     @Column(name = "lend_mode")
-    private String lendMode;
+    private String lendMode = LendModeEnum.AUTO.name();
 
     /** 放款签名 - 执行放款的系统代码/用户ID */
     @Column(name = "lend_signature")
-    private String lendSignature;
+    private String lendSignature = "";
 
     /** 放款时间 */
     @Column(name = "lent_time")
-    private Long lentTime;
+    private Long lentTime = -1L;
 
     public BigDecimal getLoanNumber() {
         return loanNumber;
@@ -134,12 +136,12 @@ public class LoanOrderEntity extends AbstractOrderEntity {
         this.penaltyValue = penaltyValue;
     }
 
-    public BigDecimal getCharge() {
-        return charge;
+    public BigDecimal getChargeValue() {
+        return chargeValue;
     }
 
-    public void setCharge(BigDecimal charge) {
-        this.charge = charge;
+    public void setChargeValue(BigDecimal chargeValue) {
+        this.chargeValue = chargeValue;
     }
 
     public String getAuditMode() {

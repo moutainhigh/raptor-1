@@ -25,7 +25,7 @@ import javax.annotation.Resource;
 public class AuditingStateHandler implements IStateHandler<LoanOrderEntity> {
 
     @Autowired
-    private IEventLauncher loanOrderEventLauncher;
+    private IEventLauncher loanEventLauncher;
 
     @Override
     public LoanOrderEntity handle(LoanOrderEntity loanOrder, IEvent event, IActionExecutor actionExecutor) throws Exception {
@@ -42,7 +42,7 @@ public class AuditingStateHandler implements IStateHandler<LoanOrderEntity> {
 
                 if (LendModeEnum.AUTO.name().equals(loanOrder.getLendMode())) {
                     /** 自动放款模式下，则附加发起放款 */
-                    actionExecutor.append(new LoanLaunchAction(loanOrder.getOrderId(), loanOrderEventLauncher));
+                    actionExecutor.append(new LoanLaunchAction(loanOrder.getOrderId(), loanEventLauncher));
                 }
             } else {
                 loanOrder.setStatus(StatusEnum.REJECTED.name());

@@ -33,7 +33,7 @@ public class LoanMo9mqListener implements IMqMsgListener{
 	private PayOrderLogService payOrderLogService;
 
 	@Autowired
-	private IEventLauncher payOrderEventLauncher;
+	private IEventLauncher payEventLauncher;
 
 	@Override
 	 public MqAction consume(MqMessage msg, Object consumeContext) {
@@ -79,7 +79,7 @@ public class LoanMo9mqListener implements IMqMsgListener{
 			// 发送还款扣款成功事件
 			try {
 				DeductResponseEvent event = new DeductResponseEvent(orderId, amount, true, System.currentTimeMillis() + ":还款" + amount.toPlainString());
-				payOrderEventLauncher.launch(event);
+				payEventLauncher.launch(event);
 			} catch (Exception e) {
 				logger.error("发送还款订单[{}]还款成功事件异常", orderId, e);
 			}

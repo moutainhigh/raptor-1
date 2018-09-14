@@ -46,7 +46,7 @@ public class PayOrderServiceImpl implements IPayOrderService {
     private PayOrderLogService payOrderLogService;
 
     @Autowired
-    private IEventLauncher payOrderEventLauncher;
+    private IEventLauncher payEventLauncher;
 
     @Autowired
     private GatewayUtils gatewayUtils;
@@ -136,7 +136,7 @@ public class PayOrderServiceImpl implements IPayOrderService {
 
         try {
             AuditLaunchEvent event = new AuditLaunchEvent(payOrder.getOwnerId(), payOrder.getOrderId());
-            payOrderEventLauncher.launch(event);
+            payEventLauncher.launch(event);
         } catch (Exception e) {
             logger.error("还款订单[{}]审核事件错误", payOrder.getOrderId(), e);
         }
@@ -149,7 +149,7 @@ public class PayOrderServiceImpl implements IPayOrderService {
         if (!ResCodeEnum.SUCCESS.equals(isPayoff)) {
             try {
                 DeductResponseEvent event= new DeductResponseEvent(payOrderId, BigDecimal.ZERO, false, System.currentTimeMillis() + ":扣款失败");
-                payOrderEventLauncher.launch(event);
+                payEventLauncher.launch(event);
             } catch (Exception e) {
                 logger.error("还款订单[{}]扣款失败事件错误", payOrderId, e);
             }
