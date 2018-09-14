@@ -123,11 +123,12 @@ public class PayOrderServiceImpl implements IPayOrderService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void repay(PayOrderEntity payOrder, PayOrderLogEntity payOrderLog) {
         this.save(payOrder);
         payOrderLogService.save(payOrderLog);
-        ResCodeEnum isPayoff = gatewayUtils.payoff();
 
+        ResCodeEnum isPayoff = gatewayUtils.payoff();
         if (ResCodeEnum.SUCCESS.equals(isPayoff)) {
 
         } else {

@@ -38,8 +38,13 @@ public enum ResCodeEnum {
      * xx=50, 还款
      */
     INVALID_RENEWAL_DAYS(11155000, "无效的延期天数", "无效的延期天数"),
+    NO_REPAY_CHANNEL(11155001, "无效的还款渠道", "无效的还款渠道"),
+
+
 
     ;
+
+
     /**
      * 错误码
      */
