@@ -1,0 +1,2 @@
+ALTER TABLE `t_bank`
+ADD COLUMN `user_code` VARCHAR(64) NOT NULL COMMENT '用户编号' AFTER `id`,

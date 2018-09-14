@@ -3,6 +3,8 @@ package com.mo9.raptor.utils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.bean.res.LoanOrderLendRes;
+import com.mo9.raptor.engine.state.event.impl.lend.LendResponseEvent;
+import com.mo9.raptor.engine.state.launcher.IEventLauncher;
 import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.utils.httpclient.HttpClientApi;
 import org.slf4j.Logger;
@@ -35,6 +37,9 @@ public class GatewayUtils {
 
     @Autowired
     private HttpClientApi httpClientApi ;
+
+    @Autowired
+    private IEventLauncher lendEventLauncher;
 
     /**
      * 放款
@@ -69,10 +74,12 @@ public class GatewayUtils {
         payParams.put("sign", sign);
         try {
             String resJson = httpClientApi.doGet(gatewayUrl + method, payParams);
+            // TODO
+//            LendResponseEvent lendResponseEvent = new LendResponseEvent();
+//            lendEventLauncher.launch(lendResponseEvent);
         } catch (Exception e) {
             logger.error("放款异常 - ");
         }
-        //TODO
         return ResCodeEnum.SUCCESS ;
     }
 

@@ -37,6 +37,11 @@ public enum StatusEnum {
     EXECUTING("执行中"),
     BUNDLED("已绑定"),
 
+    /**
+     * 放款订单状态
+     */
+    SUCCESS("放款成功")
+
     ;
 
     private String explanation;
@@ -54,5 +59,10 @@ public enum StatusEnum {
      * 放款之前的订单
      */
     public static final List<StatusEnum> BEFORE_LENDING = Arrays.asList(PENDING, AUDITING, PASSED, DEDUCTING, EXPIRED, CANCELLED, LENDING, FAILED);
+
+    /**
+     * 订单进行中的状态
+     */
+    public static final List<String> PROCESSING = Arrays.asList(PENDING.name(), PASSED.name(), AUDITING.name(), LENDING.name(), LENT.name());
 
 }

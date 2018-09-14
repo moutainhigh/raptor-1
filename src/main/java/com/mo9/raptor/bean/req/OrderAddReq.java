@@ -11,13 +11,13 @@ import java.math.BigDecimal;
 public class OrderAddReq {
 
     /**
-     * 付款渠道类型
+     * 本金
      */
     @NotNull
     private BigDecimal capital;
 
     /**
-     * 银行卡号
+     * 周期
      */
     private int period;
 

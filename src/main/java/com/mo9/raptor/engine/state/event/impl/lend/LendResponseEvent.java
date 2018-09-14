@@ -16,18 +16,23 @@ public class LendResponseEvent extends AbstractStateEvent implements IStateEvent
 
     private final String lendSignature;
 
+    private final String channelOrderId;
+
+    private final String channelResponse;
+
     private final long successTime;
 
     private final String explanation;
 
-    public LendResponseEvent(String loanOrderId, BigDecimal actualLent,
-                             boolean succeeded, long successTime, String lendSignature, String explanation) {
-        super(loanOrderId);
-        this.actualLent = actualLent;
+    public LendResponseEvent(String entityUniqueId, boolean succeeded, BigDecimal actualLent, String lendSignature, String channelOrderId, String channelResponse, long successTime, String explanation) {
+        super(entityUniqueId);
         this.succeeded = succeeded;
+        this.actualLent = actualLent;
+        this.lendSignature = lendSignature;
+        this.channelOrderId = channelOrderId;
+        this.channelResponse = channelResponse;
         this.successTime = successTime;
         this.explanation = explanation;
-        this.lendSignature = lendSignature;
     }
 
     public boolean isSucceeded() {
@@ -48,5 +53,13 @@ public class LendResponseEvent extends AbstractStateEvent implements IStateEvent
 
     public String getLendSignature() {
         return lendSignature;
+    }
+
+    public String getChannelOrderId() {
+        return channelOrderId;
+    }
+
+    public String getChannelResponse() {
+        return channelResponse;
     }
 }

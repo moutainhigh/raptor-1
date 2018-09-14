@@ -1,5 +1,6 @@
 package com.mo9.raptor.engine.state.handler.loan;
 
+import com.mo9.raptor.engine.service.ILendOrderService;
 import com.mo9.raptor.engine.state.action.IActionExecutor;
 import com.mo9.raptor.engine.state.action.impl.loan.LoanExecuteAction;
 import com.mo9.raptor.engine.entity.LoanOrderEntity;
@@ -13,6 +14,7 @@ import com.mo9.raptor.engine.state.launcher.IEventLauncher;
 import com.mo9.raptor.engine.service.ILoanOrderService;
 import com.mo9.raptor.engine.state.handler.IStateHandler;
 import com.mo9.raptor.engine.state.handler.StateHandler;
+import com.mo9.raptor.service.BankService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -24,10 +26,16 @@ import org.springframework.stereotype.Component;
 public class PassedStateHandler implements IStateHandler<LoanOrderEntity> {
 
     @Autowired
-    ILoanOrderService loanOrderService;
+    private ILoanOrderService loanOrderService;
 
     @Autowired
-    IEventLauncher loanEventLauncher;
+    private BankService bankService;
+
+    @Autowired
+    private IEventLauncher loanEventLauncher;
+
+    @Autowired
+    private ILendOrderService lendOrderService;
 
     @Override
     public LoanOrderEntity handle(LoanOrderEntity loanOrder, IEvent event, IActionExecutor actionExecutor) throws Exception {
@@ -39,7 +47,7 @@ public class PassedStateHandler implements IStateHandler<LoanOrderEntity> {
             loanOrder.setStatus(StatusEnum.LENDING.name());
             /** 自动放款模式订单，附加执行实际放款行为（通知钱包放款）*/
             if (loanOrder.getLendMode().equals(LendModeEnum.AUTO.name())) {
-                actionExecutor.append(new LoanExecuteAction(loanEventLauncher));
+                actionExecutor.append(new LoanExecuteAction(loanOrder.getOrderId(), loanOrderService, lendOrderService, bankService, loanEventLauncher));
             }
         } else {
             throw new InvalidEventException("贷款订单状态与事件类型不匹配，状态：" + loanOrder.getStatus() + "，事件：" + event);

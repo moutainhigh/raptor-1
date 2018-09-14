@@ -39,4 +39,13 @@ public interface BankRepository extends JpaRepository<BankEntity,Long> {
      */
     @Query(value = "select t from BankEntity t where t.mobile = ?1 and t.type = ?2 order by t.updateTime")
     List<BankEntity> findByMobileAndType(String mobile, BankEntity.Type type);
+
+    /**
+     * 根据用户 和 类型查询最后一次银行卡号
+     * @param userCode
+     * @param type
+     * @return
+     */
+    @Query(value = "select * from t_bank where user_code = ?1 and t.type = ?2 ORDER BY create_time DESC limit 1", nativeQuery = true)
+    BankEntity findByUserCodeLastOne(String userCode, BankEntity.Type type);
 }
