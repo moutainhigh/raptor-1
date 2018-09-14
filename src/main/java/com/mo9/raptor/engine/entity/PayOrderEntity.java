@@ -15,7 +15,7 @@ import java.math.BigDecimal;
 public class PayOrderEntity extends AbstractOrderEntity {
 
     public boolean verify () {
-        return false;
+        return true;
     }
 
     /**
