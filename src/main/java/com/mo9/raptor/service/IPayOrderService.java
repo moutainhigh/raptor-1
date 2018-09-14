@@ -57,4 +57,14 @@ public interface IPayOrderService {
      * @param payOrder
      */
     void repay(PayOrderEntity payOrder);
+
+    /**
+     * 保存订单及log
+     * @param payOrder     订单
+     * @param bankCard     银行卡
+     * @param bankMobile   预留手机号
+     * @param idCard       身份证
+     * @param userName      名字
+     */
+    void savePayOrderAndLog(PayOrderEntity payOrder, String bankCard, String bankMobile, String idCard, String userName);
 }

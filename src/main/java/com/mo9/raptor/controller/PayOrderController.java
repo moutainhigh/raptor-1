@@ -67,7 +67,7 @@ public class PayOrderController {
         payOrder.setPostponeDays(0);
         payOrder.setLoanOrderId(loanOrderId);
         payOrder.setChannel(req.getChannelType().name());
-        payOrderService.save(payOrder);
+        payOrderService.savePayOrderAndLog(payOrder, req.getBankCard(), req.getBankMobile(), req.getIdCard(), req.getUserName());
 
         payOrderService.repay(payOrder);
 
@@ -79,7 +79,7 @@ public class PayOrderController {
     }
 
     /**
-     * TODO: 续期
+     * 续期
      * @param req
      * @return
      */
@@ -107,7 +107,7 @@ public class PayOrderController {
         payOrder.setPostponeDays(req.getPeriod());
         payOrder.setLoanOrderId(loanOrderId);
         payOrder.setChannel(req.getChannelType().name());
-        payOrderService.save(payOrder);
+        payOrderService.savePayOrderAndLog(payOrder, req.getBankCard(), req.getBankMobile(), req.getIdCard(), req.getUserName());
 
         payOrderService.repay(payOrder);
 
