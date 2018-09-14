@@ -30,7 +30,7 @@ public class LentStateHandler implements IStateHandler<LoanOrderEntity> {
     LoanCalculatorFactory loanCalculatorFactory;
 
     @Autowired
-    IEventLauncher payOrderEventLauncher;
+    IEventLauncher payEventLauncher;
 
     @Override
     public LoanOrderEntity handle (LoanOrderEntity loanOrder, IEvent event, IActionExecutor actionExecutor)
@@ -45,7 +45,7 @@ public class LentStateHandler implements IStateHandler<LoanOrderEntity> {
 
             loanOrder = loanCalculator.schemeEntry(loanOrder, originalScheme, realScheme, entryScheme);
 
-            actionExecutor.append(new EntryResponseAction(loanEntryEvent.getPayOrderId(), entryScheme.sum(), payOrderEventLauncher));
+            actionExecutor.append(new EntryResponseAction(loanEntryEvent.getPayOrderId(), entryScheme.sum(), payEventLauncher));
         } else {
             throw new InvalidEventException("贷款订单状态与事件类型不匹配，状态：" + loanOrder.getStatus() + "，事件：" + event);
         }

@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
 public class EntryFailedStateHandler implements IStateHandler<PayOrderEntity> {
 
     @Autowired
-    private IEventLauncher loanOrderEventLauncher;
+    private IEventLauncher loanEventLauncher;
 
     @Autowired
     IPayOrderService payOrderService;
@@ -32,7 +32,7 @@ public class EntryFailedStateHandler implements IStateHandler<PayOrderEntity> {
 
         if (event instanceof EntryLaunchEvent) {
             payOrder.setStatus(StatusEnum.ENTRY_DOING.name());
-            actionExecutor.append(new EntryExecuteAction(payOrder.getOrderId(), payOrderService, loanOrderEventLauncher));
+            actionExecutor.append(new EntryExecuteAction(payOrder.getOrderId(), payOrderService, loanEventLauncher));
         } else {
             throw new InvalidEventException("还款订单状态与事件类型不匹配，状态：" + payOrder.getStatus() + "，事件：" + event);
         }
