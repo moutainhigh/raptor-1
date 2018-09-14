@@ -2,6 +2,7 @@ package com.mo9.raptor.service;
 
 import com.mo9.raptor.bean.condition.FetchPayOrderCondition;
 import com.mo9.raptor.engine.entity.PayOrderEntity;
+import com.mo9.raptor.entity.PayOrderLogEntity;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
@@ -56,15 +57,5 @@ public interface IPayOrderService {
      * 用户还款, 通知先玩后付
      * @param payOrder
      */
-    void repay(PayOrderEntity payOrder);
-
-    /**
-     * 保存订单及log
-     * @param payOrder     订单
-     * @param bankCard     银行卡
-     * @param bankMobile   预留手机号
-     * @param idCard       身份证
-     * @param userName      名字
-     */
-    void savePayOrderAndLog(PayOrderEntity payOrder, String bankCard, String bankMobile, String idCard, String userName);
+    void repay(PayOrderEntity payOrder, PayOrderLogEntity payOrderLog);
 }

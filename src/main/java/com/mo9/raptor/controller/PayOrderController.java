@@ -9,6 +9,7 @@ import com.mo9.raptor.bean.res.ChannelDetailRes;
 import com.mo9.raptor.bean.res.PayOderChannelRes;
 import com.mo9.raptor.engine.entity.PayOrderEntity;
 import com.mo9.raptor.engine.enums.StatusEnum;
+import com.mo9.raptor.entity.PayOrderLogEntity;
 import com.mo9.raptor.enums.PayTypeEnum;
 import com.mo9.raptor.enums.RenewableDaysEnum;
 import com.mo9.raptor.enums.RepayChannelTypeEnum;
@@ -67,9 +68,16 @@ public class PayOrderController {
         payOrder.setPostponeDays(0);
         payOrder.setLoanOrderId(loanOrderId);
         payOrder.setChannel(req.getChannelType().name());
-        payOrderService.savePayOrderAndLog(payOrder, req.getBankCard(), req.getBankMobile(), req.getIdCard(), req.getUserName());
 
-        payOrderService.repay(payOrder);
+        PayOrderLogEntity payOrderLog = new PayOrderLogEntity();
+        payOrderLog.setOrderId(payOrder.getLoanOrderId());
+        payOrderLog.setPayOrderId(payOrder.getOrderId());
+        payOrderLog.setBankCard(req.getBankCard());
+        payOrderLog.setBankMobile(req.getBankMobile());
+        payOrderLog.setIdCard(req.getIdCard());
+        payOrderLog.setUserName(req.getUserName());
+        payOrderLog.setChannel(payOrderLog.getChannel());
+        payOrderService.repay(payOrder, payOrderLog);
 
 
         PayOderChannelRes res = new PayOderChannelRes();
@@ -107,9 +115,16 @@ public class PayOrderController {
         payOrder.setPostponeDays(req.getPeriod());
         payOrder.setLoanOrderId(loanOrderId);
         payOrder.setChannel(req.getChannelType().name());
-        payOrderService.savePayOrderAndLog(payOrder, req.getBankCard(), req.getBankMobile(), req.getIdCard(), req.getUserName());
 
-        payOrderService.repay(payOrder);
+        PayOrderLogEntity payOrderLog = new PayOrderLogEntity();
+        payOrderLog.setOrderId(payOrder.getLoanOrderId());
+        payOrderLog.setPayOrderId(payOrder.getOrderId());
+        payOrderLog.setBankCard(req.getBankCard());
+        payOrderLog.setBankMobile(req.getBankMobile());
+        payOrderLog.setIdCard(req.getIdCard());
+        payOrderLog.setUserName(req.getUserName());
+        payOrderLog.setChannel(payOrderLog.getChannel());
+        payOrderService.repay(payOrder, payOrderLog);
 
         PayOderChannelRes res = new PayOderChannelRes();
         JSONObject data = new JSONObject();

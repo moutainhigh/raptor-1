@@ -5,9 +5,11 @@ import com.mo9.raptor.engine.entity.PayOrderEntity;
 import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.entity.PayOrderLogEntity;
 import com.mo9.raptor.enums.PayTypeEnum;
+import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.repository.PayOrderRepository;
 import com.mo9.raptor.service.IPayOrderService;
 import com.mo9.raptor.service.PayOrderLogService;
+import com.mo9.raptor.utils.GatewayUtils;
 import com.mo9.raptor.utils.IDWorker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +43,7 @@ public class PayOrderServiceImpl implements IPayOrderService {
     private PayOrderLogService payOrderLogService;
 
     @Autowired
-    private IDWorker idWorker;
+    private GatewayUtils gatewayUtils;
 
     @Override
     public PayOrderEntity getByOrderId(String payOrderId) {
@@ -121,22 +123,14 @@ public class PayOrderServiceImpl implements IPayOrderService {
     }
 
     @Override
-    public void repay(PayOrderEntity payOrder) {
-
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public void savePayOrderAndLog(PayOrderEntity payOrder, String bankCard, String bankMobile, String idCard, String userName) {
+    public void repay(PayOrderEntity payOrder, PayOrderLogEntity payOrderLog) {
         this.save(payOrder);
-        PayOrderLogEntity payOrderLog = new PayOrderLogEntity();
-        payOrderLog.setOrderId(payOrder.getLoanOrderId());
-        payOrderLog.setPayOrderId(payOrder.getOrderId());
-        payOrderLog.setBankCard(bankCard);
-        payOrderLog.setBankMobile(bankMobile);
-        payOrderLog.setIdCard(idCard);
-        payOrderLog.setUserName(userName);
-        payOrderLog.setChannel(payOrderLog.getChannel());
         payOrderLogService.save(payOrderLog);
+        ResCodeEnum isPayoff = gatewayUtils.payoff();
+        if (ResCodeEnum.SUCCESS.equals(isPayoff)) {
+
+        } else {
+
+        }
     }
 }
