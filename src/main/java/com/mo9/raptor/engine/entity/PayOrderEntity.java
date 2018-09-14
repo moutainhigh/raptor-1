@@ -14,6 +14,10 @@ import java.math.BigDecimal;
 @Table(name = "t_raptor_pay_order")
 public class PayOrderEntity extends AbstractOrderEntity {
 
+    public boolean verify () {
+        return false;
+    }
+
     /**
      * 支付币种
      */
