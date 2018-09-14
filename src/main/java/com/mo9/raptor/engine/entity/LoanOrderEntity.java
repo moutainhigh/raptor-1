@@ -80,6 +80,10 @@ public class LoanOrderEntity extends AbstractOrderEntity {
     @Column(name = "lent_time")
     private Long lentTime = -1L;
 
+    /** 还款日 */
+    @Column(name = "repayment_date")
+    private Long repaymentDate;
+
     public BigDecimal getLoanNumber() {
         return loanNumber;
     }
@@ -190,5 +194,13 @@ public class LoanOrderEntity extends AbstractOrderEntity {
 
     public void setLentTime(Long lentTime) {
         this.lentTime = lentTime;
+    }
+
+    public Long getRepaymentDate() {
+        return repaymentDate;
+    }
+
+    public void setRepaymentDate(Long repaymentDate) {
+        this.repaymentDate = repaymentDate;
     }
 }

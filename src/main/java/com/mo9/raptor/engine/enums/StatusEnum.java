@@ -1,5 +1,8 @@
 package com.mo9.raptor.engine.enums;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * Created by gqwu on 2018/3/23.
  */
@@ -46,5 +49,10 @@ public enum StatusEnum {
     public String getExplanation() {
         return explanation;
     }
+
+    /**
+     * 放款之前的订单
+     */
+    public static final List<StatusEnum> BEFORE_LENDING = Arrays.asList(PENDING, AUDITING, PASSED, DEDUCTING, EXPIRED, CANCELLED, LENDING, FAILED);
 
 }
