@@ -14,9 +14,6 @@ import java.util.Map;
 @Component
 public class ClockFactory {
 
-    @Autowired
-    private LoanOrderDaily loanOrderDaily;
-
     private static Map<String, Clock> clockMap = new HashMap<String, Clock>();
 
     public static Clock getClock (String userCode) {
@@ -24,7 +21,7 @@ public class ClockFactory {
     }
 
     public Clock createClock (String userCode) {
-        Clock clock = new Clock(userCode, loanOrderDaily);
+        Clock clock = new Clock(userCode);
         clockMap.put(userCode, clock);
         return clock;
     }
@@ -42,7 +39,7 @@ public class ClockFactory {
     public void setClockTime (String userCode, long timeMillis) {
         Clock clock = clockMap.get(userCode);
         if (clock == null) {
-            clock = new Clock(userCode, loanOrderDaily);
+            clock = new Clock(userCode);
             clockMap.put(userCode, clock);
         }
         clock.setTimeMillis(timeMillis);
@@ -61,7 +58,7 @@ public class ClockFactory {
     public void setClockSpeed (String userCode, int speed) {
         Clock clock = clockMap.get(userCode);
         if (clock == null) {
-            clock = new Clock(userCode, loanOrderDaily);
+            clock = new Clock(userCode);
             clockMap.put(userCode, clock);
         }
         clock.setSpeed(speed);

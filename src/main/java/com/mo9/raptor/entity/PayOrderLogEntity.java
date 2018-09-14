@@ -15,7 +15,7 @@ import javax.persistence.Table;
 @DynamicInsert
 @DynamicUpdate
 @Table(name = "t_raptor_pay_order_log")
-public class PayOrderLogEntity {
+public class PayOrderLogEntity extends BaseEntity {
 
     /**
      * 还的借款订单号
@@ -183,5 +183,10 @@ public class PayOrderLogEntity {
 
     public void setChannelResponse(String channelResponse) {
         this.channelResponse = channelResponse;
+    }
+
+    public void create() {
+        this.setCreateTime(System.currentTimeMillis());
+        this.setUpdateTime(System.currentTimeMillis());
     }
 }

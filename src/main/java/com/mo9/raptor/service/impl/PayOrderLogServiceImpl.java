@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 /**
  * Created by xzhang on 2018/9/13.
  */
@@ -21,4 +23,16 @@ public class PayOrderLogServiceImpl implements PayOrderLogService {
     public void save(PayOrderLogEntity payOrderLog) {
         payOrderLogRepository.save(payOrderLog);
     }
+
+    @Override
+    public List<PayOrderLogEntity> listByOrderId(String orderId) {
+        return payOrderLogRepository.listByOrderId(orderId);
+    }
+
+    @Override
+    public PayOrderLogEntity getByPayOrderId(String payOrderId) {
+        return payOrderLogRepository.getByPayOrderId(payOrderId);
+    }
+
+
 }

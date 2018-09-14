@@ -1,14 +1,18 @@
-package com.mo9.raptor.service.impl;
+package com.mo9.raptor.engine.service.impl;
 
 import com.mo9.raptor.bean.condition.FetchPayOrderCondition;
 import com.mo9.raptor.engine.entity.PayOrderEntity;
 import com.mo9.raptor.engine.enums.StatusEnum;
+import com.mo9.raptor.engine.service.IPayOrderService;
+import com.mo9.raptor.engine.state.event.impl.AuditLaunchEvent;
+import com.mo9.raptor.engine.state.event.impl.pay.DeductResponseEvent;
+import com.mo9.raptor.engine.state.launcher.IEventLauncher;
 import com.mo9.raptor.entity.PayOrderLogEntity;
 import com.mo9.raptor.enums.PayTypeEnum;
+import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.repository.PayOrderRepository;
-import com.mo9.raptor.service.IPayOrderService;
 import com.mo9.raptor.service.PayOrderLogService;
-import com.mo9.raptor.utils.IDWorker;
+import com.mo9.raptor.utils.GatewayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +27,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,7 +46,10 @@ public class PayOrderServiceImpl implements IPayOrderService {
     private PayOrderLogService payOrderLogService;
 
     @Autowired
-    private IDWorker idWorker;
+    private IEventLauncher payOrderEventLauncher;
+
+    @Autowired
+    private GatewayUtils gatewayUtils;
 
     @Override
     public PayOrderEntity getByOrderId(String payOrderId) {
@@ -121,22 +129,30 @@ public class PayOrderServiceImpl implements IPayOrderService {
     }
 
     @Override
-    public void repay(PayOrderEntity payOrder) {
+    @Transactional(rollbackFor = Exception.class)
+    public void savePayOrderAndLog(PayOrderEntity payOrder, PayOrderLogEntity payOrderLog) {
+        this.save(payOrder);
+        payOrderLogService.save(payOrderLog);
 
+        try {
+            AuditLaunchEvent event = new AuditLaunchEvent(payOrder.getOwnerId(), payOrder.getOrderId());
+            payOrderEventLauncher.launch(event);
+        } catch (Exception e) {
+            logger.error("还款订单[{}]审核事件错误", payOrder.getOrderId(), e);
+        }
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
-    public void savePayOrderAndLog(PayOrderEntity payOrder, String bankCard, String bankMobile, String idCard, String userName) {
-        this.save(payOrder);
-        PayOrderLogEntity payOrderLog = new PayOrderLogEntity();
-        payOrderLog.setOrderId(payOrder.getLoanOrderId());
-        payOrderLog.setPayOrderId(payOrder.getOrderId());
-        payOrderLog.setBankCard(bankCard);
-        payOrderLog.setBankMobile(bankMobile);
-        payOrderLog.setIdCard(idCard);
-        payOrderLog.setUserName(userName);
-        payOrderLog.setChannel(payOrderLog.getChannel());
-        payOrderLogService.save(payOrderLog);
+    public void repayNotice(String payOrderId) {
+        PayOrderLogEntity payOrderLog = payOrderLogService.getByPayOrderId(payOrderId);
+        ResCodeEnum isPayoff = gatewayUtils.payoff();
+        if (!ResCodeEnum.SUCCESS.equals(isPayoff)) {
+            try {
+                DeductResponseEvent event= new DeductResponseEvent(payOrderId, BigDecimal.ZERO, false, System.currentTimeMillis() + ":扣款失败");
+                payOrderEventLauncher.launch(event);
+            } catch (Exception e) {
+                logger.error("还款订单[{}]扣款失败事件错误", payOrderId, e);
+            }
+        }
     }
 }

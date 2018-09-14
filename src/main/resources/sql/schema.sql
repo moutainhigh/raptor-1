@@ -88,7 +88,7 @@ CREATE TABLE `t_raptor_user` (
   UNIQUE KEY `mobile` (`mobile`),
   UNIQUE KEY `user_code` (`user_code`) USING BTREE,
   KEY `deleted` (`deleted`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8; COMMENT='用户基本信息表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户基本信息表';
 /**************************消息发送记录表*************************/
 DROP TABLE IF EXISTS `t_raptor_message_notify`;
 CREATE TABLE `t_raptor_message_notify` (
@@ -135,7 +135,7 @@ CREATE TABLE `t_raptor_certify_info` (
   `create_time` bigint(20) NOT NULL,
   `update_time` bigint(20) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户认证信息表';;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户认证信息表';
 /**************************个人银行卡相关表*************************/
 DROP TABLE IF EXISTS `t_bank`;
 CREATE TABLE `t_bank` (

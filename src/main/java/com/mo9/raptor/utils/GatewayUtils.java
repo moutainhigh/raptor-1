@@ -2,6 +2,7 @@ package com.mo9.raptor.utils;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.mo9.raptor.bean.res.LoanOrderLendRes;
 import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.utils.httpclient.HttpClientApi;
 import org.slf4j.Logger;
@@ -132,28 +133,31 @@ public class GatewayUtils {
      * 查询先玩后付订单状态 - 信息
      * @param orderNo -- 本地放款订单号
      */
-    public void getOrderMsg(String orderNo){
+    public LoanOrderLendRes getOrderMsg(String orderNo){
         String method = "/proxypay/queryOrderStatus.mhtml";
         Map<String,String> params = new HashMap<String,String>(10);
         params.put("invoice" , orderNo) ;
         try {
             String result = httpClientApi.doGet(gatewayUrl + method , params) ;
-            JSONObject data = JSON.parseObject(result) ;
-
-            String status = data.getString("status") ; //请求状态 success 请求成功 failed 请求失败
-            String description = data.getString("description") ;   //请求返回信息
-            String invoice = data.getString("invoice") ;  //订单号
-            String dealcode = data.getString("dealcode") ; //先玩后付订单号
-            String orderStatus = data.getString("orderStatus") ;  //订单状态
-            String amount = data.getString("amount") ; //金额(分)
-            String statusTime = data.getString("statusTime") ;  // 状态时间
-            String channel = data.getString("channel") ;  //渠道
-            String thirdDealcode = data.getString("status") ;  //第三方订单号
+            LoanOrderLendRes loanOrderLendRes = JSON.parseObject(result, LoanOrderLendRes.class);
+            if ("success".equals(loanOrderLendRes.getStatus())) {
+                return loanOrderLendRes;
+            }
+//            JSONObject data = JSON.parseObject(result) ;
+//            String status = data.getString("status") ; //请求状态 success 请求成功 failed 请求失败
+//            String description = data.getString("description") ;   //请求返回信息
+//            String invoice = data.getString("invoice") ;  //订单号
+//            String dealcode = data.getString("dealcode") ; //先玩后付订单号
+//            String orderStatus = data.getString("orderStatus") ;  //订单状态
+//            String amount = data.getString("amount") ; //金额(分)
+//            String statusTime = data.getString("statusTime") ;  // 状态时间
+//            String channel = data.getString("channel") ;  //渠道
+//            String thirdDealcode = data.getString("thirdDealcode") ;  //第三方订单号
             //TODO 后续操作
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("查询先玩后付放款订单[{}]状态报错 ", orderNo, e);
         }
-
+        return null;
     }
 
 }

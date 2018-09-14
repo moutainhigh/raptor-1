@@ -16,7 +16,7 @@ public class CashRepayReq {
      * 付款渠道类型
      */
     @NotNull
-    private RepayChannelTypeEnum channelType;
+    private Integer channelType;
 
     /**
      * 银行卡号
@@ -50,11 +50,11 @@ public class CashRepayReq {
     @NotBlank
     private String orderId;
 
-    public RepayChannelTypeEnum getChannelType() {
+    public Integer getChannelType() {
         return channelType;
     }
 
-    public void setChannelType(RepayChannelTypeEnum channelType) {
+    public void setChannelType(Integer channelType) {
         this.channelType = channelType;
     }
 

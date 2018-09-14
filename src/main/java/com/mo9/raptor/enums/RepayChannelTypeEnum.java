@@ -44,4 +44,13 @@ public enum RepayChannelTypeEnum {
         this.channelType = channelType;
         this.channelUseType = channelUseType;
     }
+
+    public static RepayChannelTypeEnum getByChannelType(Integer channelType) {
+        for (RepayChannelTypeEnum repayChannelTypeEnum : RepayChannelTypeEnum.values()) {
+            if (repayChannelTypeEnum.channelType.equals(channelType)) {
+                return repayChannelTypeEnum;
+            }
+        }
+        return null;
+    }
 }
