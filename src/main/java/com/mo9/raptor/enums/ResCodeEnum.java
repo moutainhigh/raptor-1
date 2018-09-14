@@ -11,7 +11,7 @@ public enum ResCodeEnum {
      * <p>
      */
     SUCCESS(11150000, "成功", "成功"),
-    EXCEPTION_CODE(11150001, "成功", "成功"),
+    EXCEPTION_CODE(11150001, "系统内部异常", "系统内部异常"),
 
     // xx=10 银行卡验证
     BANK_VERIFY_ERROR(11151001, "银行卡验证失败", "银行卡验证失败"),

@@ -13,6 +13,5 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 public class RaptorApplicationTest {
 	public static void main(String[] args) {
 		SpringApplication.run(RaptorApplicationTest.class, args);
-
 	}
 }

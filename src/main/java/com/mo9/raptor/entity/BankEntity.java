@@ -32,6 +32,12 @@ public class BankEntity {
 	private Long id ;
 
 	/**
+	 * 用户编号
+	 */
+	@Column(name = "user_code")
+	private String userCode;
+
+	/**
 	 * 银行卡
 	 */
 	@Column(name = "bank_no")
@@ -164,5 +170,13 @@ public class BankEntity {
 
 	public void setChannel(String channel) {
 		this.channel = channel;
+	}
+
+	public String getUserCode() {
+		return userCode;
+	}
+
+	public void setUserCode(String userCode) {
+		this.userCode = userCode;
 	}
 }

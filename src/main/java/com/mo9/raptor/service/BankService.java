@@ -17,6 +17,15 @@ public interface BankService {
      */
     BankEntity findByMobileLastOne(String mobile, BankEntity.Type type);
 
+
+    /**
+     * 根据用户 和 类型查询最后一次银行卡号
+     * @param userCode
+     * @param type
+     * @return
+     */
+    BankEntity findByUserCodeLastOne(String userCode, BankEntity.Type type);
+
     /**
      * 根据银行卡号查询
      * @param bankNo
