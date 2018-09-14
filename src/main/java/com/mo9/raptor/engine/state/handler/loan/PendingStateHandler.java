@@ -27,7 +27,7 @@ public class PendingStateHandler implements IStateHandler<LoanOrderEntity> {
     private static final Logger logger = LoggerFactory.getLogger(PendingStateHandler.class);
 
     @Autowired
-    private IEventLauncher loanEventLauncher;
+    private IEventLauncher loanOrderEventLauncher;
 
     @Override
     public LoanOrderEntity handle(LoanOrderEntity loanOrder, IEvent event, IActionExecutor actionExecutor) throws InvalidEventException {
@@ -51,7 +51,7 @@ public class PendingStateHandler implements IStateHandler<LoanOrderEntity> {
             loanOrder.setStatus(StatusEnum.AUDITING.name());
             if (loanOrder.getAuditMode().equals(AuditModeEnum.AUTO.name())) {
                 /** 自动审核模式的订单，则自动审核通过（目前没有业务审核），所以，附加执行一个审核通过的行为 */
-                actionExecutor.append(new LoanAuditAction(loanOrder, loanEventLauncher));
+                actionExecutor.append(new LoanAuditAction(loanOrder, loanOrderEventLauncher));
             }
         } else {
             throw new InvalidEventException("贷款订单状态与事件类型不匹配，状态：" + loanOrder.getStatus() + "，事件：" + event);

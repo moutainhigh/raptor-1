@@ -34,7 +34,6 @@ public class EntryDoingStateHandler implements IStateHandler<PayOrderEntity> {
                     "还款订单状态与事件类型不匹配，状态：" + payOrder.getStatus() +
                             "，事件：" + event);
         }
-
         return payOrder;
     }
 }

@@ -14,9 +14,12 @@ public class LoanEntryEvent extends AbstractStateEvent implements IStateEvent {
 
     private final String payType;
 
-    public LoanEntryEvent(String loanOrderId, String payType, Scheme entryScheme) {
+    private final String payOrderId;
+
+    public LoanEntryEvent(String loanOrderId, String payOrderId, String payType, Scheme entryScheme) {
         super(loanOrderId);
         this.payType = payType;
+        this.payOrderId = payOrderId;
         this.entryScheme = entryScheme;
     }
 
@@ -26,5 +29,9 @@ public class LoanEntryEvent extends AbstractStateEvent implements IStateEvent {
 
     public Scheme getEntryScheme() {
         return entryScheme;
+    }
+
+    public String getPayOrderId() {
+        return payOrderId;
     }
 }

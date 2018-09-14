@@ -22,17 +22,14 @@ public class Clock implements Runnable {
 
     private int speed;
 
-    private LoanOrderDaily loanOrderDaily;
-
     private String userCode;
 
-    public Clock(String userCode, LoanOrderDaily loanOrderDaily) {
+    public Clock(String userCode) {
         this.userCode = userCode;
         this.clockLoaded = false;
         this.clockPaused = true;
         this.speed = 1;
         this.clock = Calendar.getInstance();
-        this.loanOrderDaily = loanOrderDaily;
     }
 
     public boolean clockIsLoaded() {

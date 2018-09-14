@@ -12,9 +12,6 @@ import java.util.List;
  */
 public interface ILendOrderService {
 
-
-    List<PayOrderEntity> listOrderEntryDoings(String loanOrderId);
-
     /**
      * 根据批次号查询订单
      * @param batchId
@@ -40,27 +37,4 @@ public interface ILendOrderService {
      * 保存订单
      */
     void save(PayOrderEntity loanOrder);
-
-    /**
-     * 所有还款订单查询
-     * @return         还款订单
-     */
-    List<PayOrderEntity> listByUser(String userCode);
-
-    /**
-     * 创建还款订单
-     * @param userCode 还款订单号
-     * @param statuses 还款订单状态
-     * @return         还款订单
-     */
-    List<PayOrderEntity> listByUserAndStatus(String userCode, List<String> statuses);
-
-    /** 入账成功后通知风控 */
-    void notifyRepaySuccess(String userCode, String batchId, PayTypeEnum payType);
-
-    /**
-     * 查询入账中的订单, 包括 ENTRY_DOING, DEDUCTED
-     * @return
-     */
-    List<PayOrderEntity> listEntryDoingPayOrders(String userCode);
 }

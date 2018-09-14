@@ -27,7 +27,7 @@ public class PassedStateHandler implements IStateHandler<LoanOrderEntity> {
     ILoanOrderService loanOrderService;
 
     @Autowired
-    IEventLauncher lendEventLauncher;
+    IEventLauncher loanOrderEventLauncher;
 
     @Override
     public LoanOrderEntity handle(LoanOrderEntity loanOrder, IEvent event, IActionExecutor actionExecutor) throws Exception {
@@ -39,7 +39,7 @@ public class PassedStateHandler implements IStateHandler<LoanOrderEntity> {
             loanOrder.setStatus(StatusEnum.LENDING.name());
             /** 自动放款模式订单，附加执行实际放款行为（通知钱包放款）*/
             if (loanOrder.getLendMode().equals(LendModeEnum.AUTO.name())) {
-                actionExecutor.append(new LoanExecuteAction(lendEventLauncher));
+                actionExecutor.append(new LoanExecuteAction(loanOrderEventLauncher));
             }
         } else {
             throw new InvalidEventException("贷款订单状态与事件类型不匹配，状态：" + loanOrder.getStatus() + "，事件：" + event);

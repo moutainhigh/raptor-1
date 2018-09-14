@@ -1,7 +1,10 @@
 package com.mo9.raptor.engine.service;
 
+import com.mo9.raptor.bean.condition.FetchPayOrderCondition;
 import com.mo9.raptor.engine.entity.PayOrderEntity;
+import com.mo9.raptor.entity.PayOrderLogEntity;
 import com.mo9.raptor.enums.PayTypeEnum;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
@@ -11,15 +14,6 @@ import java.util.List;
  */
 public interface IPayOrderService {
 
-
-    List<PayOrderEntity> listOrderEntryDoings(String loanOrderId);
-
-    /**
-     * 根据批次号查询订单
-     * @param batchId
-     * @return
-     */
-    List<PayOrderEntity> listByBatchId(String batchId);
 
     /**
      * 根据订单号查询订单
@@ -38,7 +32,7 @@ public interface IPayOrderService {
     /**
      * 保存订单
      */
-    void save(PayOrderEntity loanOrder);
+    void save(PayOrderEntity payOrder);
 
     /**
      * 所有还款订单查询
@@ -54,12 +48,22 @@ public interface IPayOrderService {
      */
     List<PayOrderEntity> listByUserAndStatus(String userCode, List<String> statuses);
 
-    /** 入账成功后通知风控 */
-    void notifyRepaySuccess(String userCode, String batchId, PayTypeEnum payType);
-
     /**
-     * 查询入账中的订单, 包括 ENTRY_DOING, DEDUCTED
+     * 根据条件查询借款订单
+     * @param condition
      * @return
      */
-    List<PayOrderEntity> listEntryDoingPayOrders(String userCode);
+    Page<PayOrderEntity> listPayOrderByCondition(FetchPayOrderCondition condition);
+
+    /**
+     * 用户还款, 通知先玩后付
+     * @param payOrder
+     */
+    void savePayOrderAndLog(PayOrderEntity payOrder, PayOrderLogEntity payOrderLog);
+
+    /**
+     * 发送扣款通知
+     * @param payOrderId
+     */
+    void repayNotice(String payOrderId);
 }

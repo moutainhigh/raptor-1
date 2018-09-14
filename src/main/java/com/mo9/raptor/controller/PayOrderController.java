@@ -9,9 +9,9 @@ import com.mo9.raptor.bean.res.ChannelDetailRes;
 import com.mo9.raptor.bean.res.PayOderChannelRes;
 import com.mo9.raptor.engine.entity.PayOrderEntity;
 import com.mo9.raptor.engine.enums.StatusEnum;
+import com.mo9.raptor.engine.service.IPayOrderService;
 import com.mo9.raptor.entity.PayOrderLogEntity;
 import com.mo9.raptor.enums.*;
-import com.mo9.raptor.service.IPayOrderService;
 import com.mo9.raptor.utils.IDWorker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,7 +84,7 @@ public class PayOrderController {
         payOrderLog.setUserName(req.getUserName());
         payOrderLog.setChannel(repayChannelTypeEnum.name());
         payOrderLog.create();
-        payOrderService.repay(payOrder, payOrderLog);
+        payOrderService.savePayOrderAndLog(payOrder, payOrderLog);
 
 
         PayOderChannelRes res = new PayOderChannelRes();
@@ -138,7 +138,7 @@ public class PayOrderController {
         payOrderLog.setUserName(req.getUserName());
         payOrderLog.setChannel(repayChannelTypeEnum.name());
         payOrderLog.create();
-        payOrderService.repay(payOrder, payOrderLog);
+        payOrderService.savePayOrderAndLog(payOrder, payOrderLog);
 
         PayOderChannelRes res = new PayOderChannelRes();
         JSONObject data = new JSONObject();

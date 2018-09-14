@@ -1,5 +1,7 @@
 package com.mo9.raptor.engine.state.action.impl.pay;
 
+import com.mo9.raptor.engine.entity.PayOrderEntity;
+import com.mo9.raptor.engine.service.IPayOrderService;
 import com.mo9.raptor.engine.state.action.IAction;
 import com.mo9.raptor.engine.state.event.impl.loan.LoanEntryEvent;
 import com.mo9.raptor.engine.state.launcher.IEventLauncher;
@@ -15,21 +17,22 @@ public class EntryExecuteAction implements IAction {
 
     private IEventLauncher loanEventLauncher;
 
-    public EntryExecuteAction(String batchId, IEventLauncher loanEventLauncher) {
+    private IPayOrderService payOrderService;
+
+    public EntryExecuteAction(String batchId, IPayOrderService payOrderService, IEventLauncher loanEventLauncher) {
         this.batchId = batchId;
+        this.payOrderService = payOrderService;
         this.loanEventLauncher = loanEventLauncher;
     }
 
     @Override
     public void run() {
 
-        /** TODO：根据批次号，查询还款订单，并根据还款订单，创建对应的借款订单入账事件 */
-
-        String loanOrderId = "";
-        String payType = "";
+        PayOrderEntity payOrderEntity = payOrderService.getByOrderId(batchId);
+        String loanOrderId = payOrderEntity.getLoanOrderId();
+        String payType = payOrderEntity.getType();
         Scheme scheme = new Scheme();
-
-        LoanEntryEvent event = new LoanEntryEvent(loanOrderId, payType, scheme);
+        LoanEntryEvent event = new LoanEntryEvent(loanOrderId, batchId, payType, scheme);
         try {
             this.loanEventLauncher.launch(event);
         } catch (Exception e) {
