@@ -1,10 +1,6 @@
 package com.mo9.raptor.engine.service;
 
 import com.mo9.raptor.engine.entity.LendOrderEntity;
-import com.mo9.raptor.engine.entity.PayOrderEntity;
-import com.mo9.raptor.enums.PayTypeEnum;
-
-import java.util.List;
 
 /**
  * 贷款订单service
@@ -12,55 +8,17 @@ import java.util.List;
  */
 public interface ILendOrderService {
 
-
-    List<PayOrderEntity> listOrderEntryDoings(String loanOrderId);
-
     /**
-     * 根据批次号查询订单
-     * @param batchId
-     * @return
-     */
-    List<PayOrderEntity> listByBatchId(String batchId);
-
-    /**
-     * 根据订单号查询订单
-     * @param orderId   还款订单号
-     * @return          还款订单
+     * 根据订单号获取
+     * 会刷新所有预下单订单
+     * @param orderId  订单号
+     * @return         订单
      */
     LendOrderEntity getByOrderId(String orderId);
 
     /**
-     * 根据订单号批量查询
-     * @param payOrderIds
-     * @return
-     */
-    List<PayOrderEntity> listByOrderIds(List<String> payOrderIds);
-
-    /**
      * 保存订单
      */
-    void save(PayOrderEntity loanOrder);
+    LendOrderEntity save(LendOrderEntity loanOrder);
 
-    /**
-     * 所有还款订单查询
-     * @return         还款订单
-     */
-    List<PayOrderEntity> listByUser(String userCode);
-
-    /**
-     * 创建还款订单
-     * @param userCode 还款订单号
-     * @param statuses 还款订单状态
-     * @return         还款订单
-     */
-    List<PayOrderEntity> listByUserAndStatus(String userCode, List<String> statuses);
-
-    /** 入账成功后通知风控 */
-    void notifyRepaySuccess(String userCode, String batchId, PayTypeEnum payType);
-
-    /**
-     * 查询入账中的订单, 包括 ENTRY_DOING, DEDUCTED
-     * @return
-     */
-    List<PayOrderEntity> listEntryDoingPayOrders(String userCode);
 }

@@ -1,6 +1,6 @@
 package com.mo9.raptor.engine.simulator;
 
-import com.mo9.raptor.daily.LoanOrderDaily;
+import com.mo9.raptor.engine.daily.LoanOrderDaily;
 import com.mo9.raptor.engine.utils.TimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
