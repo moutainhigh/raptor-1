@@ -18,7 +18,7 @@ public class LoanOrderServiceImpl implements ILoanOrderService {
     private static final Logger logger = LoggerFactory.getLogger(LoanOrderServiceImpl.class);
 
     @Autowired
-    LoanOrderRepository loanOrderRepository;
+    private LoanOrderRepository loanOrderRepository;
 
     @Override
     public LoanOrderEntity getByOrderId(String orderId) {
