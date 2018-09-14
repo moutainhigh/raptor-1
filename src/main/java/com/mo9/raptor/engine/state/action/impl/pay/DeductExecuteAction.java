@@ -24,12 +24,8 @@ public class DeductExecuteAction implements IAction {
 
     @Override
     public void run() {
-
-        PayOrderEntity payOrder = payOrderService.getByOrderId(payOrderId);
-        String userCode = payOrder.getOwnerId();
-
-        /** TODO:调用渠道扣款接口 */
-
+        // 通知扣款
+        payOrderService.repayNotice(payOrderId);
     }
 
     @Override

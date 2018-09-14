@@ -184,4 +184,9 @@ public class PayOrderLogEntity extends BaseEntity {
     public void setChannelResponse(String channelResponse) {
         this.channelResponse = channelResponse;
     }
+
+    public void create() {
+        this.setCreateTime(System.currentTimeMillis());
+        this.setUpdateTime(System.currentTimeMillis());
+    }
 }
