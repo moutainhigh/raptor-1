@@ -19,6 +19,7 @@ import com.mo9.raptor.utils.IDWorker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -44,6 +45,9 @@ public class PayOrderController {
     @Autowired
     private IPayOrderService payOrderService;
 
+    @Value("${raptor.sockpuppet}")
+    private String sockpuppet;
+
     /**
      * 还清
      * @param req
@@ -58,7 +62,7 @@ public class PayOrderController {
         // 获得订单
         String loanOrderId = req.getOrderId();
 
-        String orderId = String.valueOf(idWorker.nextId());
+        String orderId = sockpuppet + "-" + String.valueOf(idWorker.nextId());
         PayOrderEntity payOrder = new PayOrderEntity();
         payOrder.setOrderId(orderId);
         payOrder.setStatus(StatusEnum.PENDING.name());
@@ -105,7 +109,7 @@ public class PayOrderController {
         // 获得订单
         String loanOrderId = req.getOrderId();
 
-        String orderId = String.valueOf(idWorker.nextId());
+        String orderId = sockpuppet + "-" + String.valueOf(idWorker.nextId());
         PayOrderEntity payOrder = new PayOrderEntity();
         payOrder.setOrderId(orderId);
         payOrder.setStatus(StatusEnum.PENDING.name());

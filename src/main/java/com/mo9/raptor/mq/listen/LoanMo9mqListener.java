@@ -98,28 +98,47 @@ public class LoanMo9mqListener implements IMqMsgListener{
 	 */
 	private MqAction payment(MqMessage msg) {
 
-		//TODO 获取参数
-		/*"status" // 状态
-		"bankCardNo"  //银行卡卡号
-		"bankIdcardNo" //银行预留身份证号
-		"bankUserName"  //银行卡预留用户姓名
-		"bankMobile"  //银行预留手机号码
-		"bankName"  //银行名称
-		"bankBranch"  //支行
-		"lendAmount",   //实际放款金额
-		"lendReqpTime"  //放款实际请求时间
-		"lendSettleTime"  //放款结算时间
-		"lendChannel"  // 放款渠道
-		"lendChannelType"  //放款渠道类型
-		"lendId"  // 流水号
-		"channelResponse"   //第三方返回信息
-		"orderId",   //订单号
-		"eventId",   //事件ID
-		"eventTime"  //事件发送时间
-		"operator"  //操作者
-		"eventType"  //事件类型*/
-
-
+		String body = msg.getBody();
+		JSONObject bodyJson = JSON.parseObject(body);
+		String status = bodyJson.getString("status");
+		if ("success".equals(status)) {
+			//银行卡卡号
+			String bankCardNo = bodyJson.getString("bankCardNo");
+			//银行预留身份证号
+			String bankIdcardNo = bodyJson.getString("bankIdcardNo");
+			//银行卡预留用户姓名
+			String bankUserName = bodyJson.getString("bankUserName");
+			//银行预留手机号码
+			String bankMobile = bodyJson.getString("bankMobile");
+			//银行名称
+			String bankName = bodyJson.getString("bankName");
+			// 支行
+			String bankBranch = bodyJson.getString("bankBranch");
+			// 实际放款金额
+			BigDecimal lendAmount = bodyJson.getBigDecimal("lendAmount");
+			//放款实际请求时间
+			Long lendReqpTime = bodyJson.getLong("lendReqpTime");
+			// 放款结算时间
+			Long lendSettleTime = bodyJson.getLong("lendSettleTime");
+			// 放款渠道
+			String lendChannel = bodyJson.getString("lendChannel");
+			//放款渠道类型
+			String lendChannelType = bodyJson.getString("lendChannelType");
+			// 流水号
+			String lendId = bodyJson.getString("lendId");
+			//第三方返回信息
+			String channelResponse = bodyJson.getString("channelResponse");
+			//订单号
+			String orderId = bodyJson.getString("orderId");
+			//事件ID
+			String eventId = bodyJson.getString("eventId");
+			//事件发送时间
+			Long eventTime = bodyJson.getLong("eventTime");
+			//操作者
+			String operator = bodyJson.getString("operator");
+			//事件类型
+			String eventType = bodyJson.getString("eventType");
+		}
 		//修改或者存储银行卡信息 TODO
 		return MqAction.CommitMessage;
 	}
