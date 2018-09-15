@@ -103,6 +103,7 @@ public class PayOrderController {
         payOrderLog.setUserName(req.getUserName());
         payOrderLog.setChannel(repayChannelTypeEnum.name());
         payOrderLog.setRepayAmount(payOrder.getApplyNumber());
+        payOrderLog.setUserCode(userCode);
         payOrderLog.create();
         payOrderService.savePayOrderAndLog(payOrder, payOrderLog);
 
@@ -168,6 +169,7 @@ public class PayOrderController {
         payOrderLog.setUserName(req.getUserName());
         payOrderLog.setChannel(repayChannelTypeEnum.name());
         payOrderLog.setRepayAmount(payOrder.getApplyNumber());
+        payOrderLog.setUserCode(userCode);
         payOrderLog.create();
         payOrderService.savePayOrderAndLog(payOrder, payOrderLog);
 

@@ -9,7 +9,7 @@ public enum RepayChannelTypeEnum {
     /**
      * 易联H5
      */
-    YILIANPAY_H5(1, ChannelUseType.LINK, "易联H5支付"),
+    yilianh5pay(1, ChannelUseType.LINK, "易联H5支付"),
     ;
 
     /**
