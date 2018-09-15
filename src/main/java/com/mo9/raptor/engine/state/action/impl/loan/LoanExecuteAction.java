@@ -10,6 +10,7 @@ import com.mo9.raptor.engine.state.event.impl.lend.LendLaunchEvent;
 import com.mo9.raptor.engine.state.launcher.IEventLauncher;
 import com.mo9.raptor.entity.BankEntity;
 import com.mo9.raptor.service.BankService;
+import com.mo9.raptor.utils.IDWorker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,20 +32,25 @@ public class LoanExecuteAction implements IAction {
 
     private ILendOrderService lendOrderService;
 
-    public LoanExecuteAction(String orderId, ILoanOrderService loanOrderService, ILendOrderService lendOrderService, BankService bankService, IEventLauncher lendEventLauncher) {
+    private IDWorker idWorker;
+
+    public LoanExecuteAction(String orderId, ILoanOrderService loanOrderService, ILendOrderService lendOrderService, BankService bankService, IEventLauncher lendEventLauncher, IDWorker idWorker) {
         this.orderId = orderId;
         this.bankService = bankService;
         this.loanOrderService = loanOrderService;
         this.lendOrderService = lendOrderService;
         this.lendEventLauncher = lendEventLauncher;
+        this.idWorker = idWorker;
     }
 
     @Override
     public void run() {
         LoanOrderEntity order = loanOrderService.getByOrderId(orderId);
         LendOrderEntity lendOrder = new LendOrderEntity();
-        lendOrder.setApplyUniqueCode(orderId);
-        lendOrder.setApplyNumber(order.getLoanNumber());
+        lendOrder.setOrderId(orderId);
+        lendOrder.setOwnerId(order.getOwnerId());
+        lendOrder.setApplyUniqueCode(String.valueOf(idWorker.nextId()));
+        lendOrder.setApplyNumber(order.getLoanNumber().subtract(order.getChargeValue()));
         lendOrder.setApplyTime(System.currentTimeMillis());
         BankEntity bankEntity = bankService.findByUserCodeLastOne(order.getOwnerId(), BankEntity.Type.LOAN);
         lendOrder.setUserName(bankEntity.getUserName());
@@ -53,7 +59,6 @@ public class LoanExecuteAction implements IAction {
         lendOrder.setBankCard(bankEntity.getBankNo());
         lendOrder.setBankMobile(bankEntity.getMobile());
         lendOrder.setStatus(StatusEnum.PENDING.name());
-        lendOrder.setOwnerId(order.getOwnerId());
 
         // TODO
         lendOrder.setType("某类型");

@@ -1,13 +1,78 @@
 package com.mo9.raptor.bean.res;
 
-public class LoanOrderRes {
-    private int code;
+import com.alibaba.fastjson.JSONObject;
 
-    public int getCode() {
-        return code;
+import java.util.List;
+
+public class LoanOrderRes {
+
+    private String orderId;
+
+    private String repayAmount;
+
+    private Long repayTime;
+
+    private String state;
+
+    private String abateAmount;
+
+    private String receiveBankCard;
+
+    private List<JSONObject> renew;
+
+    public String getOrderId() {
+        return orderId;
     }
 
-    public void setCode(int code) {
-        this.code = code;
+    public void setOrderId(String orderId) {
+        this.orderId = orderId;
+    }
+
+    public String getRepayAmount() {
+        return repayAmount;
+    }
+
+    public void setRepayAmount(String repayAmount) {
+        this.repayAmount = repayAmount;
+    }
+
+    public Long getRepayTime() {
+        return repayTime;
+    }
+
+    public void setRepayTime(Long repayTime) {
+        this.repayTime = repayTime;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
+    }
+
+    public String getAbateAmount() {
+        return abateAmount;
+    }
+
+    public void setAbateAmount(String abateAmount) {
+        this.abateAmount = abateAmount;
+    }
+
+    public String getReceiveBankCard() {
+        return receiveBankCard;
+    }
+
+    public void setReceiveBankCard(String receiveBankCard) {
+        this.receiveBankCard = receiveBankCard;
+    }
+
+    public List<JSONObject> getRenew() {
+        return renew;
+    }
+
+    public void setRenew(List<JSONObject> renew) {
+        this.renew = renew;
     }
 }

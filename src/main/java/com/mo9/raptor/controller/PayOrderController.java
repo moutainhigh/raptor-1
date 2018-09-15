@@ -7,9 +7,15 @@ import com.mo9.raptor.bean.req.CashRenewalReq;
 import com.mo9.raptor.bean.req.CashRepayReq;
 import com.mo9.raptor.bean.res.ChannelDetailRes;
 import com.mo9.raptor.bean.res.PayOderChannelRes;
+import com.mo9.raptor.engine.calculator.ILoanCalculator;
+import com.mo9.raptor.engine.calculator.LoanCalculatorFactory;
+import com.mo9.raptor.engine.entity.LoanOrderEntity;
 import com.mo9.raptor.engine.entity.PayOrderEntity;
 import com.mo9.raptor.engine.enums.StatusEnum;
+import com.mo9.raptor.engine.service.ILoanOrderService;
 import com.mo9.raptor.engine.service.IPayOrderService;
+import com.mo9.raptor.engine.structure.field.FieldTypeEnum;
+import com.mo9.raptor.engine.structure.item.Item;
 import com.mo9.raptor.entity.PayOrderLogEntity;
 import com.mo9.raptor.enums.*;
 import com.mo9.raptor.utils.IDWorker;
@@ -41,6 +47,12 @@ public class PayOrderController {
     @Autowired
     private IPayOrderService payOrderService;
 
+    @Autowired
+    private ILoanOrderService loanOrderService;
+
+    @Autowired
+    private LoanCalculatorFactory loanCalculatorFactory;
+
     @Value("${raptor.sockpuppet}")
     private String sockpuppet;
 
@@ -62,6 +74,10 @@ public class PayOrderController {
 
         // 获得订单
         String loanOrderId = req.getOrderId();
+        LoanOrderEntity loanOrder = loanOrderService.getByOrderId(loanOrderId);
+        if (loanOrder == null || !StatusEnum.LENT.name().equals(loanOrder.getStatus())) {
+            return response.buildFailureResponse(ResCodeEnum.ILLEGAL_LOAN_ORDER_STATUE);
+        }
 
         String orderId = sockpuppet + "-" + String.valueOf(idWorker.nextId());
         PayOrderEntity payOrder = new PayOrderEntity();
@@ -69,7 +85,10 @@ public class PayOrderController {
         payOrder.setStatus(StatusEnum.PENDING.name());
         payOrder.setOwnerId(userCode);
         payOrder.setType(PayTypeEnum.REPAY_IN_ADVANCE.name());
-        payOrder.setApplyNumber(new BigDecimal(100));
+
+        ILoanCalculator calculator = loanCalculatorFactory.load(loanOrder);
+        Item realItem = calculator.realItem(System.currentTimeMillis(), loanOrder);
+        payOrder.setApplyNumber(realItem.sum());
         payOrder.setPostponeDays(0);
         payOrder.setPayCurrency(CurrencyEnum.getDefaultCurrency().name());
         payOrder.setLoanOrderId(loanOrderId);
@@ -108,13 +127,19 @@ public class PayOrderController {
             return response.buildFailureResponse(ResCodeEnum.NO_REPAY_CHANNEL);
         }
 
+        // TODO: 延期天数暂时和借款订单脱离关系
         Boolean checkRenewableDays = RenewableDaysEnum.checkRenewableDays(req.getPeriod());
-        if (checkRenewableDays) {
+        if (!checkRenewableDays) {
             return response.buildFailureResponse(ResCodeEnum.INVALID_RENEWAL_DAYS);
         }
+        Integer basicRenewableDaysTimes = RenewableDaysEnum.getBasicRenewableDaysTimes(req.getPeriod());
 
         // 获得订单
         String loanOrderId = req.getOrderId();
+        LoanOrderEntity loanOrder = loanOrderService.getByOrderId(loanOrderId);
+        if (loanOrder == null || !StatusEnum.LENT.name().equals(loanOrder.getStatus())) {
+            return response.buildFailureResponse(ResCodeEnum.ILLEGAL_LOAN_ORDER_STATUE);
+        }
 
         String orderId = sockpuppet + "-" + String.valueOf(idWorker.nextId());
         PayOrderEntity payOrder = new PayOrderEntity();
@@ -122,7 +147,11 @@ public class PayOrderController {
         payOrder.setStatus(StatusEnum.PENDING.name());
         payOrder.setOwnerId(userCode);
         payOrder.setType(PayTypeEnum.REPAY_POSTPONE.name());
-//        payOrder.setApplyNumber();
+
+        ILoanCalculator calculator = loanCalculatorFactory.load(loanOrder);
+        Item realItem = calculator.realItem(System.currentTimeMillis(), loanOrder);
+        payOrder.setApplyNumber(realItem.sum().subtract(realItem.getFieldNumber(FieldTypeEnum.PRINCIPAL)).multiply(new BigDecimal(basicRenewableDaysTimes)));
+
         payOrder.setPostponeDays(req.getPeriod());
         payOrder.setPayCurrency(CurrencyEnum.getDefaultCurrency().name());
         payOrder.setLoanOrderId(loanOrderId);

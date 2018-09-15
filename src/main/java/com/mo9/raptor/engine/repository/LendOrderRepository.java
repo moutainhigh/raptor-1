@@ -15,7 +15,7 @@ public interface LendOrderRepository extends JpaRepository<LendOrderEntity,Long>
      * @param orderId  订单号
      * @return         订单
      */
-    @Query(value = "select * from t_libra_lend_order where order_id=?1 and deleted = false", nativeQuery = true)
+    @Query(value = "select * from t_raptor_lend_order where order_id=?1 and deleted = false", nativeQuery = true)
     LendOrderEntity getByOrderId(String orderId);
 
 }

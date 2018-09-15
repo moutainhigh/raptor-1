@@ -3,8 +3,10 @@ package com.mo9.raptor.utils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.bean.res.LoanOrderLendRes;
+import com.mo9.raptor.engine.entity.LendOrderEntity;
 import com.mo9.raptor.engine.state.event.impl.lend.LendResponseEvent;
 import com.mo9.raptor.engine.state.launcher.IEventLauncher;
+import com.mo9.raptor.entity.PayOrderLogEntity;
 import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.utils.httpclient.HttpClientApi;
 import org.slf4j.Logger;
@@ -38,14 +40,11 @@ public class GatewayUtils {
     @Autowired
     private HttpClientApi httpClientApi ;
 
-    @Autowired
-    private IEventLauncher lendEventLauncher;
-
     /**
      * 放款
      * @return
      */
-    public ResCodeEnum loan(){
+    public ResCodeEnum loan(LendOrderEntity lendOrder){
         //TODO 参数需要填充
         String method = "/proxypay/pay.mhtml" ;
         String key = "werocxofsdjnfksdf892349729lkfnnmgn/x,.zx=9=-MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAJGLeWVIS3wo0U2h8lzWjiq5RJJDi14hzsbxxwedhqje123";
@@ -53,18 +52,18 @@ public class GatewayUtils {
         payParams.put("bizSys", "RAPTOR");
         Random random = new Random();
         //订单号
-        payParams.put("invoice",  "990354"+ random.nextInt(9)+ random.nextInt(9)+ random.nextInt(9)+random.nextInt(9)+ random.nextInt(9)+ random.nextInt(9));
+        payParams.put("invoice",  lendOrder.getOrderId());
         payParams.put("notifyUrl", ""); // 用snc传递成功使用地址
-        payParams.put("cardNo","6228482938103729839"); // 银行卡
-        payParams.put("usrName", "李伟"); //姓名
-        payParams.put("idCard", "411221199312062149"); //身份证
-        payParams.put("mobile", "13560084836"); //手机号
-        payParams.put("openBank", "建设银行"); // 银行名称
+        payParams.put("cardNo",lendOrder.getBankCard()); // 银行卡
+        payParams.put("usrName", lendOrder.getUserName()); //姓名
+        payParams.put("idCard", lendOrder.getIdCard()); //身份证
+        payParams.put("mobile", lendOrder.getBankMobile()); //手机号
+        payParams.put("openBank", lendOrder.getBankName()); // 银行名称
         payParams.put("prov", "未知"); // 默认
         payParams.put("city", "未知"); // 默认
         payParams.put("subBank", "建设银行");
-        payParams.put("transAmt", "0.01"); // 金额
-        payParams.put("attach", "1490685960032"); //同invoice
+        payParams.put("transAmt", lendOrder.getApplyNumber().toPlainString()); // 金额
+        payParams.put("attach", lendOrder.getOrderId()); //同invoice
         JSONObject jsonParams = new JSONObject();
         jsonParams.put("loan_term", "14");
         jsonParams.put("property", "男");
@@ -74,9 +73,8 @@ public class GatewayUtils {
         payParams.put("sign", sign);
         try {
             String resJson = httpClientApi.doGet(gatewayUrl + method, payParams);
+            logger.info("订单[{}]放款, 渠道返回[{}]", lendOrder.getOrderId(), resJson);
             // TODO
-//            LendResponseEvent lendResponseEvent = new LendResponseEvent();
-//            lendEventLauncher.launch(lendResponseEvent);
         } catch (Exception e) {
             logger.error("放款异常 - ");
         }
@@ -87,8 +85,9 @@ public class GatewayUtils {
      * 还款
      * @return
      */
-    public ResCodeEnum payoff(){
+    public ResCodeEnum payoff(PayOrderLogEntity payOrderLog){
         //TODO
+        logger.info("还款订单[{}]还款请求发送成功", payOrderLog.getPayOrderId());
         return ResCodeEnum.SUCCESS ;
     }
 

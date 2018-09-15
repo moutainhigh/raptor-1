@@ -145,7 +145,7 @@ public class PayOrderServiceImpl implements IPayOrderService {
     @Override
     public void repayNotice(String payOrderId) {
         PayOrderLogEntity payOrderLog = payOrderLogService.getByPayOrderId(payOrderId);
-        ResCodeEnum isPayoff = gatewayUtils.payoff();
+        ResCodeEnum isPayoff = gatewayUtils.payoff(payOrderLog);
         if (!ResCodeEnum.SUCCESS.equals(isPayoff)) {
             try {
                 DeductResponseEvent event= new DeductResponseEvent(payOrderId, BigDecimal.ZERO, false, System.currentTimeMillis() + ":扣款失败");

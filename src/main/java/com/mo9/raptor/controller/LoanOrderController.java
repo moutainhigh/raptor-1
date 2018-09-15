@@ -5,21 +5,25 @@ import com.mo9.raptor.bean.BaseResponse;
 import com.mo9.raptor.bean.ReqHeaderParams;
 import com.mo9.raptor.bean.req.OrderAddReq;
 import com.mo9.raptor.bean.res.LoanOrderRes;
+import com.mo9.raptor.engine.calculator.ILoanCalculator;
+import com.mo9.raptor.engine.calculator.LoanCalculatorFactory;
+import com.mo9.raptor.engine.entity.LendOrderEntity;
 import com.mo9.raptor.engine.entity.LoanOrderEntity;
 import com.mo9.raptor.engine.enums.StatusEnum;
+import com.mo9.raptor.engine.service.ILendOrderService;
 import com.mo9.raptor.engine.service.ILoanOrderService;
 import com.mo9.raptor.engine.state.event.impl.AuditLaunchEvent;
 import com.mo9.raptor.engine.state.launcher.IEventLauncher;
+import com.mo9.raptor.engine.structure.item.Item;
+import com.mo9.raptor.engine.utils.EngineStaticValue;
+import com.mo9.raptor.engine.utils.TimeUtils;
 import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.utils.IDWorker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -28,7 +32,8 @@ import java.math.BigDecimal;
  * 还款
  * Created by xzhang on 2018/9/13.
  */
-@RestController("/order")
+@RestController()
+@RequestMapping("/order")
 public class LoanOrderController {
 
     private static final Logger logger = LoggerFactory.getLogger(LoanOrderController.class);
@@ -40,10 +45,19 @@ public class LoanOrderController {
     private ILoanOrderService loanOrderService;
 
     @Autowired
+    private ILendOrderService lendOrderService;
+
+    @Autowired
     private IEventLauncher loanEventLauncher;
+
+    @Autowired
+    private LoanCalculatorFactory loanCalculatorFactory;
 
     @Value("${raptor.sockpuppet}")
     private String sockpuppet;
+
+    @Value("${postpone.unit.charge}")
+    private String postponeCharge;
 
     /**
      * 下单
@@ -57,10 +71,14 @@ public class LoanOrderController {
         // TODO: 检查用户
 
         LoanOrderEntity loanOrderEntity = loanOrderService.getLastIncompleteOrder(userCode);
+        if (loanOrderEntity != null) {
+            return response.buildFailureResponse(ResCodeEnum.ONLY_ONE_ORDER);
+        }
 
-
+        // TODO: 检查输入
         BigDecimal principal = req.getCapital();
         int loanTerm = req.getPeriod();
+
 
         /** TODO：业务相关值，如借贷服务费等，目前为新建订单时默认设定 */
         LoanOrderEntity loanOrder = new LoanOrderEntity();
@@ -70,9 +88,12 @@ public class LoanOrderController {
         loanOrder.setOwnerId(userCode);
         loanOrder.setType("RAPTOR");
         loanOrder.setLoanNumber(principal);
+        loanOrder.setPostponeUnitCharge(new BigDecimal(postponeCharge));
         loanOrder.setLoanTerm(loanTerm);
         loanOrder.setStatus(StatusEnum.PENDING.name());
         long now = System.currentTimeMillis();
+        Long today = TimeUtils.extractDateTime(now);
+        loanOrder.setRepaymentDate(today + loanTerm * EngineStaticValue.DAY_MILLIS);
         loanOrder.setCreateTime(now);
         loanOrder.setUpdateTime(now);
         /** 创建借款订单 */
@@ -96,8 +117,23 @@ public class LoanOrderController {
     public BaseResponse<LoanOrderRes> getLastIncomplete(HttpServletRequest request) {
         BaseResponse<LoanOrderRes> response = new BaseResponse<LoanOrderRes>();
         String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
+        LoanOrderEntity loanOrderEntity = loanOrderService.getLastIncompleteOrder(userCode);
+        if (loanOrderEntity == null) {
+            return response;
+        }
+        ILoanCalculator calculator = loanCalculatorFactory.load(loanOrderEntity);
+        Item realItem = calculator.realItem(System.currentTimeMillis(), loanOrderEntity);
 
-        return response;
+        LoanOrderRes res = new LoanOrderRes();
+        res.setOrderId(loanOrderEntity.getOrderId());
+        res.setRepayAmount(realItem.sum().toPlainString());
+        res.setRepayTime(loanOrderEntity.getRepaymentDate());
+        res.setState(loanOrderEntity.getStatus());
+        res.setAbateAmount("0");
+        LendOrderEntity lendOrderEntity = lendOrderService.getByOrderId(loanOrderEntity.getOrderId());
+        res.setReceiveBankCard(lendOrderEntity.getBankCard());
+        res.setRenew(calculator.getRenew(loanOrderEntity));
+        return response.buildSuccessResponse(res);
     }
 
 }

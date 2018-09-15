@@ -37,7 +37,7 @@ public class BankServiceImpl implements BankService {
 
     @Override
     public BankEntity findByUserCodeLastOne(String userCode, BankEntity.Type type) {
-        return bankRepository.findByUserCodeLastOne(userCode, type);
+        return bankRepository.findByUserCodeLastOne(userCode, type.name());
     }
 
     @Override

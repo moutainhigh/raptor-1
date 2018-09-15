@@ -1,6 +1,9 @@
 package com.mo9.raptor.enums;
 
+import com.alibaba.fastjson.JSONObject;
+
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * 产品种类

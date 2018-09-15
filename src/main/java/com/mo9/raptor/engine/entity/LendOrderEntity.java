@@ -45,7 +45,7 @@ public class LendOrderEntity extends AbstractOrderEntity {
     @Column(name = "bank_card")
     private String bankCard;
 
-    /** 银行卡号 */
+    /** 银行预留电话 */
     @Column(name = "bank_mobile")
     private String bankMobile;
 

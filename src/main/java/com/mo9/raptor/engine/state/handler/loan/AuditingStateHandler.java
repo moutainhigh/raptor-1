@@ -38,7 +38,7 @@ public class AuditingStateHandler implements IStateHandler<LoanOrderEntity> {
                 //审核成功
                 loanOrder.setStatus(StatusEnum.PASSED.name());
                 loanOrder.setAuditSignature("--");
-                loanOrder.setLentTime(auditResponseEvent.getEventTime());
+                loanOrder.setLendTime(auditResponseEvent.getEventTime());
 
                 if (LendModeEnum.AUTO.name().equals(loanOrder.getLendMode())) {
                     /** 自动放款模式下，则附加发起放款 */
