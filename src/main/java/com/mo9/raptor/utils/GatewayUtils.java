@@ -45,12 +45,10 @@ public class GatewayUtils {
      * @return
      */
     public ResCodeEnum loan(LendOrderEntity lendOrder){
-        //TODO 参数需要填充
         String method = "/proxypay/pay.mhtml" ;
         String key = "werocxofsdjnfksdf892349729lkfnnmgn/x,.zx=9=-MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAJGLeWVIS3wo0U2h8lzWjiq5RJJDi14hzsbxxwedhqje123";
         Map<String, String> payParams = new HashMap<String, String>();
         payParams.put("bizSys", "RAPTOR");
-        Random random = new Random();
         //订单号
         payParams.put("invoice",  lendOrder.getOrderId());
         payParams.put("notifyUrl", ""); //使用mq，则可以不传？
@@ -69,6 +67,8 @@ public class GatewayUtils {
         jsonParams.put("property", "男");
         payParams.put("purpose", "FAST放款");//自定义中文
         payParams.put("extraParameter", jsonParams.toJSONString());*/
+        payParams.put("purpose", "猛禽放款");
+
         String sign = Md5Encrypt.sign(payParams, key);
         payParams.put("sign", sign);
         try {
