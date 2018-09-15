@@ -38,7 +38,7 @@ public class LendExecuteAction implements IAction {
         try {
             LendOrderEntity lendOrder = lendOrderService.getByOrderId(orderId);
             // TODO: 补充参数
-            ResCodeEnum resCodeEnum = gatewayUtils.loan();
+            ResCodeEnum resCodeEnum = gatewayUtils.loan(lendOrder);
             if (!ResCodeEnum.SUCCESS.equals(resCodeEnum)) {
                 // TODO: 放款失败
                 LendResponseEvent lendResponse = new LendResponseEvent(lendOrder.getApplyUniqueCode(), false, "放款失败");

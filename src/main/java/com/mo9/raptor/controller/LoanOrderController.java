@@ -57,7 +57,9 @@ public class LoanOrderController {
         // TODO: 检查用户
 
         LoanOrderEntity loanOrderEntity = loanOrderService.getLastIncompleteOrder(userCode);
-
+        if (loanOrderEntity != null) {
+            return response.buildFailureResponse(ResCodeEnum.ONLY_ONE_ORDER);
+        }
 
         BigDecimal principal = req.getCapital();
         int loanTerm = req.getPeriod();

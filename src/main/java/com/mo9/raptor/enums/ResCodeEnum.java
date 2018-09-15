@@ -40,6 +40,11 @@ public enum ResCodeEnum {
     INVALID_RENEWAL_DAYS(11155000, "无效的延期天数", "无效的延期天数"),
     NO_REPAY_CHANNEL(11155001, "无效的还款渠道", "无效的还款渠道"),
 
+    /**
+     * xx=60, 借款
+     */
+    ONLY_ONE_ORDER(11156000, "不可同时借多笔订单", "不可同时借多笔订单"),
+
 
 
     ;
