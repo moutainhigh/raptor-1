@@ -52,7 +52,7 @@ public class GatewayUtils {
         payParams.put("bizSys", "RAPTOR");
         Random random = new Random();
         //订单号
-        payParams.put("invoice",  lendOrder.getApplyUniqueCode());
+        payParams.put("invoice",  lendOrder.getOrderId());
         payParams.put("notifyUrl", ""); // 用snc传递成功使用地址
         payParams.put("cardNo",lendOrder.getBankCard()); // 银行卡
         payParams.put("usrName", lendOrder.getUserName()); //姓名
@@ -63,7 +63,7 @@ public class GatewayUtils {
         payParams.put("city", "未知"); // 默认
         payParams.put("subBank", "建设银行");
         payParams.put("transAmt", lendOrder.getApplyNumber().toPlainString()); // 金额
-        payParams.put("attach", lendOrder.getApplyUniqueCode()); //同invoice
+        payParams.put("attach", lendOrder.getOrderId()); //同invoice
         JSONObject jsonParams = new JSONObject();
         jsonParams.put("loan_term", "14");
         jsonParams.put("property", "男");
@@ -73,7 +73,7 @@ public class GatewayUtils {
         payParams.put("sign", sign);
         try {
             String resJson = httpClientApi.doGet(gatewayUrl + method, payParams);
-            logger.info("订单[{}]放款, 渠道返回[{}]", lendOrder.getApplyUniqueCode(), resJson);
+            logger.info("订单[{}]放款, 渠道返回[{}]", lendOrder.getOrderId(), resJson);
             // TODO
         } catch (Exception e) {
             logger.error("放款异常 - ");
@@ -87,6 +87,7 @@ public class GatewayUtils {
      */
     public ResCodeEnum payoff(PayOrderLogEntity payOrderLog){
         //TODO
+        logger.info("还款订单[{}]还款请求发送成功", payOrderLog.getPayOrderId());
         return ResCodeEnum.SUCCESS ;
     }
 

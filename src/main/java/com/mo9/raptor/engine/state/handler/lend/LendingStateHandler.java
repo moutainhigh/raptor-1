@@ -3,7 +3,9 @@ package com.mo9.raptor.engine.state.handler.lend;
 import com.mo9.raptor.engine.entity.LendOrderEntity;
 import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.engine.exception.InvalidEventException;
+import com.mo9.raptor.engine.service.ILendOrderService;
 import com.mo9.raptor.engine.state.action.IActionExecutor;
+import com.mo9.raptor.engine.state.action.impl.loan.LoanResponseAction;
 import com.mo9.raptor.engine.state.event.IEvent;
 import com.mo9.raptor.engine.state.event.impl.lend.LendResponseEvent;
 import com.mo9.raptor.engine.state.event.impl.loan.LoanResponseEvent;
@@ -23,6 +25,9 @@ public class LendingStateHandler implements IStateHandler<LendOrderEntity> {
     @Autowired
     private IEventLauncher loanEventLauncher;
 
+    @Autowired
+    private ILendOrderService lendOrderService;
+
     @Override
     public LendOrderEntity handle(LendOrderEntity lendOrder, IEvent event, IActionExecutor actionExecutor) throws Exception {
 
@@ -35,27 +40,11 @@ public class LendingStateHandler implements IStateHandler<LendOrderEntity> {
                 lendOrder.setChannelLendNumber(lendResponse.getActualLent());
                 lendOrder.setChannelOrderId(lendResponse.getChannelOrderId());
                 lendOrder.setChannelResponse(lendResponse.getChannelResponse());
-
-                LoanResponseEvent loanResponse = new LoanResponseEvent(
-                        lendOrder.getApplyUniqueCode(),
-                        lendResponse.getActualLent(),
-                        lendResponse.isSucceeded(),
-                        lendResponse.getSuccessTime(),
-                        lendResponse.getExplanation(),
-                        lendResponse.getLendSignature());
-                loanEventLauncher.launch(loanResponse);
             } else {
-                lendOrder.setStatus(StatusEnum.FAILED.name());
                 // 放款失败
-                LoanResponseEvent loanResponse = new LoanResponseEvent(
-                        lendOrder.getApplyUniqueCode(),
-                        lendResponse.getActualLent(),
-                        lendResponse.isSucceeded(),
-                        lendResponse.getSuccessTime(),
-                        lendResponse.getExplanation(),
-                        lendResponse.getLendSignature());
-                loanEventLauncher.launch(loanResponse);
+                lendOrder.setStatus(StatusEnum.FAILED.name());
             }
+            actionExecutor.append(new LoanResponseAction(lendOrder.getOrderId(), lendOrderService, loanEventLauncher));
         }  else {
             throw new InvalidEventException("放款订单状态与事件类型不匹配，状态：" + lendOrder.getStatus() + "，事件：" + event);
         }

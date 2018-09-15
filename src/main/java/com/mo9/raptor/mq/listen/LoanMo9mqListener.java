@@ -155,7 +155,7 @@ public class LoanMo9mqListener implements IMqMsgListener{
                         "放款成功");
 				lendEventLauncher.launch(lendResponse);
 			} catch (Exception e) {
-				logger.error("订单[{}]放款成功时间报错", orderId, e);
+				logger.error("订单[{}]放款成功事件报错", orderId, e);
 			}
 
 		}

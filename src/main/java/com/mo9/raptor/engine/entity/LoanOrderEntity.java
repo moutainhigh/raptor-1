@@ -1,8 +1,10 @@
 package com.mo9.raptor.engine.entity;
 
+import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.engine.enums.AuditModeEnum;
 import com.mo9.raptor.engine.enums.LendModeEnum;
 import com.mo9.raptor.engine.enums.NumberMode;
+import com.mo9.raptor.engine.enums.StatusEnum;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
@@ -10,6 +12,8 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 订单表 Created by gqwu on 2018/7/6.
@@ -56,6 +60,10 @@ public class LoanOrderEntity extends AbstractOrderEntity {
     @Column(name = "charge_value")
     private BigDecimal chargeValue = new BigDecimal(250);
 
+    /** 延期单位服务费 */
+    @Column(name = "postpone_unit_charge")
+    private BigDecimal postponeUnitCharge;
+
     /** 订单审核方式 */
     @Column(name = "audit_mode")
     private String auditMode = AuditModeEnum.AUTO.name();
@@ -77,8 +85,8 @@ public class LoanOrderEntity extends AbstractOrderEntity {
     private String lendSignature = "";
 
     /** 放款时间 */
-    @Column(name = "lent_time")
-    private Long lentTime = -1L;
+    @Column(name = "lend_time")
+    private Long lendTime = -1L;
 
     /** 还款日 */
     @Column(name = "repayment_date")
@@ -188,12 +196,12 @@ public class LoanOrderEntity extends AbstractOrderEntity {
         this.lendSignature = lendSignature;
     }
 
-    public Long getLentTime() {
-        return lentTime;
+    public Long getLendTime() {
+        return lendTime;
     }
 
-    public void setLentTime(Long lentTime) {
-        this.lentTime = lentTime;
+    public void setLendTime(Long lendTime) {
+        this.lendTime = lendTime;
     }
 
     public Long getRepaymentDate() {
@@ -202,5 +210,13 @@ public class LoanOrderEntity extends AbstractOrderEntity {
 
     public void setRepaymentDate(Long repaymentDate) {
         this.repaymentDate = repaymentDate;
+    }
+
+    public BigDecimal getPostponeUnitCharge() {
+        return postponeUnitCharge;
+    }
+
+    public void setPostponeUnitCharge(BigDecimal postponeUnitCharge) {
+        this.postponeUnitCharge = postponeUnitCharge;
     }
 }

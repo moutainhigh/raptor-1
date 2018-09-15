@@ -46,6 +46,6 @@ public interface BankRepository extends JpaRepository<BankEntity,Long> {
      * @param type
      * @return
      */
-    @Query(value = "select * from t_bank where user_code = ?1 and t.type = ?2 ORDER BY create_time DESC limit 1", nativeQuery = true)
-    BankEntity findByUserCodeLastOne(String userCode, BankEntity.Type type);
+    @Query(value = "select * from t_bank where user_code = ?1 and type = ?2 ORDER BY create_time DESC limit 1", nativeQuery = true)
+    BankEntity findByUserCodeLastOne(String userCode, String type);
 }
