@@ -45,6 +45,7 @@ public enum ResCodeEnum {
      * xx=60, 借款
      */
     ONLY_ONE_ORDER(11156000, "不可同时借多笔订单", "不可同时借多笔订单"),
+    ERROR_LOAN_PARAMS(11156001, "下单参数不正确", "下单参数不正确"),
 
 
 
