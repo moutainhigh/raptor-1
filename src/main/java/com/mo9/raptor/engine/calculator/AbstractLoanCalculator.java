@@ -106,6 +106,9 @@ public abstract class AbstractLoanCalculator implements ILoanCalculator {
                 if (paid.compareTo(loanOrder.getInterestValue()) >= 0) {
                     interestField.setNumber(interestField.getNumber().add(loanOrder.getInterestValue()));
                     paid = paid.subtract(loanOrder.getInterestValue());
+                } else {
+                    interestField.setNumber(interestField.getNumber().add(paid));
+                    paid = BigDecimal.ZERO;
                 }
             }
         } else {

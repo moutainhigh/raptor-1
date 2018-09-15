@@ -35,6 +35,23 @@ public class LendResponseEvent extends AbstractStateEvent implements IStateEvent
         this.explanation = explanation;
     }
 
+    /**
+     * 放款失败
+     * @param entityUniqueId
+     * @param succeeded
+     * @param explanation
+     */
+    public LendResponseEvent(String entityUniqueId, boolean succeeded, String explanation) {
+        super(entityUniqueId);
+        this.succeeded = succeeded;
+        this.explanation = explanation;
+        this.actualLent = null;
+        this.lendSignature = null;
+        this.channelOrderId = null;
+        this.channelResponse = null;
+        this.successTime = -1L;
+    }
+
     public boolean isSucceeded() {
         return succeeded;
     }

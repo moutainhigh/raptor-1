@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.mo9.mqclient.IMqMsgListener;
 import com.mo9.mqclient.MqAction;
 import com.mo9.mqclient.MqMessage;
+import com.mo9.raptor.engine.state.event.impl.lend.LendResponseEvent;
 import com.mo9.raptor.engine.state.event.impl.pay.DeductResponseEvent;
 import com.mo9.raptor.engine.state.launcher.IEventLauncher;
 import com.mo9.raptor.entity.PayOrderLogEntity;
@@ -34,6 +35,9 @@ public class LoanMo9mqListener implements IMqMsgListener{
 
 	@Autowired
 	private IEventLauncher payEventLauncher;
+
+	@Autowired
+	private IEventLauncher lendEventLauncher;
 
 	@Override
 	 public MqAction consume(MqMessage msg, Object consumeContext) {
@@ -138,6 +142,22 @@ public class LoanMo9mqListener implements IMqMsgListener{
 			String operator = bodyJson.getString("operator");
 			//事件类型
 			String eventType = bodyJson.getString("eventType");
+
+			try {
+				LendResponseEvent lendResponse = new LendResponseEvent(
+                        orderId,
+                        true,
+                        lendAmount,
+                        "放款签名",
+                        lendId,
+                        channelResponse,
+                        lendSettleTime,
+                        "放款成功");
+				lendEventLauncher.launch(lendResponse);
+			} catch (Exception e) {
+				logger.error("订单[{}]放款成功时间报错", orderId, e);
+			}
+
 		}
 		//修改或者存储银行卡信息 TODO
 		return MqAction.CommitMessage;

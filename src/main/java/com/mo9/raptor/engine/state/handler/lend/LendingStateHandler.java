@@ -29,6 +29,7 @@ public class LendingStateHandler implements IStateHandler<LendOrderEntity> {
         if (event instanceof LendResponseEvent) {
             LendResponseEvent lendResponse = (LendResponseEvent) event;
             if (lendResponse.isSucceeded()) {
+                // 放款成功
                 lendOrder.setStatus(StatusEnum.SUCCESS.name());
                 lendOrder.setChanelResponseTime(lendResponse.getSuccessTime());
                 lendOrder.setChannelLendNumber(lendResponse.getActualLent());
@@ -45,12 +46,19 @@ public class LendingStateHandler implements IStateHandler<LendOrderEntity> {
                 loanEventLauncher.launch(loanResponse);
             } else {
                 lendOrder.setStatus(StatusEnum.FAILED.name());
-
+                // 放款失败
+                LoanResponseEvent loanResponse = new LoanResponseEvent(
+                        lendOrder.getApplyUniqueCode(),
+                        lendResponse.getActualLent(),
+                        lendResponse.isSucceeded(),
+                        lendResponse.getSuccessTime(),
+                        lendResponse.getExplanation(),
+                        lendResponse.getLendSignature());
+                loanEventLauncher.launch(loanResponse);
             }
         }  else {
             throw new InvalidEventException("放款订单状态与事件类型不匹配，状态：" + lendOrder.getStatus() + "，事件：" + event);
         }
-
         return lendOrder;
     }
 }

@@ -38,9 +38,6 @@ public class GatewayUtils {
     @Autowired
     private HttpClientApi httpClientApi ;
 
-    @Autowired
-    private IEventLauncher lendEventLauncher;
-
     /**
      * 放款
      * @return
@@ -75,8 +72,6 @@ public class GatewayUtils {
         try {
             String resJson = httpClientApi.doGet(gatewayUrl + method, payParams);
             // TODO
-//            LendResponseEvent lendResponseEvent = new LendResponseEvent();
-//            lendEventLauncher.launch(lendResponseEvent);
         } catch (Exception e) {
             logger.error("放款异常 - ");
         }
