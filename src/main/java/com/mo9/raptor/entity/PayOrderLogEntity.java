@@ -6,6 +6,7 @@ import org.hibernate.annotations.DynamicUpdate;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import java.math.BigDecimal;
 
 /**
  * 还款log
@@ -28,6 +29,18 @@ public class PayOrderLogEntity extends BaseEntity {
      */
     @Column(name = "pay_order_id")
     private String payOrderId;
+
+    /**
+     * 还款申请金额
+     */
+    @Column(name = "repay_amount")
+    private BigDecimal repayAmount;
+
+    /**
+     * 渠道返回的还款数目
+     */
+    @Column(name = "channel_repay_number")
+    private BigDecimal channelRepayNumber;
 
     /**
      * 还款渠道
@@ -183,6 +196,22 @@ public class PayOrderLogEntity extends BaseEntity {
 
     public void setChannelResponse(String channelResponse) {
         this.channelResponse = channelResponse;
+    }
+
+    public BigDecimal getRepayAmount() {
+        return repayAmount;
+    }
+
+    public void setRepayAmount(BigDecimal repayAmount) {
+        this.repayAmount = repayAmount;
+    }
+
+    public BigDecimal getChannelRepayNumber() {
+        return channelRepayNumber;
+    }
+
+    public void setChannelRepayNumber(BigDecimal channelRepayNumber) {
+        this.channelRepayNumber = channelRepayNumber;
     }
 
     public void create() {

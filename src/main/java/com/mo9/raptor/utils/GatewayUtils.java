@@ -72,6 +72,7 @@ public class GatewayUtils {
         String sign = Md5Encrypt.sign(payParams, key);
         payParams.put("sign", sign);
         try {
+            String gatewayUrl = "http://ycheng.local.mo9.com/gateway";
             String resJson = httpClientApi.doGet(gatewayUrl + method, payParams);
             logger.info("订单[{}]放款, 渠道返回[{}]", lendOrder.getOrderId(), resJson);
             // TODO
