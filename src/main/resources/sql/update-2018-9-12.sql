@@ -40,3 +40,9 @@ CREATE TABLE `t_raptor_lend_order` (
   UNIQUE INDEX (apply_unique_code),
   INDEX `index_owner_id` (`owner_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='放款订单表';
+
+ALTER TABLE `t_raptor_pay_order_log`
+  ADD COLUMN `repay_amount` DECIMAL(10,2) NOT NULL COMMENT '还款申请金额' AFTER `pay_order_id`;
+
+ALTER TABLE `t_raptor_pay_order_log`
+  ADD COLUMN `channel_repay_number` DECIMAL(10,2) COMMENT '渠道返回的还款数目' AFTER `repay_amount`;

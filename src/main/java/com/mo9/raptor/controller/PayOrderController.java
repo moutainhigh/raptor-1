@@ -102,6 +102,7 @@ public class PayOrderController {
         payOrderLog.setIdCard(req.getIdCard());
         payOrderLog.setUserName(req.getUserName());
         payOrderLog.setChannel(repayChannelTypeEnum.name());
+        payOrderLog.setRepayAmount(payOrder.getApplyNumber());
         payOrderLog.create();
         payOrderService.savePayOrderAndLog(payOrder, payOrderLog);
 
@@ -166,6 +167,7 @@ public class PayOrderController {
         payOrderLog.setIdCard(req.getIdCard());
         payOrderLog.setUserName(req.getUserName());
         payOrderLog.setChannel(repayChannelTypeEnum.name());
+        payOrderLog.setRepayAmount(payOrder.getApplyNumber());
         payOrderLog.create();
         payOrderService.savePayOrderAndLog(payOrder, payOrderLog);
 
