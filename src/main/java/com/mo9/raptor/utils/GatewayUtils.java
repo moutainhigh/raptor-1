@@ -45,30 +45,30 @@ public class GatewayUtils {
      * @return
      */
     public ResCodeEnum loan(LendOrderEntity lendOrder){
-        //TODO 参数需要填充
         String method = "/proxypay/pay.mhtml" ;
         String key = "werocxofsdjnfksdf892349729lkfnnmgn/x,.zx=9=-MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAJGLeWVIS3wo0U2h8lzWjiq5RJJDi14hzsbxxwedhqje123";
         Map<String, String> payParams = new HashMap<String, String>();
         payParams.put("bizSys", "RAPTOR");
-        Random random = new Random();
         //订单号
         payParams.put("invoice",  lendOrder.getOrderId());
-        payParams.put("notifyUrl", ""); // 用snc传递成功使用地址
+        payParams.put("notifyUrl", ""); //使用mq，则可以不传？
         payParams.put("cardNo",lendOrder.getBankCard()); // 银行卡
         payParams.put("usrName", lendOrder.getUserName()); //姓名
         payParams.put("idCard", lendOrder.getIdCard()); //身份证
         payParams.put("mobile", lendOrder.getBankMobile()); //手机号
         payParams.put("openBank", lendOrder.getBankName()); // 银行名称
-        payParams.put("prov", "未知"); // 默认
-        payParams.put("city", "未知"); // 默认
-        payParams.put("subBank", "建设银行");
+        //payParams.put("prov", "未知"); // 默认
+        //payParams.put("city", "未知"); // 默认
+        //payParams.put("subBank", "建设银行");
         payParams.put("transAmt", lendOrder.getApplyNumber().toPlainString()); // 金额
         payParams.put("attach", lendOrder.getOrderId()); //同invoice
-        JSONObject jsonParams = new JSONObject();
+        /*JSONObject jsonParams = new JSONObject();
         jsonParams.put("loan_term", "14");
         jsonParams.put("property", "男");
         payParams.put("purpose", "FAST放款");//自定义中文
-        payParams.put("extraParameter", jsonParams.toJSONString());
+        payParams.put("extraParameter", jsonParams.toJSONString());*/
+        payParams.put("purpose", "猛禽放款");
+
         String sign = Md5Encrypt.sign(payParams, key);
         payParams.put("sign", sign);
         try {
