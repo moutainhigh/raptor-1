@@ -24,6 +24,9 @@ public class PayOrderLogEntity extends BaseEntity {
     @Column(name = "order_id")
     private String orderId;
 
+    @Column(name = "user_code")
+    private String userCode;
+
     /**
      * 还款订单号
      */
@@ -108,6 +111,14 @@ public class PayOrderLogEntity extends BaseEntity {
 
     public void setOrderId(String orderId) {
         this.orderId = orderId;
+    }
+
+    public String getUserCode() {
+        return userCode;
+    }
+
+    public void setUserCode(String userCode) {
+        this.userCode = userCode;
     }
 
     public String getPayOrderId() {

@@ -4,10 +4,13 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.bean.res.LoanOrderLendRes;
 import com.mo9.raptor.engine.entity.LendOrderEntity;
-import com.mo9.raptor.engine.state.event.impl.lend.LendResponseEvent;
-import com.mo9.raptor.engine.state.launcher.IEventLauncher;
+import com.mo9.raptor.engine.entity.PayOrderEntity;
+import com.mo9.raptor.engine.service.IPayOrderService;
 import com.mo9.raptor.entity.PayOrderLogEntity;
+import com.mo9.raptor.entity.UserEntity;
+import com.mo9.raptor.enums.PayTypeEnum;
 import com.mo9.raptor.enums.ResCodeEnum;
+import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.httpclient.HttpClientApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +39,12 @@ public class GatewayUtils {
      */
     @Value("${gateway.url}")
     private String gatewayUrl ;
+
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private IPayOrderService payOrderService;
 
     @Autowired
     private HttpClientApi httpClientApi ;
@@ -87,8 +96,43 @@ public class GatewayUtils {
      * @return
      */
     public ResCodeEnum payoff(PayOrderLogEntity payOrderLog){
-        //TODO
-        logger.info("还款订单[{}]还款请求发送成功", payOrderLog.getPayOrderId());
+        try {
+            Map<String,String> params = new HashMap<String,String>();
+            params.put("m", "newPayGu");
+            params.put("channel", payOrderLog.getChannel());
+            params.put("subchannel", payOrderLog.getChannel());
+            params.put("amount", payOrderLog.getRepayAmount().toPlainString());
+            UserEntity user = userService.findByUserCode(payOrderLog.getUserCode());
+            params.put("mobile", user.getMobile());
+            PayOrderEntity payOrderEntity = payOrderService.getByOrderId(payOrderLog.getPayOrderId());
+            //orderId : 订单号; type ： 还款 延期
+            params.put("remark", "RAPTOR_" + payOrderEntity.getOrderId() + "_" + (payOrderEntity.getType().equals(PayTypeEnum.REPAY_POSTPONE.name()) ? PayTypeEnum.REPAY_POSTPONE.name() : "REPAY"));
+
+            params.put("userMobile", user.getMobile());
+            params.put("bankmobile", payOrderLog.getBankMobile());
+            params.put("userName",payOrderLog.getUserName());
+            params.put("bankCard", payOrderLog.getBankCard());
+            params.put("idCard", payOrderLog.getIdCard());
+            params.put("orderDesc", "猛禽支付");
+
+            String mysig = Md5Encrypt.sign(params, "643138394F10DA5E9647709A3FA8DD7F");
+            params.put("sign", mysig);
+            String gatewayUrl = "http://ycheng.local.mo9.com/gateway/pay.shtml";
+            String resJson = httpClientApi.doGet(gatewayUrl, params);
+            JSONObject jsonObject = JSONObject.parseObject(resJson);
+            String code = jsonObject.getString("code");
+            if ("0000".equals(code)) {
+                JSONObject data = jsonObject.getJSONObject("data");
+                String url = data.getString("result");
+                // TODO: 怎么返回这个url?
+                logger.info("还款订单[{}]还款请求发送成功, 返回为[{}]", payOrderLog.getPayOrderId(), resJson);
+            } else {
+                logger.info("还款订单[{}]还款请求发送失败, 返回为[{}]", payOrderLog.getPayOrderId(), resJson);
+            }
+        } catch (Exception e) {
+            logger.error("还款订单[{}]还款报错", payOrderLog.getPayOrderId(), e);
+            return ResCodeEnum.EXCEPTION_CODE;
+        }
         return ResCodeEnum.SUCCESS ;
     }
 

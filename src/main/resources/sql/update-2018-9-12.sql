@@ -46,3 +46,6 @@ ALTER TABLE `t_raptor_pay_order_log`
 
 ALTER TABLE `t_raptor_pay_order_log`
   ADD COLUMN `channel_repay_number` DECIMAL(10,2) COMMENT '渠道返回的还款数目' AFTER `repay_amount`;
+
+ALTER TABLE `t_raptor_pay_order_log`
+  ADD COLUMN `user_code` VARCHAR(64) COMMENT '用户编号' AFTER `order_id`;
