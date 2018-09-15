@@ -7,7 +7,7 @@ import javax.persistence.*;
  * @date 2018/9/13
  */
 @Entity
-@Table(name = "t_raptor_user")
+@Table(name = "t_raptor_user_certify_info")
 public class UserCertifyInfoEntity {
 
     @Id

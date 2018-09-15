@@ -17,6 +17,7 @@ import com.mo9.raptor.engine.state.launcher.IEventLauncher;
 import com.mo9.raptor.engine.structure.item.Item;
 import com.mo9.raptor.engine.utils.EngineStaticValue;
 import com.mo9.raptor.engine.utils.TimeUtils;
+import com.mo9.raptor.enums.ProductEnum;
 import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.utils.IDWorker;
 import org.slf4j.Logger;
@@ -78,11 +79,11 @@ public class LoanOrderController {
         // TODO: 检查输入
         BigDecimal principal = req.getCapital();
         int loanTerm = req.getPeriod();
+        if (!(ProductEnum.checkLoanDays(loanTerm) && ProductEnum.checkPrincipal(principal))) {
+            return response.buildFailureResponse(ResCodeEnum.ERROR_LOAN_PARAMS);
+        }
 
-
-        /** TODO：业务相关值，如借贷服务费等，目前为新建订单时默认设定 */
         LoanOrderEntity loanOrder = new LoanOrderEntity();
-
         String orderId = sockpuppet + "-" + idWorker.nextId();
         loanOrder.setOrderId(orderId);
         loanOrder.setOwnerId(userCode);

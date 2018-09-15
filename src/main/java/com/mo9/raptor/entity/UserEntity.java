@@ -73,7 +73,7 @@ public class UserEntity {
      * 用户通话记录文本
      */
     @Column(name = "call_history_text")
-    private String call_history_text;
+    private String callHistoryText;
 
     @Column(name = "user_ip")
     private String userIp;
@@ -199,12 +199,12 @@ public class UserEntity {
         this.mobileContactsText = mobileContactsText;
     }
 
-    public String getCall_history_text() {
-        return call_history_text;
+    public String getCallHistoryText() {
+        return callHistoryText;
     }
 
-    public void setCall_history_text(String call_history_text) {
-        this.call_history_text = call_history_text;
+    public void setCallHistoryText(String callHistoryText) {
+        this.callHistoryText = callHistoryText;
     }
 
     public String getUserIp() {
