@@ -61,7 +61,8 @@ public class LoanMo9mqListener implements IMqMsgListener{
 	 */
 	private MqAction payoff(MqMessage msg) {
 		String body = msg.getBody();
-		JSONObject bodyJson = JSON.parseObject(body);
+		JSONObject remark = JSON.parseObject(body);
+		JSONObject bodyJson = remark.getJSONObject("remark");
 		String status = bodyJson.getString("status");
 		if ("success".equals(status)) {
 			String channel = bodyJson.getString("channel");
@@ -103,9 +104,18 @@ public class LoanMo9mqListener implements IMqMsgListener{
 	private MqAction payment(MqMessage msg) {
 
 		String body = msg.getBody();
-		JSONObject bodyJson = JSON.parseObject(body);
+		JSONObject remark = JSON.parseObject(body);
+		JSONObject bodyJson = JSON.parseObject(remark.getString("remark"));
 		String status = bodyJson.getString("status");
-		if ("success".equals(status)) {
+		// 放款结算时间
+		Long lendSettleTime = bodyJson.getLong("lendSettleTime");
+		// 流水号
+		String lendId = bodyJson.getString("lendId");
+		//第三方返回信息
+		String channelResponse = bodyJson.getString("channelResponse");
+		//订单号
+		String orderId = bodyJson.getString("orderId");
+		if ("1".equals(status)) {
 			//银行卡卡号
 			String bankCardNo = bodyJson.getString("bankCardNo");
 			//银行预留身份证号
@@ -122,18 +132,10 @@ public class LoanMo9mqListener implements IMqMsgListener{
 			BigDecimal lendAmount = bodyJson.getBigDecimal("lendAmount");
 			//放款实际请求时间
 			Long lendReqpTime = bodyJson.getLong("lendReqpTime");
-			// 放款结算时间
-			Long lendSettleTime = bodyJson.getLong("lendSettleTime");
 			// 放款渠道
 			String lendChannel = bodyJson.getString("lendChannel");
 			//放款渠道类型
 			String lendChannelType = bodyJson.getString("lendChannelType");
-			// 流水号
-			String lendId = bodyJson.getString("lendId");
-			//第三方返回信息
-			String channelResponse = bodyJson.getString("channelResponse");
-			//订单号
-			String orderId = bodyJson.getString("orderId");
 			//事件ID
 			String eventId = bodyJson.getString("eventId");
 			//事件发送时间
@@ -157,7 +159,22 @@ public class LoanMo9mqListener implements IMqMsgListener{
 			} catch (Exception e) {
 				logger.error("订单[{}]放款成功事件报错", orderId, e);
 			}
-
+		} else {
+			try {
+				logger.error("MQ接收到了订单[{}]放款失败的信息", orderId);
+				LendResponseEvent lendResponse = new LendResponseEvent(
+						orderId,
+						false,
+						null,
+						"放款签名",
+						lendId,
+						channelResponse,
+						lendSettleTime,
+						"放款失败");
+				lendEventLauncher.launch(lendResponse);
+			} catch (Exception e) {
+				logger.error("订单[{}]放款成功事件报错", orderId, e);
+			}
 		}
 		//修改或者存储银行卡信息 TODO
 		return MqAction.CommitMessage;

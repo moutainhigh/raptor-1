@@ -6,6 +6,7 @@ import com.mo9.raptor.engine.exception.MergeException;
 import com.mo9.raptor.engine.exception.UnSupportTimeDiffException;
 import com.mo9.raptor.engine.structure.Scheme;
 import com.mo9.raptor.engine.structure.item.Item;
+import com.mo9.raptor.exception.LoanEntryException;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -36,7 +37,7 @@ public interface ILoanCalculator {
      * @throws UnSupportTimeDiffException
      * @throws MergeException
      */
-    Item entryItem(Long date, String payType, BigDecimal paid, LoanOrderEntity loanOrder);
+    Item entryItem(Long date, String payType, BigDecimal paid, LoanOrderEntity loanOrder) throws LoanEntryException;
 
     /**
      * 检查是否是合法的还款金额
@@ -45,16 +46,17 @@ public interface ILoanCalculator {
      * @param loanOrder
      * @return
      */
-    Boolean checkValidRepayAmount(Long date, String payType, BigDecimal paid, LoanOrderEntity loanOrder);
+    Boolean checkValidRepayAmount(Long date, String payType, BigDecimal paid, LoanOrderEntity loanOrder) throws LoanEntryException;
 
     /**
      * 根据入账明细，完成入账处理，返回处理后的订单
      * @param loanOrder
      * @param realItem
+     * @param days               延期天数
      * @param entryItem
      * @return
      */
-    LoanOrderEntity itemEntry(LoanOrderEntity loanOrder, String payType, Item realItem, Item entryItem);
+    LoanOrderEntity itemEntry(LoanOrderEntity loanOrder, String payType, Integer days, Item realItem, Item entryItem) throws LoanEntryException;
 
     /**
      * 延期还款列表

@@ -51,12 +51,16 @@ public class MqListenerTest {
         LoanOrderEntity order = loanOrderService.getLastIncompleteOrder("123");
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("orderId", order.getOrderId());
-        params.put("lendAmount", order.getLoanNumber().subtract(order.getChargeValue()));
-        params.put("status", "success");
+        //params.put("lendAmount", order.getLoanNumber().subtract(order.getChargeValue()));
+        params.put("lendAmount", 100);
+        params.put("status", "1");
         params.put("lendSettleTime", System.currentTimeMillis());
         params.put("channelResponse", JSONObject.toJSONString(params));
 
-        MqMessage message = new MqMessage("TOPIC", "MQ_RAPTOR_LOAN_TAG", JSONObject.toJSONString(params));
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("remark", params);
+
+        MqMessage message = new MqMessage("TOPIC", "MQ_RAPTOR_LOAN_TAG", jsonObject.toJSONString());
         loanMo9mqListener.consume(message, null);
     }
 
@@ -73,11 +77,15 @@ public class MqListenerTest {
         params.put("status", "success");
         params.put("channel", "先玩后付");
         params.put("amount", payOrderEntity.getApplyNumber());
+        //params.put("amount", 100);
         params.put("dealcode", idWorker.nextId());
         params.put("channelDealcode", idWorker.nextId());
         params.put("orderId", payOrderEntity.getOrderId());
 
-        MqMessage message = new MqMessage("TOPIC", "MQ_RAPTOR_PAYOFF_TAG", JSONObject.toJSONString(params));
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("remark", params);
+
+        MqMessage message = new MqMessage("TOPIC", "MQ_RAPTOR_PAYOFF_TAG", jsonObject.toJSONString());
         loanMo9mqListener.consume(message, null);
     }
 

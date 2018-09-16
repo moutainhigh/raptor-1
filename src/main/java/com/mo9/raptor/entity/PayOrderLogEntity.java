@@ -105,6 +105,12 @@ public class PayOrderLogEntity extends BaseEntity {
     @Column(name = "channel_response")
     private String channelResponse;
 
+    /**
+     * 渠道同步响应结果
+     */
+    @Column(name = "channel_sync_response")
+    private String channelSyncResponse;
+
     public String getOrderId() {
         return orderId;
     }
@@ -223,6 +229,14 @@ public class PayOrderLogEntity extends BaseEntity {
 
     public void setChannelRepayNumber(BigDecimal channelRepayNumber) {
         this.channelRepayNumber = channelRepayNumber;
+    }
+
+    public String getChannelSyncResponse() {
+        return channelSyncResponse;
+    }
+
+    public void setChannelSyncResponse(String channelSyncResponse) {
+        this.channelSyncResponse = channelSyncResponse;
     }
 
     public void create() {

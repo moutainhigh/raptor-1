@@ -42,6 +42,10 @@ public class LendingStateHandler implements IStateHandler<LendOrderEntity> {
                 lendOrder.setChannelResponse(lendResponse.getChannelResponse());
             } else {
                 // 放款失败
+                lendOrder.setChanelResponseTime(lendResponse.getSuccessTime());
+                lendOrder.setChannelLendNumber(lendResponse.getActualLent());
+                lendOrder.setChannelOrderId(lendResponse.getChannelOrderId());
+                lendOrder.setChannelResponse(lendResponse.getChannelResponse());
                 lendOrder.setStatus(StatusEnum.FAILED.name());
             }
             actionExecutor.append(new LoanResponseAction(lendOrder.getOrderId(), lendOrderService, loanEventLauncher));

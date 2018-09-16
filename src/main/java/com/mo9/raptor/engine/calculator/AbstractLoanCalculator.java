@@ -3,24 +3,21 @@ package com.mo9.raptor.engine.calculator;
 import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.engine.entity.LoanOrderEntity;
 import com.mo9.raptor.engine.enums.StatusEnum;
-import com.mo9.raptor.engine.exception.MergeException;
-import com.mo9.raptor.engine.exception.UnSupportTimeDiffException;
-import com.mo9.raptor.engine.structure.Scheme;
 import com.mo9.raptor.engine.structure.field.Field;
 import com.mo9.raptor.engine.structure.field.FieldTypeEnum;
 import com.mo9.raptor.engine.structure.item.Item;
+import com.mo9.raptor.engine.structure.item.ItemTypeEnum;
 import com.mo9.raptor.engine.utils.EngineStaticValue;
 import com.mo9.raptor.engine.utils.TimeUtils;
 import com.mo9.raptor.enums.PayTypeEnum;
+import com.mo9.raptor.exception.LoanEntryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 借贷订单计算器
@@ -48,7 +45,8 @@ public abstract class AbstractLoanCalculator implements ILoanCalculator {
 
         Field principalField = new Field();
         principalField.setFieldType(FieldTypeEnum.PRINCIPAL);
-        principalField.setNumber(loanOrder.getLentNumber().add(loanOrder.getChargeValue()));
+        // 管他放了多少钱, 一律按放款金额收钱
+        principalField.setNumber(loanOrder.getLoanNumber());
         originalItem.put(FieldTypeEnum.PRINCIPAL, principalField);
 
         Field chargeField = new Field();
@@ -73,22 +71,37 @@ public abstract class AbstractLoanCalculator implements ILoanCalculator {
         }
         Long repaymentDate = loanOrder.getRepaymentDate();
         date = TimeUtils.extractDateTime(date);
-        if (date >= repaymentDate) {
+        Field penaltyField = new Field();
+        penaltyField.setFieldType(FieldTypeEnum.PENALTY);
+        if (date >= repaymentDate + EngineStaticValue.DAY_MILLIS) {
             // 计算逾期费
             Long overDueDate = (date - repaymentDate) / EngineStaticValue.DAY_MILLIS + 1;
             BigDecimal penalty = loanOrder.getPenaltyValue().multiply(new BigDecimal(overDueDate));
-            Field penaltyField = new Field();
-            penaltyField.setFieldType(FieldTypeEnum.PENALTY);
             penaltyField.setNumber(penalty);
-            item.put(FieldTypeEnum.PENALTY, penaltyField);
+            item.setItemType(ItemTypeEnum.PREVIOUS);
+        } else if (date.equals(repaymentDate)) {
+            penaltyField.setNumber(BigDecimal.ZERO);
+            item.setItemType(ItemTypeEnum.PERIOD);
+        } else {
+            penaltyField.setNumber(BigDecimal.ZERO);
+            item.setItemType(ItemTypeEnum.PREPAY);
         }
+        item.put(FieldTypeEnum.PENALTY, penaltyField);
         return item;
     }
 
     @Override
-    public Item entryItem (Long date, String payType, BigDecimal paid, LoanOrderEntity loanOrder) {
+    public Item entryItem (Long date, String payType, BigDecimal paid, LoanOrderEntity loanOrder) throws LoanEntryException {
+        BigDecimal originalPaid = paid.multiply(BigDecimal.ONE);
         Item entryItem = new Item();
+        Item realItem = this.realItem(date, loanOrder);
         if (payType.equals(PayTypeEnum.REPAY_POSTPONE.name())) {
+            Field penaltyField = realItem.get(FieldTypeEnum.PENALTY);
+            if (penaltyField != null) {
+                entryItem.put(FieldTypeEnum.PENALTY, penaltyField.clone());
+                paid = paid.subtract(penaltyField.getNumber());
+            }
+
             BigDecimal unitCharge = loanOrder.getPostponeUnitCharge();
             Field interestField = new Field();
             Field chargeField = new Field();
@@ -97,21 +110,19 @@ public abstract class AbstractLoanCalculator implements ILoanCalculator {
                     chargeField.setNumber(chargeField.getNumber().add(unitCharge));
                     paid = paid.subtract(unitCharge);
                 } else {
-                    chargeField.setNumber(chargeField.getNumber().add(paid));
-                    paid = BigDecimal.ZERO;
+                    throw new LoanEntryException("订单延期还款" + originalPaid.toPlainString() + "无法入账的金额" + paid.toPlainString());
                 }
                 if (paid.compareTo(loanOrder.getInterestValue()) >= 0) {
                     interestField.setNumber(interestField.getNumber().add(loanOrder.getInterestValue()));
                     paid = paid.subtract(loanOrder.getInterestValue());
                 } else {
-                    interestField.setNumber(interestField.getNumber().add(paid));
-                    paid = BigDecimal.ZERO;
+                    throw new LoanEntryException("订单延期还款" + originalPaid.toPlainString() + "无法入账的金额" + paid.toPlainString());
                 }
             }
             entryItem.put(FieldTypeEnum.INTEREST, interestField);
             entryItem.put(FieldTypeEnum.ALL_CHARGE, chargeField);
+
         } else {
-            Item realItem = this.realItem(date, loanOrder);
             for (FieldTypeEnum fieldType: FieldTypeEnum.values()) {
                 if (paid.compareTo(BigDecimal.ZERO) <= 0) {
                     break;
@@ -128,21 +139,25 @@ public abstract class AbstractLoanCalculator implements ILoanCalculator {
                 if (number.compareTo(paid) >= 0) {
                     // 还款金额分配结束
                     Field cloneField = field.clone();
-                    cloneField.setNumber(number);
+                    cloneField.setNumber(paid);
                     entryItem.put(fieldType, cloneField);
+                    paid = BigDecimal.ZERO;
                 } else {
                     // 继续分配
-                    paid = paid.subtract(number);
                     Field cloneField = field.clone();
                     entryItem.put(fieldType, cloneField);
+                    paid = paid.subtract(number);
                 }
+            }
+            if (BigDecimal.ZERO.compareTo(paid) != 0) {
+                throw new LoanEntryException("订单延期还款" + originalPaid.toPlainString() + "无法入账的金额" + paid.toPlainString());
             }
         }
         return entryItem;
     }
 
     @Override
-    public Boolean checkValidRepayAmount(Long date, String payType, BigDecimal paid, LoanOrderEntity loanOrder) {
+    public Boolean checkValidRepayAmount(Long date, String payType, BigDecimal paid, LoanOrderEntity loanOrder) throws LoanEntryException {
         Item entryItem = this.entryItem(date, payType, paid, loanOrder);
         BigDecimal sum = entryItem.sum();
         if (sum.compareTo(paid) == 0) {
@@ -164,7 +179,7 @@ public abstract class AbstractLoanCalculator implements ILoanCalculator {
      * 入账处理
      */
     @Override
-    public LoanOrderEntity itemEntry(LoanOrderEntity loanOrder, String payType, Item realItem, Item entryItem) {
+    public LoanOrderEntity itemEntry(LoanOrderEntity loanOrder, String payType, Integer days, Item realItem, Item entryItem) throws LoanEntryException {
         // 直接入, 状态正确性由状态机保证
 
         BigDecimal realItemSum = realItem.sum();
@@ -172,17 +187,19 @@ public abstract class AbstractLoanCalculator implements ILoanCalculator {
         if (payType.equals(PayTypeEnum.REPAY_POSTPONE.name())) {
             BigDecimal principal = realItem.getFieldNumber(FieldTypeEnum.PRINCIPAL);
             BigDecimal penalty = realItem.getFieldNumber(FieldTypeEnum.PENALTY);
-            int paidAmount = entryItem.sum().intValue();
+            int paidAmount = entryItem.sum().subtract(entryItem.getFieldNumber(FieldTypeEnum.PENALTY)).intValue();
             int baseAmount = realItem.sum().subtract(principal).subtract(penalty).intValue();
-            if (paidAmount % baseAmount == 0) {
-                // 还的钱是倍数
-                int times = paidAmount / baseAmount;
-                loanOrder.setRepaymentDate(loanOrder.getRepaymentDate() + times * loanOrder.getLoanTerm() * EngineStaticValue.DAY_MILLIS);
+            if (paidAmount / baseAmount != days / loanOrder.getLoanTerm()) {
+                throw new LoanEntryException("订单" + loanOrder.getOrderId() + "还款" + entryItemSum + ", 延期" + days + ", 不合法!");
             }
+            loanOrder.setRepaymentDate(loanOrder.getRepaymentDate() + days * EngineStaticValue.DAY_MILLIS);
         } else {
             if (realItemSum.compareTo(entryItemSum) == 0) {
                 // 直接还清
                 loanOrder.setStatus(StatusEnum.PAYOFF.name());
+            } else {
+                logger.error("订单[{}]应还[{}], 实际还款[{}], 无法入账!", loanOrder.getOrderId(), realItemSum, entryItemSum);
+                throw new LoanEntryException("订单" + loanOrder.getOrderId() + "应还" + realItemSum + ", 实际还款" + entryItemSum + ", 无法入账!");
             }
         }
         return loanOrder;

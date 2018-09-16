@@ -43,15 +43,15 @@ public class LoanResponseAction implements IAction {
                     true,
                     lendOrderEntity.getChanelResponseTime(),
                     "放款成功",
-                    "");
+                    "放款成功");
         } else {
             loanResponse = new LoanResponseEvent(
                     lendOrderEntity.getOrderId(),
                     lendOrderEntity.getChannelLendNumber(),
                     false,
-                    lendOrderEntity.getChanelResponseTime(),
+                    -1L,
                     "放款失败",
-                    "");
+                    "放款失败");
         }
         try {
             loanEventLauncher.launch(loanResponse);

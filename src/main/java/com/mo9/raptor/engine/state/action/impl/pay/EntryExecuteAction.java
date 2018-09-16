@@ -11,6 +11,7 @@ import com.mo9.raptor.engine.state.event.impl.loan.LoanEntryEvent;
 import com.mo9.raptor.engine.state.launcher.IEventLauncher;
 import com.mo9.raptor.engine.structure.Scheme;
 import com.mo9.raptor.engine.structure.item.Item;
+import com.mo9.raptor.exception.LoanEntryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,7 +45,12 @@ public class EntryExecuteAction implements IAction {
         LoanOrderEntity loanOrderEntity = loanOrderService.getByOrderId(loanOrderId);
         ILoanCalculator calculator = calculatorFactory.load(loanOrderEntity);
         String payType = payOrderEntity.getType();
-        Item entryItem = calculator.entryItem(System.currentTimeMillis(), payType, payOrderEntity.getPayNumber(), loanOrderEntity);
+        Item entryItem = null;
+        try {
+            entryItem = calculator.entryItem(System.currentTimeMillis(), payType, payOrderEntity.getPayNumber(), loanOrderEntity);
+        } catch (LoanEntryException e) {
+            logger.error("计算entryItem异常 ", e);
+        }
         LoanEntryEvent event = new LoanEntryEvent(loanOrderId, payOrderId, payType, entryItem);
         try {
             this.loanEventLauncher.launch(event);
