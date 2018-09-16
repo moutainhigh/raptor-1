@@ -88,10 +88,10 @@ public class PayOrderController {
         payOrder.setOrderId(orderId);
         payOrder.setStatus(StatusEnum.PENDING.name());
         payOrder.setOwnerId(userCode);
-        payOrder.setType(PayTypeEnum.REPAY_IN_ADVANCE.name());
 
         ILoanCalculator calculator = loanCalculatorFactory.load(loanOrder);
         Item realItem = calculator.realItem(System.currentTimeMillis(), loanOrder);
+        payOrder.setType(realItem.getRepaymentType().name());
         payOrder.setApplyNumber(realItem.sum());
         payOrder.setPostponeDays(0);
         payOrder.setPayCurrency(CurrencyEnum.getDefaultCurrency().name());

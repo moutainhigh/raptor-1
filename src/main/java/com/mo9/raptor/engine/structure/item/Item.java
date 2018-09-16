@@ -6,6 +6,7 @@ import com.mo9.raptor.engine.structure.field.Field;
 import com.mo9.raptor.engine.structure.field.FieldTypeEnum;
 import com.mo9.raptor.engine.utils.EngineStaticValue;
 import com.mo9.raptor.engine.utils.TimeUtils;
+import com.mo9.raptor.enums.PayTypeEnum;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -205,6 +206,20 @@ public class Item extends HashMap<FieldTypeEnum, Field> {
         }
     }
 
+    /**
+     * 获取当前订单或当前还款的还款类型
+     * @return  还款类型
+     */
+    public PayTypeEnum getRepaymentType () {
+        PayTypeEnum payTypeEnum = PayTypeEnum.REPAY_IN_ADVANCE;
+        if (ItemTypeEnum.PREVIOUS.equals(this.getItemType())) {
+            payTypeEnum = PayTypeEnum.REPAY_OVERDUE;
+        }
+        if (ItemTypeEnum.PERIOD.equals(this.getItemType())) {
+            payTypeEnum = PayTypeEnum.REPAY_AS_PLAN;
+        }
+        return payTypeEnum;
+    }
 
 
     public ItemTypeEnum getItemType() {

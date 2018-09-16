@@ -3,25 +3,21 @@ package com.mo9.raptor.engine.calculator;
 import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.engine.entity.LoanOrderEntity;
 import com.mo9.raptor.engine.enums.StatusEnum;
-import com.mo9.raptor.engine.exception.MergeException;
-import com.mo9.raptor.engine.exception.UnSupportTimeDiffException;
-import com.mo9.raptor.engine.structure.Scheme;
 import com.mo9.raptor.engine.structure.field.Field;
 import com.mo9.raptor.engine.structure.field.FieldTypeEnum;
 import com.mo9.raptor.engine.structure.item.Item;
+import com.mo9.raptor.engine.structure.item.ItemTypeEnum;
 import com.mo9.raptor.engine.utils.EngineStaticValue;
 import com.mo9.raptor.engine.utils.TimeUtils;
 import com.mo9.raptor.enums.PayTypeEnum;
 import com.mo9.raptor.exception.LoanEntryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 借贷订单计算器
@@ -77,13 +73,18 @@ public abstract class AbstractLoanCalculator implements ILoanCalculator {
         date = TimeUtils.extractDateTime(date);
         Field penaltyField = new Field();
         penaltyField.setFieldType(FieldTypeEnum.PENALTY);
-        if (date >= repaymentDate) {
+        if (date >= repaymentDate + EngineStaticValue.DAY_MILLIS) {
             // 计算逾期费
             Long overDueDate = (date - repaymentDate) / EngineStaticValue.DAY_MILLIS + 1;
             BigDecimal penalty = loanOrder.getPenaltyValue().multiply(new BigDecimal(overDueDate));
             penaltyField.setNumber(penalty);
+            item.setItemType(ItemTypeEnum.PREVIOUS);
+        } else if (date.equals(repaymentDate)) {
+            penaltyField.setNumber(BigDecimal.ZERO);
+            item.setItemType(ItemTypeEnum.PERIOD);
         } else {
             penaltyField.setNumber(BigDecimal.ZERO);
+            item.setItemType(ItemTypeEnum.PREPAY);
         }
         item.put(FieldTypeEnum.PENALTY, penaltyField);
         return item;
