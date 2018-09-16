@@ -1,7 +1,5 @@
 package com.mo9.raptor.bean.req;
 
-import com.mo9.raptor.enums.RepayChannelTypeEnum;
-
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;

@@ -9,7 +9,7 @@ public class ChannelDetailRes {
     /**
      * 渠道类型
      */
-    private Integer channelType;
+    private Long channelType;
 
     /**
      * 渠道名
@@ -21,11 +21,11 @@ public class ChannelDetailRes {
      */
     private String useType;
 
-    public Integer getChannelType() {
+    public Long getChannelType() {
         return channelType;
     }
 
-    public void setChannelType(Integer channelType) {
+    public void setChannelType(Long channelType) {
         this.channelType = channelType;
     }
 

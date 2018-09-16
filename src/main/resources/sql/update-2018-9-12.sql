@@ -52,3 +52,26 @@ ALTER TABLE `t_raptor_pay_order_log`
 
 ALTER TABLE `t_raptor_pay_order_log`
   ADD COLUMN `channel_sync_response` VARCHAR(1024) COMMENT '渠道同步响应结果' AFTER `channel_response`;
+
+
+/**************************渠道表*************************/
+DROP TABLE IF EXISTS `t_raptor_channel`;
+CREATE TABLE `t_raptor_channel` (
+  `id`                        BIGINT UNSIGNED NOT NULL AUTO_INCREMENT   COMMENT '主键',
+  `channel`                   VARCHAR(64)     NOT NULL                  COMMENT '渠道名',
+  `channel_name`              VARCHAR(64)     NOT NULL                  COMMENT '渠道中文名称',
+  `channel_type`              VARCHAR(64)     NOT NULL                  COMMENT '渠道类型, 还款, 放款',
+  `use_type`                  VARCHAR(64)     NOT NULL                  COMMENT '打开方式',
+
+  `create_time`               BIGINT          NOT NULL                  COMMENT '创建时间',
+  `update_time`               BIGINT          NOT NULL                  COMMENT '修改时间',
+  `remark`                    VARCHAR(1024)   NOT NULL DEFAULT ''       COMMENT '备注，一般给直接操作数据库备注使用，程序一般不使用',
+  `deleted`                   INT(1)          NOT NULL                  COMMENT '是否逻辑删除',
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX (`channel`, `channel_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='渠道表';
+
+INSERT INTO `t_raptor_channel` (`id`, `channel`, `channel_name`, `channel_type`, `use_type`, `create_time`, `update_time`, `remark`, `deleted`)
+VALUES (                        '1','yilianh5pay', '易联H5支付', 'REPAY',             'link', 1537027200000, 1537027200000, '', 0);
+INSERT INTO `t_raptor_channel` (`id`, `channel`, `channel_name`, `channel_type`, `use_type`, `create_time`, `update_time`, `remark`, `deleted`)
+VALUES (                        '2','yilianh5pay', '易联H5支付', 'LOAN',             'link', 1537027200000, 1537027200000, '', 0);

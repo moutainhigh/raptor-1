@@ -16,8 +16,10 @@ import com.mo9.raptor.engine.service.ILoanOrderService;
 import com.mo9.raptor.engine.service.IPayOrderService;
 import com.mo9.raptor.engine.structure.field.FieldTypeEnum;
 import com.mo9.raptor.engine.structure.item.Item;
+import com.mo9.raptor.entity.ChannelEntity;
 import com.mo9.raptor.entity.PayOrderLogEntity;
 import com.mo9.raptor.enums.*;
+import com.mo9.raptor.service.ChannelService;
 import com.mo9.raptor.service.PayOrderLogService;
 import com.mo9.raptor.utils.IDWorker;
 import org.slf4j.Logger;
@@ -29,6 +31,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.math.BigDecimal;
+import java.nio.channels.Channel;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,6 +58,9 @@ public class PayOrderController {
     private ILoanOrderService loanOrderService;
 
     @Autowired
+    private ChannelService channelService;
+
+    @Autowired
     private LoanCalculatorFactory loanCalculatorFactory;
 
     @Value("${raptor.sockpuppet}")
@@ -71,8 +77,9 @@ public class PayOrderController {
         String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
         // TODO: 检查用户
 
-        RepayChannelTypeEnum repayChannelTypeEnum = RepayChannelTypeEnum.getByChannelType(req.getChannelType());
-        if (repayChannelTypeEnum == null) {
+        // 检查可用渠道
+        ChannelEntity channelEntity = channelService.getByChannelId(req.getChannelType());
+        if (channelEntity == null || !channelEntity.getChannelType().equals(ChannelTypeEnum.REPAY.name())) {
             return response.buildFailureResponse(ResCodeEnum.NO_REPAY_CHANNEL);
         }
 
@@ -96,7 +103,7 @@ public class PayOrderController {
         payOrder.setPostponeDays(0);
         payOrder.setPayCurrency(CurrencyEnum.getDefaultCurrency().name());
         payOrder.setLoanOrderId(loanOrderId);
-        payOrder.setChannel(repayChannelTypeEnum.name());
+        payOrder.setChannel(channelEntity.getChannel());
         payOrder.create();
         PayOrderLogEntity payOrderLog = new PayOrderLogEntity();
         payOrderLog.setOrderId(payOrder.getLoanOrderId());
@@ -105,7 +112,7 @@ public class PayOrderController {
         payOrderLog.setBankMobile(req.getBankMobile());
         payOrderLog.setIdCard(req.getIdCard());
         payOrderLog.setUserName(req.getUserName());
-        payOrderLog.setChannel(repayChannelTypeEnum.name());
+        payOrderLog.setChannel(channelEntity.getChannel());
         payOrderLog.setRepayAmount(payOrder.getApplyNumber());
         payOrderLog.setUserCode(userCode);
         payOrderLog.create();
@@ -123,7 +130,7 @@ public class PayOrderController {
             res.setUseType(ChannelUseType.LINK.getDesc());
             res.setResult(url);
             res.setState(true);
-            res.setChannelType(repayChannelTypeEnum.getChannelType());
+            res.setChannelType(channelEntity.getId());
         } else {
             res.setState(false);
         }
@@ -142,8 +149,9 @@ public class PayOrderController {
         BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
         String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
 
-        RepayChannelTypeEnum repayChannelTypeEnum = RepayChannelTypeEnum.getByChannelType(req.getChannelType());
-        if (repayChannelTypeEnum == null) {
+        // 检查可用渠道
+        ChannelEntity channelEntity = channelService.getByChannelId(req.getChannelType());
+        if (channelEntity == null || !channelEntity.getChannelType().equals(ChannelTypeEnum.REPAY.name())) {
             return response.buildFailureResponse(ResCodeEnum.NO_REPAY_CHANNEL);
         }
 
@@ -175,7 +183,7 @@ public class PayOrderController {
         payOrder.setPostponeDays(req.getPeriod());
         payOrder.setPayCurrency(CurrencyEnum.getDefaultCurrency().name());
         payOrder.setLoanOrderId(loanOrderId);
-        payOrder.setChannel(repayChannelTypeEnum.name());
+        payOrder.setChannel(channelEntity.getChannel());
         payOrder.create();
 
         PayOrderLogEntity payOrderLog = new PayOrderLogEntity();
@@ -185,7 +193,7 @@ public class PayOrderController {
         payOrderLog.setBankMobile(req.getBankMobile());
         payOrderLog.setIdCard(req.getIdCard());
         payOrderLog.setUserName(req.getUserName());
-        payOrderLog.setChannel(repayChannelTypeEnum.name());
+        payOrderLog.setChannel(channelEntity.getChannel());
         payOrderLog.setRepayAmount(payOrder.getApplyNumber());
         payOrderLog.setUserCode(userCode);
         payOrderLog.create();
@@ -203,7 +211,7 @@ public class PayOrderController {
             res.setUseType(ChannelUseType.LINK.getDesc());
             res.setResult(url);
             res.setState(true);
-            res.setChannelType(repayChannelTypeEnum.getChannelType());
+            res.setChannelType(channelEntity.getId());
         } else {
             res.setState(false);
         }
@@ -221,11 +229,13 @@ public class PayOrderController {
     public BaseResponse<JSONObject> getRepayChannels () {
         BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
         List<ChannelDetailRes> channels = new ArrayList<ChannelDetailRes>();
-        for (RepayChannelTypeEnum channelType : RepayChannelTypeEnum.values()) {
+        List<ChannelEntity> channelEntities = channelService.listByChannelType(ChannelTypeEnum.REPAY.name());
+
+        for (ChannelEntity channel : channelEntities) {
             ChannelDetailRes res = new ChannelDetailRes();
-            res.setChannelName(channelType.getChannelName());
-            res.setChannelType(channelType.getChannelType());
-            res.setUseType(channelType.getChannelUseType().getDesc());
+            res.setChannelName(channel.getChannelName());
+            res.setChannelType(channel.getId());
+            res.setUseType(channel.getUseType());
             channels.add(res);
         }
         JSONObject data = new JSONObject();
