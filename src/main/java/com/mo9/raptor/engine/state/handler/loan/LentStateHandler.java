@@ -17,6 +17,7 @@ import com.mo9.raptor.engine.state.handler.StateHandler;
 import com.mo9.raptor.engine.state.launcher.IEventLauncher;
 import com.mo9.raptor.engine.structure.Scheme;
 import com.mo9.raptor.engine.structure.item.Item;
+import com.mo9.raptor.exception.LoanEntryException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -37,7 +38,7 @@ public class LentStateHandler implements IStateHandler<LoanOrderEntity> {
 
     @Override
     public LoanOrderEntity handle (LoanOrderEntity loanOrder, IEvent event, IActionExecutor actionExecutor)
-            throws InvalidEventException {
+            throws InvalidEventException, LoanEntryException {
 
         if (event instanceof LoanEntryEvent) {
             LoanEntryEvent loanEntryEvent = (LoanEntryEvent) event;

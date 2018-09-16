@@ -6,6 +6,7 @@ import com.mo9.raptor.engine.exception.MergeException;
 import com.mo9.raptor.engine.exception.UnSupportTimeDiffException;
 import com.mo9.raptor.engine.structure.Scheme;
 import com.mo9.raptor.engine.structure.item.Item;
+import com.mo9.raptor.exception.LoanEntryException;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -54,7 +55,7 @@ public interface ILoanCalculator {
      * @param entryItem
      * @return
      */
-    LoanOrderEntity itemEntry(LoanOrderEntity loanOrder, String payType, Item realItem, Item entryItem);
+    LoanOrderEntity itemEntry(LoanOrderEntity loanOrder, String payType, Item realItem, Item entryItem) throws LoanEntryException;
 
     /**
      * 延期还款列表

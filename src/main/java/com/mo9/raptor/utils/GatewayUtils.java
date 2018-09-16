@@ -10,6 +10,7 @@ import com.mo9.raptor.entity.PayOrderLogEntity;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.PayTypeEnum;
 import com.mo9.raptor.enums.ResCodeEnum;
+import com.mo9.raptor.service.PayOrderLogService;
 import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.httpclient.HttpClientApi;
 import org.slf4j.Logger;
@@ -18,11 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 
 /**
  * Created by xtgu on 2018/9/12.
@@ -45,6 +43,9 @@ public class GatewayUtils {
 
     @Autowired
     private IPayOrderService payOrderService;
+
+    @Autowired
+    private PayOrderLogService payOrderLogService;
 
     @Autowired
     private HttpClientApi httpClientApi ;
@@ -83,12 +84,19 @@ public class GatewayUtils {
         try {
             String gatewayUrl = "http://ycheng.local.mo9.com/gateway";
             String resJson = httpClientApi.doGet(gatewayUrl + method, payParams);
-            logger.info("订单[{}]放款, 渠道返回[{}]", lendOrder.getOrderId(), resJson);
-            // TODO
+            JSONObject jsonObject = JSONObject.parseObject(resJson);
+            String code = jsonObject.getString("code");
+            if ("1".equals(code)) {
+                logger.info("订单[{}]放款, 渠道返回[{}]", lendOrder.getOrderId(), resJson);
+                return ResCodeEnum.SUCCESS;
+            } else {
+                logger.info("订单[{}]放款, 渠道返回[{}]", lendOrder.getOrderId(), resJson);
+                return ResCodeEnum.EXCEPTION_CODE;
+            }
         } catch (Exception e) {
-            logger.error("放款异常 - ");
+            logger.error("订单[{}]放款异常 - ", lendOrder.getOrderId(), e);
+            return ResCodeEnum.SUCCESS ;
         }
-        return ResCodeEnum.SUCCESS ;
     }
 
     /**
@@ -119,6 +127,10 @@ public class GatewayUtils {
             params.put("sign", mysig);
             String gatewayUrl = "http://ycheng.local.mo9.com/gateway/pay.shtml";
             String resJson = httpClientApi.doGet(gatewayUrl, params);
+            payOrderLog.setChannelSyncResponse(resJson);
+            payOrderLog.setUpdateTime(System.currentTimeMillis());
+            payOrderLogService.save(payOrderLog);
+
             JSONObject jsonObject = JSONObject.parseObject(resJson);
             String code = jsonObject.getString("code");
             if ("0000".equals(code)) {
@@ -126,14 +138,15 @@ public class GatewayUtils {
                 String url = data.getString("result");
                 // TODO: 怎么返回这个url?
                 logger.info("还款订单[{}]还款请求发送成功, 返回为[{}]", payOrderLog.getPayOrderId(), resJson);
+                return ResCodeEnum.SUCCESS;
             } else {
                 logger.info("还款订单[{}]还款请求发送失败, 返回为[{}]", payOrderLog.getPayOrderId(), resJson);
+                return ResCodeEnum.EXCEPTION_CODE;
             }
         } catch (Exception e) {
             logger.error("还款订单[{}]还款报错", payOrderLog.getPayOrderId(), e);
             return ResCodeEnum.EXCEPTION_CODE;
         }
-        return ResCodeEnum.SUCCESS ;
     }
 
     /**

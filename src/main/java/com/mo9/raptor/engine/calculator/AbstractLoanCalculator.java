@@ -12,6 +12,7 @@ import com.mo9.raptor.engine.structure.item.Item;
 import com.mo9.raptor.engine.utils.EngineStaticValue;
 import com.mo9.raptor.engine.utils.TimeUtils;
 import com.mo9.raptor.enums.PayTypeEnum;
+import com.mo9.raptor.exception.LoanEntryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -164,7 +165,7 @@ public abstract class AbstractLoanCalculator implements ILoanCalculator {
      * 入账处理
      */
     @Override
-    public LoanOrderEntity itemEntry(LoanOrderEntity loanOrder, String payType, Item realItem, Item entryItem) {
+    public LoanOrderEntity itemEntry(LoanOrderEntity loanOrder, String payType, Item realItem, Item entryItem) throws LoanEntryException {
         // 直接入, 状态正确性由状态机保证
 
         BigDecimal realItemSum = realItem.sum();
@@ -178,11 +179,17 @@ public abstract class AbstractLoanCalculator implements ILoanCalculator {
                 // 还的钱是倍数
                 int times = paidAmount / baseAmount;
                 loanOrder.setRepaymentDate(loanOrder.getRepaymentDate() + times * loanOrder.getLoanTerm() * EngineStaticValue.DAY_MILLIS);
+            } else {
+                logger.error("订单[{}]应还[{}], 实际还款[{}], 无法入账!", loanOrder.getOrderId(), realItemSum, entryItemSum);
+                throw new LoanEntryException("订单" + loanOrder.getOrderId() + "应还" + realItemSum + ", 实际还款" + entryItemSum + ", 无法入账!");
             }
         } else {
             if (realItemSum.compareTo(entryItemSum) == 0) {
                 // 直接还清
                 loanOrder.setStatus(StatusEnum.PAYOFF.name());
+            } else {
+                logger.error("订单[{}]应还[{}], 实际还款[{}], 无法入账!", loanOrder.getOrderId(), realItemSum, entryItemSum);
+                throw new LoanEntryException("订单" + loanOrder.getOrderId() + "应还" + realItemSum + ", 实际还款" + entryItemSum + ", 无法入账!");
             }
         }
         return loanOrder;

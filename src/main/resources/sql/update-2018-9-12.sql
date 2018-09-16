@@ -49,3 +49,6 @@ ALTER TABLE `t_raptor_pay_order_log`
 
 ALTER TABLE `t_raptor_pay_order_log`
   ADD COLUMN `user_code` VARCHAR(64) COMMENT '用户编号' AFTER `order_id`;
+
+ALTER TABLE `t_raptor_pay_order_log`
+  ADD COLUMN `channel_sync_response` VARCHAR(1024) COMMENT '渠道同步响应结果' AFTER `channel_response`;

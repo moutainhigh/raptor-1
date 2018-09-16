@@ -10,11 +10,24 @@ public class PayOderChannelRes extends ChannelDetailRes {
      */
     private String result;
 
+    /**
+     * 结果, 成功. 失败
+     */
+    private Boolean state;
+
     public String getResult() {
         return result;
     }
 
     public void setResult(String result) {
         this.result = result;
+    }
+
+    public Boolean getState() {
+        return state;
+    }
+
+    public void setState(Boolean state) {
+        this.state = state;
     }
 }

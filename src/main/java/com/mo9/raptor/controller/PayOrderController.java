@@ -18,6 +18,7 @@ import com.mo9.raptor.engine.structure.field.FieldTypeEnum;
 import com.mo9.raptor.engine.structure.item.Item;
 import com.mo9.raptor.entity.PayOrderLogEntity;
 import com.mo9.raptor.enums.*;
+import com.mo9.raptor.service.PayOrderLogService;
 import com.mo9.raptor.utils.IDWorker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +47,9 @@ public class PayOrderController {
 
     @Autowired
     private IPayOrderService payOrderService;
+
+    @Autowired
+    private PayOrderLogService payOrderLogService;
 
     @Autowired
     private ILoanOrderService loanOrderService;
@@ -107,8 +111,22 @@ public class PayOrderController {
         payOrderLog.create();
         payOrderService.savePayOrderAndLog(payOrder, payOrderLog);
 
-
         PayOderChannelRes res = new PayOderChannelRes();
+        // 重新查询Log, 返回url
+        PayOrderLogEntity savedOrderLog = payOrderLogService.getByPayOrderId(orderId);
+        String channelSyncResponse = savedOrderLog.getChannelSyncResponse();
+        JSONObject jsonObject = JSONObject.parseObject(channelSyncResponse);
+        String code = jsonObject.getString("code");
+        if ("0000".equals(code)) {
+            JSONObject data = jsonObject.getJSONObject("data");
+            String url = data.getString("result");
+            res.setUseType(ChannelUseType.LINK.getDesc());
+            res.setResult(url);
+            res.setState(true);
+            res.setChannelType(repayChannelTypeEnum.getChannelType());
+        } else {
+            res.setState(false);
+        }
         JSONObject data = new JSONObject();
         data.put("entities", res);
         return response.buildSuccessResponse(data);
@@ -174,6 +192,22 @@ public class PayOrderController {
         payOrderService.savePayOrderAndLog(payOrder, payOrderLog);
 
         PayOderChannelRes res = new PayOderChannelRes();
+        // 重新查询Log, 返回url
+        PayOrderLogEntity savedOrderLog = payOrderLogService.getByPayOrderId(orderId);
+        String channelSyncResponse = savedOrderLog.getChannelSyncResponse();
+        JSONObject jsonObject = JSONObject.parseObject(channelSyncResponse);
+        String code = jsonObject.getString("code");
+        if ("0000".equals(code)) {
+            JSONObject data = jsonObject.getJSONObject("data");
+            String url = data.getString("result");
+            res.setUseType(ChannelUseType.LINK.getDesc());
+            res.setResult(url);
+            res.setState(true);
+            res.setChannelType(repayChannelTypeEnum.getChannelType());
+        } else {
+            res.setState(false);
+        }
+
         JSONObject data = new JSONObject();
         data.put("entities", res);
         return response.buildSuccessResponse(data);
