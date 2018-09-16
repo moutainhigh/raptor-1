@@ -39,9 +39,10 @@ public interface BankService {
      * @param cardId
      * @param userName
      * @param mobile
+     * @param userCode
      * @return
      */
-    public ResCodeEnum verify(String bankNo , String cardId , String userName , String mobile);
+    public ResCodeEnum verify(String bankNo , String cardId , String userName , String mobile , String userCode);
 
     /**
      * 创建或者修改银行卡信息
@@ -51,9 +52,10 @@ public interface BankService {
      * @param mobile
      * @param channel
      * @param bankName
+     * @param userName
      * @param type
      */
-    public void createOrUpdateBank(String bankNo , String cardId , String userName , String mobile, String channel , String bankName, BankEntity.Type type);
+    public void createOrUpdateBank(String bankNo , String cardId , String userName , String mobile, String channel , String bankName, BankEntity.Type type , String userCode);
 
     /**
      * 根据银行卡 , 类型 , 渠道查询

@@ -54,7 +54,7 @@ public class BankServiceImpl implements BankService {
      * @return
      */
     @Override
-    public ResCodeEnum verify(String bankNo , String cardId , String userName , String mobile){
+    public ResCodeEnum verify(String bankNo , String cardId , String userName , String mobile, String userCode){
         BankEntity bankEntity = this.findByBankNoByLoan(bankNo) ;
         if(bankEntity != null){
             //判断本地数据四要素正确情况
@@ -69,16 +69,16 @@ public class BankServiceImpl implements BankService {
         }
         ResCodeEnum resCodeEnum = gatewayUtils.verifyBank( bankNo ,  cardId ,  userName ,  mobile) ;
         if(ResCodeEnum.SUCCESS == resCodeEnum){
-            this.create( bankNo , cardId , userName , mobile , BankEntity.Type.LOAN , null , null) ;
+            this.create( bankNo , cardId , userName , mobile , BankEntity.Type.LOAN , null , null , userCode) ;
         }
         return resCodeEnum ;
     }
 
     @Override
-    public void createOrUpdateBank(String bankNo, String cardId, String userName, String mobile, String channel, String bankName , BankEntity.Type type) {
+    public void createOrUpdateBank(String bankNo, String cardId, String userName, String mobile, String channel, String bankName , BankEntity.Type type, String userCode) {
         BankEntity bankEntity = this.findByBankNoAndTypeAndChannel(bankNo , type , channel) ;
         if(bankEntity == null){
-            this.create( bankNo , cardId , userName , mobile , BankEntity.Type.PAYOFF , channel , bankName) ;
+            this.create( bankNo , cardId , userName , mobile , BankEntity.Type.PAYOFF , channel , bankName,userCode) ;
         }else{
             //更新update时间
             bankEntity.setUpdateTime(System.currentTimeMillis());
@@ -101,7 +101,7 @@ public class BankServiceImpl implements BankService {
      * @param channel
      * @param bankName
      */
-    private void create(String bankNo , String cardId , String userName , String mobile , BankEntity.Type type , String channel , String bankName){
+    private void create(String bankNo , String cardId , String userName , String mobile , BankEntity.Type type , String channel , String bankName , String userCode){
         //验证成功
         Long time = System.currentTimeMillis() ;
         BankEntity bankEntity = new BankEntity();
@@ -114,6 +114,7 @@ public class BankServiceImpl implements BankService {
         bankEntity.setChannel(channel);
         bankEntity.setBankName(bankName);
         bankEntity.setUpdateTime(time) ;
+        bankEntity.setUserCode(userCode);
         //存储四要素信息
         bankRepository.save(bankEntity);
     }

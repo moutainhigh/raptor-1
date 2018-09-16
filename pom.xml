@@ -95,10 +95,16 @@
 
         <!-- 阿里云mq -->
         <dependency>
+            <groupId>com.aliyun.openservices</groupId>
+            <artifactId>ons-client</artifactId>
+            <version>1.2.7.Final</version>
+        </dependency>
+        <dependency>
             <groupId>com.mo9</groupId>
             <artifactId>mq-client</artifactId>
             <version>1.0.1</version>
         </dependency>
+        <!-- -->
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
