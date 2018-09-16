@@ -76,6 +76,12 @@ public class UserController {
             }
             //校验验证码是否正确
             String code = loginByCodeReq.getCode();
+
+            /**   逻辑修缮 by James 18/09/16    */
+            //这里就要判断用户是否再名单之列
+            if(null == code || StringUtils.isEmpty(code)){
+
+            }
             ResCodeEnum resCodeEnum = captchaService.checkLoginMobileCaptcha(mobile, code);
             if (ResCodeEnum.SUCCESS != resCodeEnum) {
                 return response.buildFailureResponse(resCodeEnum);
