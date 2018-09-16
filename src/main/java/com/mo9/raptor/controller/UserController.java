@@ -76,6 +76,12 @@ public class UserController {
             }
             //校验验证码是否正确
             String code = loginByCodeReq.getCode();
+
+            /**   逻辑修缮 by James 18/09/16    */
+            //这里就要判断用户是否再名单之列
+            if(null == code || StringUtils.isEmpty(code)){
+
+            }
             ResCodeEnum resCodeEnum = captchaService.checkLoginMobileCaptcha(mobile, code);
             if (ResCodeEnum.SUCCESS != resCodeEnum) {
                 return response.buildFailureResponse(resCodeEnum);
@@ -107,7 +113,8 @@ public class UserController {
     @PostMapping(value = "/modify_bank_card_info")
     public BaseResponse modifyBankCardInfo(@RequestBody @Validated BankReq bankReq, HttpServletRequest request) {
         BaseResponse response = new BaseResponse();
-        UserEntity userEntity = userService.findByMobile(bankReq.getCardMobile());
+        String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
+        UserEntity userEntity = userService.findByUserCode(userCode);
         if(userEntity == null ){
             //用户不存在
             response.setCode(ResCodeEnum.NOT_WHITE_LIST_USER.getCode());

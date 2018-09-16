@@ -2,15 +2,18 @@ package com.mo9.raptor.controller;
 
 import com.mo9.raptor.bean.BaseResponse;
 import com.mo9.raptor.bean.vo.SendSmsVerificationCodeReq;
+import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.CaptchaBusinessEnum;
 import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.redis.RedisParams;
 import com.mo9.raptor.redis.RedisServiceApi;
 import com.mo9.raptor.service.CaptchaService;
+import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.ValidateGraphicCode;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -29,6 +32,9 @@ import java.io.IOException;
 @RequestMapping(value = "/auth")
 public class CaptchaController {
     private static Logger logger = LoggerFactory.getLogger(CaptchaController.class);
+
+    @Autowired
+    UserService userService;
 
     @Resource
     private RedisServiceApi redisServiceApi;
@@ -55,6 +61,14 @@ public class CaptchaController {
     public BaseResponse<Boolean> sendMeSmsVerificationCode(@RequestBody @Validated SendSmsVerificationCodeReq sendSmsVerificationCodeReq, HttpServletRequest request) {
         BaseResponse<Boolean> response = new BaseResponse<>();
         String mobile = sendSmsVerificationCodeReq.getMobile();
+
+        /**   逻辑修缮 by James 18/09/16    */
+        //这里就要判断用户是否再名单之列
+        UserEntity user = userService.findByMobile(mobile);
+        if(null == user){
+
+        }
+
         CaptchaBusinessEnum reason = CaptchaBusinessEnum.LOGIN;
         Boolean sendRes = false;
         try{
