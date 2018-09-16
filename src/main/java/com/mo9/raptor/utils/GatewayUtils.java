@@ -82,21 +82,21 @@ public class GatewayUtils {
         String sign = Md5Encrypt.sign(payParams, key);
         payParams.put("sign", sign);
         try {
-            String gatewayUrl = "http://ycheng.local.mo9.com/gateway";
+            //String gatewayUrl = "http://ycheng.local.mo9.com/gateway";
             String resJson = httpClientApi.doGet(gatewayUrl + method, payParams);
             JSONObject jsonObject = JSONObject.parseObject(resJson);
-            String code = jsonObject.getString("code");
-            if ("1".equals(code)) {
-                logger.info("订单[{}]放款, 渠道返回[{}]", lendOrder.getOrderId(), resJson);
-                return ResCodeEnum.SUCCESS;
-            } else {
-                logger.info("订单[{}]放款, 渠道返回[{}]", lendOrder.getOrderId(), resJson);
+            String status = jsonObject.getString("status");
+            if ("failed".equals(status)) {
+                logger.info("订单[{}]放款, 渠道返回同步失败, 返回信息  [{}]", lendOrder.getOrderId(), resJson);
                 return ResCodeEnum.EXCEPTION_CODE;
+            } else {
+                logger.info("订单[{}]放款, 渠道返回同步返回信息  [{}]", lendOrder.getOrderId(), resJson);
             }
         } catch (Exception e) {
             logger.error("订单[{}]放款异常 - ", lendOrder.getOrderId(), e);
-            return ResCodeEnum.SUCCESS ;
+            // 可以等待再次放款
         }
+        return ResCodeEnum.SUCCESS ;
     }
 
     /**
@@ -113,8 +113,8 @@ public class GatewayUtils {
             UserEntity user = userService.findByUserCode(payOrderLog.getUserCode());
             params.put("mobile", user.getMobile());
             PayOrderEntity payOrderEntity = payOrderService.getByOrderId(payOrderLog.getPayOrderId());
-            //orderId : 订单号; type ： 还款 延期
-            params.put("remark", "RAPTOR_" + payOrderEntity.getOrderId() + "_" + (payOrderEntity.getType().equals(PayTypeEnum.REPAY_POSTPONE.name()) ? PayTypeEnum.REPAY_POSTPONE.name() : "REPAY"));
+            //orderId : 订单号;
+            params.put("remark", "FAST_RAPTOR_" + payOrderEntity.getOrderId());
 
             params.put("userMobile", user.getMobile());
             params.put("bankmobile", payOrderLog.getBankMobile());
@@ -134,14 +134,12 @@ public class GatewayUtils {
             JSONObject jsonObject = JSONObject.parseObject(resJson);
             String code = jsonObject.getString("code");
             if ("0000".equals(code)) {
-                JSONObject data = jsonObject.getJSONObject("data");
-                String url = data.getString("result");
-                // TODO: 怎么返回这个url?
                 logger.info("还款订单[{}]还款请求发送成功, 返回为[{}]", payOrderLog.getPayOrderId(), resJson);
                 return ResCodeEnum.SUCCESS;
             } else {
                 logger.info("还款订单[{}]还款请求发送失败, 返回为[{}]", payOrderLog.getPayOrderId(), resJson);
-                return ResCodeEnum.EXCEPTION_CODE;
+                return ResCodeEnum.SUCCESS;
+                //return ResCodeEnum.EXCEPTION_CODE;
             }
         } catch (Exception e) {
             logger.error("还款订单[{}]还款报错", payOrderLog.getPayOrderId(), e);

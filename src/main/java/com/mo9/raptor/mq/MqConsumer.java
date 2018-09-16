@@ -10,6 +10,7 @@ import com.mo9.mqclient.MqSubscription;
 import com.mo9.mqclient.impl.aliyun.AliyunMqConsumer;
 import com.mo9.mqclient.impl.aliyun.AliyunMqMsgListener;
 import com.mo9.raptor.mq.listen.LoanMo9mqListener;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -64,6 +65,9 @@ public class MqConsumer extends AliyunMqConsumer {
    */
   private Consumer consumer;
 
+  @Autowired
+  private LoanMo9mqListener loanMo9mqListener  ;
+
   @Override
   @PostConstruct
   public void start() {
@@ -79,7 +83,6 @@ public class MqConsumer extends AliyunMqConsumer {
     MqSubscription mqSubscription = new MqSubscription() ;
     mqSubscription.setExpression("*");
     mqSubscription.setTopic(this.gatewayTopic);
-    LoanMo9mqListener loanMo9mqListener = new LoanMo9mqListener() ;
 
     this.consumer = ONSFactory.createConsumer(producerProperties);
     this.subscribe(mqSubscription , loanMo9mqListener);

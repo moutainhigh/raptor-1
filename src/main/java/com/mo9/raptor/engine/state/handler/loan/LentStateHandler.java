@@ -2,8 +2,10 @@ package com.mo9.raptor.engine.state.handler.loan;
 
 import com.mo9.raptor.engine.calculator.ILoanCalculator;
 import com.mo9.raptor.engine.calculator.LoanCalculatorFactory;
+import com.mo9.raptor.engine.entity.PayOrderEntity;
 import com.mo9.raptor.engine.exception.MergeException;
 import com.mo9.raptor.engine.exception.UnSupportTimeDiffException;
+import com.mo9.raptor.engine.service.IPayOrderService;
 import com.mo9.raptor.engine.simulator.ClockFactory;
 import com.mo9.raptor.engine.state.action.IActionExecutor;
 import com.mo9.raptor.engine.entity.LoanOrderEntity;
@@ -36,6 +38,9 @@ public class LentStateHandler implements IStateHandler<LoanOrderEntity> {
     @Autowired
     IEventLauncher payEventLauncher;
 
+    @Autowired
+    private IPayOrderService payOrderService;
+
     @Override
     public LoanOrderEntity handle (LoanOrderEntity loanOrder, IEvent event, IActionExecutor actionExecutor)
             throws InvalidEventException, LoanEntryException {
@@ -44,9 +49,11 @@ public class LentStateHandler implements IStateHandler<LoanOrderEntity> {
             LoanEntryEvent loanEntryEvent = (LoanEntryEvent) event;
             Item entryItem = loanEntryEvent.getEntryItem();
             String payType = loanEntryEvent.getPayType();
+            String payOrderId = loanEntryEvent.getPayOrderId();
+            PayOrderEntity payOrderEntity = payOrderService.getByOrderId(payOrderId);
             ILoanCalculator loanCalculator = loanCalculatorFactory.load(loanOrder);
             Item realItem = loanCalculator.realItem(System.currentTimeMillis(), loanOrder);
-            loanOrder = loanCalculator.itemEntry(loanOrder, payType, realItem, entryItem);
+            loanOrder = loanCalculator.itemEntry(loanOrder, payType, payOrderEntity.getPostponeDays(), realItem, entryItem);
             BigDecimal paid = entryItem.sum();
             // 还款合法, 则向还款订单发送入账反馈
             if (loanCalculator.checkValidRepayAmount(System.currentTimeMillis(), payType, paid, loanOrder)) {
