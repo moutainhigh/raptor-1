@@ -107,7 +107,8 @@ public class UserController {
     @PostMapping(value = "/modify_bank_card_info")
     public BaseResponse modifyBankCardInfo(@RequestBody @Validated BankReq bankReq, HttpServletRequest request) {
         BaseResponse response = new BaseResponse();
-        UserEntity userEntity = userService.findByMobile(bankReq.getCardMobile());
+        String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
+        UserEntity userEntity = userService.findByUserCode(userCode);
         if(userEntity == null ){
             //用户不存在
             response.setCode(ResCodeEnum.NOT_WHITE_LIST_USER.getCode());
