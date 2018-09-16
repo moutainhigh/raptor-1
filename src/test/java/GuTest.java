@@ -147,5 +147,13 @@ public class GuTest {
         }
     }
 
+    /**
+     * 查询产品信息
+     */
+    @Test
+    public void orderQuotaList(){
+        //http://localhost/raptorApi/order_quota/list
+    }
+
 
 }

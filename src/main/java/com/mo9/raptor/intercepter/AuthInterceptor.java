@@ -2,6 +2,7 @@ package com.mo9.raptor.intercepter;
 
 import com.mo9.raptor.redis.RedisParams;
 import com.mo9.raptor.redis.RedisServiceApi;
+import com.mo9.raptor.utils.CommonValues;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,6 +16,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Arrays;
+import java.util.Date;
 
 /**
  * @author zma
@@ -32,6 +34,9 @@ public class AuthInterceptor extends HandlerInterceptorAdapter {
     @Resource(name = "raptorRedis")
     private RedisTemplate raptorRedis;
 
+    @Value("${system.switch}")
+    private String systemSwitch ;
+
     @Value("${raptor.exclude.urls}")
     private String[] excludeUrls = new String[0];
 
@@ -42,6 +47,10 @@ public class AuthInterceptor extends HandlerInterceptorAdapter {
         if(isExclude(uri)) {
             logger.debug("白名单地址，自动跳过拦截器[{}]",uri);
             return true;
+        }
+        if(systemSwitch == null || !(CommonValues.TRUE.equals(systemSwitch))){
+            logger.error("系统已经关闭" + new Date());
+            return false;
         }
         //须登录，检查是否在登录状态 延长登录时间
         String accountMobile = getAccountCode(request);

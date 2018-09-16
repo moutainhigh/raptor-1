@@ -1,0 +1,43 @@
+package com.mo9.raptor.controller;
+
+import com.mo9.raptor.bean.BaseResponse;
+import com.mo9.raptor.enums.ResCodeEnum;
+import com.mo9.raptor.utils.CommonValues;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import javax.servlet.http.HttpServletRequest;
+
+/**
+ * Created by xtgu on 2018/9/16.
+ * @author xtgu
+ */
+@RestController
+@RequestMapping(value = "/system")
+public class SystemController {
+
+    private static final Logger logger = LoggerFactory.getLogger(SystemController.class);
+
+    @Value("${system.switch}")
+    private String systemSwitch ;
+
+    /**
+     * 查询系统是否开启
+     * @return
+     */
+    @GetMapping("/switch")
+    public BaseResponse<Boolean> systemSwitch(HttpServletRequest request){
+        BaseResponse<Boolean> response = new BaseResponse<Boolean>();
+        if(systemSwitch != null && CommonValues.TRUE.equals(systemSwitch)){
+            response.setData(true);
+        }else{
+            response.setData(false);
+        }
+        return response ;
+    }
+
+}
