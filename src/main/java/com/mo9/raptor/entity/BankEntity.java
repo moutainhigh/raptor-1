@@ -9,11 +9,11 @@ import java.util.Date;
  *
  */
 @Entity
-@Table(name = "t_bank")
+@Table(name = "t_raptor_bank")
 public class BankEntity {
 
 	/**
-	 * 四要素验证结果
+	 * 类型
 	 */
 	public enum Type {
 		/**
