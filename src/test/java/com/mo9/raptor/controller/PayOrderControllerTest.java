@@ -1,96 +1,84 @@
 package com.mo9.raptor.controller;
 
 import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.serializer.SerializerFeature;
-import com.mo9.raptor.bean.BaseResponse;
+import com.mo9.raptor.RaptorApplicationTest;
+import com.mo9.raptor.service.BankService;
+import com.mo9.raptor.utils.GatewayUtils;
+import com.mo9.raptor.utils.httpclient.HttpClientApi;
+import com.mo9.raptor.utils.httpclient.bean.HttpResult;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.test.context.junit4.SpringRunner;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Created by ycheng on 2018/9/16.
+ *
+ * @author ycheng
+ */
+@EnableAspectJAutoProxy
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes = {RaptorApplicationTest.class}, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class PayOrderControllerTest {
 
-    private static final Logger logger = LoggerFactory.getLogger(PayOrderControllerTest.class);
+    @Autowired
+    private HttpClientApi httpClientApi;
 
-    @Test
-    public void repay() {
-        try {
-            String address = "http://localhost/raptorApi";
-            String orderRear = "/cash/repay";
-            String orderUrl = address + orderRear;
-            HttpHeaders headers = new HttpHeaders();
-            headers.add("Account-Code", "123");
-            headers.add("client-id", "503");
-            headers.add("content-type", "application/json; charset=UTF-8");
+    @Autowired
+    private BankService bankService;
 
-            Map<String, String> params = new HashMap<String, String>();
-            params.put("channelType", "1");
-            params.put("bankCard", "112312312");
-            params.put("bankMobile", "13212143421");
-            params.put("userName", "xxx");
-            params.put("idCard", "21423421321421312");
-            params.put("orderId", "21421321421421321");
-            HttpEntity<String> requestEntity = new HttpEntity<String>(JSONObject.toJSONString(params), headers);
-            ResponseEntity<BaseResponse> result = new RestTemplate().exchange(orderUrl, HttpMethod.POST, requestEntity, BaseResponse.class);
-            BaseResponse body = result.getBody();
-            logger.info("返回结果:"+ JSONObject.toJSONString(body, SerializerFeature.PrettyFormat));
-        } catch (Exception e) {
-            logger.error("错误", e);
-        }
-    }
+    @Autowired
+    private GatewayUtils gatewayUtils;
 
-    @Test
-    public void renewal() {
-        try {
-            String address = "http://localhost/raptorApi";
-            String orderRear = "/cash/renewal";
-            String orderUrl = address + orderRear;
-            HttpHeaders headers = new HttpHeaders();
-            headers.add("Account-Code", "AA20A480E526D644D13D9AC5593D268E");
-            headers.add("client-id", "503");
-            headers.add("content-type", "application/json; charset=UTF-8");
+    private static  final String localUrl = "http://192.168.14.114:8010/raptorApi/";
 
-            Map<String, String> params = new HashMap<String, String>();
-            params.put("channelType", "1");
-            params.put("bankCard", "112312312");
-            params.put("bankMobile", "13212143421");
-            params.put("userName", "xxx");
-            params.put("idCard", "21423421321421312");
-            params.put("period", "7");
-            params.put("orderId", "SMALL-WHITE-MOUSE-226026477836177408");
-            HttpEntity<String> requestEntity = new HttpEntity<String>(JSONObject.toJSONString(params), headers);
-            ResponseEntity<BaseResponse> result = new RestTemplate().exchange(orderUrl, HttpMethod.POST, requestEntity, BaseResponse.class);
-            BaseResponse body = result.getBody();
-            logger.info("返回结果:"+ JSONObject.toJSONString(body, SerializerFeature.PrettyFormat));
-        } catch (Exception e) {
-            logger.error("错误", e);
-        }
-    }
-
+    /**
+     * 发送登录短信验证码
+     */
     @Test
     public void getRepayChannels() {
-        try {
-            String address = "http://localhost/raptorApi";
-            String orderRear = "/cash/get_repay_channels";
-            String orderUrl = address + orderRear;
-            HttpHeaders headers = new HttpHeaders();
-            headers.add("Account-Code", "123");
-            headers.add("client-id", "503");
-            headers.add("content-type", "application/json; charset=UTF-8");
 
-            HttpEntity<String> requestEntity = new HttpEntity<String>(null, headers);
-            ResponseEntity<BaseResponse> result = new RestTemplate().exchange(orderUrl, HttpMethod.GET, requestEntity, BaseResponse.class);
-            BaseResponse body = result.getBody();
-            logger.info("返回结果:"+ JSONObject.toJSONString(body, SerializerFeature.PrettyFormat));
-        } catch (Exception e) {
-            logger.error("错误", e);
+        try {
+            String url = "cash/get_repay_channels";
+            String resJson = httpClientApi.doGet(localUrl+url);
+            System.out.println(resJson);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
+
+    /**
+     用户验证码登录*/
+    @Test
+    public void repay() {
+
+        try {
+            String mobile = "13564546025";
+            JSONObject json = new JSONObject();
+            json.put("channelType", 3);
+            json.put("bankCard", "6226090216324281");
+            json.put("bankMobile", mobile);
+            json.put("userName", "程暘");
+            json.put("idCard", "310115199011182510");
+            json.put("orderId", "SMALL-WHITE-MOUSE-226026477836177408");
+            String url = "cash/repay";
+
+            Map<String , String > headMap = new HashMap<String , String>();
+            headMap.put("Account-Code","AA20A480E526D644D13D9AC5593D268E");
+
+
+            HttpResult resJson = httpClientApi.doPostJson(localUrl+url, json.toJSONString(),headMap);
+            System.out.println(resJson.getCode());
+            System.out.println(resJson.getData());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 }

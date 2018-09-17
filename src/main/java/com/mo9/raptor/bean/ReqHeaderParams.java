@@ -8,8 +8,6 @@ public interface ReqHeaderParams {
 
     String ACCOUNT_CODE = "Account-Code";
 
-    String GLUTTON_TOKEN = "Glutton-Token";
-
     String ACCESS_TOKEN = "Access-Token";
 
     String CLIENT_ID = "Client-Id";

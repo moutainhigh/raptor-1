@@ -1,10 +1,12 @@
+package com.mo9.raptor.controller;
+
 import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.RaptorApplicationTest;
 import com.mo9.raptor.service.BankService;
 import com.mo9.raptor.utils.GatewayUtils;
-import com.mo9.raptor.utils.Md5Encrypt;
 import com.mo9.raptor.utils.httpclient.HttpClientApi;
 import com.mo9.raptor.utils.httpclient.bean.HttpResult;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +17,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 
 /**
  * Created by ycheng on 2018/9/16.
@@ -37,6 +38,16 @@ public class UserControllerTest {
     private GatewayUtils gatewayUtils;
 
     private static  final String localUrl = "http://192.168.14.114:8010/raptorApi/";
+
+    private static  final String localHostUrl = "http://localhost/raptorApi/";
+
+    Map<String, String> headers = new HashMap<>();
+
+    @Before
+    public void before(){
+        headers.put("Account-Code", "AA20A480E526D644D13D9AC5593D268E");
+        headers.put("Client-Id", "503");
+    }
 
     /**
      * 发送登录短信验证码
@@ -121,7 +132,26 @@ public class UserControllerTest {
     /**
      登出
      */
+    @Test
+    public void testLogout() throws IOException {
+        HttpResult httpResult = httpClientApi.doPostJson(localHostUrl + "/user/logout", null, headers);
+        System.out.println(httpResult.getCode());
+        System.out.println(httpResult.getData());
+    }
 
-
+    /**
+     * 提交认证信息
+     * @throws IOException
+     */
+    @Test
+    public void testModifyCertifyInfo() throws IOException {
+        JSONObject json = new JSONObject();
+        json.put("realName", "ukar");
+        json.put("ocrRealName", "ukar");
+        json.put("idCard", "789");
+        HttpResult httpResult = httpClientApi.doPostJson(localHostUrl + "/user/modify_certify_info", json.toJSONString(), headers);
+        System.out.println(httpResult.getCode());
+        System.out.println(httpResult.getData());
+    }
 
 }

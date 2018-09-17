@@ -86,7 +86,7 @@ public class PayOrderController {
         // 用户没删就行, 拉黑也能还
         UserEntity user = userService.findByUserCodeAndDeleted(userCode, false);
         if (user == null) {
-            return response.buildFailureResponse(ResCodeEnum.USER__NOT_EXIST);
+            return response.buildFailureResponse(ResCodeEnum.USER_NOT_EXIST);
         }
 
         // 检查可用渠道
@@ -156,7 +156,7 @@ public class PayOrderController {
         // 用户没删就行, 拉黑也能还
         UserEntity user = userService.findByUserCodeAndDeleted(userCode, false);
         if (user == null) {
-            return response.buildFailureResponse(ResCodeEnum.USER__NOT_EXIST);
+            return response.buildFailureResponse(ResCodeEnum.USER_NOT_EXIST);
         }
 
         // 检查可用渠道
