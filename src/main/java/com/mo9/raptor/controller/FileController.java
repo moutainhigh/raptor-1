@@ -49,13 +49,13 @@ public class FileController {
         String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
         MultipartFile file = fileReq.getFile();
         try{
-            UserEntity userEntity = userService.findByUserCode(userCode);
+            UserEntity userEntity = userService.findByUserCodeAndDeleted(userCode, false);
             if(userEntity == null ){
-                logger.error("文件上传-->用户不存在");
+                logger.warn("文件上传-->用户不存在");
                 return response.buildFailureResponse(ResCodeEnum.USER_NOT_EXIT);
             }
             if (file.getSize() > 1024 * 1024 * 2) {
-                logger.error("文件上传-->大小超过限制");
+                logger.warn("文件上传-->大小超过限制");
                 return response.buildFailureResponse(ResCodeEnum.FILE_SIZE_TOO_MAX);
             }
             FileStreamTransformer fileStreamTransformer = SpringMultipartFileTransformer.transformer(file);
