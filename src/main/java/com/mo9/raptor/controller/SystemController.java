@@ -1,5 +1,6 @@
 package com.mo9.raptor.controller;
 
+import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.bean.BaseResponse;
 import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.utils.CommonValues;
@@ -30,13 +31,15 @@ public class SystemController {
      * @return
      */
     @GetMapping("/switch")
-    public BaseResponse<Boolean> systemSwitch(HttpServletRequest request){
-        BaseResponse<Boolean> response = new BaseResponse<Boolean>();
+    public BaseResponse<JSONObject> systemSwitch(HttpServletRequest request){
+        BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
+        JSONObject returnJson = new JSONObject() ;
         if(systemSwitch != null && CommonValues.TRUE.equals(systemSwitch)){
-            response.setData(true);
+            returnJson.put("switch" , true) ;
         }else{
-            response.setData(false);
+            returnJson.put("switch" , false) ;
         }
+        response.setData(returnJson);
         return response ;
     }
 
