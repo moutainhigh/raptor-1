@@ -66,7 +66,7 @@ public class LoanOrderController {
      * @return
      */
     @PostMapping("/add")
-    public BaseResponse<JSONObject> repay(@Valid @RequestBody OrderAddReq req, HttpServletRequest request) {
+    public BaseResponse<JSONObject> add(@Valid @RequestBody OrderAddReq req, HttpServletRequest request) {
         BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
         String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
         // TODO: 检查用户
