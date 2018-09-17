@@ -43,6 +43,11 @@ public class UserEntity extends AbstractStateEntity implements IStateEntity {
     @Column(name = "mobile_contacts")
     private Boolean mobileContacts;
     /**
+     * 银行卡认证状态
+     */
+    @Column(name = "bank_auth_status")
+    private String bankAuthStatus;
+    /**
      * 认证信息是否上传并通过
      */
     @Column(name = "certify_info")
@@ -57,11 +62,6 @@ public class UserEntity extends AbstractStateEntity implements IStateEntity {
      */
     @Column(name = "call_history")
     private Boolean callHistory;
-    /**
-     * 认证状态
-     */
-    @Column(name = "status")
-    private String status;
     /**
      * 活体认证状态
      */
@@ -81,9 +81,6 @@ public class UserEntity extends AbstractStateEntity implements IStateEntity {
     @Column(name = "user_ip")
     private String userIp;
 
-    @Column(name = "deleted")
-    private Boolean deleted;
-
     @Column(name = "last_login_time")
     private long lastLoginTime;
     /**
@@ -92,16 +89,12 @@ public class UserEntity extends AbstractStateEntity implements IStateEntity {
     @Column(name = "auth_time")
     private long authTime;
 
-    @Column(name = "update_time")
-    private long updateTime;
-
-    @Column(name = "create_time")
-    private long createTime;
-
+    @Override
     public Long getId() {
         return id;
     }
 
+    @Override
     public void setId(Long id) {
         this.id = id;
     }
@@ -112,6 +105,14 @@ public class UserEntity extends AbstractStateEntity implements IStateEntity {
 
     public void setMobile(String mobile) {
         this.mobile = mobile;
+    }
+
+    public String getBankAuthStatus() {
+        return bankAuthStatus;
+    }
+
+    public void setBankAuthStatus(String bankAuthStatus) {
+        this.bankAuthStatus = bankAuthStatus;
     }
 
     public String getRealName() {
@@ -178,14 +179,6 @@ public class UserEntity extends AbstractStateEntity implements IStateEntity {
         this.callHistory = callHistory;
     }
 
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
     public String getLivingBodyCertify() {
         return livingBodyCertify;
     }
@@ -216,14 +209,6 @@ public class UserEntity extends AbstractStateEntity implements IStateEntity {
 
     public void setUserIp(String userIp) {
         this.userIp = userIp;
-    }
-
-    public Boolean getDeleted() {
-        return deleted;
-    }
-
-    public void setDeleted(Boolean deleted) {
-        this.deleted = deleted;
     }
 
     public long getLastLoginTime() {
