@@ -42,7 +42,7 @@ public class LoanOrderEntity extends AbstractOrderEntity {
 
     /** 利息模式下对应值 */
     @Column(name = "interest_value")
-    private BigDecimal interestValue = new BigDecimal(7);
+    private BigDecimal interestValue;
 
     /** 罚息模式 */
     @Column(name = "penalty_mode")
@@ -50,11 +50,11 @@ public class LoanOrderEntity extends AbstractOrderEntity {
 
     /** 利息模式下对应值 */
     @Column(name = "penalty_value")
-    private BigDecimal penaltyValue = new BigDecimal(30);
+    private BigDecimal penaltyValue;
 
     /** 借贷服务费 */
     @Column(name = "charge_value")
-    private BigDecimal chargeValue = new BigDecimal(250);
+    private BigDecimal chargeValue;
 
     /** 延期单位服务费 */
     @Column(name = "postpone_unit_charge")
@@ -87,6 +87,12 @@ public class LoanOrderEntity extends AbstractOrderEntity {
     /** 还款日 */
     @Column(name = "repayment_date")
     private Long repaymentDate;
+
+    @Column(name = "client_id")
+    private String clientId;
+
+    @Column(name = "client_version")
+    private String clientVersion;
 
     public BigDecimal getLoanNumber() {
         return loanNumber;
@@ -214,5 +220,21 @@ public class LoanOrderEntity extends AbstractOrderEntity {
 
     public void setPostponeUnitCharge(BigDecimal postponeUnitCharge) {
         this.postponeUnitCharge = postponeUnitCharge;
+    }
+
+    public String getClientId() {
+        return clientId;
+    }
+
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
+    }
+
+    public String getClientVersion() {
+        return clientVersion;
+    }
+
+    public void setClientVersion(String clientVersion) {
+        this.clientVersion = clientVersion;
     }
 }

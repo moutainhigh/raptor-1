@@ -27,4 +27,13 @@ public interface LoanProductRepository extends JpaRepository<LoanProductEntity,L
      */
     @Query(value = "select t from LoanProductEntity t where t.amount = ?1 ")
     List<LoanProductEntity> findByAmount(BigDecimal amount);
+
+    /**
+     * 根据金额及期限查询唯一产品
+     * @param amount    借款金额
+     * @param period    周期
+     * @return
+     */
+    @Query(value = "select t from LoanProductEntity t where t.amount = ?1 and t.period = ?2")
+    LoanProductEntity findByAmountAndPeriod(BigDecimal amount, Integer period);
 }

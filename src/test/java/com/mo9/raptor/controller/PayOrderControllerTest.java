@@ -53,7 +53,7 @@ public class PayOrderControllerTest {
             String orderRear = "/cash/renewal";
             String orderUrl = address + orderRear;
             HttpHeaders headers = new HttpHeaders();
-            headers.add("Account-Code", "123");
+            headers.add("Account-Code", "AA20A480E526D644D13D9AC5593D268E");
             headers.add("client-id", "503");
             headers.add("content-type", "application/json; charset=UTF-8");
 
@@ -64,7 +64,7 @@ public class PayOrderControllerTest {
             params.put("userName", "xxx");
             params.put("idCard", "21423421321421312");
             params.put("period", "7");
-            params.put("orderId", "21421321421421321");
+            params.put("orderId", "SMALL-WHITE-MOUSE-226026477836177408");
             HttpEntity<String> requestEntity = new HttpEntity<String>(JSONObject.toJSONString(params), headers);
             ResponseEntity<BaseResponse> result = new RestTemplate().exchange(orderUrl, HttpMethod.POST, requestEntity, BaseResponse.class);
             BaseResponse body = result.getBody();
