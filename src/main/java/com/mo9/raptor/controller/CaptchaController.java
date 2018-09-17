@@ -64,9 +64,10 @@ public class CaptchaController {
 
         /**   逻辑修缮 by James 18/09/16    */
         //这里就要判断用户是否再名单之列
-        UserEntity user = userService.findByMobile(mobile);
+        UserEntity user = userService.findByMobileAndDeleted(mobile,false);
         if(null == user){
-
+            logger.warn("发送登录验证码-------->>>>>>>>非白名单用户[{}]", mobile);
+            return response.buildFailureResponse(ResCodeEnum.NOT_WHITE_LIST_USER);
         }
 
         CaptchaBusinessEnum reason = CaptchaBusinessEnum.LOGIN;
