@@ -94,7 +94,7 @@ public class GuTest {
         String cardId = "320684199109100052" ;
         String userName = "顾晓桐" ;
         String mobile = "13916393513" ;
-        bankService.verify( bankNo , cardId , userName , mobile , "ddd" , "222");
+       // bankService.verify( bankNo , cardId , userName , mobile , "ddd" , "222");
     }
 
     /**
@@ -152,7 +152,7 @@ public class GuTest {
      */
     @Test
     public void orderQuotaList(){
-        //http://localhost/raptorApi/order_quota/list
+        //http://localhost/raptorApi/loan_quota/list
         //http://localhost/raptorApi/system/switch
     }
 

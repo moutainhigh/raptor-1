@@ -35,17 +35,22 @@ public class LoanProductEntity {
     private BigDecimal interest ;
 
     /**
-     * 延期费用
+     * 延期基础费用
      */
-    @Column(name = "renewal_amount")
-    private BigDecimal renewalAmount ;
+    @Column(name = "renewal_base_amount")
+    private BigDecimal renewalBaseAmount ;
+
+    /**
+     * 每日罚息
+     */
+    @Column(name = "penalty_for_day")
+    private BigDecimal penaltyForDay ;
 
     /**
      * 实际到账金额
      */
     @Column(name = "actually_get_amount")
     private BigDecimal actuallyGetAmount ;
-
 
     /**
      * 类型
@@ -129,11 +134,19 @@ public class LoanProductEntity {
         isDelete = delete;
     }
 
-    public BigDecimal getRenewalAmount() {
-        return renewalAmount;
+    public BigDecimal getRenewalBaseAmount() {
+        return renewalBaseAmount;
     }
 
-    public void setRenewalAmount(BigDecimal renewalAmount) {
-        this.renewalAmount = renewalAmount;
+    public void setRenewalBaseAmount(BigDecimal renewalBaseAmount) {
+        this.renewalBaseAmount = renewalBaseAmount;
+    }
+
+    public BigDecimal getPenaltyForDay() {
+        return penaltyForDay;
+    }
+
+    public void setPenaltyForDay(BigDecimal penaltyForDay) {
+        this.penaltyForDay = penaltyForDay;
     }
 }

@@ -1,6 +1,7 @@
 package com.mo9.raptor.service;
 
 import com.mo9.raptor.entity.BankEntity;
+import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.ResCodeEnum;
 
 /**
@@ -34,14 +35,12 @@ public interface BankService {
     /**
      * 验证四要素
      * @param bankNo
-     * @param cardId
-     * @param userName
      * @param mobile
-     * @param userCode
      * @param bankName
+     * @param userEntity
      * @return
      */
-    public ResCodeEnum verify(String bankNo , String cardId , String userName , String mobile , String userCode , String bankName);
+    public ResCodeEnum verify(String bankNo, String mobile, String bankName, UserEntity userEntity);
 
     /**
      * 创建或者修改银行卡信息

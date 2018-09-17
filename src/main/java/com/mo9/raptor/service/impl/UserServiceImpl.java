@@ -1,5 +1,6 @@
 package com.mo9.raptor.service.impl;
 
+import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.repository.UserRepository;
 import com.mo9.raptor.service.UserService;
@@ -40,5 +41,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserEntity save(UserEntity userEntity) {
         return userRepository.save(userEntity);
+    }
+
+    @Override
+    public UserEntity findByUserCodeAndStatus(String userCode, StatusEnum status) {
+        return userRepository.findByUserCodeAndStatus(userCode, status.name());
     }
 }

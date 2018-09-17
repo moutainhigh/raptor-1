@@ -33,6 +33,7 @@ public enum ResCodeEnum {
 
     // xx=40 用户相关
     USER_CARD_ID_NOT_EXIST(11154000 , "用户身份证号不存在" , "用户身份证号不存在"),
+    USER__NOT_EXIST(11154001 , "用户不存在" , "用户不存在"),
 
     /**
      * xx=50, 还款
