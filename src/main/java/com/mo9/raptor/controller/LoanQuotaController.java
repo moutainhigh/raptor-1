@@ -22,7 +22,7 @@ import java.util.List;
  * @author xtgu
  */
 @RestController
-@RequestMapping("/order_quota")
+@RequestMapping("/loan_quota")
 public class LoanQuotaController {
 
     private static final Logger logger = LoggerFactory.getLogger(LoanQuotaController.class);
