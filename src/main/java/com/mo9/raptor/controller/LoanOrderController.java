@@ -17,13 +17,15 @@ import com.mo9.raptor.engine.state.launcher.IEventLauncher;
 import com.mo9.raptor.engine.structure.item.Item;
 import com.mo9.raptor.engine.utils.EngineStaticValue;
 import com.mo9.raptor.engine.utils.TimeUtils;
+import com.mo9.raptor.entity.DictDataEntity;
 import com.mo9.raptor.entity.LoanProductEntity;
 import com.mo9.raptor.entity.UserEntity;
+import com.mo9.raptor.enums.DictTypeNoEnum;
 import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.lock.Lock;
 import com.mo9.raptor.lock.RedisService;
 import com.mo9.raptor.redis.RedisLockKeySuffix;
-import com.mo9.raptor.redis.RedisServiceApi;
+import com.mo9.raptor.service.DictService;
 import com.mo9.raptor.service.LoanProductService;
 import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.IDWorker;
@@ -33,10 +35,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -63,6 +66,9 @@ public class LoanOrderController {
 
     @Autowired
     private LoanProductService productService;
+
+    @Autowired
+    private DictService dictService;
 
     @Autowired
     private RedisService redisService;
@@ -92,6 +98,19 @@ public class LoanOrderController {
         if (user == null) {
             return response.buildFailureResponse(ResCodeEnum.USER_NOT_EXIST);
         }
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        String dateFormat = sdf.format(new Date());
+        DictDataEntity dictData = dictService.findDictData(DictTypeNoEnum.DAILY_LEND_AMOUNT.name(), dateFormat);
+        if (dictData == null) {
+            return response.buildFailureResponse(ResCodeEnum.NO_LEND_AMOUNT);
+        }
+        BigDecimal dailyLendAmount = lendOrderService.getDailyLendAmount();
+        if (new BigDecimal(dictData.getName()).compareTo(dailyLendAmount) <= 0) {
+            logger.warn("今日已放款[{}]元, 不再放款!", dailyLendAmount.toPlainString());
+            return response.buildFailureResponse(ResCodeEnum.NO_LEND_AMOUNT);
+        }
+
         LoanOrderEntity loanOrderEntity = loanOrderService.getLastIncompleteOrder(userCode);
         if (loanOrderEntity != null) {
             return response.buildFailureResponse(ResCodeEnum.ONLY_ONE_ORDER);
