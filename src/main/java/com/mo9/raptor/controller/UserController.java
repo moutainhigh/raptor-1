@@ -70,8 +70,7 @@ public class UserController {
         }
         try {
             //检查用户是否在白名单，并可用
-            //TODO 白名单 查询方法
-            UserEntity userEntity = userService.findByMobile(mobile);
+            UserEntity userEntity = userService.findByMobileAndDeleted(mobile,false);
             if (userEntity == null) {
                 return response.buildFailureResponse(ResCodeEnum.NOT_WHITE_LIST_USER);
             }
@@ -88,6 +87,8 @@ public class UserController {
             entity.put("accessToken",token);
             entity.put("accessCode",userEntity.getUserCode());
             resMap.put("entity",entity);
+            userEntity.setLastLoginTime(System.currentTimeMillis());
+            userService.save(userEntity);
         } catch (IOException e) {
             logger.error("用户登录----->>>>验证码发送发生异常{}",e);
             return response.buildFailureResponse(ResCodeEnum.CAPTCHA_SEND_FAILED);
