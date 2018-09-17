@@ -53,7 +53,6 @@ public class LentStateHandler implements IStateHandler<LoanOrderEntity> {
     private IPayOrderDetailService payOrderDetailService;
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public LoanOrderEntity handle (LoanOrderEntity loanOrder, IEvent event, IActionExecutor actionExecutor)
             throws InvalidEventException, LoanEntryException {
 
@@ -70,6 +69,11 @@ public class LentStateHandler implements IStateHandler<LoanOrderEntity> {
             // 这里啥都有, 就在这儿创建明细吧
             List<PayOrderDetailEntity> entityList = new ArrayList<PayOrderDetailEntity>();
             for (Map.Entry<FieldTypeEnum, Field> entry : entryItem.entrySet()) {
+                FieldTypeEnum fieldTypeEnum = entry.getKey();
+                BigDecimal fieldNumber = realItem.getFieldNumber(fieldTypeEnum);
+                if (BigDecimal.ZERO.compareTo(fieldNumber) >= 0) {
+                    continue;
+                }
                 PayOrderDetailEntity entity = new PayOrderDetailEntity();
                 entity.setOwnerId(loanOrder.getOwnerId());
                 entity.setLoanOrderId(loanOrder.getOrderId());
@@ -77,11 +81,11 @@ public class LentStateHandler implements IStateHandler<LoanOrderEntity> {
                 entity.setPayCurrency(payOrderEntity.getPayCurrency());
                 entity.setItemType(entryItem.getItemType().name());
                 entity.setRepayDay(entryItem.getRepayDate());
-                FieldTypeEnum fieldTypeEnum = entry.getKey();
                 entity.setField(fieldTypeEnum.name());
-                entity.setShouldPay(realItem.getFieldNumber(fieldTypeEnum));
+                entity.setShouldPay(fieldNumber);
                 entity.setPaid(entryItem.getFieldNumber(fieldTypeEnum));
                 entity.create();
+                entityList.add(entity);
             }
             payOrderDetailService.saveItem(entityList);
             BigDecimal paid = entryItem.sum();

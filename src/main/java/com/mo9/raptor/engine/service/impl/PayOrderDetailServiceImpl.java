@@ -5,6 +5,7 @@ import com.mo9.raptor.engine.repository.PayOrderDetailRepository;
 import com.mo9.raptor.engine.service.IPayOrderDetailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -28,6 +29,7 @@ public class PayOrderDetailServiceImpl implements IPayOrderDetailService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public List<PayOrderDetailEntity> saveItem(List<PayOrderDetailEntity> payOrderDetails) {
         if (payOrderDetails != null && payOrderDetails.size() > 0) {
             for (PayOrderDetailEntity payOrderDetail : payOrderDetails) {
