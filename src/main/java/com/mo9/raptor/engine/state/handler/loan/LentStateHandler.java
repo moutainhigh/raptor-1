@@ -56,9 +56,7 @@ public class LentStateHandler implements IStateHandler<LoanOrderEntity> {
             loanOrder = loanCalculator.itemEntry(loanOrder, payType, payOrderEntity.getPostponeDays(), realItem, entryItem);
             BigDecimal paid = entryItem.sum();
             // 还款合法, 则向还款订单发送入账反馈
-            if (loanCalculator.checkValidRepayAmount(System.currentTimeMillis(), payType, paid, loanOrder)) {
-                actionExecutor.append(new EntryResponseAction(loanEntryEvent.getPayOrderId(), paid, payEventLauncher));
-            }
+            actionExecutor.append(new EntryResponseAction(loanEntryEvent.getPayOrderId(), paid, payEventLauncher));
         } else {
             throw new InvalidEventException("贷款订单状态与事件类型不匹配，状态：" + loanOrder.getStatus() + "，事件：" + event);
         }
