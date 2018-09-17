@@ -1,9 +1,9 @@
-import com.alibaba.fastjson.JSONObject;
+package com.mo9.raptor.controller;
+
 import com.mo9.raptor.RaptorApplicationTest;
 import com.mo9.raptor.service.BankService;
 import com.mo9.raptor.utils.GatewayUtils;
 import com.mo9.raptor.utils.httpclient.HttpClientApi;
-import com.mo9.raptor.utils.httpclient.bean.HttpResult;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,8 +12,6 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Created by ycheng on 2018/9/16.
