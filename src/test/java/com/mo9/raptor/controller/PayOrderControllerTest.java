@@ -13,19 +13,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 
-public class LoanOrderControllerTest {
+public class PayOrderControllerTest {
 
-    private static final Logger logger = LoggerFactory.getLogger(LoanOrderControllerTest.class);
+    private static final Logger logger = LoggerFactory.getLogger(PayOrderControllerTest.class);
 
     @Test
-    public void add() {
+    public void repay() {
         try {
             String address = "http://localhost/raptorApi";
-            String orderRear = "/order/add";
+            String orderRear = "/cash/repay";
             String orderUrl = address + orderRear;
             HttpHeaders headers = new HttpHeaders();
             headers.add("Account-Code", "123");
@@ -33,8 +31,12 @@ public class LoanOrderControllerTest {
             headers.add("content-type", "application/json; charset=UTF-8");
 
             Map<String, String> params = new HashMap<String, String>();
-            params.put("capital", "1000");
-            params.put("period", "7");
+            params.put("channelType", "1");
+            params.put("bankCard", "112312312");
+            params.put("bankMobile", "13212143421");
+            params.put("userName", "xxx");
+            params.put("idCard", "21423421321421312");
+            params.put("orderId", "21421321421421321");
             HttpEntity<String> requestEntity = new HttpEntity<String>(JSONObject.toJSONString(params), headers);
             ResponseEntity<BaseResponse> result = new RestTemplate().exchange(orderUrl, HttpMethod.POST, requestEntity, BaseResponse.class);
             BaseResponse body = result.getBody();
@@ -45,10 +47,38 @@ public class LoanOrderControllerTest {
     }
 
     @Test
-    public void getLastIncomplete() {
+    public void renewal() {
         try {
             String address = "http://localhost/raptorApi";
-            String orderRear = "/order/get_last_incomplete";
+            String orderRear = "/cash/renewal";
+            String orderUrl = address + orderRear;
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Account-Code", "AA20A480E526D644D13D9AC5593D268E");
+            headers.add("client-id", "503");
+            headers.add("content-type", "application/json; charset=UTF-8");
+
+            Map<String, String> params = new HashMap<String, String>();
+            params.put("channelType", "1");
+            params.put("bankCard", "112312312");
+            params.put("bankMobile", "13212143421");
+            params.put("userName", "xxx");
+            params.put("idCard", "21423421321421312");
+            params.put("period", "7");
+            params.put("orderId", "SMALL-WHITE-MOUSE-226026477836177408");
+            HttpEntity<String> requestEntity = new HttpEntity<String>(JSONObject.toJSONString(params), headers);
+            ResponseEntity<BaseResponse> result = new RestTemplate().exchange(orderUrl, HttpMethod.POST, requestEntity, BaseResponse.class);
+            BaseResponse body = result.getBody();
+            logger.info("返回结果:"+ JSONObject.toJSONString(body, SerializerFeature.PrettyFormat));
+        } catch (Exception e) {
+            logger.error("错误", e);
+        }
+    }
+
+    @Test
+    public void getRepayChannels() {
+        try {
+            String address = "http://localhost/raptorApi";
+            String orderRear = "/cash/get_repay_channels";
             String orderUrl = address + orderRear;
             HttpHeaders headers = new HttpHeaders();
             headers.add("Account-Code", "123");
@@ -62,27 +92,5 @@ public class LoanOrderControllerTest {
         } catch (Exception e) {
             logger.error("错误", e);
         }
-    }
-
-    private String buildGetUrl(String methodUri, Map<String, String> request) throws Exception {
-        StringBuilder sb = new StringBuilder();
-
-        sb.append(methodUri);
-        if (!request.isEmpty()) {
-            sb.append("?");
-            Set<Map.Entry<String, String>> entrySet = request.entrySet();
-            Iterator<Map.Entry<String, String>> iterator = entrySet.iterator();
-
-            while (iterator.hasNext()) {
-                Map.Entry<String, String> entry = iterator.next();
-                sb.append(entry.getKey());
-                sb.append("=");
-                sb.append(entry.getValue());
-                if (iterator.hasNext()) {
-                    sb.append("&");
-                }
-            }
-        }
-        return sb.toString();
     }
 }
