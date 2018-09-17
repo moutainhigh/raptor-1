@@ -125,7 +125,7 @@ public class GatewayUtils {
 
             String mysig = Md5Encrypt.sign(params, "643138394F10DA5E9647709A3FA8DD7F");
             params.put("sign", mysig);
-            String gatewayUrl = "http://ycheng.local.mo9.com/gateway/pay.shtml";
+            String gatewayUrl = "http://localhost:8081/gateway/pay.shtml";
             String resJson = httpClientApi.doGet(gatewayUrl, params);
             payOrderLog.setChannelSyncResponse(resJson);
             payOrderLog.setUpdateTime(System.currentTimeMillis());
