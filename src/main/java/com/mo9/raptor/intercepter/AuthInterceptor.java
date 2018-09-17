@@ -53,15 +53,15 @@ public class AuthInterceptor extends HandlerInterceptorAdapter {
             return false;
         }
         //须登录，检查是否在登录状态 延长登录时间
-        String accountMobile = getAccountCode(request);
+        String accountCode = getAccountCode(request);
         String accessToken = getAccessToken(request);
-        if (!StringUtils.isEmpty(accountMobile) && !StringUtils.isEmpty(accessToken)) {
+        if (!StringUtils.isEmpty(accountCode) && !StringUtils.isEmpty(accessToken)) {
             String clientId = getClientId(request);
             if (StringUtils.isEmpty(clientId)){
                 httpError(response);
                 return false;
             }
-            Boolean isLogin = validateLoginStatus(accountMobile,accessToken,clientId);
+            Boolean isLogin = validateLoginStatus(accountCode,accessToken,clientId);
             if (!isLogin){
                 httpError(response);
                 return false;
@@ -86,10 +86,10 @@ public class AuthInterceptor extends HandlerInterceptorAdapter {
             return false;
         }else {
             Long expire = redisServiceApi.getExpireSeconds(RedisParams.getAccessToken(clientId,accountMobile),raptorRedis);
-            //过期时间小于1分钟的,更新token
-            if(expire < RedisParams.EXPIRE_1M) {
+            //过期时间小于14天的,更新token，暂定app登录15天过期
+            if(expire < RedisParams.EXPIRE_14D) {
                 //TODO 根据clientId 对pc和app进行区分
-                redisServiceApi.expireSeconds(RedisParams.getAccessToken(clientId,accountMobile), RedisParams.EXPIRE_1D,raptorRedis);
+                redisServiceApi.expireSeconds(RedisParams.getAccessToken(clientId,accountMobile), RedisParams.EXPIRE_15D,raptorRedis);
             }
         }
         return true;
