@@ -212,17 +212,15 @@ CREATE TABLE `t_raptor_user_certify_info` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户认证信息表';
 /**************************个人银行卡相关表*************************/
-DROP TABLE IF EXISTS `t_bank`;
-CREATE TABLE `t_bank` (
+DROP TABLE IF EXISTS `t_raptor_bank`;
+CREATE TABLE `t_raptor_bank` (
 `id`  bigint(20) NOT NULL AUTO_INCREMENT ,
+`user_code`  varchar(64) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '用户编号' ,
 `mobile`  varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL ,
-`user_code`  varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL ,
 `bank_no`  varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '银行卡' ,
 `bank_name`  varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL ,
 `card_id`  varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL ,
 `user_name`  varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL ,
-`channel`  varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL ,
-`type`  varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '类型 (放款 , 还款)' ,
 `create_time`  bigint(20) NULL DEFAULT NULL ,
 `update_time`  bigint(20) NULL DEFAULT NULL ,
 PRIMARY KEY (`id`),
@@ -232,5 +230,26 @@ INDEX `bank_no` (`bank_no`) USING BTREE
 ENGINE=InnoDB
 DEFAULT CHARACTER SET=utf8 COLLATE=utf8_general_ci
 AUTO_INCREMENT=7
-ROW_FORMAT=DYNAMIC
+ROW_FORMAT=COMPACT
 ;
+
+/**************************放款产品表相关表*************************/
+DROP TABLE IF EXISTS `t_raptor_loan_product`;
+CREATE TABLE `t_raptor_loan_product` (
+`id`  bigint(20) NOT NULL ,
+`amount`  decimal(18,8) NULL DEFAULT NULL ,
+`period`  int(8) NULL DEFAULT NULL COMMENT '期限' ,
+`interest`  decimal(18,8) NULL DEFAULT NULL COMMENT '利息' ,
+`actually_get_amount`  decimal(18,8) NULL DEFAULT NULL COMMENT '实际到账金额' ,
+`renewal_base_amount`  decimal(18,8) NULL DEFAULT NULL COMMENT '类型' ,
+`penalty_for_day`  decimal(18,8) NULL DEFAULT NULL COMMENT '每日罚息' ,
+`is_delete`  tinyint(4) NULL DEFAULT NULL COMMENT '是否删除' ,
+`create_time`  bigint(20) NULL DEFAULT NULL ,
+`update_time`  bigint(20) NULL DEFAULT NULL ,
+PRIMARY KEY (`id`)
+)
+ENGINE=InnoDB
+DEFAULT CHARACTER SET=latin1 COLLATE=latin1_swedish_ci
+ROW_FORMAT=COMPACT
+;
+
