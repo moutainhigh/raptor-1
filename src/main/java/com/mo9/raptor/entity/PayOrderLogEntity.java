@@ -55,7 +55,7 @@ public class PayOrderLogEntity extends BaseEntity {
      * 客户端Id
      */
     @Column(name = "client_id")
-    private Integer clientId;
+    private String clientId;
 
     /**
      * 客户端版本号
@@ -143,11 +143,11 @@ public class PayOrderLogEntity extends BaseEntity {
         this.channel = channel;
     }
 
-    public Integer getClientId() {
+    public String getClientId() {
         return clientId;
     }
 
-    public void setClientId(Integer clientId) {
+    public void setClientId(String clientId) {
         this.clientId = clientId;
     }
 

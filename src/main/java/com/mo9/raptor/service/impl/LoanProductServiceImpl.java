@@ -28,4 +28,9 @@ public class LoanProductServiceImpl implements LoanProductService {
     public List<LoanProductEntity> findByAmount(BigDecimal amount) {
         return productRepository.findByAmount(amount);
     }
+
+    @Override
+    public LoanProductEntity findByAmountAndPeriod(BigDecimal amount, Integer period) {
+        return productRepository.findByAmountAndPeriod(amount, period);
+    }
 }
