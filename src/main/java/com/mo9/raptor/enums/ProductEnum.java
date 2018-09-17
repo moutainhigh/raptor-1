@@ -7,7 +7,7 @@ import java.util.List;
 
 /**
  * 产品种类
- * TODO: 写数据库
+ * 写数据库了, 弃用
  * Created by xzhang on 2018/9/13.
  */
 public enum ProductEnum {

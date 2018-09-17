@@ -1,5 +1,6 @@
 package com.mo9.raptor.service;
 
+import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.entity.UserEntity;
 
 /**
@@ -31,4 +32,14 @@ public interface UserService {
      * @return
      */
     UserEntity findByMobile(String mobile);
+
+    UserEntity save (UserEntity userEntity);
+
+    /**
+     * 根据userCode和状态查询用户
+     * @param userCode   用户
+     * @param status     状态
+     * @return
+     */
+    UserEntity findByUserCodeAndStatus(String userCode, StatusEnum status);
 }

@@ -17,8 +17,11 @@ import com.mo9.raptor.engine.state.launcher.IEventLauncher;
 import com.mo9.raptor.engine.structure.item.Item;
 import com.mo9.raptor.engine.utils.EngineStaticValue;
 import com.mo9.raptor.engine.utils.TimeUtils;
-import com.mo9.raptor.enums.ProductEnum;
+import com.mo9.raptor.entity.LoanProductEntity;
+import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.ResCodeEnum;
+import com.mo9.raptor.service.LoanProductService;
+import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.IDWorker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,10 +46,16 @@ public class LoanOrderController {
     private IDWorker idWorker;
 
     @Autowired
+    private UserService userService;
+
+    @Autowired
     private ILoanOrderService loanOrderService;
 
     @Autowired
     private ILendOrderService lendOrderService;
+
+    @Autowired
+    private LoanProductService productService;
 
     @Autowired
     private IEventLauncher loanEventLauncher;
@@ -57,29 +66,31 @@ public class LoanOrderController {
     @Value("${raptor.sockpuppet}")
     private String sockpuppet;
 
-    @Value("${postpone.unit.charge}")
-    private String postponeCharge;
-
     /**
      * 下单
      * @param req
      * @return
      */
     @PostMapping("/add")
-    public BaseResponse<JSONObject> repay(@Valid @RequestBody OrderAddReq req, HttpServletRequest request) {
+    public BaseResponse<JSONObject> add(@Valid @RequestBody OrderAddReq req, HttpServletRequest request) {
         BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
         String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
-        // TODO: 检查用户
+        String clientId = request.getHeader(ReqHeaderParams.CLIENT_ID);
+        String clientVersion = request.getHeader(ReqHeaderParams.CLIENT_VERSION);
 
+        UserEntity user = userService.findByUserCodeAndStatus(userCode, StatusEnum.PASSED);
+        if (user == null) {
+            return response.buildFailureResponse(ResCodeEnum.USER__NOT_EXIST);
+        }
         LoanOrderEntity loanOrderEntity = loanOrderService.getLastIncompleteOrder(userCode);
         if (loanOrderEntity != null) {
             return response.buildFailureResponse(ResCodeEnum.ONLY_ONE_ORDER);
         }
 
-        // TODO: 检查输入
         BigDecimal principal = req.getCapital();
         int loanTerm = req.getPeriod();
-        if (!(ProductEnum.checkLoanDays(loanTerm) && ProductEnum.checkPrincipal(principal))) {
+        LoanProductEntity product = productService.findByAmountAndPeriod(principal, loanTerm);
+        if (product == null) {
             return response.buildFailureResponse(ResCodeEnum.ERROR_LOAN_PARAMS);
         }
 
@@ -89,9 +100,15 @@ public class LoanOrderController {
         loanOrder.setOwnerId(userCode);
         loanOrder.setType("RAPTOR");
         loanOrder.setLoanNumber(principal);
-        loanOrder.setPostponeUnitCharge(new BigDecimal(postponeCharge));
+        loanOrder.setPostponeUnitCharge(product.getRenewalBaseAmount());
         loanOrder.setLoanTerm(loanTerm);
         loanOrder.setStatus(StatusEnum.PENDING.name());
+        loanOrder.setInterestValue(product.getInterest());
+        loanOrder.setPenaltyValue(product.getPenaltyForDay());
+        loanOrder.setChargeValue(principal.subtract(product.getActuallyGetAmount()));
+        loanOrder.setClientId(clientId);
+        loanOrder.setClientVersion(clientVersion);
+
         long now = System.currentTimeMillis();
         Long today = TimeUtils.extractDateTime(now);
         loanOrder.setRepaymentDate(today + loanTerm * EngineStaticValue.DAY_MILLIS);

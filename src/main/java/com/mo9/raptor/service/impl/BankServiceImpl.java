@@ -1,9 +1,11 @@
 package com.mo9.raptor.service.impl;
 
 import com.mo9.raptor.entity.BankEntity;
+import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.repository.BankRepository;
 import com.mo9.raptor.service.BankService;
+import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.GatewayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +28,9 @@ public class BankServiceImpl implements BankService {
     @Autowired
     private GatewayUtils gatewayUtils ;
 
+    @Autowired
+    private UserService userService;
+
     @Override
     public BankEntity findByMobileLastOne(String mobile) {
         List<BankEntity> bankEntityList = bankRepository.findByMobile(mobile);
@@ -45,17 +50,12 @@ public class BankServiceImpl implements BankService {
         return bankRepository.findByBankNo(bankNo) ;
     }
 
-    /**
-     * 易联四要素验证
-     * @param bankNo
-     * @param cardId
-     * @param userName
-     * @param mobile
-     * @return
-     */
     @Override
-    public ResCodeEnum verify(String bankNo , String cardId , String userName , String mobile, String userCode, String bankName){
+    public ResCodeEnum verify(String bankNo, String mobile, String bankName, UserEntity userEntity){
         BankEntity bankEntity = this.findByBankNo(bankNo) ;
+        String cardId = userEntity.getIdCard();
+        String userName = userEntity.getRealName();
+        String userCode = userEntity.getUserCode();
         if(bankEntity != null){
             //判断本地数据四要素正确情况
             if(!(cardId.equals(bankEntity.getCardId()) && userName.equals(bankEntity.getUserName()) && mobile.equals(bankEntity.getMobile()))){
@@ -70,6 +70,8 @@ public class BankServiceImpl implements BankService {
         ResCodeEnum resCodeEnum = gatewayUtils.verifyBank( bankNo ,  cardId ,  userName ,  mobile) ;
         if(ResCodeEnum.SUCCESS == resCodeEnum){
             this.create( bankNo , cardId , userName , mobile , bankName , userCode) ;
+            userEntity.setStatus("SUCCESS");
+            userService.save(userEntity);
         }
         return resCodeEnum ;
     }

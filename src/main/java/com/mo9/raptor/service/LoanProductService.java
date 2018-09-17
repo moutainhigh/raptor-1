@@ -23,4 +23,12 @@ public interface LoanProductService {
      */
     List<LoanProductEntity> findByAmount(BigDecimal amount);
 
+    /**
+     * 根据金额及期限查询唯一产品
+     * @param amount    借款金额
+     * @param period    周期
+     * @return
+     */
+    LoanProductEntity findByAmountAndPeriod(BigDecimal amount, Integer period);
+
 }

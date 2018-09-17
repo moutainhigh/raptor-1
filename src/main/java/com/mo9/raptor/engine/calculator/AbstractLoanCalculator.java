@@ -70,6 +70,8 @@ public abstract class AbstractLoanCalculator implements ILoanCalculator {
             return item;
         }
         Long repaymentDate = loanOrder.getRepaymentDate();
+        // 重新设置还款日
+        item.setRepayDate(repaymentDate);
         date = TimeUtils.extractDateTime(date);
         Field penaltyField = new Field();
         penaltyField.setFieldType(FieldTypeEnum.PENALTY);

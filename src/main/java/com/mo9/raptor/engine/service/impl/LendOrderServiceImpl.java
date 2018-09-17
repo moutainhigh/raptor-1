@@ -26,7 +26,6 @@ public class LendOrderServiceImpl implements ILendOrderService {
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public LendOrderEntity save(LendOrderEntity loanOrder) {
          return lendOrderRepository.save(loanOrder);
     }

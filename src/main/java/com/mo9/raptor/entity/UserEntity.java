@@ -1,5 +1,8 @@
 package com.mo9.raptor.entity;
 
+import com.mo9.raptor.engine.entity.AbstractStateEntity;
+import com.mo9.raptor.engine.entity.IStateEntity;
+
 import javax.persistence.*;
 
 /**
@@ -8,7 +11,7 @@ import javax.persistence.*;
  */
 @Entity
 @Table(name = "t_raptor_user")
-public class UserEntity {
+public class UserEntity extends AbstractStateEntity implements IStateEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -237,22 +240,6 @@ public class UserEntity {
 
     public void setAuthTime(long authTime) {
         this.authTime = authTime;
-    }
-
-    public long getUpdateTime() {
-        return updateTime;
-    }
-
-    public void setUpdateTime(long updateTime) {
-        this.updateTime = updateTime;
-    }
-
-    public long getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(long createTime) {
-        this.createTime = createTime;
     }
 
     public String getUserCode() {
