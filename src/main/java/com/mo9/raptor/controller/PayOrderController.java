@@ -89,6 +89,11 @@ public class PayOrderController {
         if (loanOrder == null || !StatusEnum.LENT.name().equals(loanOrder.getStatus())) {
             return response.buildFailureResponse(ResCodeEnum.ILLEGAL_LOAN_ORDER_STATUE);
         }
+        // 检查用户
+        if (!loanOrder.getOwnerId().equals(userCode)) {
+            return response.buildFailureResponse(ResCodeEnum.ILLEGAL_REPAYMENT);
+        }
+
 
         String orderId = sockpuppet + "-" + String.valueOf(idWorker.nextId());
         PayOrderEntity payOrder = new PayOrderEntity();
@@ -118,22 +123,7 @@ public class PayOrderController {
         payOrderLog.create();
         payOrderService.savePayOrderAndLog(payOrder, payOrderLog);
 
-        PayOderChannelRes res = new PayOderChannelRes();
-        // 重新查询Log, 返回url
-        PayOrderLogEntity savedOrderLog = payOrderLogService.getByPayOrderId(orderId);
-        String channelSyncResponse = savedOrderLog.getChannelSyncResponse();
-        JSONObject jsonObject = JSONObject.parseObject(channelSyncResponse);
-        String code = jsonObject.getString("code");
-        if ("0000".equals(code)) {
-            JSONObject data = jsonObject.getJSONObject("data");
-            String url = data.getString("result");
-            res.setUseType(ChannelUseType.LINK.getDesc());
-            res.setResult(url);
-            res.setState(true);
-            res.setChannelType(channelEntity.getId());
-        } else {
-            res.setState(false);
-        }
+        PayOderChannelRes res = getRes(orderId, channelEntity.getId());
         JSONObject data = new JSONObject();
         data.put("entities", res);
         return response.buildSuccessResponse(data);
@@ -168,6 +158,10 @@ public class PayOrderController {
         if (loanOrder == null || !StatusEnum.LENT.name().equals(loanOrder.getStatus())) {
             return response.buildFailureResponse(ResCodeEnum.ILLEGAL_LOAN_ORDER_STATUE);
         }
+        // 检查用户
+        if (!loanOrder.getOwnerId().equals(userCode)) {
+            return response.buildFailureResponse(ResCodeEnum.ILLEGAL_REPAYMENT);
+        }
 
         String orderId = sockpuppet + "-" + String.valueOf(idWorker.nextId());
         PayOrderEntity payOrder = new PayOrderEntity();
@@ -199,23 +193,7 @@ public class PayOrderController {
         payOrderLog.create();
         payOrderService.savePayOrderAndLog(payOrder, payOrderLog);
 
-        PayOderChannelRes res = new PayOderChannelRes();
-        // 重新查询Log, 返回url
-        PayOrderLogEntity savedOrderLog = payOrderLogService.getByPayOrderId(orderId);
-        String channelSyncResponse = savedOrderLog.getChannelSyncResponse();
-        JSONObject jsonObject = JSONObject.parseObject(channelSyncResponse);
-        String code = jsonObject.getString("code");
-        if ("0000".equals(code)) {
-            JSONObject data = jsonObject.getJSONObject("data");
-            String url = data.getString("result");
-            res.setUseType(ChannelUseType.LINK.getDesc());
-            res.setResult(url);
-            res.setState(true);
-            res.setChannelType(channelEntity.getId());
-        } else {
-            res.setState(false);
-        }
-
+        PayOderChannelRes res = getRes(orderId, channelEntity.getId());
         JSONObject data = new JSONObject();
         data.put("entities", res);
         return response.buildSuccessResponse(data);
@@ -241,6 +219,26 @@ public class PayOrderController {
         JSONObject data = new JSONObject();
         data.put("entities", channels);
         return response.buildSuccessResponse(data);
+    }
+
+    private PayOderChannelRes getRes(String payOrderId, Long channelId) {
+        PayOderChannelRes res = new PayOderChannelRes();
+        // 重新查询Log, 返回url
+        PayOrderLogEntity savedOrderLog = payOrderLogService.getByPayOrderId(payOrderId);
+        String channelSyncResponse = savedOrderLog.getChannelSyncResponse();
+        JSONObject jsonObject = JSONObject.parseObject(channelSyncResponse);
+        String code = jsonObject.getString("code");
+        if ("0000".equals(code)) {
+            JSONObject data = jsonObject.getJSONObject("data");
+            String url = data.getString("result");
+            res.setUseType(ChannelUseType.LINK.getDesc());
+            res.setResult(url);
+            res.setState(true);
+            res.setChannelType(channelId);
+        } else {
+            res.setState(false);
+        }
+        return res;
     }
 
 }

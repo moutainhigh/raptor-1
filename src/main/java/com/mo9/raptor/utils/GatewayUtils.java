@@ -138,8 +138,8 @@ public class GatewayUtils {
                 return ResCodeEnum.SUCCESS;
             } else {
                 logger.info("还款订单[{}]还款请求发送失败, 返回为[{}]", payOrderLog.getPayOrderId(), resJson);
-                return ResCodeEnum.SUCCESS;
-                //return ResCodeEnum.EXCEPTION_CODE;
+                // return ResCodeEnum.SUCCESS;
+                return ResCodeEnum.EXCEPTION_CODE;
             }
         } catch (Exception e) {
             logger.error("还款订单[{}]还款报错", payOrderLog.getPayOrderId(), e);
