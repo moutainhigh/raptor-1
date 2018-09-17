@@ -60,9 +60,7 @@ public class LoanExecuteAction implements IAction {
         lendOrder.setBankMobile(bankEntity.getMobile());
         lendOrder.setStatus(StatusEnum.PENDING.name());
 
-        // TODO
-        lendOrder.setType("某类型");
-        lendOrder.setChannel("放款渠道");
+        lendOrder.setType("");
         long now = System.currentTimeMillis();
         lendOrder.setCreateTime(now);
         lendOrder.setUpdateTime(now);

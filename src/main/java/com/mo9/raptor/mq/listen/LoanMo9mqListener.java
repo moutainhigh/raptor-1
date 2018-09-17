@@ -115,6 +115,8 @@ public class LoanMo9mqListener implements IMqMsgListener{
 		String channelResponse = bodyJson.getString("channelResponse");
 		//订单号
 		String orderId = bodyJson.getString("orderId");
+		// 放款渠道
+		String lendChannel = bodyJson.getString("lendChannel");
 		if ("1".equals(status)) {
 			//银行卡卡号
 			String bankCardNo = bodyJson.getString("bankCardNo");
@@ -132,8 +134,6 @@ public class LoanMo9mqListener implements IMqMsgListener{
 			BigDecimal lendAmount = bodyJson.getBigDecimal("lendAmount");
 			//放款实际请求时间
 			Long lendReqpTime = bodyJson.getLong("lendReqpTime");
-			// 放款渠道
-			String lendChannel = bodyJson.getString("lendChannel");
 			//放款渠道类型
 			String lendChannelType = bodyJson.getString("lendChannelType");
 			//事件ID
@@ -154,7 +154,8 @@ public class LoanMo9mqListener implements IMqMsgListener{
                         lendId,
                         channelResponse,
                         lendSettleTime,
-                        "放款成功");
+                        "放款成功",
+						lendChannel);
 				lendEventLauncher.launch(lendResponse);
 			} catch (Exception e) {
 				logger.error("订单[{}]放款成功事件报错", orderId, e);
@@ -170,7 +171,8 @@ public class LoanMo9mqListener implements IMqMsgListener{
 						lendId,
 						channelResponse,
 						lendSettleTime,
-						"放款失败");
+						"放款失败",
+						lendChannel);
 				lendEventLauncher.launch(lendResponse);
 			} catch (Exception e) {
 				logger.error("订单[{}]放款成功事件报错", orderId, e);
