@@ -56,7 +56,7 @@ public class RiskController {
             riskCallLogService.batchSave(riskCallLogList);
             
         }catch (Exception e){
-            logger.error(">>>>>>>>>>>>>保存第三方通话记录爬虫结果失败{}", e);
+            logger.error(">>>>>>>>>>>>>保存第三方通话记录爬虫结果失败", e);
             return "error";
         }
         return "ok";

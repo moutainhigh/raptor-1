@@ -39,6 +39,12 @@ public class RiskCallLogServiceImpl implements RiskCallLogService {
 
         TRiskCallLog riskCallLog = null;
         for (CallLog callLog : callLogs) {
+            riskCallLog = new TRiskCallLog();
+            
+            riskCallLog.setSid(callLogReq.getData().getSid());
+            riskCallLog.setMobile(callLogReq.getData().getTel());
+            riskCallLog.setUid(callLogReq.getData().getUid());
+            
             riskCallLog.setCallCost(callLog.getCall_cost());
             riskCallLog.setCallTime(callLog.getCall_time());
             riskCallLog.setCallMethod(callLog.getCall_method());

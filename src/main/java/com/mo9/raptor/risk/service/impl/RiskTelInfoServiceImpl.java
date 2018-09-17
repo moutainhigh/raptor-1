@@ -29,7 +29,11 @@ public class RiskTelInfoServiceImpl implements RiskTelInfoService {
     @Override
     public TRiskTelInfo coverReq2Entity(CallLogReq callLogReq) {
         TRiskTelInfo riskTelInfo = new TRiskTelInfo();
+
+        riskTelInfo.setSid(callLogReq.getData().getSid());
         riskTelInfo.setMobile(callLogReq.getData().getTel());
+        riskTelInfo.setUid(callLogReq.getData().getUid());
+        
         riskTelInfo.setAddress(callLogReq.getData().getTel_info().getAddress());
         riskTelInfo.setFullName(callLogReq.getData().getTel_info().getFull_name());
         riskTelInfo.setIdCard(callLogReq.getData().getTel_info().getId_card());

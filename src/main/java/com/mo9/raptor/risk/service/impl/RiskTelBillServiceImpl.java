@@ -41,6 +41,10 @@ public class RiskTelBillServiceImpl implements RiskTelBillService {
         TRiskTelBill riskTelBill = null;
         for (CallLogBill bill : callLogBill) {
             riskTelBill = new TRiskTelBill();
+
+            riskTelBill.setSid(callLogReq.getData().getSid());
+            riskTelBill.setUid(callLogReq.getData().getUid());
+            riskTelBill.setMobile(callLogReq.getData().getTel());
             
             riskTelBill.setBillAmount(bill.getBill_amount());
             riskTelBill.setBillZengzhifei(bill.getBill_zengzhifei());
