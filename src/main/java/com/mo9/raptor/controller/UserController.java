@@ -121,7 +121,7 @@ public class UserController {
             response.setMessage(ResCodeEnum.USER_CARD_ID_NOT_EXIST.getMessage());
             return response;
         }
-        ResCodeEnum resCodeEnum = bankService.verify(bankReq.getCard() , userEntity.getIdCard() , userEntity.getRealName() , bankReq.getCardMobile() , userEntity.getUserCode() , bankReq.getBankName());
+        ResCodeEnum resCodeEnum = bankService.verify(bankReq.getCard() , bankReq.getCardMobile() , bankReq.getBankName() , userEntity);
         if(ResCodeEnum.SUCCESS != resCodeEnum){
             response.setCode(resCodeEnum.getCode());
             response.setMessage(resCodeEnum.getMessage());
