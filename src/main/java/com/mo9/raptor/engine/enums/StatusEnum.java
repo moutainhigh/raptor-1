@@ -40,7 +40,13 @@ public enum StatusEnum {
     /**
      * 放款订单状态
      */
-    SUCCESS("放款成功")
+    SUCCESS("放款成功"),
+
+    /**
+     * 用户状态
+     */
+    COLLECTING("信息采集中"),
+    BLACK("拉黑"),
 
     ;
 

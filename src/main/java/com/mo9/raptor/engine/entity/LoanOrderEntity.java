@@ -1,10 +1,8 @@
 package com.mo9.raptor.engine.entity;
 
-import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.engine.enums.AuditModeEnum;
 import com.mo9.raptor.engine.enums.LendModeEnum;
 import com.mo9.raptor.engine.enums.NumberMode;
-import com.mo9.raptor.engine.enums.StatusEnum;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
@@ -12,8 +10,6 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * 订单表 Created by gqwu on 2018/7/6.
