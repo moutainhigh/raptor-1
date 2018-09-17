@@ -12,7 +12,7 @@ import javax.persistence.Table;
  * 通讯录表
  */
 @Entity
-@Table(name = "t_raptor_bank")
+@Table(name = "t_raptor_user_contacts")
 public class UserContactsEntity extends BaseEntity{
 
     @Column(name = "user_code")

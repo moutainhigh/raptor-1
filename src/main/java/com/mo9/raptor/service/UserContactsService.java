@@ -15,4 +15,11 @@ public interface UserContactsService {
      * @param clientVersion
      */
     void submitMobileContacts(String data, String userCode ,String clientId, String clientVersion);
+
+    /**
+     * 根据userCode查询当前用户通讯录总记录数
+     * @param userCode
+     * @return
+     */
+    long findMobileContactsCount(String userCode);
 }

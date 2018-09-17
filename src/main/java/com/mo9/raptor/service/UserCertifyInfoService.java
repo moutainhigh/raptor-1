@@ -2,6 +2,7 @@ package com.mo9.raptor.service;
 
 import com.mo9.raptor.bean.req.ModifyCertifyReq;
 import com.mo9.raptor.entity.UserCertifyInfoEntity;
+import com.mo9.raptor.entity.UserEntity;
 
 /**
  * Created by jyou on 2018/9/17.
@@ -20,8 +21,9 @@ public interface UserCertifyInfoService {
 
     /**
      * 修改用户身份信息
+     * @param userEntity
      * @param userCertifyInfoEntity
      * @param modifyCertifyReq
      */
-    void modifyCertifyInfo(UserCertifyInfoEntity userCertifyInfoEntity, ModifyCertifyReq modifyCertifyReq);
+    void modifyCertifyInfo(UserEntity userEntity, UserCertifyInfoEntity userCertifyInfoEntity, ModifyCertifyReq modifyCertifyReq);
 }

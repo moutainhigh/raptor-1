@@ -1,3 +1,5 @@
+package com.mo9.raptor.controller;
+
 import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.RaptorApplicationTest;
 import com.mo9.raptor.service.BankService;
@@ -125,5 +127,19 @@ public class UserControllerTest {
         System.out.println(httpResult.getData());
     }
 
+    /**
+     * 提交认证信息
+     * @throws IOException
+     */
+    @Test
+    public void testModifyCertifyInfo() throws IOException {
+        JSONObject json = new JSONObject();
+        json.put("realName", "ukar");
+        json.put("ocrRealName", "ukar");
+        json.put("idCard", "789");
+        HttpResult httpResult = httpClientApi.doPostJson(localHostUrl + "/user/modify_certify_info", json.toJSONString(), headers);
+        System.out.println(httpResult.getCode());
+        System.out.println(httpResult.getData());
+    }
 
 }

@@ -52,7 +52,7 @@ public class FileController {
             UserEntity userEntity = userService.findByUserCodeAndDeleted(userCode, false);
             if(userEntity == null ){
                 logger.warn("文件上传-->用户不存在");
-                return response.buildFailureResponse(ResCodeEnum.USER_NOT_EXIT);
+                return response.buildFailureResponse(ResCodeEnum.USER_NOT_EXIST);
             }
             if (file.getSize() > 1024 * 1024 * 2) {
                 logger.warn("文件上传-->大小超过限制");
@@ -62,7 +62,7 @@ public class FileController {
             String url = ossFileUpload.upload(fileStreamTransformer);
             return response.buildSuccessResponse(url);
         }catch (Exception e){
-            logger.error("文件上传出现异常-->系统内部异常");
+            logger.error("文件上传出现异常-->系统内部异常", e);
             return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
         }
     }

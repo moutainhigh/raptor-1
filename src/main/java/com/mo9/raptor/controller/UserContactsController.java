@@ -50,12 +50,17 @@ public class UserContactsController {
             UserEntity userEntity = userService.findByUserCodeAndDeleted(userCode, false);
             if(userEntity == null ){
                 logger.warn("提交通讯录-->用户不存在");
-                return response.buildFailureResponse(ResCodeEnum.USER_NOT_EXIT);
+                return response.buildFailureResponse(ResCodeEnum.USER_NOT_EXIST);
             }
             userContactsService.submitMobileContacts(req.getData(), userCode, clientId, clientVersion);
+            long count = userContactsService.findMobileContactsCount(userCode);
+            if(count == 1){
+                //更新用户表通讯录状态
+                userService.updateCallHistory(userEntity, true);
+            }
             return response.buildSuccessResponse(true);
         }catch (Exception e){
-            logger.error("提交通讯录-->系统内部异常");
+            logger.error("提交通讯录-->系统内部异常", e);
             return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
         }
     }

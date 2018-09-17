@@ -149,13 +149,16 @@ public class UserController {
             UserEntity userEntity = userService.findByUserCodeAndDeleted(userCode, false);
             if(userEntity == null ){
                 logger.warn("修改账户身份认证信息-->用户不存在");
-                return response.buildFailureResponse(ResCodeEnum.USER_NOT_EXIT);
+                return response.buildFailureResponse(ResCodeEnum.USER_NOT_EXIST);
             }
             UserCertifyInfoEntity userCertifyInfoEntity = userCertifyInfoService.findByUserCode(userCode);
-            userCertifyInfoService.modifyCertifyInfo(userCertifyInfoEntity, modifyCertifyReq);
+            userCertifyInfoService.modifyCertifyInfo(userEntity, userCertifyInfoEntity, modifyCertifyReq);
+            if(!userEntity.getCertifyInfo()){
+                userService.updateCertifyInfo(userEntity, true);
+            }
             return response.buildSuccessResponse(true);
         }catch (Exception e){
-            logger.error("修改账户身份认证信息-->系统内部异常");
+            logger.error("修改账户身份认证信息-->系统内部异常", e);
             return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
         }
     }
@@ -175,12 +178,12 @@ public class UserController {
             UserEntity userEntity = userService.findByUserCodeAndDeleted(userCode, false);
             if(userEntity == null ){
                 logger.warn("用户登出-->用户不存在");
-                return response.buildFailureResponse(ResCodeEnum.USER_NOT_EXIT);
+                return response.buildFailureResponse(ResCodeEnum.USER_NOT_EXIST);
             }
             redisServiceApi.remove(RedisParams.getAccessToken(clientId,userCode), raptorRedis);
             return response.buildSuccessResponse(true);
         }catch (Exception e){
-            logger.error("用户登出-->系统内部异常");
+            logger.error("用户登出-->系统内部异常", e);
             return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
         }
 

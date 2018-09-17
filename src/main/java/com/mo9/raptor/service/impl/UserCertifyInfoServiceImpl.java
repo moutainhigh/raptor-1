@@ -2,6 +2,7 @@ package com.mo9.raptor.service.impl;
 
 import com.mo9.raptor.bean.req.ModifyCertifyReq;
 import com.mo9.raptor.entity.UserCertifyInfoEntity;
+import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.repository.UserCertifyInfoRepository;
 import com.mo9.raptor.service.UserCertifyInfoService;
 import org.apache.commons.lang.StringUtils;
@@ -28,14 +29,15 @@ public class UserCertifyInfoServiceImpl implements UserCertifyInfoService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void modifyCertifyInfo(UserCertifyInfoEntity userCertifyInfoEntity, ModifyCertifyReq modifyCertifyReq) {
-        UserCertifyInfoEntity entity = buildModifyCertifyEntity(userCertifyInfoEntity, modifyCertifyReq);
+    public void modifyCertifyInfo(UserEntity userEntity, UserCertifyInfoEntity userCertifyInfoEntity, ModifyCertifyReq modifyCertifyReq) {
+        UserCertifyInfoEntity entity = buildModifyCertifyEntity(userEntity, userCertifyInfoEntity, modifyCertifyReq);
         userCertifyInfoRepository.save(entity);
     }
 
-    private UserCertifyInfoEntity buildModifyCertifyEntity(UserCertifyInfoEntity entity, ModifyCertifyReq modifyCertifyReq) {
+    private UserCertifyInfoEntity buildModifyCertifyEntity(UserEntity userEntity, UserCertifyInfoEntity entity, ModifyCertifyReq modifyCertifyReq) {
         if(entity == null){
             entity = new UserCertifyInfoEntity();
+            entity.setUserCode(userEntity.getUserCode());
         }
         if(StringUtils.isNotBlank(modifyCertifyReq.getRealName())){
             entity.setRealName(modifyCertifyReq.getRealName());
