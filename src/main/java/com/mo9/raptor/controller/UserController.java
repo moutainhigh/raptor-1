@@ -8,6 +8,7 @@ import com.mo9.raptor.bean.res.AccountBankCardRes;
 import com.mo9.raptor.bean.res.AuditStatusRes;
 import com.mo9.raptor.entity.BankEntity;
 import com.mo9.raptor.entity.UserEntity;
+import com.mo9.raptor.enums.BankAuthStatusEnum;
 import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.redis.RedisParams;
 import com.mo9.raptor.redis.RedisServiceApi;
@@ -21,10 +22,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -133,35 +131,55 @@ public class UserController {
         return response;
     }
 
-
-    @PostMapping(value = "/get_audit_status")
+    /**
+     * 查询审核状态
+     * @param request
+     * @return
+     */
+    @GetMapping(value = "/get_audit_status")
     public BaseResponse getAuditStatus(HttpServletRequest request){
-        BaseResponse response = new BaseResponse();
+        BaseResponse<Map<String, AuditStatusRes>> response = new BaseResponse();
         AuditStatusRes auditStatusRes = new AuditStatusRes();
+        Map<String,AuditStatusRes> map = new HashMap<>(16);
         String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
-        UserEntity userEntity = userService.findByUserCodeAndDeleted(userCode,false);
-        if(userEntity == null ){
-            //用户不存在
-            return response.buildFailureResponse(ResCodeEnum.NOT_WHITE_LIST_USER);
+        try {
+            UserEntity userEntity = userService.findByUserCodeAndDeleted(userCode,false);
+            if(userEntity == null ){
+                //用户不存在
+                return response.buildFailureResponse(ResCodeEnum.NOT_WHITE_LIST_USER);
+            }
+            auditStatusRes.setAuditStatus(userEntity.getStatus());
+            auditStatusRes.setCertifyInfo(userEntity.getCertifyInfo());
+            auditStatusRes.setCallHistory(userEntity.getCallHistory());
+            auditStatusRes.setMobileContacts(userEntity.getMobileContacts());
+            AccountBankCardRes accountBankCardRes = null;
+            String bankAuthStatus = userEntity.getBankAuthStatus();
+            //银行验证是否成功，不成功直接返回
+            if (!BankAuthStatusEnum.SUCCESS.name().equals(bankAuthStatus)){
+                auditStatusRes.setAccountBankCardVerified(false);
+                map.put("entity",auditStatusRes);
+                response.setData(map);
+                return response.buildSuccessResponse(map);
+            }
+            //查询用户银行卡信息
+            BankEntity bankEntity = bankService.findByUserCodeLastOne(userEntity.getUserCode());
+            if (bankEntity == null){
+                auditStatusRes.setAccountBankCardVerified(false);
+            }else {
+                auditStatusRes.setAccountBankCardVerified(true);
+                accountBankCardRes = new AccountBankCardRes();
+                accountBankCardRes.setBankName(bankEntity.getBankName());
+                accountBankCardRes.setCard(bankEntity.getBankNo());
+                accountBankCardRes.setCardName(bankEntity.getUserName());
+                accountBankCardRes.setCardMobile(bankEntity.getMobile());
+            }
+            auditStatusRes.setAccountBankCard(accountBankCardRes);
+        } catch (Exception e) {
+            logger.error("查询用户审核状态----->>>>发生异常{}",e);
+            return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
         }
-        auditStatusRes.setAuditStatus(userEntity.getAuditStatus());
-        auditStatusRes.setCertifyInfo(userEntity.getCertifyInfo());
-        auditStatusRes.setCallHistory(userEntity.getCallHistory());
-        AccountBankCardRes accountBankCardRes = null;
-        BankEntity bankEntity = bankService.findByUserCodeLastOne(userEntity.getUserCode());
-        auditStatusRes.setAccountBankCard(accountBankCardRes);
-        if (bankEntity == null){
-            auditStatusRes.setAccountBankCardVerified(false);
-        }else {
-            auditStatusRes.setAccountBankCardVerified(true);
-            accountBankCardRes = new AccountBankCardRes();
-            accountBankCardRes.setBankName(bankEntity.getBankName());
-            accountBankCardRes.setCard(bankEntity.getBankNo());
-            accountBankCardRes.setCardName(bankEntity.getUserName());
-            accountBankCardRes.setCardMobile(bankEntity.getMobile());
-        }
-        response.setData(auditStatusRes);
-        return response.buildSuccessResponse(response);
+        map.put("entity",auditStatusRes);
+        return response.buildSuccessResponse(map);
     }
 
 }
