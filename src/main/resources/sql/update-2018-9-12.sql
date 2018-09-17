@@ -1,12 +1,4 @@
-# ALTER TABLE `t_bank`
-# ADD COLUMN `user_code` VARCHAR(64) NOT NULL COMMENT '用户编号' AFTER `id`;
-#
-# ALTER TABLE `t_raptor_loan_order`
-#   ADD COLUMN `postpone_unit_charge` DECIMAL(10,2) NOT NULL COMMENT '延期单位服务费' AFTER `charge_value`;
-#
-#
-# ALTER TABLE `t_raptor_loan_order`
-#   ADD COLUMN `repayment_date` BIGINT NOT NULL COMMENT '还款日' AFTER `lend_time`;
+
 
 /**************************放款订单表*************************/
 DROP TABLE IF EXISTS `t_raptor_lend_order`;
