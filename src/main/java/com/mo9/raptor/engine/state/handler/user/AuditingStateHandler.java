@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 /**
  * Created by gqwu on 2018/4/4.
  */
-@Component
+@Component("userAuditingState")
 @StateHandler(name = StatusEnum.AUDITING)
 class AuditingStateHandler implements IStateHandler<UserEntity> {
 

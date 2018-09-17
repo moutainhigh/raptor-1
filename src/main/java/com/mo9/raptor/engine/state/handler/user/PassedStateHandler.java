@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 /**
  * Created by gqwu on 2018/4/4.
  */
-@Component
+@Component("userPassedState")
 @StateHandler(name = StatusEnum.PASSED)
 class PassedStateHandler implements IStateHandler<UserEntity> {
 

@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 /**
  * Created by gqwu on 2018/4/4.
  */
-@Component
+@Component("userRejectedState")
 @StateHandler(name = StatusEnum.REJECTED)
 class RejectedStateHandler implements IStateHandler<UserEntity> {
 
