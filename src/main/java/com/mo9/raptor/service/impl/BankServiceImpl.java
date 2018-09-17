@@ -27,8 +27,8 @@ public class BankServiceImpl implements BankService {
     private GatewayUtils gatewayUtils ;
 
     @Override
-    public BankEntity findByMobileLastOne(String mobile , BankEntity.Type type) {
-        List<BankEntity> bankEntityList = bankRepository.findByMobileAndType(mobile , type);
+    public BankEntity findByMobileLastOne(String mobile) {
+        List<BankEntity> bankEntityList = bankRepository.findByMobile(mobile);
         if(bankEntityList != null && bankEntityList.size() > 0){
             return bankEntityList.get(0);
         }
@@ -36,13 +36,13 @@ public class BankServiceImpl implements BankService {
     }
 
     @Override
-    public BankEntity findByUserCodeLastOne(String userCode, BankEntity.Type type) {
-        return bankRepository.findByUserCodeLastOne(userCode, type.name());
+    public BankEntity findByUserCodeLastOne(String userCode) {
+        return bankRepository.findByUserCodeLastOne(userCode);
     }
 
     @Override
-    public BankEntity findByBankNoByLoan(String bankNo) {
-        return bankRepository.findByBankNoByLoan(bankNo) ;
+    public BankEntity findByBankNo(String bankNo) {
+        return bankRepository.findByBankNo(bankNo) ;
     }
 
     /**
@@ -54,8 +54,8 @@ public class BankServiceImpl implements BankService {
      * @return
      */
     @Override
-    public ResCodeEnum verify(String bankNo , String cardId , String userName , String mobile, String userCode){
-        BankEntity bankEntity = this.findByBankNoByLoan(bankNo) ;
+    public ResCodeEnum verify(String bankNo , String cardId , String userName , String mobile, String userCode, String bankName){
+        BankEntity bankEntity = this.findByBankNo(bankNo) ;
         if(bankEntity != null){
             //判断本地数据四要素正确情况
             if(!(cardId.equals(bankEntity.getCardId()) && userName.equals(bankEntity.getUserName()) && mobile.equals(bankEntity.getMobile()))){
@@ -69,26 +69,21 @@ public class BankServiceImpl implements BankService {
         }
         ResCodeEnum resCodeEnum = gatewayUtils.verifyBank( bankNo ,  cardId ,  userName ,  mobile) ;
         if(ResCodeEnum.SUCCESS == resCodeEnum){
-            this.create( bankNo , cardId , userName , mobile , BankEntity.Type.LOAN , null , null , userCode) ;
+            this.create( bankNo , cardId , userName , mobile , bankName , userCode) ;
         }
         return resCodeEnum ;
     }
 
     @Override
-    public void createOrUpdateBank(String bankNo, String cardId, String userName, String mobile, String channel, String bankName , BankEntity.Type type, String userCode) {
-        BankEntity bankEntity = this.findByBankNoAndTypeAndChannel(bankNo , type , channel) ;
+    public void createOrUpdateBank(String bankNo, String cardId, String userName, String mobile, String channel, String bankName , String userCode) {
+        BankEntity bankEntity = this.findByBankNo(bankNo) ;
         if(bankEntity == null){
-            this.create( bankNo , cardId , userName , mobile , BankEntity.Type.PAYOFF , channel , bankName,userCode) ;
+            this.create( bankNo , cardId , userName , mobile , bankName,userCode) ;
         }else{
             //更新update时间
             bankEntity.setUpdateTime(System.currentTimeMillis());
             bankRepository.save(bankEntity) ;
         }
-    }
-
-    @Override
-    public BankEntity findByBankNoAndTypeAndChannel(String bankNo, BankEntity.Type type, String channel) {
-        return bankRepository.findByBankNoAndTypeAndChannel(bankNo , type , channel);
     }
 
     /**
@@ -97,11 +92,10 @@ public class BankServiceImpl implements BankService {
      * @param cardId
      * @param userName
      * @param mobile
-     * @param type
-     * @param channel
      * @param bankName
+     * @param userCode
      */
-    private void create(String bankNo , String cardId , String userName , String mobile , BankEntity.Type type , String channel , String bankName , String userCode){
+    private void create(String bankNo , String cardId , String userName , String mobile , String bankName , String userCode){
         //验证成功
         Long time = System.currentTimeMillis() ;
         BankEntity bankEntity = new BankEntity();
@@ -109,9 +103,7 @@ public class BankServiceImpl implements BankService {
         bankEntity.setCardId(cardId);
         bankEntity.setMobile(mobile);
         bankEntity.setUserName(userName);
-        bankEntity.setType(type);
         bankEntity.setCreateTime(time) ;
-        bankEntity.setChannel(channel);
         bankEntity.setBankName(bankName);
         bankEntity.setUpdateTime(time) ;
         bankEntity.setUserCode(userCode);

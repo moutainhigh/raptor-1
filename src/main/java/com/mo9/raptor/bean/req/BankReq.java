@@ -7,24 +7,15 @@ import javax.validation.constraints.NotBlank;
  * @author xtgu
  */
 public class BankReq {
-    @NotBlank(message = "持卡人姓名不能为空")
-    private String cardName;
     /**
      * 银行名称
      */
+    @NotBlank(message = "银行名称不能为空")
     private String bankName;
     @NotBlank(message = "预留手机号不能为空")
     private String cardMobile;
     @NotBlank(message = "卡号不能为空")
     private String card;
-
-    public String getCardName() {
-        return cardName;
-    }
-
-    public void setCardName(String cardName) {
-        this.cardName = cardName;
-    }
 
     public String getBankName() {
         return bankName;
