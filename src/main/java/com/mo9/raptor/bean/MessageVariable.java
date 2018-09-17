@@ -9,7 +9,7 @@ public interface MessageVariable {
     /**
      * 产品名称
      */
-    String  RAPTOR = "超级飞鼠";
+    String RAPTOR_SIGN_NAME = "天天有钱";
     /**
      * 系统码
      */
@@ -25,7 +25,7 @@ public interface MessageVariable {
     /**
      * 验证码
      */
-    String CAPTCHA = "captcha";
+    String CAPTCHA = "pinCode";
     /**
      * 币种
      */
