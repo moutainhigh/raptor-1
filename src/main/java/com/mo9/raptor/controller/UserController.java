@@ -4,6 +4,9 @@ import com.mo9.raptor.bean.BaseResponse;
 import com.mo9.raptor.bean.ReqHeaderParams;
 import com.mo9.raptor.bean.req.BankReq;
 import com.mo9.raptor.bean.req.LoginByCodeReq;
+import com.mo9.raptor.bean.res.AccountBankCardRes;
+import com.mo9.raptor.bean.res.AuditStatusRes;
+import com.mo9.raptor.entity.BankEntity;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.redis.RedisParams;
@@ -108,7 +111,7 @@ public class UserController {
     public BaseResponse modifyBankCardInfo(@RequestBody @Validated BankReq bankReq, HttpServletRequest request) {
         BaseResponse response = new BaseResponse();
         String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
-        UserEntity userEntity = userService.findByUserCode(userCode);
+        UserEntity userEntity = userService.findByUserCodeAndDeleted(userCode,false);
         if(userEntity == null ){
             //用户不存在
             response.setCode(ResCodeEnum.NOT_WHITE_LIST_USER.getCode());
@@ -128,6 +131,37 @@ public class UserController {
             return response;
         }
         return response;
+    }
+
+
+    @PostMapping(value = "/get_audit_status")
+    public BaseResponse getAuditStatus(HttpServletRequest request){
+        BaseResponse response = new BaseResponse();
+        AuditStatusRes auditStatusRes = new AuditStatusRes();
+        String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
+        UserEntity userEntity = userService.findByUserCodeAndDeleted(userCode,false);
+        if(userEntity == null ){
+            //用户不存在
+            return response.buildFailureResponse(ResCodeEnum.NOT_WHITE_LIST_USER);
+        }
+        auditStatusRes.setAuditStatus(userEntity.getAuditStatus());
+        auditStatusRes.setCertifyInfo(userEntity.getCertifyInfo());
+        auditStatusRes.setCallHistory(userEntity.getCallHistory());
+        AccountBankCardRes accountBankCardRes = null;
+        BankEntity bankEntity = bankService.findByUserCodeLastOne(userEntity.getUserCode());
+        auditStatusRes.setAccountBankCard(accountBankCardRes);
+        if (bankEntity == null){
+            auditStatusRes.setAccountBankCardVerified(false);
+        }else {
+            auditStatusRes.setAccountBankCardVerified(true);
+            accountBankCardRes = new AccountBankCardRes();
+            accountBankCardRes.setBankName(bankEntity.getBankName());
+            accountBankCardRes.setCard(bankEntity.getBankNo());
+            accountBankCardRes.setCardName(bankEntity.getUserName());
+            accountBankCardRes.setCardMobile(bankEntity.getMobile());
+        }
+        response.setData(auditStatusRes);
+        return response.buildSuccessResponse(response);
     }
 
 }
