@@ -42,4 +42,18 @@ public interface UserService {
      * @return
      */
     UserEntity findByUserCodeAndStatus(String userCode, StatusEnum status);
+
+    /**
+     * 修改通讯录认证状态
+     * @param userEntity
+     * @param b
+     */
+    void updateCallHistory(UserEntity userEntity, boolean b);
+
+    /**
+     * 修改通讯录认证状态
+     * @param userEntity
+     * @param b
+     */
+    void updateCertifyInfo(UserEntity userEntity, boolean b);
 }

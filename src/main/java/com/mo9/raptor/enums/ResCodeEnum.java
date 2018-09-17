@@ -34,7 +34,7 @@ public enum ResCodeEnum {
 
     // xx=40 用户相关
     USER_CARD_ID_NOT_EXIST(11154000 , "用户身份证号不存在" , "用户身份证号不存在"),
-    USER__NOT_EXIST(11154001 , "用户不存在" , "用户不存在"),
+    USER_NOT_EXIST(11154001 , "用户不存在" , "用户不存在"),
 
     /**
      * xx=50, 还款
@@ -50,6 +50,10 @@ public enum ResCodeEnum {
     ONLY_ONE_ORDER(11156000, "不可同时借多笔订单", "不可同时借多笔订单"),
     ERROR_LOAN_PARAMS(11156001, "下单参数不正确", "下单参数不正确"),
 
+    /**
+     * xx=70,文件
+     */
+    FILE_SIZE_TOO_MAX(11157000, "文件超过大小限制", "文件超过大小限制"),
 
 
     ;
