@@ -52,7 +52,7 @@ public class LoanExecuteAction implements IAction {
         lendOrder.setApplyUniqueCode(String.valueOf(idWorker.nextId()));
         lendOrder.setApplyNumber(order.getLoanNumber().subtract(order.getChargeValue()));
         lendOrder.setApplyTime(System.currentTimeMillis());
-        BankEntity bankEntity = bankService.findByUserCodeLastOne(order.getOwnerId(), BankEntity.Type.LOAN);
+        BankEntity bankEntity = bankService.findByUserCodeLastOne(order.getOwnerId());
         lendOrder.setUserName(bankEntity.getUserName());
         lendOrder.setIdCard(bankEntity.getCardId());
         lendOrder.setBankName(bankEntity.getBankName());

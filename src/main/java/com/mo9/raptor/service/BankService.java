@@ -12,26 +12,24 @@ public interface BankService {
     /**
      * 根据手机号 和 类型查询最后一次银行卡号
      * @param mobile
-     * @param type
      * @return
      */
-    BankEntity findByMobileLastOne(String mobile, BankEntity.Type type);
+    BankEntity findByMobileLastOne(String mobile);
 
 
     /**
      * 根据用户 和 类型查询最后一次银行卡号
      * @param userCode
-     * @param type
      * @return
      */
-    BankEntity findByUserCodeLastOne(String userCode, BankEntity.Type type);
+    BankEntity findByUserCodeLastOne(String userCode);
 
     /**
      * 根据银行卡号查询
      * @param bankNo
      * @return
      */
-    BankEntity findByBankNoByLoan(String bankNo);
+    BankEntity findByBankNo(String bankNo);
 
     /**
      * 验证四要素
@@ -40,9 +38,10 @@ public interface BankService {
      * @param userName
      * @param mobile
      * @param userCode
+     * @param bankName
      * @return
      */
-    public ResCodeEnum verify(String bankNo , String cardId , String userName , String mobile , String userCode);
+    public ResCodeEnum verify(String bankNo , String cardId , String userName , String mobile , String userCode , String bankName);
 
     /**
      * 创建或者修改银行卡信息
@@ -53,16 +52,7 @@ public interface BankService {
      * @param channel
      * @param bankName
      * @param userName
-     * @param type
      */
-    public void createOrUpdateBank(String bankNo , String cardId , String userName , String mobile, String channel , String bankName, BankEntity.Type type , String userCode);
+    public void createOrUpdateBank(String bankNo , String cardId , String userName , String mobile, String channel , String bankName , String userCode);
 
-    /**
-     * 根据银行卡 , 类型 , 渠道查询
-     * @param bankNo
-     * @param type
-     * @param channel
-     * @return
-     */
-    BankEntity findByBankNoAndTypeAndChannel(String bankNo, BankEntity.Type type, String channel);
 }
