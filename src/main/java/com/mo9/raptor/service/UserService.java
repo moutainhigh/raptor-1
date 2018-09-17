@@ -24,4 +24,6 @@ public interface UserService {
      * @return
      */
     UserEntity findByMobile(String mobile);
+
+    UserEntity save (UserEntity userEntity);
 }

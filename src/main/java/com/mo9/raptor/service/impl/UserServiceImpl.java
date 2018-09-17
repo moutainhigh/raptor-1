@@ -31,4 +31,9 @@ public class UserServiceImpl implements UserService {
     public UserEntity findByMobile(String mobile) {
         return userRepository.findByMobile(mobile);
     }
+
+    @Override
+    public UserEntity save(UserEntity userEntity) {
+        return userRepository.save(userEntity);
+    }
 }
