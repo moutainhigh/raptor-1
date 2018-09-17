@@ -88,6 +88,12 @@ public class LoanOrderEntity extends AbstractOrderEntity {
     @Column(name = "repayment_date")
     private Long repaymentDate;
 
+    @Column(name = "client_id")
+    private String clientId;
+
+    @Column(name = "client_version")
+    private String clientVersion;
+
     public BigDecimal getLoanNumber() {
         return loanNumber;
     }
@@ -214,5 +220,21 @@ public class LoanOrderEntity extends AbstractOrderEntity {
 
     public void setPostponeUnitCharge(BigDecimal postponeUnitCharge) {
         this.postponeUnitCharge = postponeUnitCharge;
+    }
+
+    public String getClientId() {
+        return clientId;
+    }
+
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
+    }
+
+    public String getClientVersion() {
+        return clientVersion;
+    }
+
+    public void setClientVersion(String clientVersion) {
+        this.clientVersion = clientVersion;
     }
 }

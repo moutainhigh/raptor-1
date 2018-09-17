@@ -75,6 +75,8 @@ public class LoanOrderController {
     public BaseResponse<JSONObject> add(@Valid @RequestBody OrderAddReq req, HttpServletRequest request) {
         BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
         String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
+        String clientId = request.getHeader(ReqHeaderParams.CLIENT_ID);
+        String clientVersion = request.getHeader(ReqHeaderParams.CLIENT_VERSION);
 
         UserEntity user = userService.findByUserCodeAndStatus(userCode, StatusEnum.PASSED);
         if (user == null) {
@@ -104,6 +106,8 @@ public class LoanOrderController {
         loanOrder.setInterestValue(product.getInterest());
         loanOrder.setPenaltyValue(product.getPenaltyForDay());
         loanOrder.setChargeValue(principal.subtract(product.getActuallyGetAmount()));
+        loanOrder.setClientId(clientId);
+        loanOrder.setClientVersion(clientVersion);
 
         long now = System.currentTimeMillis();
         Long today = TimeUtils.extractDateTime(now);

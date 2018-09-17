@@ -80,6 +80,8 @@ public class PayOrderController {
     public BaseResponse<JSONObject> repay(@Valid @RequestBody CashRepayReq req, HttpServletRequest request) {
         BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
         String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
+        String clientId = request.getHeader(ReqHeaderParams.CLIENT_ID);
+        String clientVersion = request.getHeader(ReqHeaderParams.CLIENT_VERSION);
         // 用户没删就行, 拉黑也能还
         UserEntity user = userService.findByUserCodeAndDeleted(userCode, false);
         if (user == null) {
@@ -128,6 +130,8 @@ public class PayOrderController {
         payOrderLog.setChannel(channelEntity.getChannel());
         payOrderLog.setRepayAmount(payOrder.getApplyNumber());
         payOrderLog.setUserCode(userCode);
+        payOrderLog.setClientId(clientId);
+        payOrderLog.setClientVersion(clientVersion);
         payOrderLog.create();
         payOrderService.savePayOrderAndLog(payOrder, payOrderLog);
 
@@ -146,7 +150,8 @@ public class PayOrderController {
     public BaseResponse<JSONObject> renewal(@Valid @RequestBody CashRenewalReq req, HttpServletRequest request) {
         BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
         String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
-
+        String clientId = request.getHeader(ReqHeaderParams.CLIENT_ID);
+        String clientVersion = request.getHeader(ReqHeaderParams.CLIENT_VERSION);
         // 用户没删就行, 拉黑也能还
         UserEntity user = userService.findByUserCodeAndDeleted(userCode, false);
         if (user == null) {
@@ -209,6 +214,8 @@ public class PayOrderController {
         payOrderLog.setChannel(channelEntity.getChannel());
         payOrderLog.setRepayAmount(payOrder.getApplyNumber());
         payOrderLog.setUserCode(userCode);
+        payOrderLog.setClientId(clientId);
+        payOrderLog.setClientVersion(clientVersion);
         payOrderLog.create();
         payOrderService.savePayOrderAndLog(payOrder, payOrderLog);
 
