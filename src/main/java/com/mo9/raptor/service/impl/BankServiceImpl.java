@@ -2,6 +2,7 @@ package com.mo9.raptor.service.impl;
 
 import com.mo9.raptor.entity.BankEntity;
 import com.mo9.raptor.entity.UserEntity;
+import com.mo9.raptor.enums.BankAuthStatusEnum;
 import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.repository.BankRepository;
 import com.mo9.raptor.service.BankService;
@@ -70,7 +71,7 @@ public class BankServiceImpl implements BankService {
         ResCodeEnum resCodeEnum = gatewayUtils.verifyBank( bankNo ,  cardId ,  userName ,  mobile) ;
         if(ResCodeEnum.SUCCESS == resCodeEnum){
             this.create( bankNo , cardId , userName , mobile , bankName , userCode) ;
-            userEntity.setStatus("SUCCESS");
+            userEntity.setBankAuthStatus(BankAuthStatusEnum.SUCCESS.name());
             userService.save(userEntity);
         }
         return resCodeEnum ;
