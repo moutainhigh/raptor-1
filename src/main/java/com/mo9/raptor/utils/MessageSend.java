@@ -8,6 +8,7 @@ import com.mo9.raptor.enums.AreaCodeEnum;
 import com.mo9.raptor.enums.MessageNotifyEventEnum;
 import com.mo9.raptor.enums.MessageNotifyModelEnum;
 import com.mo9.raptor.enums.MessageNotifyTypeEnum;
+import com.mo9.raptor.repository.MessageNotifyRepository;
 import com.mo9.raptor.utils.httpclient.HttpClientApi;
 import com.mo9.raptor.utils.httpclient.bean.HttpResult;
 import org.slf4j.Logger;
@@ -42,7 +43,8 @@ public class MessageSend {
     @Autowired
     private IDWorker idWorker;
 
-
+    @Autowired
+    private MessageNotifyRepository messageNotifyRepository;
 
     @Value("${suona.send.message.url}")
     private String messageSendUrl;
@@ -97,10 +99,10 @@ public class MessageSend {
         //TODO 短信网关待配置
         MessageNotifyTypeEnum transMode = requestVo.getTransMode();
         if (transMode == MessageNotifyTypeEnum.MAIL) {
-            requestVo.setGatewayCode("LIBRA_MAIL");
+            requestVo.setGatewayCode("DEFAULT_MAIL");
         }
         if (transMode == MessageNotifyTypeEnum.SMS) {
-            requestVo.setGatewayCode("LIBRA_SMS");
+            requestVo.setGatewayCode("CAPTCHA");
         }
         MessageNotifyEntity messageNotifyEntity = new MessageNotifyEntity();
         Boolean sendRes = false;
@@ -131,7 +133,7 @@ public class MessageSend {
         messageNotifyEntity.setCreateTime(time);
         messageNotifyEntity.setUpdateTime(time);
         messageNotifyEntity.setSendTime(time);
-        //messageNotifyRepository.save(messageNotifyEntity);
+        messageNotifyRepository.save(messageNotifyEntity);
         return sendRes;
     }
 

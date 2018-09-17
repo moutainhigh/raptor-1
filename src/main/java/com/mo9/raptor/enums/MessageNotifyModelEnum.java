@@ -7,7 +7,7 @@ package com.mo9.raptor.enums;
  */
 public enum MessageNotifyModelEnum {
 
-    GENERAL_CAPTCHA("测试手机验证码枚举"),
+    GENERAL_CAPTCHA("通用验证码"),
 
     Raptor_sms_loginCaptcha_CN("登录短信验证码");
 
