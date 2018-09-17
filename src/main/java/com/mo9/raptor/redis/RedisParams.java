@@ -41,6 +41,14 @@ public class RedisParams {
      * 1天,xmemcached对应的是秒
      */
     public static final long EXPIRE_1D = 60 * 60 *24;
+    /**
+     * 15天,xmemcached对应的是秒
+     */
+    public static final long EXPIRE_15D = 60 * 60 *24  * 15;
+    /**
+     * 14天,xmemcached对应的是秒
+     */
+    public static final long EXPIRE_14D = 60 * 60 *24  * 14;
 
     /**
      * ip限制
