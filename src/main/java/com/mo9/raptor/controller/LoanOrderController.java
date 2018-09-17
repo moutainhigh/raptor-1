@@ -20,6 +20,10 @@ import com.mo9.raptor.engine.utils.TimeUtils;
 import com.mo9.raptor.entity.LoanProductEntity;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.ResCodeEnum;
+import com.mo9.raptor.lock.Lock;
+import com.mo9.raptor.lock.RedisService;
+import com.mo9.raptor.redis.RedisLockKeySuffix;
+import com.mo9.raptor.redis.RedisServiceApi;
 import com.mo9.raptor.service.LoanProductService;
 import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.IDWorker;
@@ -29,9 +33,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.math.BigDecimal;
+import java.util.concurrent.TimeUnit;
+
 /**
  * 还款
  * Created by xzhang on 2018/9/13.
@@ -56,6 +63,9 @@ public class LoanOrderController {
 
     @Autowired
     private LoanProductService productService;
+
+    @Autowired
+    private RedisService redisService;
 
     @Autowired
     private IEventLauncher loanEventLauncher;
@@ -94,36 +104,45 @@ public class LoanOrderController {
             return response.buildFailureResponse(ResCodeEnum.ERROR_LOAN_PARAMS);
         }
 
-        LoanOrderEntity loanOrder = new LoanOrderEntity();
         String orderId = sockpuppet + "-" + idWorker.nextId();
-        loanOrder.setOrderId(orderId);
-        loanOrder.setOwnerId(userCode);
-        loanOrder.setType("RAPTOR");
-        loanOrder.setLoanNumber(principal);
-        loanOrder.setPostponeUnitCharge(product.getRenewalBaseAmount());
-        loanOrder.setLoanTerm(loanTerm);
-        loanOrder.setStatus(StatusEnum.PENDING.name());
-        loanOrder.setInterestValue(product.getInterest());
-        loanOrder.setPenaltyValue(product.getPenaltyForDay());
-        loanOrder.setChargeValue(principal.subtract(product.getActuallyGetAmount()));
-        loanOrder.setClientId(clientId);
-        loanOrder.setClientVersion(clientVersion);
-
-        long now = System.currentTimeMillis();
-        Long today = TimeUtils.extractDateTime(now);
-        loanOrder.setRepaymentDate(today + loanTerm * EngineStaticValue.DAY_MILLIS);
-        loanOrder.setCreateTime(now);
-        loanOrder.setUpdateTime(now);
-        /** 创建借款订单 */
-        loanOrderService.save(loanOrder);
+        // 锁定用户
+        Lock lock = new Lock(userCode + RedisLockKeySuffix.PRE_LOAN_ORDER_KEY, idWorker.nextId()+"");
         try {
-            AuditLaunchEvent event = new AuditLaunchEvent(userCode, loanOrder.getOrderId());
-            loanEventLauncher.launch(event);
+            if (redisService.lock(lock.getName(), lock.getValue(), 5000, TimeUnit.MILLISECONDS)) {
+                LoanOrderEntity loanOrder = new LoanOrderEntity();
+                loanOrder.setOrderId(orderId);
+                loanOrder.setOwnerId(userCode);
+                loanOrder.setType("RAPTOR");
+                loanOrder.setLoanNumber(principal);
+                loanOrder.setPostponeUnitCharge(product.getRenewalBaseAmount());
+                loanOrder.setLoanTerm(loanTerm);
+                loanOrder.setStatus(StatusEnum.PENDING.name());
+                loanOrder.setInterestValue(product.getInterest());
+                loanOrder.setPenaltyValue(product.getPenaltyForDay());
+                loanOrder.setChargeValue(principal.subtract(product.getActuallyGetAmount()));
+                loanOrder.setClientId(clientId);
+                loanOrder.setClientVersion(clientVersion);
+
+                long now = System.currentTimeMillis();
+                Long today = TimeUtils.extractDateTime(now);
+                loanOrder.setRepaymentDate(today + loanTerm * EngineStaticValue.DAY_MILLIS);
+                loanOrder.setCreateTime(now);
+                loanOrder.setUpdateTime(now);
+                /** 创建借款订单 */
+                loanOrderService.save(loanOrder);
+                AuditLaunchEvent event = new AuditLaunchEvent(userCode, loanOrder.getOrderId());
+                loanEventLauncher.launch(event);
+                return response;
+            } else {
+                logger.warn("用户[{}]预借款[{}], 竞争锁失败", userCode);
+                return response.buildFailureResponse(ResCodeEnum.GET_LOCK_FAILED);
+            }
         } catch (Exception e) {
             logger.error("借款订单[{}]审核出错", orderId, e);
             return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
+        } finally {
+            redisService.unlock(lock.getName());
         }
-        return response;
     }
 
     /**
