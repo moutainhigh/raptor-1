@@ -28,6 +28,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public UserEntity findByMobileAndDeleted(String mobile, boolean isDelete) {
+        return userRepository.findByMobileAndDeleted(mobile,isDelete);
+    }
+
+    @Override
     public UserEntity findByMobile(String mobile) {
         return userRepository.findByMobile(mobile);
     }

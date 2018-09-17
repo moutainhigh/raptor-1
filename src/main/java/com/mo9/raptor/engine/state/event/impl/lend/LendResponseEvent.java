@@ -24,7 +24,9 @@ public class LendResponseEvent extends AbstractStateEvent implements IStateEvent
 
     private final String explanation;
 
-    public LendResponseEvent(String entityUniqueId, boolean succeeded, BigDecimal actualLent, String lendSignature, String channelOrderId, String channelResponse, long successTime, String explanation) {
+    private final String channel;
+
+    public LendResponseEvent(String entityUniqueId, boolean succeeded, BigDecimal actualLent, String lendSignature, String channelOrderId, String channelResponse, long successTime, String explanation, String channel) {
         super(entityUniqueId);
         this.succeeded = succeeded;
         this.actualLent = actualLent;
@@ -33,6 +35,7 @@ public class LendResponseEvent extends AbstractStateEvent implements IStateEvent
         this.channelResponse = channelResponse;
         this.successTime = successTime;
         this.explanation = explanation;
+        this.channel = channel;
     }
 
     /**
@@ -41,7 +44,7 @@ public class LendResponseEvent extends AbstractStateEvent implements IStateEvent
      * @param succeeded
      * @param explanation
      */
-    public LendResponseEvent(String entityUniqueId, boolean succeeded, String explanation) {
+    public LendResponseEvent(String entityUniqueId, boolean succeeded, String explanation, String channel) {
         super(entityUniqueId);
         this.succeeded = succeeded;
         this.explanation = explanation;
@@ -50,6 +53,7 @@ public class LendResponseEvent extends AbstractStateEvent implements IStateEvent
         this.channelOrderId = null;
         this.channelResponse = null;
         this.successTime = -1L;
+        this.channel = channel;
     }
 
     public boolean isSucceeded() {
@@ -78,5 +82,9 @@ public class LendResponseEvent extends AbstractStateEvent implements IStateEvent
 
     public String getChannelResponse() {
         return channelResponse;
+    }
+
+    public String getChannel() {
+        return channel;
     }
 }
