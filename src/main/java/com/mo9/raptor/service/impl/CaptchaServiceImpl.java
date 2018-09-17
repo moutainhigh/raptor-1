@@ -22,6 +22,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import static com.mo9.raptor.bean.MessageVariable.CAPTCHA;
+import static com.mo9.raptor.bean.MessageVariable.RAPTOR_SIGN_NAME;
+import static com.mo9.raptor.bean.MessageVariable.SIGN;
 
 
 /**
@@ -99,6 +101,7 @@ public class CaptchaServiceImpl implements CaptchaService {
             redisServiceApi.set(RedisParams.LIMIT_CAPTCHA_KEY + mobile, mobile, RedisParams.EXPIRE_30S, redisTemplate);
             JSONObject jsonObject = new JSONObject();
             jsonObject.put(CAPTCHA, pinCode);
+            jsonObject.put(SIGN, RAPTOR_SIGN_NAME);
             MessageNotifyEventEnum messageNotifyEvent = getMessageNotifyEventEnum(businessCode);
             messageSend.sendMobileSms(mobile, messageNotifyEvent, AreaCodeEnum.CN, jsonObject);
 
@@ -119,6 +122,14 @@ public class CaptchaServiceImpl implements CaptchaService {
         if (StringUtils.isBlank(redisCaptcha)) {
             return ResCodeEnum.CAPTCHA_IS_INVALID;
         }
+        //TODO 验证码0000 则验证通过，上线须删除
+        if ("0000".equals(captcha)){
+            if(isClearCaptcha){
+                redisServiceApi.remove(key, redisTemplate);
+            }
+            return ResCodeEnum.SUCCESS;
+        }
+
         if (!redisCaptcha.equals(captcha)) {
             return ResCodeEnum.CAPTCHA_CHECK_ERROR;
         }

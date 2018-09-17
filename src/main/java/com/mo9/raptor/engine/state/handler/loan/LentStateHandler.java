@@ -2,9 +2,11 @@ package com.mo9.raptor.engine.state.handler.loan;
 
 import com.mo9.raptor.engine.calculator.ILoanCalculator;
 import com.mo9.raptor.engine.calculator.LoanCalculatorFactory;
+import com.mo9.raptor.engine.entity.PayOrderDetailEntity;
 import com.mo9.raptor.engine.entity.PayOrderEntity;
 import com.mo9.raptor.engine.exception.MergeException;
 import com.mo9.raptor.engine.exception.UnSupportTimeDiffException;
+import com.mo9.raptor.engine.service.IPayOrderDetailService;
 import com.mo9.raptor.engine.service.IPayOrderService;
 import com.mo9.raptor.engine.simulator.ClockFactory;
 import com.mo9.raptor.engine.state.action.IActionExecutor;
@@ -18,12 +20,18 @@ import com.mo9.raptor.engine.state.handler.IStateHandler;
 import com.mo9.raptor.engine.state.handler.StateHandler;
 import com.mo9.raptor.engine.state.launcher.IEventLauncher;
 import com.mo9.raptor.engine.structure.Scheme;
+import com.mo9.raptor.engine.structure.field.Field;
+import com.mo9.raptor.engine.structure.field.FieldTypeEnum;
 import com.mo9.raptor.engine.structure.item.Item;
 import com.mo9.raptor.exception.LoanEntryException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by gqwu on 2018/4/4.
@@ -33,13 +41,16 @@ import java.math.BigDecimal;
 public class LentStateHandler implements IStateHandler<LoanOrderEntity> {
 
     @Autowired
-    LoanCalculatorFactory loanCalculatorFactory;
+    private LoanCalculatorFactory loanCalculatorFactory;
 
     @Autowired
-    IEventLauncher payEventLauncher;
+    private IEventLauncher payEventLauncher;
 
     @Autowired
     private IPayOrderService payOrderService;
+
+    @Autowired
+    private IPayOrderDetailService payOrderDetailService;
 
     @Override
     public LoanOrderEntity handle (LoanOrderEntity loanOrder, IEvent event, IActionExecutor actionExecutor)
@@ -54,6 +65,29 @@ public class LentStateHandler implements IStateHandler<LoanOrderEntity> {
             ILoanCalculator loanCalculator = loanCalculatorFactory.load(loanOrder);
             Item realItem = loanCalculator.realItem(System.currentTimeMillis(), loanOrder);
             loanOrder = loanCalculator.itemEntry(loanOrder, payType, payOrderEntity.getPostponeDays(), realItem, entryItem);
+
+            // 这里啥都有, 就在这儿创建明细吧
+            List<PayOrderDetailEntity> entityList = new ArrayList<PayOrderDetailEntity>();
+            for (Map.Entry<FieldTypeEnum, Field> entry : entryItem.entrySet()) {
+                FieldTypeEnum fieldTypeEnum = entry.getKey();
+                BigDecimal fieldNumber = realItem.getFieldNumber(fieldTypeEnum);
+                if (BigDecimal.ZERO.compareTo(fieldNumber) >= 0) {
+                    continue;
+                }
+                PayOrderDetailEntity entity = new PayOrderDetailEntity();
+                entity.setOwnerId(loanOrder.getOwnerId());
+                entity.setLoanOrderId(loanOrder.getOrderId());
+                entity.setPayOrderId(payOrderId);
+                entity.setPayCurrency(payOrderEntity.getPayCurrency());
+                entity.setItemType(entryItem.getItemType().name());
+                entity.setRepayDay(entryItem.getRepayDate());
+                entity.setField(fieldTypeEnum.name());
+                entity.setShouldPay(fieldNumber);
+                entity.setPaid(entryItem.getFieldNumber(fieldTypeEnum));
+                entity.create();
+                entityList.add(entity);
+            }
+            payOrderDetailService.saveItem(entityList);
             BigDecimal paid = entryItem.sum();
             // 还款合法, 则向还款订单发送入账反馈
             actionExecutor.append(new EntryResponseAction(loanEntryEvent.getPayOrderId(), paid, payEventLauncher));

@@ -13,9 +13,9 @@ import java.util.List;
 public class MessageNotifyRequestVo {
 
     /**
-     * 系统名 -- 默认 LIBRA
+     * 系统名 -- 默认 RAPTOR
      */
-    private String systemCode = "LIBRA" ;
+    private String systemCode = "RAPTOR" ;
 
     /**
      * 事件类型 -- 自定义

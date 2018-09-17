@@ -90,6 +90,18 @@ public class UserControllerTest {
     /**
      获取账户审核状态
      */
+    @Test
+    public void auditStatus() {
+        try {
+            String url = "user/get_audit_status";
+            Map<String, String> header = new HashMap<>();
+            header.put("Account-Code","asdfkalsdkff");
+            String resJson = httpClientApi.doGetByHeader(localUrl+url, header);
+            System.err.println(resJson);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
     /**
      修改账户身份认证信息
      */
