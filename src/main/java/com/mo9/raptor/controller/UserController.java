@@ -35,7 +35,7 @@ import java.util.UUID;
  * @date 2018/9/13
  */
 @RestController
-@RequestMapping(value = "/auth")
+@RequestMapping(value = "/user")
 public class UserController {
 
     private static Logger logger = LoggerFactory.getLogger(UserController.class);
@@ -107,7 +107,8 @@ public class UserController {
     @PostMapping(value = "/modify_bank_card_info")
     public BaseResponse modifyBankCardInfo(@RequestBody @Validated BankReq bankReq, HttpServletRequest request) {
         BaseResponse response = new BaseResponse();
-        UserEntity userEntity = userService.findByMobile(bankReq.getCardMobile());
+        String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
+        UserEntity userEntity = userService.findByUserCode(userCode);
         if(userEntity == null ){
             //用户不存在
             response.setCode(ResCodeEnum.NOT_WHITE_LIST_USER.getCode());
@@ -120,7 +121,7 @@ public class UserController {
             response.setMessage(ResCodeEnum.USER_CARD_ID_NOT_EXIST.getMessage());
             return response;
         }
-        ResCodeEnum resCodeEnum = bankService.verify(bankReq.getCard() , userEntity.getIdCard() , bankReq.getCardName() , bankReq.getCardMobile());
+        ResCodeEnum resCodeEnum = bankService.verify(bankReq.getCard() , bankReq.getCardMobile() , bankReq.getBankName() , userEntity);
         if(ResCodeEnum.SUCCESS != resCodeEnum){
             response.setCode(resCodeEnum.getCode());
             response.setMessage(resCodeEnum.getMessage());

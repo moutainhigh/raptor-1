@@ -94,7 +94,7 @@ public class GuTest {
         String cardId = "320684199109100052" ;
         String userName = "顾晓桐" ;
         String mobile = "13916393513" ;
-        bankService.verify( bankNo , cardId , userName , mobile);
+        bankService.verify( bankNo , cardId , userName , mobile , "ddd" , "222");
     }
 
     /**
@@ -129,6 +129,31 @@ public class GuTest {
     @Test
     public void getOrderMsg (){
         gatewayUtils.getOrderMsg("990354214320");
+    }
+
+    /**
+     * mq重发
+     */
+    @Test
+    public void test2(){
+        Map<String, String> payParams = new HashMap<String, String>();
+        payParams.put("mo9mq", "20170918_mo9mq_gu");
+        String sign = Md5Encrypt.sign(payParams, "gateway_mo9mq_repair_task");
+        payParams.put("sign", sign) ;
+        String url = "https://new.mo9.com/gateway/mo9mq/repairMq.mhtml";
+        try {
+            httpClientApi.doGet(url, payParams);
+        } catch (Exception e) {
+        }
+    }
+
+    /**
+     * 查询产品信息
+     */
+    @Test
+    public void orderQuotaList(){
+        //http://localhost/raptorApi/loan_quota/list
+        //http://localhost/raptorApi/system/switch
     }
 
 

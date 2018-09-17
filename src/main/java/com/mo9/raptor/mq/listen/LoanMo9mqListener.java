@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.mo9.mqclient.IMqMsgListener;
 import com.mo9.mqclient.MqAction;
 import com.mo9.mqclient.MqMessage;
+import com.mo9.raptor.engine.state.event.impl.lend.LendResponseEvent;
 import com.mo9.raptor.engine.state.event.impl.pay.DeductResponseEvent;
 import com.mo9.raptor.engine.state.launcher.IEventLauncher;
 import com.mo9.raptor.entity.PayOrderLogEntity;
@@ -35,6 +36,9 @@ public class LoanMo9mqListener implements IMqMsgListener{
 	@Autowired
 	private IEventLauncher payEventLauncher;
 
+	@Autowired
+	private IEventLauncher lendEventLauncher;
+
 	@Override
 	 public MqAction consume(MqMessage msg, Object consumeContext) {
 		String tag = msg.getTag() ;
@@ -57,7 +61,8 @@ public class LoanMo9mqListener implements IMqMsgListener{
 	 */
 	private MqAction payoff(MqMessage msg) {
 		String body = msg.getBody();
-		JSONObject bodyJson = JSON.parseObject(body);
+		JSONObject remark = JSON.parseObject(body);
+		JSONObject bodyJson = remark.getJSONObject("remark");
 		String status = bodyJson.getString("status");
 		if ("success".equals(status)) {
 			String channel = bodyJson.getString("channel");
@@ -99,9 +104,20 @@ public class LoanMo9mqListener implements IMqMsgListener{
 	private MqAction payment(MqMessage msg) {
 
 		String body = msg.getBody();
-		JSONObject bodyJson = JSON.parseObject(body);
+		JSONObject remark = JSON.parseObject(body);
+		JSONObject bodyJson = remark.getJSONObject("remark");
 		String status = bodyJson.getString("status");
-		if ("success".equals(status)) {
+		// 放款结算时间
+		Long lendSettleTime = bodyJson.getLong("lendSettleTime");
+		// 流水号
+		String lendId = bodyJson.getString("lendId");
+		//第三方返回信息
+		String channelResponse = bodyJson.getString("channelResponse");
+		//订单号
+		String orderId = bodyJson.getString("orderId");
+		// 放款渠道
+		String lendChannel = bodyJson.getString("lendChannel");
+		if ("1".equals(status)) {
 			//银行卡卡号
 			String bankCardNo = bodyJson.getString("bankCardNo");
 			//银行预留身份证号
@@ -118,18 +134,8 @@ public class LoanMo9mqListener implements IMqMsgListener{
 			BigDecimal lendAmount = bodyJson.getBigDecimal("lendAmount");
 			//放款实际请求时间
 			Long lendReqpTime = bodyJson.getLong("lendReqpTime");
-			// 放款结算时间
-			Long lendSettleTime = bodyJson.getLong("lendSettleTime");
-			// 放款渠道
-			String lendChannel = bodyJson.getString("lendChannel");
 			//放款渠道类型
 			String lendChannelType = bodyJson.getString("lendChannelType");
-			// 流水号
-			String lendId = bodyJson.getString("lendId");
-			//第三方返回信息
-			String channelResponse = bodyJson.getString("channelResponse");
-			//订单号
-			String orderId = bodyJson.getString("orderId");
 			//事件ID
 			String eventId = bodyJson.getString("eventId");
 			//事件发送时间
@@ -138,6 +144,39 @@ public class LoanMo9mqListener implements IMqMsgListener{
 			String operator = bodyJson.getString("operator");
 			//事件类型
 			String eventType = bodyJson.getString("eventType");
+
+			try {
+				LendResponseEvent lendResponse = new LendResponseEvent(
+                        orderId,
+                        true,
+                        lendAmount,
+                        "放款签名",
+                        lendId,
+                        channelResponse,
+                        lendSettleTime,
+                        "放款成功",
+						lendChannel);
+				lendEventLauncher.launch(lendResponse);
+			} catch (Exception e) {
+				logger.error("订单[{}]放款成功事件报错", orderId, e);
+			}
+		} else {
+			try {
+				logger.error("MQ接收到了订单[{}]放款失败的信息", orderId);
+				LendResponseEvent lendResponse = new LendResponseEvent(
+						orderId,
+						false,
+						null,
+						"放款签名",
+						lendId,
+						channelResponse,
+						lendSettleTime,
+						"放款失败",
+						lendChannel);
+				lendEventLauncher.launch(lendResponse);
+			} catch (Exception e) {
+				logger.error("订单[{}]放款成功事件报错", orderId, e);
+			}
 		}
 		//修改或者存储银行卡信息 TODO
 		return MqAction.CommitMessage;

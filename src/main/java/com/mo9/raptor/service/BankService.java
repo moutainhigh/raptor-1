@@ -1,6 +1,7 @@
 package com.mo9.raptor.service;
 
 import com.mo9.raptor.entity.BankEntity;
+import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.ResCodeEnum;
 
 /**
@@ -12,27 +13,34 @@ public interface BankService {
     /**
      * 根据手机号 和 类型查询最后一次银行卡号
      * @param mobile
-     * @param type
      * @return
      */
-    BankEntity findByMobileLastOne(String mobile, BankEntity.Type type);
+    BankEntity findByMobileLastOne(String mobile);
+
+
+    /**
+     * 根据用户 和 类型查询最后一次银行卡号
+     * @param userCode
+     * @return
+     */
+    BankEntity findByUserCodeLastOne(String userCode);
 
     /**
      * 根据银行卡号查询
      * @param bankNo
      * @return
      */
-    BankEntity findByBankNoByLoan(String bankNo);
+    BankEntity findByBankNo(String bankNo);
 
     /**
      * 验证四要素
      * @param bankNo
-     * @param cardId
-     * @param userName
      * @param mobile
+     * @param bankName
+     * @param userEntity
      * @return
      */
-    public ResCodeEnum verify(String bankNo , String cardId , String userName , String mobile);
+    public ResCodeEnum verify(String bankNo, String mobile, String bankName, UserEntity userEntity);
 
     /**
      * 创建或者修改银行卡信息
@@ -42,16 +50,8 @@ public interface BankService {
      * @param mobile
      * @param channel
      * @param bankName
-     * @param type
+     * @param userName
      */
-    public void createOrUpdateBank(String bankNo , String cardId , String userName , String mobile, String channel , String bankName, BankEntity.Type type);
+    public void createOrUpdateBank(String bankNo , String cardId , String userName , String mobile, String channel , String bankName , String userCode);
 
-    /**
-     * 根据银行卡 , 类型 , 渠道查询
-     * @param bankNo
-     * @param type
-     * @param channel
-     * @return
-     */
-    BankEntity findByBankNoAndTypeAndChannel(String bankNo, BankEntity.Type type, String channel);
 }

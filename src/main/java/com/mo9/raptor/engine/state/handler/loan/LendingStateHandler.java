@@ -35,7 +35,7 @@ public class LendingStateHandler implements IStateHandler<LoanOrderEntity> {
                 loanOrder.setStatus(StatusEnum.LENT.name());
                 loanOrder.setLentNumber(lentNumber);
                 loanOrder.setLendSignature(lendResponseEvent.getLendSignature());
-                loanOrder.setLentTime(lendResponseEvent.getSuccessTime());
+                loanOrder.setLendTime(lendResponseEvent.getSuccessTime());
             } else {
                 loanOrder.setStatus(StatusEnum.FAILED.name());
             }

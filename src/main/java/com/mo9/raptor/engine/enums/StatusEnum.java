@@ -1,5 +1,8 @@
 package com.mo9.raptor.engine.enums;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * Created by gqwu on 2018/3/23.
  */
@@ -34,6 +37,17 @@ public enum StatusEnum {
     EXECUTING("执行中"),
     BUNDLED("已绑定"),
 
+    /**
+     * 放款订单状态
+     */
+    SUCCESS("放款成功"),
+
+    /**
+     * 用户状态
+     */
+    COLLECTING("信息采集中"),
+    BLACK("拉黑"),
+
     ;
 
     private String explanation;
@@ -46,5 +60,15 @@ public enum StatusEnum {
     public String getExplanation() {
         return explanation;
     }
+
+    /**
+     * 放款之前的订单
+     */
+    public static final List<StatusEnum> BEFORE_LENDING = Arrays.asList(PENDING, AUDITING, PASSED, DEDUCTING, EXPIRED, CANCELLED, LENDING, FAILED);
+
+    /**
+     * 订单进行中的状态
+     */
+    public static final List<String> PROCESSING = Arrays.asList(PENDING.name(), PASSED.name(), AUDITING.name(), LENDING.name(), LENT.name());
 
 }

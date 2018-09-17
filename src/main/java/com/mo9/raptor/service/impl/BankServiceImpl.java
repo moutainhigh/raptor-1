@@ -1,9 +1,11 @@
 package com.mo9.raptor.service.impl;
 
 import com.mo9.raptor.entity.BankEntity;
+import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.repository.BankRepository;
 import com.mo9.raptor.service.BankService;
+import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.GatewayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,9 +28,12 @@ public class BankServiceImpl implements BankService {
     @Autowired
     private GatewayUtils gatewayUtils ;
 
+    @Autowired
+    private UserService userService;
+
     @Override
-    public BankEntity findByMobileLastOne(String mobile , BankEntity.Type type) {
-        List<BankEntity> bankEntityList = bankRepository.findByMobileAndType(mobile , type);
+    public BankEntity findByMobileLastOne(String mobile) {
+        List<BankEntity> bankEntityList = bankRepository.findByMobile(mobile);
         if(bankEntityList != null && bankEntityList.size() > 0){
             return bankEntityList.get(0);
         }
@@ -36,21 +41,21 @@ public class BankServiceImpl implements BankService {
     }
 
     @Override
-    public BankEntity findByBankNoByLoan(String bankNo) {
-        return bankRepository.findByBankNoByLoan(bankNo) ;
+    public BankEntity findByUserCodeLastOne(String userCode) {
+        return bankRepository.findByUserCodeLastOne(userCode);
     }
 
-    /**
-     * 易联四要素验证
-     * @param bankNo
-     * @param cardId
-     * @param userName
-     * @param mobile
-     * @return
-     */
     @Override
-    public ResCodeEnum verify(String bankNo , String cardId , String userName , String mobile){
-        BankEntity bankEntity = this.findByBankNoByLoan(bankNo) ;
+    public BankEntity findByBankNo(String bankNo) {
+        return bankRepository.findByBankNo(bankNo) ;
+    }
+
+    @Override
+    public ResCodeEnum verify(String bankNo, String mobile, String bankName, UserEntity userEntity){
+        BankEntity bankEntity = this.findByBankNo(bankNo) ;
+        String cardId = userEntity.getIdCard();
+        String userName = userEntity.getRealName();
+        String userCode = userEntity.getUserCode();
         if(bankEntity != null){
             //判断本地数据四要素正确情况
             if(!(cardId.equals(bankEntity.getCardId()) && userName.equals(bankEntity.getUserName()) && mobile.equals(bankEntity.getMobile()))){
@@ -64,26 +69,23 @@ public class BankServiceImpl implements BankService {
         }
         ResCodeEnum resCodeEnum = gatewayUtils.verifyBank( bankNo ,  cardId ,  userName ,  mobile) ;
         if(ResCodeEnum.SUCCESS == resCodeEnum){
-            this.create( bankNo , cardId , userName , mobile , BankEntity.Type.LOAN , null , null) ;
+            this.create( bankNo , cardId , userName , mobile , bankName , userCode) ;
+            userEntity.setStatus("SUCCESS");
+            userService.save(userEntity);
         }
         return resCodeEnum ;
     }
 
     @Override
-    public void createOrUpdateBank(String bankNo, String cardId, String userName, String mobile, String channel, String bankName , BankEntity.Type type) {
-        BankEntity bankEntity = this.findByBankNoAndTypeAndChannel(bankNo , type , channel) ;
+    public void createOrUpdateBank(String bankNo, String cardId, String userName, String mobile, String channel, String bankName , String userCode) {
+        BankEntity bankEntity = this.findByBankNo(bankNo) ;
         if(bankEntity == null){
-            this.create( bankNo , cardId , userName , mobile , BankEntity.Type.PAYOFF , channel , bankName) ;
+            this.create( bankNo , cardId , userName , mobile , bankName,userCode) ;
         }else{
             //更新update时间
             bankEntity.setUpdateTime(System.currentTimeMillis());
             bankRepository.save(bankEntity) ;
         }
-    }
-
-    @Override
-    public BankEntity findByBankNoAndTypeAndChannel(String bankNo, BankEntity.Type type, String channel) {
-        return bankRepository.findByBankNoAndTypeAndChannel(bankNo , type , channel);
     }
 
     /**
@@ -92,11 +94,10 @@ public class BankServiceImpl implements BankService {
      * @param cardId
      * @param userName
      * @param mobile
-     * @param type
-     * @param channel
      * @param bankName
+     * @param userCode
      */
-    private void create(String bankNo , String cardId , String userName , String mobile , BankEntity.Type type , String channel , String bankName){
+    private void create(String bankNo , String cardId , String userName , String mobile , String bankName , String userCode){
         //验证成功
         Long time = System.currentTimeMillis() ;
         BankEntity bankEntity = new BankEntity();
@@ -104,11 +105,10 @@ public class BankServiceImpl implements BankService {
         bankEntity.setCardId(cardId);
         bankEntity.setMobile(mobile);
         bankEntity.setUserName(userName);
-        bankEntity.setType(type);
         bankEntity.setCreateTime(time) ;
-        bankEntity.setChannel(channel);
         bankEntity.setBankName(bankName);
         bankEntity.setUpdateTime(time) ;
+        bankEntity.setUserCode(userCode);
         //存储四要素信息
         bankRepository.save(bankEntity);
     }

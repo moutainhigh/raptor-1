@@ -1,8 +1,16 @@
 package com.mo9.raptor.engine.state.action.impl.loan;
 
+import com.mo9.raptor.engine.entity.LendOrderEntity;
+import com.mo9.raptor.engine.entity.LoanOrderEntity;
+import com.mo9.raptor.engine.enums.StatusEnum;
+import com.mo9.raptor.engine.service.ILendOrderService;
+import com.mo9.raptor.engine.service.ILoanOrderService;
 import com.mo9.raptor.engine.state.action.IAction;
 import com.mo9.raptor.engine.state.event.impl.lend.LendLaunchEvent;
 import com.mo9.raptor.engine.state.launcher.IEventLauncher;
+import com.mo9.raptor.entity.BankEntity;
+import com.mo9.raptor.service.BankService;
+import com.mo9.raptor.utils.IDWorker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,20 +22,50 @@ public class LoanExecuteAction implements IAction {
 
     private static final Logger logger = LoggerFactory.getLogger(LoanExecuteAction.class);
 
-    String orderId;
+    private String orderId;
 
-    /** 放款订单状态机事件触发器 */
     private IEventLauncher lendEventLauncher;
 
-    public LoanExecuteAction(IEventLauncher lendEventLauncher) {
+    private BankService bankService;
+
+    private ILoanOrderService loanOrderService;
+
+    private ILendOrderService lendOrderService;
+
+    private IDWorker idWorker;
+
+    public LoanExecuteAction(String orderId, ILoanOrderService loanOrderService, ILendOrderService lendOrderService, BankService bankService, IEventLauncher lendEventLauncher, IDWorker idWorker) {
+        this.orderId = orderId;
+        this.bankService = bankService;
+        this.loanOrderService = loanOrderService;
+        this.lendOrderService = lendOrderService;
         this.lendEventLauncher = lendEventLauncher;
+        this.idWorker = idWorker;
     }
 
     @Override
     public void run() {
+        LoanOrderEntity order = loanOrderService.getByOrderId(orderId);
+        LendOrderEntity lendOrder = new LendOrderEntity();
+        lendOrder.setOrderId(orderId);
+        lendOrder.setOwnerId(order.getOwnerId());
+        lendOrder.setApplyUniqueCode(String.valueOf(idWorker.nextId()));
+        lendOrder.setApplyNumber(order.getLoanNumber().subtract(order.getChargeValue()));
+        lendOrder.setApplyTime(System.currentTimeMillis());
+        BankEntity bankEntity = bankService.findByUserCodeLastOne(order.getOwnerId());
+        lendOrder.setUserName(bankEntity.getUserName());
+        lendOrder.setIdCard(bankEntity.getCardId());
+        lendOrder.setBankName(bankEntity.getBankName());
+        lendOrder.setBankCard(bankEntity.getBankNo());
+        lendOrder.setBankMobile(bankEntity.getMobile());
+        lendOrder.setStatus(StatusEnum.PENDING.name());
 
-        /** TODO：创建放款订单 */
-        orderId = "---";
+        lendOrder.setType("");
+        long now = System.currentTimeMillis();
+        lendOrder.setCreateTime(now);
+        lendOrder.setUpdateTime(now);
+        lendOrderService.save(lendOrder);
+
         try {
             LendLaunchEvent event = new LendLaunchEvent(orderId);
             lendEventLauncher.launch(event);

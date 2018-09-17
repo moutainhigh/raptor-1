@@ -1,11 +1,17 @@
 package com.mo9.raptor.engine.state.action.impl.pay;
 
+import com.mo9.raptor.engine.calculator.ILoanCalculator;
+import com.mo9.raptor.engine.calculator.LoanCalculatorFactory;
+import com.mo9.raptor.engine.entity.LoanOrderEntity;
 import com.mo9.raptor.engine.entity.PayOrderEntity;
+import com.mo9.raptor.engine.service.ILoanOrderService;
 import com.mo9.raptor.engine.service.IPayOrderService;
 import com.mo9.raptor.engine.state.action.IAction;
 import com.mo9.raptor.engine.state.event.impl.loan.LoanEntryEvent;
 import com.mo9.raptor.engine.state.launcher.IEventLauncher;
 import com.mo9.raptor.engine.structure.Scheme;
+import com.mo9.raptor.engine.structure.item.Item;
+import com.mo9.raptor.exception.LoanEntryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,26 +19,39 @@ public class EntryExecuteAction implements IAction {
 
     private static final Logger logger = LoggerFactory.getLogger(EntryExecuteAction.class);
 
-    private String batchId;
+    private String payOrderId;
 
     private IEventLauncher loanEventLauncher;
 
     private IPayOrderService payOrderService;
 
-    public EntryExecuteAction(String batchId, IPayOrderService payOrderService, IEventLauncher loanEventLauncher) {
-        this.batchId = batchId;
+    private ILoanOrderService loanOrderService;
+
+    private LoanCalculatorFactory calculatorFactory;
+
+    public EntryExecuteAction(String payOrderId, IPayOrderService payOrderService, ILoanOrderService loanOrderService, IEventLauncher loanEventLauncher, LoanCalculatorFactory calculatorFactory) {
+        this.payOrderId = payOrderId;
         this.payOrderService = payOrderService;
+        this.loanOrderService = loanOrderService;
         this.loanEventLauncher = loanEventLauncher;
+        this.calculatorFactory = calculatorFactory;
     }
 
     @Override
     public void run() {
 
-        PayOrderEntity payOrderEntity = payOrderService.getByOrderId(batchId);
+        PayOrderEntity payOrderEntity = payOrderService.getByOrderId(payOrderId);
         String loanOrderId = payOrderEntity.getLoanOrderId();
+        LoanOrderEntity loanOrderEntity = loanOrderService.getByOrderId(loanOrderId);
+        ILoanCalculator calculator = calculatorFactory.load(loanOrderEntity);
         String payType = payOrderEntity.getType();
-        Scheme scheme = new Scheme();
-        LoanEntryEvent event = new LoanEntryEvent(loanOrderId, batchId, payType, scheme);
+        Item entryItem = null;
+        try {
+            entryItem = calculator.entryItem(System.currentTimeMillis(), payType, payOrderEntity.getPayNumber(), loanOrderEntity);
+        } catch (LoanEntryException e) {
+            logger.error("计算entryItem异常 ", e);
+        }
+        LoanEntryEvent event = new LoanEntryEvent(loanOrderId, payOrderId, payType, entryItem);
         try {
             this.loanEventLauncher.launch(event);
         } catch (Exception e) {
@@ -49,6 +68,6 @@ public class EntryExecuteAction implements IAction {
     @Override
     public String getOrderId() {
         //TODO:批次号
-        return this.batchId;
+        return this.payOrderId;
     }
 }

@@ -42,4 +42,13 @@ public enum RenewableDaysEnum {
         }
         return false;
     }
+
+    public static Integer getBasicRenewableDaysTimes(Integer days) {
+        return days / getBasicRenewableDays();
+    }
+
+    public static Integer getBasicRenewableDays() {
+        return SEVENT.days;
+    }
+
 }

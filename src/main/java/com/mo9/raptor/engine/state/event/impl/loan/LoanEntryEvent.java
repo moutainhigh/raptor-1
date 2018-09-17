@@ -3,6 +3,7 @@ package com.mo9.raptor.engine.state.event.impl.loan;
 import com.mo9.raptor.engine.state.event.AbstractStateEvent;
 import com.mo9.raptor.engine.state.event.IStateEvent;
 import com.mo9.raptor.engine.structure.Scheme;
+import com.mo9.raptor.engine.structure.item.Item;
 
 /**
  * Created by gqwu on 2018/4/4.
@@ -10,25 +11,25 @@ import com.mo9.raptor.engine.structure.Scheme;
  */
 public class LoanEntryEvent extends AbstractStateEvent implements IStateEvent {
 
-    private final Scheme entryScheme;
+    private final Item entryItem;
 
     private final String payType;
 
     private final String payOrderId;
 
-    public LoanEntryEvent(String loanOrderId, String payOrderId, String payType, Scheme entryScheme) {
+    public LoanEntryEvent(String loanOrderId, String payOrderId, String payType, Item entryItem) {
         super(loanOrderId);
         this.payType = payType;
         this.payOrderId = payOrderId;
-        this.entryScheme = entryScheme;
+        this.entryItem = entryItem;
     }
 
     public String getPayType() {
         return payType;
     }
 
-    public Scheme getEntryScheme() {
-        return entryScheme;
+    public Item getEntryItem() {
+        return entryItem;
     }
 
     public String getPayOrderId() {

@@ -6,6 +6,7 @@ import org.hibernate.annotations.DynamicUpdate;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import java.math.BigDecimal;
 
 /**
  * 还款log
@@ -23,11 +24,26 @@ public class PayOrderLogEntity extends BaseEntity {
     @Column(name = "order_id")
     private String orderId;
 
+    @Column(name = "user_code")
+    private String userCode;
+
     /**
      * 还款订单号
      */
     @Column(name = "pay_order_id")
     private String payOrderId;
+
+    /**
+     * 还款申请金额
+     */
+    @Column(name = "repay_amount")
+    private BigDecimal repayAmount;
+
+    /**
+     * 渠道返回的还款数目
+     */
+    @Column(name = "channel_repay_number")
+    private BigDecimal channelRepayNumber;
 
     /**
      * 还款渠道
@@ -89,12 +105,26 @@ public class PayOrderLogEntity extends BaseEntity {
     @Column(name = "channel_response")
     private String channelResponse;
 
+    /**
+     * 渠道同步响应结果
+     */
+    @Column(name = "channel_sync_response")
+    private String channelSyncResponse;
+
     public String getOrderId() {
         return orderId;
     }
 
     public void setOrderId(String orderId) {
         this.orderId = orderId;
+    }
+
+    public String getUserCode() {
+        return userCode;
+    }
+
+    public void setUserCode(String userCode) {
+        this.userCode = userCode;
     }
 
     public String getPayOrderId() {
@@ -183,6 +213,30 @@ public class PayOrderLogEntity extends BaseEntity {
 
     public void setChannelResponse(String channelResponse) {
         this.channelResponse = channelResponse;
+    }
+
+    public BigDecimal getRepayAmount() {
+        return repayAmount;
+    }
+
+    public void setRepayAmount(BigDecimal repayAmount) {
+        this.repayAmount = repayAmount;
+    }
+
+    public BigDecimal getChannelRepayNumber() {
+        return channelRepayNumber;
+    }
+
+    public void setChannelRepayNumber(BigDecimal channelRepayNumber) {
+        this.channelRepayNumber = channelRepayNumber;
+    }
+
+    public String getChannelSyncResponse() {
+        return channelSyncResponse;
+    }
+
+    public void setChannelSyncResponse(String channelSyncResponse) {
+        this.channelSyncResponse = channelSyncResponse;
     }
 
     public void create() {

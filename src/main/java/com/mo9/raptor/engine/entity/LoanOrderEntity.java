@@ -56,6 +56,10 @@ public class LoanOrderEntity extends AbstractOrderEntity {
     @Column(name = "charge_value")
     private BigDecimal chargeValue = new BigDecimal(250);
 
+    /** 延期单位服务费 */
+    @Column(name = "postpone_unit_charge")
+    private BigDecimal postponeUnitCharge;
+
     /** 订单审核方式 */
     @Column(name = "audit_mode")
     private String auditMode = AuditModeEnum.AUTO.name();
@@ -77,8 +81,12 @@ public class LoanOrderEntity extends AbstractOrderEntity {
     private String lendSignature = "";
 
     /** 放款时间 */
-    @Column(name = "lent_time")
-    private Long lentTime = -1L;
+    @Column(name = "lend_time")
+    private Long lendTime = -1L;
+
+    /** 还款日 */
+    @Column(name = "repayment_date")
+    private Long repaymentDate;
 
     public BigDecimal getLoanNumber() {
         return loanNumber;
@@ -184,11 +192,27 @@ public class LoanOrderEntity extends AbstractOrderEntity {
         this.lendSignature = lendSignature;
     }
 
-    public Long getLentTime() {
-        return lentTime;
+    public Long getLendTime() {
+        return lendTime;
     }
 
-    public void setLentTime(Long lentTime) {
-        this.lentTime = lentTime;
+    public void setLendTime(Long lendTime) {
+        this.lendTime = lendTime;
+    }
+
+    public Long getRepaymentDate() {
+        return repaymentDate;
+    }
+
+    public void setRepaymentDate(Long repaymentDate) {
+        this.repaymentDate = repaymentDate;
+    }
+
+    public BigDecimal getPostponeUnitCharge() {
+        return postponeUnitCharge;
+    }
+
+    public void setPostponeUnitCharge(BigDecimal postponeUnitCharge) {
+        this.postponeUnitCharge = postponeUnitCharge;
     }
 }

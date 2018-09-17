@@ -1,6 +1,8 @@
 package com.mo9.raptor.engine.service;
 
+import com.mo9.raptor.bean.condition.FetchLoanOrderCondition;
 import com.mo9.raptor.engine.entity.LoanOrderEntity;
+import org.springframework.data.domain.Page;
 
 /**
  * 贷款订单service
@@ -21,4 +23,17 @@ public interface ILoanOrderService {
      */
     LoanOrderEntity save(LoanOrderEntity loanOrder);
 
+    /**
+     * 分页查询订单
+     * @param condition
+     * @return
+     */
+    Page<LoanOrderEntity> listLoanOrderByCondition(FetchLoanOrderCondition condition);
+
+    /**
+     * 获取上一条为完成的订单
+     * @param userCode
+     * @return
+     */
+    LoanOrderEntity getLastIncompleteOrder(String userCode);
 }

@@ -3,7 +3,15 @@ package com.mo9.raptor.utils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.bean.res.LoanOrderLendRes;
+import com.mo9.raptor.engine.entity.LendOrderEntity;
+import com.mo9.raptor.engine.entity.PayOrderEntity;
+import com.mo9.raptor.engine.service.IPayOrderService;
+import com.mo9.raptor.entity.PayOrderLogEntity;
+import com.mo9.raptor.entity.UserEntity;
+import com.mo9.raptor.enums.PayTypeEnum;
 import com.mo9.raptor.enums.ResCodeEnum;
+import com.mo9.raptor.service.PayOrderLogService;
+import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.httpclient.HttpClientApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,11 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 
 /**
  * Created by xtgu on 2018/9/12.
@@ -34,45 +39,63 @@ public class GatewayUtils {
     private String gatewayUrl ;
 
     @Autowired
+    private UserService userService;
+
+    @Autowired
+    private IPayOrderService payOrderService;
+
+    @Autowired
+    private PayOrderLogService payOrderLogService;
+
+    @Autowired
     private HttpClientApi httpClientApi ;
 
     /**
      * 放款
      * @return
      */
-    public ResCodeEnum loan(){
-        //TODO 参数需要填充
+    public ResCodeEnum loan(LendOrderEntity lendOrder){
         String method = "/proxypay/pay.mhtml" ;
         String key = "werocxofsdjnfksdf892349729lkfnnmgn/x,.zx=9=-MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAJGLeWVIS3wo0U2h8lzWjiq5RJJDi14hzsbxxwedhqje123";
         Map<String, String> payParams = new HashMap<String, String>();
         payParams.put("bizSys", "RAPTOR");
-        Random random = new Random();
         //订单号
-        payParams.put("invoice",  "990354"+ random.nextInt(9)+ random.nextInt(9)+ random.nextInt(9)+random.nextInt(9)+ random.nextInt(9)+ random.nextInt(9));
-        payParams.put("notifyUrl", ""); // 用snc传递成功使用地址
-        payParams.put("cardNo","6228482938103729839"); // 银行卡
-        payParams.put("usrName", "李伟"); //姓名
-        payParams.put("idCard", "411221199312062149"); //身份证
-        payParams.put("mobile", "13560084836"); //手机号
-        payParams.put("openBank", "建设银行"); // 银行名称
-        payParams.put("prov", "未知"); // 默认
-        payParams.put("city", "未知"); // 默认
-        payParams.put("subBank", "建设银行");
-        payParams.put("transAmt", "0.01"); // 金额
-        payParams.put("attach", "1490685960032"); //同invoice
-        JSONObject jsonParams = new JSONObject();
+        payParams.put("invoice",  lendOrder.getOrderId());
+        payParams.put("notifyUrl", ""); //使用mq，则可以不传？
+        payParams.put("cardNo",lendOrder.getBankCard()); // 银行卡
+        payParams.put("usrName", lendOrder.getUserName()); //姓名
+        payParams.put("idCard", lendOrder.getIdCard()); //身份证
+        payParams.put("mobile", lendOrder.getBankMobile()); //手机号
+        payParams.put("openBank", lendOrder.getBankName()); // 银行名称
+        //payParams.put("prov", "未知"); // 默认
+        //payParams.put("city", "未知"); // 默认
+        //payParams.put("subBank", "建设银行");
+        payParams.put("transAmt", lendOrder.getApplyNumber().toPlainString()); // 金额
+        payParams.put("attach", lendOrder.getOrderId()); //同invoice
+        /*JSONObject jsonParams = new JSONObject();
         jsonParams.put("loan_term", "14");
         jsonParams.put("property", "男");
         payParams.put("purpose", "FAST放款");//自定义中文
-        payParams.put("extraParameter", jsonParams.toJSONString());
+        payParams.put("extraParameter", jsonParams.toJSONString());*/
+        payParams.put("purpose", "猛禽放款");
+
         String sign = Md5Encrypt.sign(payParams, key);
         payParams.put("sign", sign);
         try {
+            //String gatewayUrl = "http://ycheng.local.mo9.com/gateway";
             String resJson = httpClientApi.doGet(gatewayUrl + method, payParams);
+            JSONObject jsonObject = JSONObject.parseObject(resJson);
+            String status = jsonObject.getString("status");
+            if ("failed".equals(status)) {
+                logger.info("订单[{}]放款, 渠道返回同步失败, 返回信息  [{}]", lendOrder.getOrderId(), resJson);
+                return ResCodeEnum.EXCEPTION_CODE;
+            } else {
+                logger.info("订单[{}]放款, 渠道返回同步返回信息  [{}]", lendOrder.getOrderId(), resJson);
+            }
         } catch (Exception e) {
-            logger.error("放款异常 - ");
+            logger.error("订单[{}]放款异常 - ", lendOrder.getOrderId(), e);
+            // 可以等待再次放款
         }
-        //TODO
         return ResCodeEnum.SUCCESS ;
     }
 
@@ -80,9 +103,48 @@ public class GatewayUtils {
      * 还款
      * @return
      */
-    public ResCodeEnum payoff(){
-        //TODO
-        return ResCodeEnum.SUCCESS ;
+    public ResCodeEnum payoff(PayOrderLogEntity payOrderLog){
+        try {
+            Map<String,String> params = new HashMap<String,String>();
+            params.put("m", "newPayGu");
+            params.put("channel", payOrderLog.getChannel());
+            params.put("subchannel", payOrderLog.getChannel());
+            params.put("amount", payOrderLog.getRepayAmount().toPlainString());
+            UserEntity user = userService.findByUserCode(payOrderLog.getUserCode());
+            params.put("mobile", user.getMobile());
+            PayOrderEntity payOrderEntity = payOrderService.getByOrderId(payOrderLog.getPayOrderId());
+            //orderId : 订单号;
+            params.put("remark", "FASTRAPTOR_" + payOrderEntity.getOrderId());
+
+            params.put("userMobile", user.getMobile());
+            params.put("bankmobile", payOrderLog.getBankMobile());
+            params.put("userName",payOrderLog.getUserName());
+            params.put("bankCard", payOrderLog.getBankCard());
+            params.put("idCard", payOrderLog.getIdCard());
+            params.put("orderDesc", "猛禽支付");
+
+            String mysig = Md5Encrypt.sign(params, "643138394F10DA5E9647709A3FA8DD7F");
+            params.put("sign", mysig);
+            String gatewayUrl = "http://ycheng.local.mo9.com/gateway/pay.shtml";
+            String resJson = httpClientApi.doGet(gatewayUrl, params);
+            payOrderLog.setChannelSyncResponse(resJson);
+            payOrderLog.setUpdateTime(System.currentTimeMillis());
+            payOrderLogService.save(payOrderLog);
+
+            JSONObject jsonObject = JSONObject.parseObject(resJson);
+            String code = jsonObject.getString("code");
+            if ("0000".equals(code)) {
+                logger.info("还款订单[{}]还款请求发送成功, 返回为[{}]", payOrderLog.getPayOrderId(), resJson);
+                return ResCodeEnum.SUCCESS;
+            } else {
+                logger.info("还款订单[{}]还款请求发送失败, 返回为[{}]", payOrderLog.getPayOrderId(), resJson);
+                // return ResCodeEnum.SUCCESS;
+                return ResCodeEnum.EXCEPTION_CODE;
+            }
+        } catch (Exception e) {
+            logger.error("还款订单[{}]还款报错", payOrderLog.getPayOrderId(), e);
+            return ResCodeEnum.EXCEPTION_CODE;
+        }
     }
 
     /**

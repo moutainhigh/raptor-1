@@ -11,7 +11,7 @@ public enum ResCodeEnum {
      * <p>
      */
     SUCCESS(11150000, "成功", "成功"),
-    EXCEPTION_CODE(11150001, "成功", "成功"),
+    EXCEPTION_CODE(11150001, "系统内部异常", "系统内部异常"),
 
     // xx=10 银行卡验证
     BANK_VERIFY_ERROR(11151001, "银行卡验证失败", "银行卡验证失败"),
@@ -39,6 +39,14 @@ public enum ResCodeEnum {
      */
     INVALID_RENEWAL_DAYS(11155000, "无效的延期天数", "无效的延期天数"),
     NO_REPAY_CHANNEL(11155001, "无效的还款渠道", "无效的还款渠道"),
+    ILLEGAL_LOAN_ORDER_STATUE(11155003, "不合法的借款订单状态", "借款订单不可还款"),
+    ILLEGAL_REPAYMENT(11155004, "非法的还款操作", "非法的还款操作"),
+
+    /**
+     * xx=60, 借款
+     */
+    ONLY_ONE_ORDER(11156000, "不可同时借多笔订单", "不可同时借多笔订单"),
+    ERROR_LOAN_PARAMS(11156001, "下单参数不正确", "下单参数不正确"),
 
 
 

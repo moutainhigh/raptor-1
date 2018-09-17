@@ -16,18 +16,44 @@ public class LendResponseEvent extends AbstractStateEvent implements IStateEvent
 
     private final String lendSignature;
 
+    private final String channelOrderId;
+
+    private final String channelResponse;
+
     private final long successTime;
 
     private final String explanation;
 
-    public LendResponseEvent(String loanOrderId, BigDecimal actualLent,
-                             boolean succeeded, long successTime, String lendSignature, String explanation) {
-        super(loanOrderId);
-        this.actualLent = actualLent;
+    private final String channel;
+
+    public LendResponseEvent(String entityUniqueId, boolean succeeded, BigDecimal actualLent, String lendSignature, String channelOrderId, String channelResponse, long successTime, String explanation, String channel) {
+        super(entityUniqueId);
         this.succeeded = succeeded;
+        this.actualLent = actualLent;
+        this.lendSignature = lendSignature;
+        this.channelOrderId = channelOrderId;
+        this.channelResponse = channelResponse;
         this.successTime = successTime;
         this.explanation = explanation;
-        this.lendSignature = lendSignature;
+        this.channel = channel;
+    }
+
+    /**
+     * 放款失败
+     * @param entityUniqueId
+     * @param succeeded
+     * @param explanation
+     */
+    public LendResponseEvent(String entityUniqueId, boolean succeeded, String explanation, String channel) {
+        super(entityUniqueId);
+        this.succeeded = succeeded;
+        this.explanation = explanation;
+        this.actualLent = null;
+        this.lendSignature = null;
+        this.channelOrderId = null;
+        this.channelResponse = null;
+        this.successTime = -1L;
+        this.channel = channel;
     }
 
     public boolean isSucceeded() {
@@ -48,5 +74,17 @@ public class LendResponseEvent extends AbstractStateEvent implements IStateEvent
 
     public String getLendSignature() {
         return lendSignature;
+    }
+
+    public String getChannelOrderId() {
+        return channelOrderId;
+    }
+
+    public String getChannelResponse() {
+        return channelResponse;
+    }
+
+    public String getChannel() {
+        return channel;
     }
 }

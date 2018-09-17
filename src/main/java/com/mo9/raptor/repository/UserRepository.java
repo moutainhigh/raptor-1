@@ -18,9 +18,17 @@ public interface UserRepository extends JpaRepository<UserEntity,Long> {
      */
     UserEntity findByUserCodeAndDeleted(String userCode, boolean isDelete);
     /**
-     * 根据绑定手机号查询用户是否存在
+     * 根据绑定手机号查询所有用户是否存在
      * @param mobile
      * @return
      */
     UserEntity findByMobile(String mobile);
+
+    /**
+     * 根据用户手机号和是否删除 查询
+     * @param mobile
+     * @param isDelete
+     * @return
+     */
+    UserEntity findByMobileAndDeleted(String mobile, boolean isDelete);
 }

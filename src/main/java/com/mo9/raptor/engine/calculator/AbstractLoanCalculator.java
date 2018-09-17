@@ -1,17 +1,23 @@
 package com.mo9.raptor.engine.calculator;
 
+import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.engine.entity.LoanOrderEntity;
-import com.mo9.raptor.engine.exception.MergeException;
-import com.mo9.raptor.engine.exception.UnSupportTimeDiffException;
-import com.mo9.raptor.engine.structure.Scheme;
+import com.mo9.raptor.engine.enums.StatusEnum;
+import com.mo9.raptor.engine.structure.field.Field;
+import com.mo9.raptor.engine.structure.field.FieldTypeEnum;
 import com.mo9.raptor.engine.structure.item.Item;
+import com.mo9.raptor.engine.structure.item.ItemTypeEnum;
+import com.mo9.raptor.engine.utils.EngineStaticValue;
 import com.mo9.raptor.engine.utils.TimeUtils;
+import com.mo9.raptor.enums.PayTypeEnum;
+import com.mo9.raptor.exception.LoanEntryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import java.util.Calendar;
-import java.util.Map;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 借贷订单计算器
@@ -25,152 +31,201 @@ public abstract class AbstractLoanCalculator implements ILoanCalculator {
      * 初始账单
      */
     @Override
-    public Scheme originScheme(LoanOrderEntity loanOrder) {
+    public Item originItem(LoanOrderEntity loanOrder) {
 
-        Scheme originalScheme = new Scheme();
-
-        /** TODO: */
-
-        for (Map.Entry<Integer, Item> entry : originalScheme.entrySet()) {
-
-            /** 设定还款日 */
-            Item item = entry.getValue();
-            Long repayDay = this.repayDay(entry.getKey(), loanOrder);
-            item.setRepayDate(repayDay);
+        Item originalItem = new Item();
+        if (StatusEnum.BEFORE_LENDING.contains(StatusEnum.valueOf(loanOrder.getStatus()))) {
+            return originalItem;
         }
 
-        return originalScheme;
-    }
+        Field interestField = new Field();
+        interestField.setNumber(loanOrder.getInterestValue());
+        interestField.setFieldType(FieldTypeEnum.INTEREST);
+        originalItem.put(FieldTypeEnum.INTEREST, interestField);
 
-    /**
-     * 计划账单
-     */
-    @Override
-    public Scheme planScheme(Long date, LoanOrderEntity loanOrder) {
+        Field principalField = new Field();
+        principalField.setFieldType(FieldTypeEnum.PRINCIPAL);
+        // 管他放了多少钱, 一律按放款金额收钱
+        principalField.setNumber(loanOrder.getLoanNumber());
+        originalItem.put(FieldTypeEnum.PRINCIPAL, principalField);
 
-        Scheme planScheme = new Scheme();
+        Field chargeField = new Field();
+        chargeField.setFieldType(FieldTypeEnum.ALL_CHARGE);
+        chargeField.setNumber(loanOrder.getPostponeUnitCharge());
+        originalItem.put(FieldTypeEnum.ALL_CHARGE, chargeField);
 
-        date = TimeUtils.extractDateTime(date);
-
-        return planScheme;
+        originalItem.setSequence(1);
+        originalItem.setRepayDate(loanOrder.getLendTime() + loanOrder.getLoanTerm() * EngineStaticValue.DAY_MILLIS);
+        return originalItem;
     }
 
     /**
      * 实时账单
      */
     @Override
-    public Scheme realScheme(Long date, LoanOrderEntity loanOrder) throws UnSupportTimeDiffException, MergeException {
+    public Item realItem(Long date, LoanOrderEntity loanOrder) {
 
-        Scheme scheme = this.planScheme(date, loanOrder);
+        Item item = originItem(loanOrder);
+        if (item.size() == 0) {
+            return item;
+        }
+        Long repaymentDate = loanOrder.getRepaymentDate();
+        // 重新设置还款日
+        item.setRepayDate(repaymentDate);
+        date = TimeUtils.extractDateTime(date);
+        Field penaltyField = new Field();
+        penaltyField.setFieldType(FieldTypeEnum.PENALTY);
+        if (date >= repaymentDate + EngineStaticValue.DAY_MILLIS) {
+            // 计算逾期费
+            Long overDueDate = (date - repaymentDate) / EngineStaticValue.DAY_MILLIS + 1;
+            BigDecimal penalty = loanOrder.getPenaltyValue().multiply(new BigDecimal(overDueDate));
+            penaltyField.setNumber(penalty);
+            item.setItemType(ItemTypeEnum.PREVIOUS);
+        } else if (date.equals(repaymentDate)) {
+            penaltyField.setNumber(BigDecimal.ZERO);
+            item.setItemType(ItemTypeEnum.PERIOD);
+        } else {
+            penaltyField.setNumber(BigDecimal.ZERO);
+            item.setItemType(ItemTypeEnum.PREPAY);
+        }
+        item.put(FieldTypeEnum.PENALTY, penaltyField);
+        return item;
+    }
 
-        int passInterestDays = this.passInterestDay(date, loanOrder);
+    @Override
+    public Item entryItem (Long date, String payType, BigDecimal paid, LoanOrderEntity loanOrder) throws LoanEntryException {
+        BigDecimal originalPaid = paid.multiply(BigDecimal.ONE);
+        Item entryItem = new Item();
+        Item realItem = this.realItem(date, loanOrder);
+        if (payType.equals(PayTypeEnum.REPAY_POSTPONE.name())) {
+            Field penaltyField = realItem.get(FieldTypeEnum.PENALTY);
+            if (penaltyField != null) {
+                entryItem.put(FieldTypeEnum.PENALTY, penaltyField.clone());
+                paid = paid.subtract(penaltyField.getNumber());
+            }
 
+            BigDecimal unitCharge = loanOrder.getPostponeUnitCharge();
+            Field interestField = new Field();
+            Field chargeField = new Field();
+            while(paid.compareTo(BigDecimal.ZERO) > 0) {
+                if (paid.compareTo(unitCharge) >= 0) {
+                    chargeField.setNumber(chargeField.getNumber().add(unitCharge));
+                    paid = paid.subtract(unitCharge);
+                } else {
+                    throw new LoanEntryException("订单延期还款" + originalPaid.toPlainString() + "无法入账的金额" + paid.toPlainString());
+                }
+                if (paid.compareTo(loanOrder.getInterestValue()) >= 0) {
+                    interestField.setNumber(interestField.getNumber().add(loanOrder.getInterestValue()));
+                    paid = paid.subtract(loanOrder.getInterestValue());
+                } else {
+                    throw new LoanEntryException("订单延期还款" + originalPaid.toPlainString() + "无法入账的金额" + paid.toPlainString());
+                }
+            }
+            entryItem.put(FieldTypeEnum.INTEREST, interestField);
+            entryItem.put(FieldTypeEnum.ALL_CHARGE, chargeField);
 
-        return scheme;
+        } else {
+            for (FieldTypeEnum fieldType: FieldTypeEnum.values()) {
+                if (paid.compareTo(BigDecimal.ZERO) <= 0) {
+                    break;
+                }
+                if (fieldType.getSequence() < 0 || fieldType.getSequence() >= FieldTypeEnum.ALL.getSequence()) {
+                    continue;
+                }
+
+                Field field = realItem.get(fieldType);
+                if (field == null) {
+                    continue;
+                }
+                BigDecimal number = field.getNumber();
+                if (number.compareTo(paid) >= 0) {
+                    // 还款金额分配结束
+                    Field cloneField = field.clone();
+                    cloneField.setNumber(paid);
+                    entryItem.put(fieldType, cloneField);
+                    paid = BigDecimal.ZERO;
+                } else {
+                    // 继续分配
+                    Field cloneField = field.clone();
+                    entryItem.put(fieldType, cloneField);
+                    paid = paid.subtract(number);
+                }
+            }
+            if (BigDecimal.ZERO.compareTo(paid) != 0) {
+                throw new LoanEntryException("订单延期还款" + originalPaid.toPlainString() + "无法入账的金额" + paid.toPlainString());
+            }
+        }
+        return entryItem;
+    }
+
+    @Override
+    public Boolean checkValidRepayAmount(Long date, String payType, BigDecimal paid, LoanOrderEntity loanOrder) throws LoanEntryException {
+        Item entryItem = this.entryItem(date, payType, paid, loanOrder);
+        BigDecimal sum = entryItem.sum();
+        if (sum.compareTo(paid) == 0) {
+            return true;
+        }
+
+        Item realItem = this.realItem(date, loanOrder);
+        BigDecimal principal = realItem.getFieldNumber(FieldTypeEnum.PRINCIPAL);
+        BigDecimal penalty = realItem.getFieldNumber(FieldTypeEnum.PENALTY);
+        int paidAmount = entryItem.sum().intValue();
+        int baseAmount = realItem.sum().subtract(principal).subtract(penalty).add(loanOrder.getPostponeUnitCharge()).intValue();
+        if (paidAmount % baseAmount == 0) {
+            return true;
+        }
+        return false;
     }
 
     /**
      * 入账处理
      */
     @Override
-    public LoanOrderEntity schemeEntry(LoanOrderEntity loanOrder, Scheme originalScheme, Scheme realScheme, Scheme entryScheme) {
+    public LoanOrderEntity itemEntry(LoanOrderEntity loanOrder, String payType, Integer days, Item realItem, Item entryItem) throws LoanEntryException {
+        // 直接入, 状态正确性由状态机保证
 
-
+        BigDecimal realItemSum = realItem.sum();
+        BigDecimal entryItemSum = entryItem.sum();
+        if (payType.equals(PayTypeEnum.REPAY_POSTPONE.name())) {
+            BigDecimal principal = realItem.getFieldNumber(FieldTypeEnum.PRINCIPAL);
+            BigDecimal penalty = realItem.getFieldNumber(FieldTypeEnum.PENALTY);
+            int paidAmount = entryItem.sum().subtract(entryItem.getFieldNumber(FieldTypeEnum.PENALTY)).intValue();
+            int baseAmount = realItem.sum().subtract(principal).subtract(penalty).intValue();
+            if (paidAmount / baseAmount != days / loanOrder.getLoanTerm()) {
+                throw new LoanEntryException("订单" + loanOrder.getOrderId() + "还款" + entryItemSum + ", 延期" + days + ", 不合法!");
+            }
+            loanOrder.setRepaymentDate(loanOrder.getRepaymentDate() + days * EngineStaticValue.DAY_MILLIS);
+        } else {
+            if (realItemSum.compareTo(entryItemSum) == 0) {
+                // 直接还清
+                loanOrder.setStatus(StatusEnum.PAYOFF.name());
+            } else {
+                logger.error("订单[{}]应还[{}], 实际还款[{}], 无法入账!", loanOrder.getOrderId(), realItemSum, entryItemSum);
+                throw new LoanEntryException("订单" + loanOrder.getOrderId() + "应还" + realItemSum + ", 实际还款" + entryItemSum + ", 无法入账!");
+            }
+        }
         return loanOrder;
     }
 
-    /**
-     * 默认还款日计算方式，n期还款日 = n期账单日 + 账期，例：第1期账单日为9月10号，账期为1个月，则还款日为10月10日
-     */
+
     @Override
-    public long repayDay(int installment, LoanOrderEntity loanOrder) {
-
-        long billDay = this.bookDate(installment, loanOrder);
-        Calendar repayDay = Calendar.getInstance();
-        repayDay.setTimeInMillis(billDay);
-
-        return repayDay.getTimeInMillis();
-
-    }
-
-    public int passInterestDay(long date, LoanOrderEntity loanOrder) throws UnSupportTimeDiffException {
-
-        int dateInstallment = this.dateInstallment(date, loanOrder);
-
-        if (dateInstallment < 0) {
-            return 0;
+    public List<JSONObject> getRenew (LoanOrderEntity loanOrder) {
+        if (!StatusEnum.LENT.name().equals(loanOrder.getStatus())) {
+            return null;
         }
-
-        if (dateInstallment == 1) {
-            return TimeUtils.dateDiff(loanOrder.getLentTime(), date) + 1;
+        Item item = this.realItem(System.currentTimeMillis(), loanOrder);
+        List<JSONObject> renew = new ArrayList<JSONObject>();
+        for (int i = 1; i <= 2; i++) {
+            JSONObject unit = new JSONObject();
+            unit.put("period", loanOrder.getLoanTerm() * i);
+            if (i == 1) {
+                // 第一次加上罚息
+                unit.put("amount", item.sum().subtract(item.getFieldNumber(FieldTypeEnum.PRINCIPAL)).multiply(new BigDecimal(i)));
+            } else {
+                unit.put("amount", item.sum().subtract(item.getFieldNumber(FieldTypeEnum.PRINCIPAL)).subtract(item.getFieldNumber(FieldTypeEnum.PENALTY)).multiply(new BigDecimal(i)));
+            }
+            renew.add(unit);
         }
-
-        long billDate = this.bookDate(dateInstallment, loanOrder);
-
-        return TimeUtils.dateDiff(billDate, date) + 1;
-    }
-
-    /**
-     * 指定时间所在分期
-     */
-    public int dateInstallment(long date, LoanOrderEntity loanOrder) throws UnSupportTimeDiffException {
-        return 1;
-    }
-
-    /**
-     * 订单记账方式下，计算指定分期的记账日
-     *
-     * @param installment                 指定分期
-     * @param lentTime                    订单放款成功时间
-     * @param installmentTerm             订单每期的借款期限，例：12（月、日）、1（年），等。年、月、日为相应的期限单位
-     * @param installmentTermCalendarUnit 订单每期借款期限的日历单位，年、月、日
-     * @return
-     */
-    public long bookDateByLoan(int installment, long lentTime, int installmentTerm, int installmentTermCalendarUnit) {
-
-        Calendar bookDate = Calendar.getInstance();
-        bookDate.setTimeInMillis(TimeUtils.extractDateTime(lentTime));
-        bookDate.add(installmentTermCalendarUnit, (installment - 1) * installmentTerm);
-
-        return bookDate.getTimeInMillis();
-    }
-
-    /**
-     * 账单记账方式下，计算指定分期的记账日
-     *
-     * @param installment                 指定分期
-     * @param lentTime                    订单放款成功时间
-     * @param installmentTerm             订单每期的借款期限，例：12（月、日）、1（年），等。年、月、日为相应的期限单位
-     * @param installmentTermCalendarUnit 订单每期借款期限的日历单位，年、月、日
-     * @param bookDay                     用户每月记账日
-     * @return
-     */
-    public long bookDateByBill(int installment, long lentTime, int installmentTerm, int installmentTermCalendarUnit, int bookDay) {
-
-        Calendar lentDate = Calendar.getInstance();
-        lentDate.setTimeInMillis(TimeUtils.extractDateTime(lentTime));
-
-        Calendar bookDate = Calendar.getInstance();
-        bookDate.setTimeInMillis(TimeUtils.extractDateTime(lentTime));
-        bookDate.set(Calendar.DATE, bookDay);
-
-        if (lentDate.after(bookDate)) {
-            bookDate.add(Calendar.MONTH, 1);
-        }
-
-        bookDate.add(installmentTermCalendarUnit, (installment - 1) * installmentTerm);
-
-        return bookDate.getTimeInMillis();
-    }
-
-    /**
-     * 记账日
-     */
-    public long bookDate(int installment, LoanOrderEntity loanOrder) {
-
-        Calendar billDate = Calendar.getInstance();
-        billDate.setTimeInMillis(TimeUtils.extractDateTime(loanOrder.getLentTime()));
-
-        return billDate.getTimeInMillis();
+        return renew;
     }
 }

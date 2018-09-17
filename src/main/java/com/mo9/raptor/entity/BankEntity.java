@@ -9,27 +9,19 @@ import java.util.Date;
  *
  */
 @Entity
-@Table(name = "t_bank")
+@Table(name = "t_raptor_bank")
 public class BankEntity {
 
-	/**
-	 * 四要素验证结果
-	 */
-	public enum Type {
-		/**
-		 * 放款
-		 */
-		LOAN ,
-		/**
-		 * 还款
-		 */
-		PAYOFF ;
-
-	};
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id ;
+
+	/**
+	 * 用户编号
+	 */
+	@Column(name = "user_code")
+	private String userCode;
 
 	/**
 	 * 银行卡
@@ -60,19 +52,6 @@ public class BankEntity {
 	 */
 	@Column(name = "mobile")
 	private String mobile ;
-
-	/**
-	 * 类型
-	 */
-	@Enumerated(EnumType.STRING)
-	@Column(name = "type")
-	private Type type ;
-
-	/**
-	 * 渠道
-	 */
-	@Column(name = "channel")
-	private String channel ;
 
 	/**
 	 * 创建时间
@@ -126,13 +105,6 @@ public class BankEntity {
 		this.mobile = mobile;
 	}
 
-	public Type getType() {
-		return type;
-	}
-
-	public void setType(Type type) {
-		this.type = type;
-	}
 
 	public Long getCreateTime() {
 		return createTime;
@@ -158,11 +130,12 @@ public class BankEntity {
 		this.bankName = bankName;
 	}
 
-	public String getChannel() {
-		return channel;
+
+	public String getUserCode() {
+		return userCode;
 	}
 
-	public void setChannel(String channel) {
-		this.channel = channel;
+	public void setUserCode(String userCode) {
+		this.userCode = userCode;
 	}
 }

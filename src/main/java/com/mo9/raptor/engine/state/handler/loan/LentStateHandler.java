@@ -2,8 +2,10 @@ package com.mo9.raptor.engine.state.handler.loan;
 
 import com.mo9.raptor.engine.calculator.ILoanCalculator;
 import com.mo9.raptor.engine.calculator.LoanCalculatorFactory;
+import com.mo9.raptor.engine.entity.PayOrderEntity;
 import com.mo9.raptor.engine.exception.MergeException;
 import com.mo9.raptor.engine.exception.UnSupportTimeDiffException;
+import com.mo9.raptor.engine.service.IPayOrderService;
 import com.mo9.raptor.engine.simulator.ClockFactory;
 import com.mo9.raptor.engine.state.action.IActionExecutor;
 import com.mo9.raptor.engine.entity.LoanOrderEntity;
@@ -16,8 +18,12 @@ import com.mo9.raptor.engine.state.handler.IStateHandler;
 import com.mo9.raptor.engine.state.handler.StateHandler;
 import com.mo9.raptor.engine.state.launcher.IEventLauncher;
 import com.mo9.raptor.engine.structure.Scheme;
+import com.mo9.raptor.engine.structure.item.Item;
+import com.mo9.raptor.exception.LoanEntryException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.math.BigDecimal;
 
 /**
  * Created by gqwu on 2018/4/4.
@@ -32,20 +38,25 @@ public class LentStateHandler implements IStateHandler<LoanOrderEntity> {
     @Autowired
     IEventLauncher payEventLauncher;
 
+    @Autowired
+    private IPayOrderService payOrderService;
+
     @Override
     public LoanOrderEntity handle (LoanOrderEntity loanOrder, IEvent event, IActionExecutor actionExecutor)
-            throws InvalidEventException, UnSupportTimeDiffException, MergeException {
+            throws InvalidEventException, LoanEntryException {
 
         if (event instanceof LoanEntryEvent) {
             LoanEntryEvent loanEntryEvent = (LoanEntryEvent) event;
+            Item entryItem = loanEntryEvent.getEntryItem();
+            String payType = loanEntryEvent.getPayType();
+            String payOrderId = loanEntryEvent.getPayOrderId();
+            PayOrderEntity payOrderEntity = payOrderService.getByOrderId(payOrderId);
             ILoanCalculator loanCalculator = loanCalculatorFactory.load(loanOrder);
-            Scheme originalScheme = loanCalculator.originScheme(loanOrder);
-            Scheme realScheme = loanCalculator.realScheme(ClockFactory.clockTime(loanOrder.getOwnerId()), loanOrder);
-            Scheme entryScheme = loanEntryEvent.getEntryScheme();
-
-            loanOrder = loanCalculator.schemeEntry(loanOrder, originalScheme, realScheme, entryScheme);
-
-            actionExecutor.append(new EntryResponseAction(loanEntryEvent.getPayOrderId(), entryScheme.sum(), payEventLauncher));
+            Item realItem = loanCalculator.realItem(System.currentTimeMillis(), loanOrder);
+            loanOrder = loanCalculator.itemEntry(loanOrder, payType, payOrderEntity.getPostponeDays(), realItem, entryItem);
+            BigDecimal paid = entryItem.sum();
+            // 还款合法, 则向还款订单发送入账反馈
+            actionExecutor.append(new EntryResponseAction(loanEntryEvent.getPayOrderId(), paid, payEventLauncher));
         } else {
             throw new InvalidEventException("贷款订单状态与事件类型不匹配，状态：" + loanOrder.getStatus() + "，事件：" + event);
         }

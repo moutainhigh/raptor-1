@@ -9,23 +9,22 @@ CREATE TABLE `t_raptor_loan_order` (
 
   `status`                    VARCHAR(64)     NOT NULL                  COMMENT '订单状态',
   `description`               VARCHAR(1024)   NOT NULL DEFAULT ''       COMMENT '订单描述，记录订单状态变化过程',
-
-
   `loan_number`               DECIMAL(10,2)   NOT NULL                  COMMENT '借贷金额',
   `loan_term`                 INT             NOT NULL                  COMMENT '借贷期限',
   `lent_number`               DECIMAL(10,2)   NOT NULL DEFAULT 0        COMMENT '借贷金额',
-
   `interest_mode`             VARCHAR(64)     NOT NULL                  COMMENT '利息模式',
   `interest_value`            DECIMAL(10,2)   NOT NULL                  COMMENT '利息值',
   `penalty_mode`              VARCHAR(64)     NOT NULL                  COMMENT '罚息模式',
   `penalty_value`             DECIMAL(10,2)   NOT NULL                  COMMENT '罚息值',
   `charge_value`              DECIMAL(10,2)   NOT NULL                  COMMENT '服务费值',
+  `postpone_unit_charge`      DECIMAL(10,2)   NOT NULL                  COMMENT '延期单位服务费',
   `audit_mode`                VARCHAR(64)     NOT NULL                  COMMENT '审核方式 - 自动审核/人工审核',
   `audit_signature`           VARCHAR(64)     NOT NULL DEFAULT ''       COMMENT '审核签名 - 给定审核结果的系统/用户',
   `audit_time`                BIGINT          NOT NULL DEFAULT -1       COMMENT '审核时间',
   `lend_mode`                 VARCHAR(64)     NOT NULL                  COMMENT '放款方式 - 自动放款/手动放款',
   `lend_signature`            VARCHAR(64)     NOT NULL DEFAULT ''       COMMENT '放款签名 - 执行放款的系统代码/用户ID',
   `lend_time`                 BIGINT          NOT NULL DEFAULT -1       COMMENT '放款时间',
+  `repayment_date`            BIGINT          NOT NULL DEFAULT -1       COMMENT '还款日',
 
   `create_time`               BIGINT          NOT NULL                  COMMENT '创建时间',
   `update_time`               BIGINT          NOT NULL                  COMMENT '修改时间',
@@ -36,6 +35,43 @@ CREATE TABLE `t_raptor_loan_order` (
   INDEX `index_owner_id` (`owner_id`) USING BTREE,
   INDEX `index_order_id` (`order_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='借款订单表';
+
+
+/**************************放款订单表*************************/
+DROP TABLE IF EXISTS `t_raptor_lend_order`;
+CREATE TABLE `t_raptor_lend_order` (
+  `id`                        BIGINT UNSIGNED NOT NULL AUTO_INCREMENT   COMMENT '主键',
+  `order_id`                  VARCHAR(64)     NOT NULL                  COMMENT '订单ID - 业务流水号',
+  `apply_unique_code`         VARCHAR(64)     NOT NULL                  COMMENT '请求唯一标识',
+  `owner_id`                  VARCHAR(64)     NOT NULL                  COMMENT '用户code',
+  `type`                      VARCHAR(64)     NOT NULL                  COMMENT '订单类型',
+  `status`                    VARCHAR(64)     NOT NULL                  COMMENT '订单状态',
+
+  `apply_number`              DECIMAL(10,2)   NOT NULL                  COMMENT '放款金额',
+  `apply_time`                BIGINT          NOT NULL DEFAULT -1       COMMENT '请求放款时间',
+  `user_name`                 VARCHAR(64)     NOT NULL                  COMMENT '姓名',
+  `id_card`                   VARCHAR(64)     NOT NULL                  COMMENT '身份证',
+  `bank_name`                 VARCHAR(64)     NOT NULL                  COMMENT '银行名称',
+  `bank_card`                 VARCHAR(64)     NOT NULL                  COMMENT '银行卡号',
+  `bank_mobile`               VARCHAR(64)     NOT NULL                  COMMENT '银行预留电话',
+  `channel`                   VARCHAR(64)     NOT NULL                  COMMENT '渠道',
+  `channel_order_id`          VARCHAR(64)                               COMMENT '渠道订单ID',
+  `channel_lend_number`       DECIMAL(10,2)                             COMMENT '渠道放款数目',
+  `channel_response`          VARCHAR(1024)                             COMMENT '渠道响应',
+  `channel_response_time`     BIGINT                                    COMMENT '渠道响应时间',
+
+  `description`               VARCHAR(1024)                             COMMENT '描述',
+  `create_time`               BIGINT          NOT NULL                  COMMENT '创建时间',
+  `update_time`               BIGINT          NOT NULL                  COMMENT '修改时间',
+  `remark`                    VARCHAR(1024)   NOT NULL DEFAULT ''       COMMENT '备注，一般给直接操作数据库备注使用，程序一般不使用',
+  `deleted`                   INT(1)          NOT NULL                  COMMENT '是否逻辑删除',
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX (apply_unique_code),
+  INDEX `index_owner_id` (`owner_id`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='放款订单表';
+
+
+
 
 /**************************还款订单*************************/
 DROP TABLE IF EXISTS `t_raptor_pay_order`;
@@ -118,8 +154,8 @@ CREATE TABLE `t_raptor_user` (
   `user_ip` varchar(50) DEFAULT NULL COMMENT '用户ip',
   `login_enable` tinyint(4) NOT NULL DEFAULT '1' COMMENT '是否可登录',
   `deleted` tinyint(4) NOT NULL DEFAULT '0' COMMENT '是否删除',
-  `last_login_time` bigint(20) DEFAULT NULL COMMENT '最后一次登录时间',
-  `auth_time` bigint(20) DEFAULT NULL COMMENT '四要素提交认证时间',
+  `last_login_time` bigint(20) DEFAULT 0 COMMENT '最后一次登录时间',
+  `auth_time` bigint(20) DEFAULT 0 COMMENT '四要素提交认证时间',
   `create_time` bigint(20) NOT NULL COMMENT '创建时间',
   `update_time` bigint(20) NOT NULL COMMENT '更新时间',
   PRIMARY KEY (`id`),
@@ -180,6 +216,7 @@ DROP TABLE IF EXISTS `t_bank`;
 CREATE TABLE `t_bank` (
 `id`  bigint(20) NOT NULL AUTO_INCREMENT ,
 `mobile`  varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL ,
+`user_code`  varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL ,
 `bank_no`  varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '银行卡' ,
 `bank_name`  varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL ,
 `card_id`  varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL ,
