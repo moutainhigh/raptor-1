@@ -18,9 +18,11 @@ import com.mo9.raptor.engine.structure.field.FieldTypeEnum;
 import com.mo9.raptor.engine.structure.item.Item;
 import com.mo9.raptor.entity.ChannelEntity;
 import com.mo9.raptor.entity.PayOrderLogEntity;
+import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.*;
 import com.mo9.raptor.service.ChannelService;
 import com.mo9.raptor.service.PayOrderLogService;
+import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.IDWorker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,6 +51,9 @@ public class PayOrderController {
     private IDWorker idWorker;
 
     @Autowired
+    private UserService userService;
+
+    @Autowired
     private IPayOrderService payOrderService;
 
     @Autowired
@@ -75,7 +80,11 @@ public class PayOrderController {
     public BaseResponse<JSONObject> repay(@Valid @RequestBody CashRepayReq req, HttpServletRequest request) {
         BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
         String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
-        // TODO: 检查用户
+        // 用户没删就行, 拉黑也能还
+        UserEntity user = userService.findByUserCodeAndDeleted(userCode, false);
+        if (user == null) {
+            return response.buildFailureResponse(ResCodeEnum.USER__NOT_EXIST);
+        }
 
         // 检查可用渠道
         ChannelEntity channelEntity = channelService.getByChannelId(req.getChannelType());
@@ -93,7 +102,6 @@ public class PayOrderController {
         if (!loanOrder.getOwnerId().equals(userCode)) {
             return response.buildFailureResponse(ResCodeEnum.ILLEGAL_REPAYMENT);
         }
-
 
         String orderId = sockpuppet + "-" + String.valueOf(idWorker.nextId());
         PayOrderEntity payOrder = new PayOrderEntity();
@@ -139,13 +147,19 @@ public class PayOrderController {
         BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
         String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
 
+        // 用户没删就行, 拉黑也能还
+        UserEntity user = userService.findByUserCodeAndDeleted(userCode, false);
+        if (user == null) {
+            return response.buildFailureResponse(ResCodeEnum.USER__NOT_EXIST);
+        }
+
         // 检查可用渠道
         ChannelEntity channelEntity = channelService.getByChannelId(req.getChannelType());
         if (channelEntity == null || !channelEntity.getChannelType().equals(ChannelTypeEnum.REPAY.name())) {
             return response.buildFailureResponse(ResCodeEnum.NO_REPAY_CHANNEL);
         }
 
-        // TODO: 延期天数暂时和借款订单脱离关系
+        // 延期天数暂时和借款订单脱离关系
         Boolean checkRenewableDays = RenewableDaysEnum.checkRenewableDays(req.getPeriod());
         if (!checkRenewableDays) {
             return response.buildFailureResponse(ResCodeEnum.INVALID_RENEWAL_DAYS);
@@ -172,7 +186,12 @@ public class PayOrderController {
 
         ILoanCalculator calculator = loanCalculatorFactory.load(loanOrder);
         Item realItem = calculator.realItem(System.currentTimeMillis(), loanOrder);
-        payOrder.setApplyNumber(realItem.sum().subtract(realItem.getFieldNumber(FieldTypeEnum.PRINCIPAL)).multiply(new BigDecimal(basicRenewableDaysTimes)));
+        BigDecimal applyAmount = realItem.sum()
+                .subtract(realItem.getFieldNumber(FieldTypeEnum.PRINCIPAL))
+                .subtract(realItem.getFieldNumber(FieldTypeEnum.PENALTY))
+                .multiply(new BigDecimal(basicRenewableDaysTimes))
+                .add(realItem.getFieldNumber(FieldTypeEnum.PENALTY));
+        payOrder.setApplyNumber(applyAmount);
 
         payOrder.setPostponeDays(req.getPeriod());
         payOrder.setPayCurrency(CurrencyEnum.getDefaultCurrency().name());
