@@ -105,7 +105,7 @@ public class LoanMo9mqListener implements IMqMsgListener{
 
 		String body = msg.getBody();
 		JSONObject remark = JSON.parseObject(body);
-		JSONObject bodyJson = JSON.parseObject(remark.getString("remark"));
+		JSONObject bodyJson = remark.getJSONObject("remark");
 		String status = bodyJson.getString("status");
 		// 放款结算时间
 		Long lendSettleTime = bodyJson.getLong("lendSettleTime");
