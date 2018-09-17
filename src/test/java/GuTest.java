@@ -152,7 +152,7 @@ public class GuTest {
      */
     @Test
     public void orderQuotaList(){
-        //http://localhost/raptorApi/order_quota/list
+        //http://localhost/raptorApi/loan_quota/list
         //http://localhost/raptorApi/system/switch
     }
 
