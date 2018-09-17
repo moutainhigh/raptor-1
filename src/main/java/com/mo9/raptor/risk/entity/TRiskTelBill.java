@@ -1,9 +1,6 @@
 package com.mo9.raptor.risk.entity;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.Date;
 
 /**
@@ -13,11 +10,11 @@ import java.util.Date;
  */
 
 @Entity
-@Table(name = "t_risk_call_bill")
+@Table(name = "t_risk_tel_bill")
 public class TRiskTelBill {
     
     @Id
-    @Column(name = "id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "mobile")
