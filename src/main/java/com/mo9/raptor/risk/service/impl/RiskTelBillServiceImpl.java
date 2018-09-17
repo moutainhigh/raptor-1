@@ -1,11 +1,15 @@
 package com.mo9.raptor.risk.service.impl;
 
+import com.mo9.raptor.bean.req.risk.CallLogBill;
+import com.mo9.raptor.bean.req.risk.CallLogReq;
 import com.mo9.raptor.risk.entity.TRiskTelBill;
 import com.mo9.raptor.risk.repo.RiskTelBillRepository;
 import com.mo9.raptor.risk.service.RiskTelBillService;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author wtwei .
@@ -20,7 +24,35 @@ public class RiskTelBillServiceImpl implements RiskTelBillService {
     private RiskTelBillRepository riskTelBillRepository;
     
     @Override
-    public void save(TRiskTelBill riskTelBill) {
-        riskTelBillRepository.save(riskTelBill);
+    public TRiskTelBill save(TRiskTelBill riskTelBill) {
+        return riskTelBillRepository.save(riskTelBill);
+    }
+
+    @Override
+    public void batchSave(List<TRiskTelBill> riskTelBillList) {
+        riskTelBillRepository.saveAll(riskTelBillList);
+    }
+
+    @Override
+    public List<TRiskTelBill> coverReq2Entity(CallLogReq callLogReq) {
+        List<TRiskTelBill> riskTelBillList = new ArrayList<>();
+        List<CallLogBill> callLogBill = callLogReq.getData().getBill();
+
+        TRiskTelBill riskTelBill = null;
+        for (CallLogBill bill : callLogBill) {
+            riskTelBill = new TRiskTelBill();
+            
+            riskTelBill.setBillAmount(bill.getBill_amount());
+            riskTelBill.setBillZengzhifei(bill.getBill_zengzhifei());
+            riskTelBill.setBillQita(bill.getBill_qita());
+            riskTelBill.setBillPackage(bill.getBill_package());
+            riskTelBill.setBillExtSms(bill.getBill_ext_sms());
+            riskTelBill.setBillDaishoufei(bill.getBill_daishoufei());
+            riskTelBill.setBillMonth(bill.getBill_month());
+            riskTelBill.setBillExtCalls(bill.getBill_ext_calls());
+
+            riskTelBillList.add(riskTelBill);
+        }
+        return riskTelBillList;
     }
 }

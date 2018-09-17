@@ -1,7 +1,8 @@
 package com.mo9.raptor.risk.service;
 
+import com.mo9.raptor.bean.req.risk.CallLogReq;
 import com.mo9.raptor.risk.entity.TRiskTelInfo;
-import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author wtwei .
@@ -10,6 +11,8 @@ import org.springframework.stereotype.Service;
  */
 
 public interface RiskTelInfoService {
-    
-    void save(TRiskTelInfo riskTelInfo);
+
+    TRiskTelInfo save(TRiskTelInfo riskTelInfo);
+
+    TRiskTelInfo coverReq2Entity(CallLogReq callLogReq);
 }
