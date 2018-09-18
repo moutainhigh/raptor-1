@@ -34,6 +34,16 @@ public class UserCertifyInfoServiceImpl implements UserCertifyInfoService {
         userCertifyInfoRepository.save(entity);
     }
 
+    @Override
+    public UserCertifyInfoEntity findByIdCard(String idCard) {
+        return userCertifyInfoRepository.findByIdCard(idCard);
+    }
+
+    @Override
+    public UserCertifyInfoEntity findByOcrIdCard(String ocrIdCard) {
+        return userCertifyInfoRepository.findByOcrIdCard(ocrIdCard);
+    }
+
     private UserCertifyInfoEntity buildModifyCertifyEntity(UserEntity userEntity, UserCertifyInfoEntity entity, ModifyCertifyReq modifyCertifyReq) {
         if(entity == null){
             entity = new UserCertifyInfoEntity();

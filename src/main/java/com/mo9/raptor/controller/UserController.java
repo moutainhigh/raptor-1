@@ -156,11 +156,26 @@ public class UserController {
                 logger.warn("修改账户身份认证信息-->用户不存在");
                 return response.buildFailureResponse(ResCodeEnum.USER_NOT_EXIST);
             }
-            UserCertifyInfoEntity userCertifyInfoEntity = userCertifyInfoService.findByUserCode(userCode);
-            userCertifyInfoService.modifyCertifyInfo(userEntity, userCertifyInfoEntity, modifyCertifyReq);
-            if(!userEntity.getCertifyInfo()){
-                userService.updateMobileContacts(userEntity, true);
+            UserCertifyInfoEntity entity1 = userCertifyInfoService.findByIdCard(modifyCertifyReq.getIdCard());
+            if(entity1 != null){
+                logger.warn("修改账户身份认证信息-->身份证已存在,idCard={}", modifyCertifyReq.getIdCard());
+                return response.buildFailureResponse(ResCodeEnum.IDCARD_IS_EXIST);
             }
+            UserCertifyInfoEntity entity2 = userCertifyInfoService.findByOcrIdCard(modifyCertifyReq.getOcrIdCard());
+            if(entity2 != null){
+                logger.warn("修改账户身份认证信息-->ocr身份证已存在,idCard={}", modifyCertifyReq.getOcrIdCard());
+                return response.buildFailureResponse(ResCodeEnum.OCR_IDCARD_IS_EXIST);
+            }
+            UserCertifyInfoEntity userCertifyInfoEntity = userCertifyInfoService.findByUserCode(userCode);
+            if(userCertifyInfoEntity != null){
+                logger.warn("修改账户身份认证信息-->身份证信息已存在userCode={}", userCode);
+                return response.buildFailureResponse(ResCodeEnum.CARD_CREDIT_IS_EXIST);
+            }
+            userCertifyInfoService.modifyCertifyInfo(userEntity, userCertifyInfoEntity, modifyCertifyReq);
+            userEntity.setCertifyInfo(true);
+            userEntity.setIdCard(modifyCertifyReq.getIdCard());
+            userEntity.setRealName(modifyCertifyReq.getRealName());
+            userService.save(userEntity);
             return response.buildSuccessResponse(true);
         }catch (Exception e){
             logger.error("修改账户身份认证信息-->系统内部异常", e);

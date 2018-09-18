@@ -148,7 +148,7 @@ public class UserControllerTest {
         JSONObject json = new JSONObject();
         json.put("realName", "ukar");
         json.put("ocrRealName", "ukar");
-        json.put("idCard", "789");
+        json.put("idCard", "123456");
         HttpResult httpResult = httpClientApi.doPostJson(localHostUrl + "/user/modify_certify_info", json.toJSONString(), headers);
         System.out.println(httpResult.getCode());
         System.out.println(httpResult.getData());
