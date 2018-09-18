@@ -1,5 +1,8 @@
 package com.mo9.raptor.bean.req.risk;
 
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
+
 /**
  * @author wtwei .
  * @date 2018/9/17 .
@@ -86,5 +89,9 @@ public class CallLogBill {
 
     public void setBill_ext_calls(String bill_ext_calls) {
         this.bill_ext_calls = bill_ext_calls;
+    }
+
+    public String toString(){
+        return ReflectionToStringBuilder.toString(this, ToStringStyle.MULTI_LINE_STYLE);
     }
 }

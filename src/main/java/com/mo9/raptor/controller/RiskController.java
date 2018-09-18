@@ -8,13 +8,16 @@ import com.mo9.raptor.risk.entity.TRiskTelInfo;
 import com.mo9.raptor.risk.service.RiskCallLogService;
 import com.mo9.raptor.risk.service.RiskTelBillService;
 import com.mo9.raptor.risk.service.RiskTelInfoService;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 /**
@@ -37,28 +40,26 @@ public class RiskController {
     @Resource
     private RiskCallLogService riskCallLogService;
 
-    @RequestMapping(value = "/save_call_log")
+    @PostMapping(value = "/save_call_log")
     public String saveCallLogResult(@RequestBody CallLogReq callLogReq){
-        try{
-            if (callLogReq.getStatus() != 0){
-                logger.error(">>>>>>>>>>>第三方通话记录爬虫失败");
-            }
-            //机主信息
-            TRiskTelInfo riskTelInfo = riskTelInfoService.coverReq2Entity(callLogReq);
-            riskTelInfoService.save(riskTelInfo);
-            
-            //账单信息
-            List<TRiskTelBill> riskTelBillList = riskTelBillService.coverReq2Entity(callLogReq);
-            riskTelBillService.batchSave(riskTelBillList);
-            
-            //通话记录
-            List<TRiskCallLog> riskCallLogList = riskCallLogService.coverReqToEntity(callLogReq);
-            riskCallLogService.batchSave(riskCallLogList);
-            
-        }catch (Exception e){
-            logger.error(">>>>>>>>>>>>>保存第三方通话记录爬虫结果失败", e);
-            return "error";
+        logger.info("----收到通话记录post数据-----");
+        logger.info(callLogReq.toString());
+        
+        if (callLogReq.getStatus() != 0){
+            logger.error(">>>>>>>>>>>第三方通话记录爬虫失败");
         }
+        //机主信息
+        TRiskTelInfo riskTelInfo = riskTelInfoService.coverReq2Entity(callLogReq);
+        riskTelInfoService.save(riskTelInfo);
+        
+        //账单信息
+        List<TRiskTelBill> riskTelBillList = riskTelBillService.coverReq2Entity(callLogReq);
+        riskTelBillService.batchSave(riskTelBillList);
+        
+        //通话记录
+        List<TRiskCallLog> riskCallLogList = riskCallLogService.coverReqToEntity(callLogReq);
+        riskCallLogService.batchSave(riskCallLogList);
+            
         return "ok";
     }
 }
