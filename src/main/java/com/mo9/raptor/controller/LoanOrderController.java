@@ -188,6 +188,7 @@ public class LoanOrderController {
 
         LoanOrderRes res = new LoanOrderRes();
         res.setOrderId(loanOrderEntity.getOrderId());
+        res.setActuallyGet(loanOrderEntity.getLoanNumber().subtract(loanOrderEntity.getChargeValue()).toPlainString());
         res.setRepayAmount(realItem.sum().toPlainString());
         res.setRepayTime(loanOrderEntity.getRepaymentDate());
         res.setState(loanOrderEntity.getStatus());
@@ -195,6 +196,7 @@ public class LoanOrderController {
         LendOrderEntity lendOrderEntity = lendOrderService.getByOrderId(loanOrderEntity.getOrderId());
         res.setReceiveBankCard(lendOrderEntity.getBankCard());
         res.setRenew(calculator.getRenew(loanOrderEntity));
+        res.setAgreementUrl("https://www.baidu.com");
         return response.buildSuccessResponse(res);
     }
 

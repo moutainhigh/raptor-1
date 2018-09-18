@@ -93,7 +93,7 @@ public class UserController {
             entity.put("userId",userEntity.getId());
             entity.put("mobile",userEntity.getMobile());
             entity.put("accessToken",token);
-            entity.put("accessCode",userEntity.getUserCode());
+            entity.put("accountCode",userEntity.getUserCode());
             resMap.put("entity",entity);
             userEntity.setLastLoginTime(System.currentTimeMillis());
             userEntity.setUserIp(IpUtils.getRemoteHost(request));
