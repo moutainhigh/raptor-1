@@ -26,7 +26,7 @@ import java.util.List;
  * @time 15:09 .
  */
 
-@RestController()
+@RestController
 @RequestMapping("/risk")
 public class RiskController {
     private static Logger logger = LoggerFactory.getLogger(RiskController.class);
@@ -60,6 +60,9 @@ public class RiskController {
         List<TRiskCallLog> riskCallLogList = riskCallLogService.coverReqToEntity(callLogReq);
         riskCallLogService.batchSave(riskCallLogList);
             
+        //todo 保存完成后，数据传给忆楠一份
+        
+        
         return "ok";
     }
 }
