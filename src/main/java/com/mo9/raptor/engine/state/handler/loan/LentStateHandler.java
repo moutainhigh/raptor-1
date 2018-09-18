@@ -66,31 +66,10 @@ public class LentStateHandler implements IStateHandler<LoanOrderEntity> {
             Item realItem = loanCalculator.realItem(System.currentTimeMillis(), loanOrder);
             loanOrder = loanCalculator.itemEntry(loanOrder, payType, payOrderEntity.getPostponeDays(), realItem, entryItem);
 
-            // 这里啥都有, 就在这儿创建明细吧
-            List<PayOrderDetailEntity> entityList = new ArrayList<PayOrderDetailEntity>();
-            for (Map.Entry<FieldTypeEnum, Field> entry : entryItem.entrySet()) {
-                FieldTypeEnum fieldTypeEnum = entry.getKey();
-                BigDecimal fieldNumber = realItem.getFieldNumber(fieldTypeEnum);
-                if (BigDecimal.ZERO.compareTo(fieldNumber) >= 0) {
-                    continue;
-                }
-                PayOrderDetailEntity entity = new PayOrderDetailEntity();
-                entity.setOwnerId(loanOrder.getOwnerId());
-                entity.setLoanOrderId(loanOrder.getOrderId());
-                entity.setPayOrderId(payOrderId);
-                entity.setPayCurrency(payOrderEntity.getPayCurrency());
-                entity.setItemType(entryItem.getItemType().name());
-                entity.setRepayDay(entryItem.getRepayDate());
-                entity.setField(fieldTypeEnum.name());
-                entity.setShouldPay(fieldNumber);
-                entity.setPaid(entryItem.getFieldNumber(fieldTypeEnum));
-                entity.create();
-                entityList.add(entity);
-            }
-            payOrderDetailService.saveItem(entityList);
-            BigDecimal paid = entryItem.sum();
             // 还款合法, 则向还款订单发送入账反馈
-            actionExecutor.append(new EntryResponseAction(loanEntryEvent.getPayOrderId(), paid, payEventLauncher));
+            actionExecutor.append(new EntryResponseAction(
+                    loanEntryEvent.getPayOrderId(), loanOrder.getOrderId(), realItem, entryItem,
+                    loanOrder.getOwnerId(), payOrderEntity.getPayCurrency(), payEventLauncher, payOrderDetailService));
         } else {
             throw new InvalidEventException("贷款订单状态与事件类型不匹配，状态：" + loanOrder.getStatus() + "，事件：" + event);
         }
