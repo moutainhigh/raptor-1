@@ -1,11 +1,11 @@
 package com.mo9.raptor.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.mo9.raptor.bean.ReqHeaderParams;
 import com.mo9.raptor.enums.*;
 import com.mo9.raptor.redis.RedisParams;
 import com.mo9.raptor.redis.RedisServiceApi;
 import com.mo9.raptor.service.CaptchaService;
+import com.mo9.raptor.utils.IpUtils;
 import com.mo9.raptor.utils.MessageSend;
 import com.mo9.raptor.utils.RandomUtils;
 import org.apache.commons.lang.StringUtils;
@@ -59,7 +59,7 @@ public class CaptchaServiceImpl implements CaptchaService {
             return true;
         }
         //获取真实ip
-        String clientIp = getRemoteHost(request);
+        String clientIp = IpUtils.getRemoteHost(request);
         logger.info("ip访问频率限制，获取到客户端真实ip={}", clientIp);
         //过滤掉公司ip限制
         List<String> ips = Arrays.asList("127.0.0.1", "192.168.3.31", "180.169.230.186", "192.168.12.52", "192.168.12.118");
@@ -160,27 +160,7 @@ public class CaptchaServiceImpl implements CaptchaService {
         return true;
     }
 
-    private String getRemoteHost(HttpServletRequest request) {
-        String unknown = "unknown";
-        String localIp = "0:0:0:0:0:0:0:1";
-        String ip = request.getHeader(ReqHeaderParams.X_FORWARDED_FOR);
-        if (ip == null || ip.length() == 0 || unknown.equalsIgnoreCase(ip)) {
-            ip = request.getHeader(ReqHeaderParams.PROXY_CLIENT_IP);
-        }
-        if (ip == null || ip.length() == 0 || unknown.equalsIgnoreCase(ip)) {
-            ip = request.getHeader(ReqHeaderParams.WL_PROXY_CLIENT_IP);
-        }
-        if (ip == null || ip.length() == 0 || unknown.equalsIgnoreCase(ip)) {
-            ip = request.getHeader(ReqHeaderParams.HTTP_CLIENT_IP);
-        }
-        if (ip == null || ip.length() == 0 || unknown.equalsIgnoreCase(ip)) {
-            ip = request.getHeader(ReqHeaderParams.X_REAL_IP);
-        }
-        if (ip == null || ip.length() == 0 || unknown.equalsIgnoreCase(ip)) {
-            ip = request.getRemoteAddr();
-        }
-        return localIp.equals(ip) ? "127.0.0.1" : ip;
-    }
+
 
     private String getRedisKey(String redisKey, String receive, CaptchaBusinessEnum businessCode) {
         return redisKey + businessCode + "_" + receive;
