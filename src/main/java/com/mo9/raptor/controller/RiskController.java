@@ -1,6 +1,7 @@
 package com.mo9.raptor.controller;
 
 import com.alibaba.fastjson.JSONObject;
+import com.aliyun.oss.OSSClient;
 import com.mo9.raptor.bean.req.risk.CallLogReq;
 import com.mo9.raptor.risk.entity.TRiskCallLog;
 import com.mo9.raptor.risk.entity.TRiskTelBill;
@@ -8,9 +9,12 @@ import com.mo9.raptor.risk.entity.TRiskTelInfo;
 import com.mo9.raptor.risk.service.RiskCallLogService;
 import com.mo9.raptor.risk.service.RiskTelBillService;
 import com.mo9.raptor.risk.service.RiskTelInfoService;
+import com.mo9.raptor.utils.oss.OSSFileUpload;
+import com.mo9.raptor.utils.oss.OSSProperties;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,10 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -48,6 +49,12 @@ public class RiskController {
     
     @Resource
     private RiskCallLogService riskCallLogService;
+    
+    @Resource
+    private OSSProperties ossProperties;
+
+    @Value("${raptor.sockpuppet}")
+    private String sockpuppet;
 
     @PostMapping(value = "/save_call_log")
     public String saveCallLogResult(@RequestBody CallLogReq callLogReq){
@@ -69,35 +76,31 @@ public class RiskController {
         List<TRiskCallLog> riskCallLogList = riskCallLogService.coverReqToEntity(callLogReq);
         riskCallLogService.batchSave(riskCallLogList);
             
-        writeFile2Disk(callLogReq.toString(), callLogReq.getData().getTel());
+        this.uploadFile2Oss(callLogReq.toString(), callLogReq.getData().getTel());
         //todo 保存完成后，数据传给忆楠一份
         
         
         return "ok";
     }
     
-    private void writeFile2Disk(String str, String mobile){
-        Date date = new Date();
-        SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd");
-        String dirName = sf.format(date);
-        String dir = FILE_PATH + dirName;
-
-        File dirF = new File(dir);
-        if (!dirF.exists()){
-            dirF.mkdir();
-        }
+    private void uploadFile2Oss(String str, String mobile){
         
         try {
-            File file = new File(dirF + File.separator + mobile + ".json");
-            if (!file.exists()){
-                file.createNewFile();
-            }
+            String fileName = sockpuppet + "-" + mobile + ".json";
             
-            FileOutputStream outputStream = new FileOutputStream(file);
-            outputStream.write(str.getBytes());
-            
-            outputStream.close();
-        } catch (IOException e) {
+            new OSSClient(ossProperties.getWriteEndpoint(), ossProperties.getAccessKeyId(), ossProperties.getAccessKeySecret())
+                    .putObject(
+                        ossProperties.getBucketName(),
+                        fileName,
+                        new ByteArrayInputStream(str.getBytes())
+            );
+
+            StringBuilder sb = new StringBuilder();
+            sb.append(ossProperties.getHttpPrefix())
+                    .append(ossProperties.getReadEndpoint().substring(ossProperties.getHttpPrefix().length()))
+                    .append("/").append(fileName);
+            logger.info("CallLog文件上传成功：" + sb.toString());
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
