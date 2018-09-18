@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by jyou on 2018/9/17.
@@ -44,8 +46,9 @@ public class FileController {
      * @return
      */
     @PostMapping("/upload")
-    public BaseResponse<String> fileUpload(HttpServletRequest request, @Validated FileReq fileReq){
-        BaseResponse<String> response = new BaseResponse<String>();
+    public BaseResponse<Map<String, Object>> fileUpload(HttpServletRequest request, @Validated FileReq fileReq){
+        BaseResponse<Map<String, Object>> response = new BaseResponse<Map<String, Object>>();
+        Map<String, Object> map = new HashMap<String, Object>();
         String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
         MultipartFile file = fileReq.getFile();
         try{
@@ -60,7 +63,8 @@ public class FileController {
             }
             FileStreamTransformer fileStreamTransformer = SpringMultipartFileTransformer.transformer(file);
             String url = ossFileUpload.upload(fileStreamTransformer);
-            return response.buildSuccessResponse(url);
+            map.put("path", url);
+            return response.buildSuccessResponse(map);
         }catch (Exception e){
             logger.error("文件上传出现异常-->系统内部异常", e);
             return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
