@@ -6,6 +6,7 @@ import com.mo9.raptor.repository.UserRepository;
 import com.mo9.raptor.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author zma
@@ -15,7 +16,7 @@ import org.springframework.stereotype.Service;
 public class UserServiceImpl implements UserService {
 
     @Autowired
-    UserRepository userRepository;
+    private UserRepository userRepository;
 
     @Override
     public UserEntity findByUserCode(String userCode) {
@@ -46,5 +47,19 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserEntity findByUserCodeAndStatus(String userCode, StatusEnum status) {
         return userRepository.findByUserCodeAndStatus(userCode, status.name());
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateCallHistory(UserEntity userEntity, boolean b) {
+        userEntity.setCallHistory(b);
+        userRepository.save(userEntity);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateCertifyInfo(UserEntity userEntity, boolean b) {
+        userEntity.setCertifyInfo(true);
+        userRepository.save(userEntity);
     }
 }

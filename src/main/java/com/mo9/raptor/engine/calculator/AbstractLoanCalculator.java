@@ -97,6 +97,8 @@ public abstract class AbstractLoanCalculator implements ILoanCalculator {
         BigDecimal originalPaid = paid.multiply(BigDecimal.ONE);
         Item entryItem = new Item();
         Item realItem = this.realItem(date, loanOrder);
+        entryItem.setRepayDate(realItem.getRepayDate());
+        entryItem.setItemType(realItem.getItemType());
         if (payType.equals(PayTypeEnum.REPAY_POSTPONE.name())) {
             Field penaltyField = realItem.get(FieldTypeEnum.PENALTY);
             if (penaltyField != null) {

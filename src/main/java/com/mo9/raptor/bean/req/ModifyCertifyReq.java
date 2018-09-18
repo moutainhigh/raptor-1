@@ -1,149 +1,101 @@
-package com.mo9.raptor.entity;
-
-import javax.persistence.*;
+package com.mo9.raptor.bean.req;
 
 /**
- * @author zma
- * @date 2018/9/13
+ * Created by jyou on 2018/9/17.
+ *
+ * @author jyou
  */
-@Entity
-@Table(name = "t_raptor_user_certify_info")
-public class UserCertifyInfoEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    @Column(name = "user_code")
-    private String userCode;
+public class ModifyCertifyReq {
 
     /**
-     * 真实姓名
+     *真实姓名
      */
-    @Column(name = "real_name")
     private String realName;
 
     /**
-     * 身份证
+     *身份证
      */
-    @Column(name = "id_card")
     private String idCard;
 
     /**
-     * 识别地址
+     *发证机关
      */
-    @Column(name = "issuing_organ")
     private String issuingOrgan;
 
     /**
-     * 有效期开始时间
+     *有效期开始时间
      */
-    @Column(name = "validity_start_period")
     private String validityStartPeriod;
 
     /**
-     * 有效期结束时间
+     *有效期结束时间
      */
-    @Column(name = "validity_end_period")
     private String validityEndPeriod;
 
     /**
-     * 0: 其他，1: 长期
+     *"0: 其他，1: 长期"
      */
-    @Column(name = "type")
     private Integer type;
 
     /**
-     * 身份证正面照片地址
+     *身份证正面照片地址
      */
-    @Column(name = "account_front_img")
     private String accountFrontImg;
 
     /**
-     * 身份证背面照片地址
+     *身份证反面照片地址
      */
-    @Column(name = "account_back_img")
     private String accountBackImg;
 
     /**
-     * 账户ocr照片
+     *账户ocr照片
      */
-    @Column(name = "account_ocr")
     private String accountOcr;
 
     /**
-     * ocr识别姓名
+     *识别真实姓名
      */
-    @Column(name = "ocr_real_name")
     private String ocrRealName;
 
     /**
-     * orc识别身份证号
+     *识别身份证
      */
-    @Column(name = "ocr_id_card")
     private String ocrIdCard;
 
     /**
-     * 识别签发地
+     *识别签发地
      */
-    @Column(name = "ocr_issue_at")
     private String ocrIssueAt;
 
     /**
-     * orc识别有效开始日期
+     *识别身份有效期起始日期
      */
-    @Column(name = "ocr_duration_start_time")
     private String ocrDurationStartTime;
 
     /**
-     * orc识别有效结束日期
+     *识别身份有效期结束日期
      */
-    @Column(name = "ocr_duration_end_time")
     private String ocrDurationEndTime;
 
     /**
-     * orc识别性别
+     *识别性别(0 : 男, 1 : 女, 2 : 未知)
      */
-    @Column(name = "ocr_gender")
     private Integer ocrGender;
 
     /**
-     * orc识别民族
+     *识别民族
      */
-    @Column(name = "ocr_nationality")
     private String ocrNationality;
 
     /**
-     * orc识别生日
+     *识别生日
      */
-    @Column(name = "ocr_birthday")
     private String ocrBirthday;
 
     /**
-     * orc识别身份地址
+     *识别地址
      */
-    @Column(name = "ocr_id_card_address")
     private String ocrIdCardAddress;
-
-    @Column(name = "update_time")
-    private Long updateTime;
-
-    @Column(name = "create_time")
-    private Long createTime;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getUserCode() {
-        return userCode;
-    }
-
-    public void setUserCode(String userCode) {
-        this.userCode = userCode;
-    }
 
     public String getRealName() {
         return realName;
@@ -287,21 +239,5 @@ public class UserCertifyInfoEntity {
 
     public void setOcrIdCardAddress(String ocrIdCardAddress) {
         this.ocrIdCardAddress = ocrIdCardAddress;
-    }
-
-    public Long getUpdateTime() {
-        return updateTime;
-    }
-
-    public void setUpdateTime(Long updateTime) {
-        this.updateTime = updateTime;
-    }
-
-    public Long getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(Long createTime) {
-        this.createTime = createTime;
     }
 }

@@ -80,7 +80,7 @@ public class LoanOrderController {
 
         UserEntity user = userService.findByUserCodeAndStatus(userCode, StatusEnum.PASSED);
         if (user == null) {
-            return response.buildFailureResponse(ResCodeEnum.USER__NOT_EXIST);
+            return response.buildFailureResponse(ResCodeEnum.USER_NOT_EXIST);
         }
         LoanOrderEntity loanOrderEntity = loanOrderService.getLastIncompleteOrder(userCode);
         if (loanOrderEntity != null) {

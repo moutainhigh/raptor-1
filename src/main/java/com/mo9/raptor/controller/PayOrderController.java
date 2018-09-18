@@ -24,6 +24,7 @@ import com.mo9.raptor.service.ChannelService;
 import com.mo9.raptor.service.PayOrderLogService;
 import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.IDWorker;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,7 +86,7 @@ public class PayOrderController {
         // 用户没删就行, 拉黑也能还
         UserEntity user = userService.findByUserCodeAndDeleted(userCode, false);
         if (user == null) {
-            return response.buildFailureResponse(ResCodeEnum.USER__NOT_EXIST);
+            return response.buildFailureResponse(ResCodeEnum.USER_NOT_EXIST);
         }
 
         // 检查可用渠道
@@ -155,7 +156,7 @@ public class PayOrderController {
         // 用户没删就行, 拉黑也能还
         UserEntity user = userService.findByUserCodeAndDeleted(userCode, false);
         if (user == null) {
-            return response.buildFailureResponse(ResCodeEnum.USER__NOT_EXIST);
+            return response.buildFailureResponse(ResCodeEnum.USER_NOT_EXIST);
         }
 
         // 检查可用渠道
@@ -252,15 +253,19 @@ public class PayOrderController {
         // 重新查询Log, 返回url
         PayOrderLogEntity savedOrderLog = payOrderLogService.getByPayOrderId(payOrderId);
         String channelSyncResponse = savedOrderLog.getChannelSyncResponse();
-        JSONObject jsonObject = JSONObject.parseObject(channelSyncResponse);
-        String code = jsonObject.getString("code");
-        if ("0000".equals(code)) {
-            JSONObject data = jsonObject.getJSONObject("data");
-            String url = data.getString("result");
-            res.setUseType(ChannelUseType.LINK.getDesc());
-            res.setResult(url);
-            res.setState(true);
-            res.setChannelType(channelId);
+        if (StringUtils.isNotBlank(channelSyncResponse)) {
+            JSONObject jsonObject = JSONObject.parseObject(channelSyncResponse);
+            String code = jsonObject.getString("code");
+            if ("0000".equals(code)) {
+                JSONObject data = jsonObject.getJSONObject("data");
+                String url = data.getString("result");
+                res.setUseType(ChannelUseType.LINK.getDesc());
+                res.setResult(url);
+                res.setState(true);
+                res.setChannelType(channelId);
+            } else {
+                res.setState(false);
+            }
         } else {
             res.setState(false);
         }

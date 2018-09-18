@@ -185,8 +185,8 @@ CREATE TABLE `t_raptor_message_notify` (
 ) ENGINE=InnoDB AUTO_INCREMENT=13874 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='消息发送记录表';
 
 /**************************用户认证信息表*************************/
-DROP TABLE IF EXISTS `t_raptor_certify_info`;
-CREATE TABLE `t_raptor_certify_info` (
+DROP TABLE IF EXISTS `t_raptor_user_certify_info`;
+CREATE TABLE `t_raptor_user_certify_info` (
   `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '真实姓名',
   `user_code` varchar(50) NOT NULL,
   `real_name` varchar(20) DEFAULT NULL,
@@ -194,7 +194,7 @@ CREATE TABLE `t_raptor_certify_info` (
   `issuing_organ` varchar(50) DEFAULT NULL COMMENT '识别地址',
   `validity_start_period` varchar(50) DEFAULT NULL COMMENT '有效期开始时间(yyyy-mm-dd)',
   `validity_end_period` varchar(50) DEFAULT NULL COMMENT '有效期结束时间(yyyy-mm-dd)',
-  `type` varchar(20) DEFAULT NULL COMMENT '"0: 其他，1: 长期"',
+  `type` tinyint(1) DEFAULT NULL COMMENT '"0: 其他，1: 长期"',
   `account_front_img` varchar(255) DEFAULT NULL COMMENT '身份证正面照片地址',
   `account_back_img` varchar(255) DEFAULT NULL COMMENT '身份证反面照片地址',
   `account_ocr` varchar(255) DEFAULT NULL COMMENT '账户ocr照片',
@@ -203,7 +203,7 @@ CREATE TABLE `t_raptor_certify_info` (
   `ocr_issue_at` varchar(50) DEFAULT NULL COMMENT '识别签发地',
   `ocr_duration_start_time` varchar(20) DEFAULT NULL COMMENT '识别身份有效期起始日期(yyyy-mm-dd)',
   `ocr_duration_end_time` varchar(20) DEFAULT NULL COMMENT '识别身份有效期结束日期(yyyy-mm-dd)',
-  `ocr_gender` varchar(10) DEFAULT NULL COMMENT '识别性别',
+  `ocr_gender` tinyint(1) DEFAULT NULL COMMENT '识别性别',
   `ocr_nationality` varchar(10) DEFAULT NULL COMMENT '识别民族',
   `ocr_birthday` varchar(20) DEFAULT NULL COMMENT '识别生日(1992-05-01)',
   `ocr_id_card_address` varchar(255) DEFAULT NULL,
@@ -212,17 +212,15 @@ CREATE TABLE `t_raptor_certify_info` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户认证信息表';
 /**************************个人银行卡相关表*************************/
-DROP TABLE IF EXISTS `t_bank`;
-CREATE TABLE `t_bank` (
+DROP TABLE IF EXISTS `t_raptor_bank`;
+CREATE TABLE `t_raptor_bank` (
 `id`  bigint(20) NOT NULL AUTO_INCREMENT ,
+`user_code`  varchar(64) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '用户编号' ,
 `mobile`  varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL ,
-`user_code`  varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL ,
 `bank_no`  varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '银行卡' ,
 `bank_name`  varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL ,
 `card_id`  varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL ,
 `user_name`  varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL ,
-`channel`  varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL ,
-`type`  varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '类型 (放款 , 还款)' ,
 `create_time`  bigint(20) NULL DEFAULT NULL ,
 `update_time`  bigint(20) NULL DEFAULT NULL ,
 PRIMARY KEY (`id`),
@@ -232,5 +230,26 @@ INDEX `bank_no` (`bank_no`) USING BTREE
 ENGINE=InnoDB
 DEFAULT CHARACTER SET=utf8 COLLATE=utf8_general_ci
 AUTO_INCREMENT=7
-ROW_FORMAT=DYNAMIC
+ROW_FORMAT=COMPACT
 ;
+
+/**************************放款产品表相关表*************************/
+DROP TABLE IF EXISTS `t_raptor_loan_product`;
+CREATE TABLE `t_raptor_loan_product` (
+`id`  bigint(20) NOT NULL ,
+`amount`  decimal(18,8) NULL DEFAULT NULL ,
+`period`  int(8) NULL DEFAULT NULL COMMENT '期限' ,
+`interest`  decimal(18,8) NULL DEFAULT NULL COMMENT '利息' ,
+`actually_get_amount`  decimal(18,8) NULL DEFAULT NULL COMMENT '实际到账金额' ,
+`renewal_base_amount`  decimal(18,8) NULL DEFAULT NULL COMMENT '类型' ,
+`penalty_for_day`  decimal(18,8) NULL DEFAULT NULL COMMENT '每日罚息' ,
+`is_delete`  tinyint(4) NULL DEFAULT NULL COMMENT '是否删除' ,
+`create_time`  bigint(20) NULL DEFAULT NULL ,
+`update_time`  bigint(20) NULL DEFAULT NULL ,
+PRIMARY KEY (`id`)
+)
+ENGINE=InnoDB
+DEFAULT CHARACTER SET=latin1 COLLATE=latin1_swedish_ci
+ROW_FORMAT=COMPACT
+;
+

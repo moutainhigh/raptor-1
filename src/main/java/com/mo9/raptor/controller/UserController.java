@@ -4,6 +4,8 @@ import com.mo9.raptor.bean.BaseResponse;
 import com.mo9.raptor.bean.ReqHeaderParams;
 import com.mo9.raptor.bean.req.BankReq;
 import com.mo9.raptor.bean.req.LoginByCodeReq;
+import com.mo9.raptor.bean.req.ModifyCertifyReq;
+import com.mo9.raptor.entity.UserCertifyInfoEntity;
 import com.mo9.raptor.bean.res.AccountBankCardRes;
 import com.mo9.raptor.bean.res.AuditStatusRes;
 import com.mo9.raptor.entity.BankEntity;
@@ -14,6 +16,7 @@ import com.mo9.raptor.redis.RedisParams;
 import com.mo9.raptor.redis.RedisServiceApi;
 import com.mo9.raptor.service.BankService;
 import com.mo9.raptor.service.CaptchaService;
+import com.mo9.raptor.service.UserCertifyInfoService;
 import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.RegexUtils;
 import org.apache.commons.lang.StringUtils;
@@ -55,6 +58,9 @@ public class UserController {
 
     @Autowired
     private BankService bankService ;
+
+    @Resource
+    private UserCertifyInfoService userCertifyInfoService;
 
     @RequestMapping(value = "/login_by_code")
     public BaseResponse loginByCode(@RequestBody @Validated LoginByCodeReq loginByCodeReq, HttpServletRequest request) {
@@ -130,6 +136,59 @@ public class UserController {
             return response;
         }
         return response;
+    }
+
+    /**
+     * 修改账户身份认证信息
+     * @param request
+     * @return
+     */
+    @PostMapping(value = "/modify_certify_info")
+    public BaseResponse<Boolean> modifyCertifyInfo(HttpServletRequest request, @RequestBody ModifyCertifyReq modifyCertifyReq){
+        BaseResponse response = new BaseResponse();
+        String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
+        try{
+            UserEntity userEntity = userService.findByUserCodeAndDeleted(userCode, false);
+            if(userEntity == null ){
+                logger.warn("修改账户身份认证信息-->用户不存在");
+                return response.buildFailureResponse(ResCodeEnum.USER_NOT_EXIST);
+            }
+            UserCertifyInfoEntity userCertifyInfoEntity = userCertifyInfoService.findByUserCode(userCode);
+            userCertifyInfoService.modifyCertifyInfo(userEntity, userCertifyInfoEntity, modifyCertifyReq);
+            if(!userEntity.getCertifyInfo()){
+                userService.updateCertifyInfo(userEntity, true);
+            }
+            return response.buildSuccessResponse(true);
+        }catch (Exception e){
+            logger.error("修改账户身份认证信息-->系统内部异常", e);
+            return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
+        }
+    }
+
+
+    /**
+     * 登出
+     * @param request
+     * @return
+     */
+    @PostMapping(value = "/logout")
+    public BaseResponse<Boolean> logout(HttpServletRequest request){
+        BaseResponse<Boolean> response = new BaseResponse<Boolean>();
+        String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
+        String clientId = request.getHeader(ReqHeaderParams.CLIENT_ID);
+        try{
+            UserEntity userEntity = userService.findByUserCodeAndDeleted(userCode, false);
+            if(userEntity == null ){
+                logger.warn("用户登出-->用户不存在");
+                return response.buildFailureResponse(ResCodeEnum.USER_NOT_EXIST);
+            }
+            redisServiceApi.remove(RedisParams.getAccessToken(clientId,userCode), raptorRedis);
+            return response.buildSuccessResponse(true);
+        }catch (Exception e){
+            logger.error("用户登出-->系统内部异常", e);
+            return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
+        }
+
     }
 
     /**
