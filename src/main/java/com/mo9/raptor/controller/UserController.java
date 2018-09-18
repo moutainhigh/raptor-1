@@ -147,7 +147,7 @@ public class UserController {
      * @return
      */
     @PostMapping(value = "/modify_certify_info")
-    public BaseResponse<Boolean> modifyCertifyInfo(HttpServletRequest request, @RequestBody ModifyCertifyReq modifyCertifyReq){
+    public BaseResponse<Boolean> modifyCertifyInfo(HttpServletRequest request, @RequestBody @Validated ModifyCertifyReq modifyCertifyReq){
         BaseResponse response = new BaseResponse();
         String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
         try{
@@ -157,20 +157,11 @@ public class UserController {
                 return response.buildFailureResponse(ResCodeEnum.USER_NOT_EXIST);
             }
             UserCertifyInfoEntity entity1 = userCertifyInfoService.findByIdCard(modifyCertifyReq.getIdCard());
-            if(entity1 != null){
+            if(entity1 != null && !userCode.equals(entity1.getUserCode())){
                 logger.warn("修改账户身份认证信息-->身份证已存在,idCard={}", modifyCertifyReq.getIdCard());
                 return response.buildFailureResponse(ResCodeEnum.IDCARD_IS_EXIST);
             }
-            UserCertifyInfoEntity entity2 = userCertifyInfoService.findByOcrIdCard(modifyCertifyReq.getOcrIdCard());
-            if(entity2 != null){
-                logger.warn("修改账户身份认证信息-->ocr身份证已存在,idCard={}", modifyCertifyReq.getOcrIdCard());
-                return response.buildFailureResponse(ResCodeEnum.OCR_IDCARD_IS_EXIST);
-            }
             UserCertifyInfoEntity userCertifyInfoEntity = userCertifyInfoService.findByUserCode(userCode);
-            if(userCertifyInfoEntity != null){
-                logger.warn("修改账户身份认证信息-->身份证信息已存在userCode={}", userCode);
-                return response.buildFailureResponse(ResCodeEnum.CARD_CREDIT_IS_EXIST);
-            }
             userCertifyInfoService.modifyCertifyInfo(userEntity, userCertifyInfoEntity, modifyCertifyReq);
             userEntity.setCertifyInfo(true);
             userEntity.setIdCard(modifyCertifyReq.getIdCard());
