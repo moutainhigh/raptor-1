@@ -1,5 +1,8 @@
 package com.mo9.raptor.bean.req.risk;
 
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
+
 import java.util.List;
 
 /**
@@ -40,6 +43,10 @@ public class CallLogReq{
 
     public void setData(CallLogData data) {
         this.data = data;
+    }
+    
+    public String toString(){
+        return ReflectionToStringBuilder.toString(this, ToStringStyle.MULTI_LINE_STYLE);
     }
 }
 

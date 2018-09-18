@@ -1,6 +1,8 @@
 package com.mo9.raptor.bean.req.risk;
 
 import com.mo9.raptor.risk.entity.TRiskTelBill;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 
 import java.util.List;
 
@@ -69,5 +71,9 @@ public class CallLogData {
 
     public void setTel_info(TelInfo tel_info) {
         this.tel_info = tel_info;
+    }
+
+    public String toString(){
+        return ReflectionToStringBuilder.toString(this, ToStringStyle.MULTI_LINE_STYLE);
     }
 }
