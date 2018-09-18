@@ -26,7 +26,7 @@ import java.util.List;
  * @time 15:09 .
  */
 
-@RestController()
+@RestController
 @RequestMapping("/risk")
 public class RiskController {
     private static Logger logger = LoggerFactory.getLogger(RiskController.class);
