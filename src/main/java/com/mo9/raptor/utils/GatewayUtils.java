@@ -60,7 +60,7 @@ public class GatewayUtils {
         Map<String, String> payParams = new HashMap<String, String>();
         payParams.put("bizSys", "RAPTOR");
         //订单号
-        payParams.put("invoice",  lendOrder.getOrderId());
+        payParams.put("invoice",  lendOrder.getApplyUniqueCode());
         payParams.put("notifyUrl", ""); //使用mq，则可以不传？
         payParams.put("cardNo",lendOrder.getBankCard()); // 银行卡
         payParams.put("usrName", lendOrder.getUserName()); //姓名
