@@ -11,7 +11,7 @@ import java.util.List;
  * @date 2018/9/17 .
  * @time 16:00 .
  */
-public class CallLogData {
+public class Data {
     private String tel;
 
     private String sid;
@@ -20,7 +20,7 @@ public class CallLogData {
 
     private List<CallLog> call_log;
 
-    private List<CallLogBill> bill;
+    private List<Bill> bill;
 
     private TelInfo tel_info;
 
@@ -57,11 +57,11 @@ public class CallLogData {
         this.call_log = call_log;
     }
 
-    public List<CallLogBill> getBill() {
+    public List<Bill> getBill() {
         return bill;
     }
 
-    public void setBill(List<CallLogBill> bill) {
+    public void setBill(List<Bill> bill) {
         this.bill = bill;
     }
 
@@ -74,6 +74,6 @@ public class CallLogData {
     }
 
     public String toString(){
-        return ReflectionToStringBuilder.toString(this, ToStringStyle.MULTI_LINE_STYLE);
+        return com.alibaba.fastjson.JSON.toJSONString(this);
     }
 }

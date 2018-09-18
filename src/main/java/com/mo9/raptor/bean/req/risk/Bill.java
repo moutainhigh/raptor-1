@@ -8,7 +8,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
  * @date 2018/9/17 .
  * @time 16:01 .
  */
-public class CallLogBill {
+public class Bill {
     String bill_amount;
     String bill_zengzhifei;
     String bill_qita;
@@ -91,7 +91,18 @@ public class CallLogBill {
         this.bill_ext_calls = bill_ext_calls;
     }
 
-    public String toString(){
-        return ReflectionToStringBuilder.toString(this, ToStringStyle.MULTI_LINE_STYLE);
+    @Override
+    public String toString() {
+        return "bill: {" +
+                "bill_amount='" + bill_amount + '\'' +
+                ", bill_zengzhifei='" + bill_zengzhifei + '\'' +
+                ", bill_qita='" + bill_qita + '\'' +
+                ", bill_package='" + bill_package + '\'' +
+                ", bill_ext_sms='" + bill_ext_sms + '\'' +
+                ", bill_daishoufei='" + bill_daishoufei + '\'' +
+                ", bill_ext_data='" + bill_ext_data + '\'' +
+                ", bill_month='" + bill_month + '\'' +
+                ", bill_ext_calls='" + bill_ext_calls + '\'' +
+                '}';
     }
 }
