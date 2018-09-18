@@ -11,3 +11,6 @@ CREATE TABLE `t_raptor_card_bin_info` (
   PRIMARY KEY (`id`),
   INDEX `CARD_PREFIX` (`CARD_PREFIX`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='银行卡bin表';
+
+ALTER TABLE `t_raptor_lend_order`
+  ADD COLUMN `fail_reason`  VARCHAR(1024) COMMENT '失败原因' AFTER `channel`;

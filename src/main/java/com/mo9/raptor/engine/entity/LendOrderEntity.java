@@ -69,6 +69,9 @@ public class LendOrderEntity extends AbstractOrderEntity {
     @Column(name = "channel_response_time")
     private Long chanelResponseTime;
 
+    @Column(name = "fail_reason")
+    private String failReason;
+
     public String getApplyUniqueCode() {
         return applyUniqueCode;
     }
@@ -171,5 +174,13 @@ public class LendOrderEntity extends AbstractOrderEntity {
 
     public void setChanelResponseTime(Long chanelResponseTime) {
         this.chanelResponseTime = chanelResponseTime;
+    }
+
+    public String getFailReason() {
+        return failReason;
+    }
+
+    public void setFailReason(String failReason) {
+        this.failReason = failReason;
     }
 }
