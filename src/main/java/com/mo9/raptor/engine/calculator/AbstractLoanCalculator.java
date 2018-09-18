@@ -75,9 +75,9 @@ public abstract class AbstractLoanCalculator implements ILoanCalculator {
         date = TimeUtils.extractDateTime(date);
         Field penaltyField = new Field();
         penaltyField.setFieldType(FieldTypeEnum.PENALTY);
-        if (date >= repaymentDate + EngineStaticValue.DAY_MILLIS) {
+        if (date > repaymentDate) {
             // 计算逾期费
-            Long overDueDate = (date - repaymentDate) / EngineStaticValue.DAY_MILLIS + 1;
+            Long overDueDate = (date - repaymentDate) / EngineStaticValue.DAY_MILLIS;
             BigDecimal penalty = loanOrder.getPenaltyValue().multiply(new BigDecimal(overDueDate));
             penaltyField.setNumber(penalty);
             item.setItemType(ItemTypeEnum.PREVIOUS);
@@ -191,12 +191,20 @@ public abstract class AbstractLoanCalculator implements ILoanCalculator {
         if (payType.equals(PayTypeEnum.REPAY_POSTPONE.name())) {
             BigDecimal principal = realItem.getFieldNumber(FieldTypeEnum.PRINCIPAL);
             BigDecimal penalty = realItem.getFieldNumber(FieldTypeEnum.PENALTY);
+            BigDecimal entryPenalty = entryItem.getFieldNumber(FieldTypeEnum.PENALTY);
             int paidAmount = entryItem.sum().subtract(entryItem.getFieldNumber(FieldTypeEnum.PENALTY)).intValue();
             int baseAmount = realItem.sum().subtract(principal).subtract(penalty).intValue();
             if (paidAmount / baseAmount != days / loanOrder.getLoanTerm()) {
                 throw new LoanEntryException("订单" + loanOrder.getOrderId() + "还款" + entryItemSum + ", 延期" + days + ", 不合法!");
             }
-            loanOrder.setRepaymentDate(loanOrder.getRepaymentDate() + days * EngineStaticValue.DAY_MILLIS);
+            if (entryPenalty.compareTo(BigDecimal.ZERO) > 0) {
+                // 有罚息
+                int penaltyPostponeDays = entryPenalty.divide(loanOrder.getPenaltyValue(), 0, BigDecimal.ROUND_DOWN).intValue();
+                loanOrder.setRepaymentDate(loanOrder.getRepaymentDate() + (days + penaltyPostponeDays) * EngineStaticValue.DAY_MILLIS);
+            } else {
+                // 无罚息
+                loanOrder.setRepaymentDate(loanOrder.getRepaymentDate() + days * EngineStaticValue.DAY_MILLIS);
+            }
         } else {
             if (realItemSum.compareTo(entryItemSum) == 0) {
                 // 直接还清
