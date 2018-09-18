@@ -40,6 +40,7 @@ public class UserContactsControllerTest {
 
     @Test
     public void testSubmitMobileContacts() throws IOException {
+        //你好
         JSONObject json = new JSONObject();
         json.put("data", "111");
         HttpResult httpResult = httpClientApi.doPostJson(localHostUrl + "/user/submit_mobile_contacts", json.toJSONString(), headers);
