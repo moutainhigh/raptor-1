@@ -2,6 +2,8 @@ package com.mo9.raptor.engine.service;
 
 import com.mo9.raptor.engine.entity.LendOrderEntity;
 
+import java.math.BigDecimal;
+
 /**
  * 贷款订单service
  * Created by xzhang on 2018/7/6.
@@ -20,5 +22,11 @@ public interface ILendOrderService {
      * 保存订单
      */
     LendOrderEntity save(LendOrderEntity loanOrder);
+
+    /**
+     * 获取当天已放款金额
+     * @return
+     */
+    BigDecimal getDailyLendAmount();
 
 }

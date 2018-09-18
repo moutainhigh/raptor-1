@@ -18,6 +18,7 @@ import com.mo9.raptor.service.BankService;
 import com.mo9.raptor.service.CaptchaService;
 import com.mo9.raptor.service.UserCertifyInfoService;
 import com.mo9.raptor.service.UserService;
+import com.mo9.raptor.utils.IpUtils;
 import com.mo9.raptor.utils.RegexUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -66,7 +67,7 @@ public class UserController {
     public BaseResponse loginByCode(@RequestBody @Validated LoginByCodeReq loginByCodeReq, HttpServletRequest request) {
         BaseResponse<Map<String, Object>> response = new BaseResponse<>();
         Map<String, Object> resMap = new HashMap<>(16);
-        Map<String, String> entity = new HashMap<>(16);
+        Map<String, Object> entity = new HashMap<>(16);
         String clientId = request.getHeader(ReqHeaderParams.CLIENT_ID);
         String mobile = loginByCodeReq.getMobile();
         //校验手机号是否合法，不合法登录失败
@@ -89,11 +90,13 @@ public class UserController {
             //返回token
             String token = UUID.randomUUID().toString().replaceAll("-", StringUtils.EMPTY);
             redisServiceApi.set(RedisParams.getAccessToken(clientId,userEntity.getUserCode()),token,RedisParams.EXPIRE_30M,raptorRedis);
+            entity.put("userId",userEntity.getId());
             entity.put("mobile",userEntity.getMobile());
             entity.put("accessToken",token);
             entity.put("accessCode",userEntity.getUserCode());
             resMap.put("entity",entity);
             userEntity.setLastLoginTime(System.currentTimeMillis());
+            userEntity.setUserIp(IpUtils.getRemoteHost(request));
             userService.save(userEntity);
         } catch (IOException e) {
             logger.error("用户登录----->>>>验证码发送发生异常{}",e);

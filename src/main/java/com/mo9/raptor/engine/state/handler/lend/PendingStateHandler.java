@@ -36,7 +36,7 @@ public class PendingStateHandler implements IStateHandler<LendOrderEntity> {
 
         if (event instanceof LendLaunchEvent) {
             lendOrder.setStatus(StatusEnum.LENDING.name());
-            actionExecutor.append(new LendExecuteAction(lendOrder.getOrderId(), lendOrderService, gatewayUtils, lendEventLauncher));
+            actionExecutor.append(new LendExecuteAction(lendOrder.getApplyUniqueCode(), lendOrderService, gatewayUtils, lendEventLauncher));
         }  else {
             throw new InvalidEventException("放款订单状态与事件类型不匹配，状态：" + lendOrder.getStatus() + "，事件：" + event);
         }

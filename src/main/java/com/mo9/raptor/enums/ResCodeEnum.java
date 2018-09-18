@@ -43,12 +43,14 @@ public enum ResCodeEnum {
     NO_REPAY_CHANNEL(11155001, "无效的还款渠道", "无效的还款渠道"),
     ILLEGAL_LOAN_ORDER_STATUE(11155003, "不合法的借款订单状态", "借款订单不可还款"),
     ILLEGAL_REPAYMENT(11155004, "非法的还款操作", "非法的还款操作"),
+    GET_LOCK_FAILED(11155005, "锁竞争失败", "系统繁忙，请稍后重试"),
 
     /**
      * xx=60, 借款
      */
     ONLY_ONE_ORDER(11156000, "不可同时借多笔订单", "不可同时借多笔订单"),
     ERROR_LOAN_PARAMS(11156001, "下单参数不正确", "下单参数不正确"),
+    NO_LEND_AMOUNT(11156002, "无放款限额", "系统繁忙，请稍后重试"),
 
     /**
      * xx=70,文件

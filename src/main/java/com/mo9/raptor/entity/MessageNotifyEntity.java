@@ -23,7 +23,7 @@ public class MessageNotifyEntity {
     /**
      * 事件
      */
-    @Column(name = "businessCode")
+    @Column(name = "business_code")
     private String businessCode;
 
     /**
@@ -65,7 +65,7 @@ public class MessageNotifyEntity {
     /**
      * 信息模板
      */
-    @Column(name = "templateCode")
+    @Column(name = "template_code")
     private String templateCode;
 
     @Column(name = "create_time")

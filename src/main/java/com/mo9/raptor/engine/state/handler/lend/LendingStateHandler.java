@@ -8,7 +8,6 @@ import com.mo9.raptor.engine.state.action.IActionExecutor;
 import com.mo9.raptor.engine.state.action.impl.loan.LoanResponseAction;
 import com.mo9.raptor.engine.state.event.IEvent;
 import com.mo9.raptor.engine.state.event.impl.lend.LendResponseEvent;
-import com.mo9.raptor.engine.state.event.impl.loan.LoanResponseEvent;
 import com.mo9.raptor.engine.state.handler.IStateHandler;
 import com.mo9.raptor.engine.state.handler.StateHandler;
 import com.mo9.raptor.engine.state.launcher.IEventLauncher;
@@ -50,7 +49,7 @@ public class LendingStateHandler implements IStateHandler<LendOrderEntity> {
                 lendOrder.setChannelResponse(lendResponse.getChannelResponse());
                 lendOrder.setChannel(lendResponse.getChannel());
             }
-            actionExecutor.append(new LoanResponseAction(lendOrder.getOrderId(), lendOrderService, loanEventLauncher));
+            actionExecutor.append(new LoanResponseAction(lendOrder.getApplyUniqueCode(), lendOrderService, loanEventLauncher));
         }  else {
             throw new InvalidEventException("放款订单状态与事件类型不匹配，状态：" + lendOrder.getStatus() + "，事件：" + event);
         }
