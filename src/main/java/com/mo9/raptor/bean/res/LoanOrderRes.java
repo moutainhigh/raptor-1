@@ -8,6 +8,8 @@ public class LoanOrderRes {
 
     private String orderId;
 
+    private String actuallyGet;
+
     private String repayAmount;
 
     private Long repayTime;
@@ -19,6 +21,8 @@ public class LoanOrderRes {
     private String receiveBankCard;
 
     private List<JSONObject> renew;
+
+    private String agreementUrl;
 
     public String getOrderId() {
         return orderId;
@@ -74,5 +78,21 @@ public class LoanOrderRes {
 
     public void setRenew(List<JSONObject> renew) {
         this.renew = renew;
+    }
+
+    public String getActuallyGet() {
+        return actuallyGet;
+    }
+
+    public void setActuallyGet(String actuallyGet) {
+        this.actuallyGet = actuallyGet;
+    }
+
+    public String getAgreementUrl() {
+        return agreementUrl;
+    }
+
+    public void setAgreementUrl(String agreementUrl) {
+        this.agreementUrl = agreementUrl;
     }
 }
