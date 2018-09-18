@@ -8,6 +8,7 @@ import com.mo9.raptor.risk.entity.TRiskTelInfo;
 import com.mo9.raptor.risk.service.RiskCallLogService;
 import com.mo9.raptor.risk.service.RiskTelBillService;
 import com.mo9.raptor.risk.service.RiskTelInfoService;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -42,6 +43,7 @@ public class RiskController {
     @PostMapping(value = "/save_call_log")
     public String saveCallLogResult(@RequestBody CallLogReq callLogReq){
         logger.info("----收到通话记录post数据-----");
+        logger.info(callLogReq.toString());
         
         if (callLogReq.getStatus() != 0){
             logger.error(">>>>>>>>>>>第三方通话记录爬虫失败");
