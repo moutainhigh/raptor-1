@@ -162,10 +162,6 @@ public class UserController {
                 return response.buildFailureResponse(ResCodeEnum.IDCARD_IS_EXIST);
             }
             UserCertifyInfoEntity userCertifyInfoEntity = userCertifyInfoService.findByUserCode(userCode);
-            if(userCertifyInfoEntity != null){
-                logger.warn("修改账户身份认证信息-->身份证信息已存在userCode={}", userCode);
-                return response.buildFailureResponse(ResCodeEnum.CARD_CREDIT_IS_EXIST);
-            }
             userCertifyInfoService.modifyCertifyInfo(userEntity, userCertifyInfoEntity, modifyCertifyReq);
             userEntity.setCertifyInfo(true);
             userEntity.setIdCard(modifyCertifyReq.getIdCard());
