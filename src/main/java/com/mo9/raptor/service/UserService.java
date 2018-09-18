@@ -44,16 +44,23 @@ public interface UserService {
     UserEntity findByUserCodeAndStatus(String userCode, StatusEnum status);
 
     /**
-     * 修改通讯录认证状态
+     * 修改通话记录状态
      * @param userEntity
      * @param b
      */
     void updateCallHistory(UserEntity userEntity, boolean b);
 
     /**
-     * 修改通讯录认证状态
+     * 修改身份信息状态
      * @param userEntity
      * @param b
      */
     void updateCertifyInfo(UserEntity userEntity, boolean b);
+
+    /**
+     * 修改通讯录状态
+     * @param userEntity
+     * @param b
+     */
+    void updateMobileContacts(UserEntity userEntity, boolean b);
 }
