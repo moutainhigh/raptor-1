@@ -1,12 +1,20 @@
 package com.mo9.raptor.engine.state.action.impl.loan;
 
+import com.mo9.raptor.engine.entity.PayOrderDetailEntity;
+import com.mo9.raptor.engine.service.IPayOrderDetailService;
 import com.mo9.raptor.engine.state.action.IAction;
 import com.mo9.raptor.engine.state.event.impl.pay.EntryResponseEvent;
 import com.mo9.raptor.engine.state.launcher.IEventLauncher;
+import com.mo9.raptor.engine.structure.field.Field;
+import com.mo9.raptor.engine.structure.field.FieldTypeEnum;
+import com.mo9.raptor.engine.structure.item.Item;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by gqwu on 2018/4/4.
@@ -18,20 +26,59 @@ public class EntryResponseAction implements IAction {
 
     private String payOrderId;
 
-    private BigDecimal actualEntry;
+    private String orderId;
+
+    private Item realItem;
+
+    private Item entryItem;
+
+    private String userCode;
+
+    private String payCurrency;
 
     private IEventLauncher payEventLauncher;
 
-    public EntryResponseAction(String payOrderId, BigDecimal actualEntry, IEventLauncher payEventLauncher) {
+    private IPayOrderDetailService payOrderDetailService;
+
+    public EntryResponseAction(
+            String payOrderId, String orderId, Item realItem, Item entryItem,
+            String userCode, String payCurrency, IEventLauncher payEventLauncher, IPayOrderDetailService payOrderDetailService) {
         this.payOrderId = payOrderId;
+        this.orderId = orderId;
+        this.realItem = realItem;
+        this.entryItem = entryItem;
+        this.userCode = userCode;
+        this.payCurrency = payCurrency;
         this.payEventLauncher = payEventLauncher;
-        this.actualEntry = actualEntry;
+        this.payOrderDetailService = payOrderDetailService;
     }
 
     @Override
     public void run(){
 
-        EntryResponseEvent event = new EntryResponseEvent(payOrderId, actualEntry);
+        // 创建明细
+        List<PayOrderDetailEntity> entityList = new ArrayList<PayOrderDetailEntity>();
+        for (Map.Entry<FieldTypeEnum, Field> entry : entryItem.entrySet()) {
+            FieldTypeEnum fieldTypeEnum = entry.getKey();
+            BigDecimal fieldNumber = realItem.getFieldNumber(fieldTypeEnum);
+            if (BigDecimal.ZERO.compareTo(fieldNumber) >= 0) {
+                continue;
+            }
+            PayOrderDetailEntity entity = new PayOrderDetailEntity();
+            entity.setOwnerId(userCode);
+            entity.setLoanOrderId(orderId);
+            entity.setPayOrderId(payOrderId);
+            entity.setPayCurrency(payCurrency);
+            entity.setItemType(entryItem.getItemType().name());
+            entity.setRepayDay(entryItem.getRepayDate());
+            entity.setField(fieldTypeEnum.name());
+            entity.setShouldPay(fieldNumber);
+            entity.setPaid(entryItem.getFieldNumber(fieldTypeEnum));
+            entity.create();
+            entityList.add(entity);
+        }
+        payOrderDetailService.saveItem(entityList);
+        EntryResponseEvent event = new EntryResponseEvent(payOrderId, entryItem.sum());
         try {
             payEventLauncher.launch(event);
         } catch (Exception e) {

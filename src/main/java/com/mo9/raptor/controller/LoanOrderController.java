@@ -17,9 +17,15 @@ import com.mo9.raptor.engine.state.launcher.IEventLauncher;
 import com.mo9.raptor.engine.structure.item.Item;
 import com.mo9.raptor.engine.utils.EngineStaticValue;
 import com.mo9.raptor.engine.utils.TimeUtils;
+import com.mo9.raptor.entity.DictDataEntity;
 import com.mo9.raptor.entity.LoanProductEntity;
 import com.mo9.raptor.entity.UserEntity;
+import com.mo9.raptor.enums.DictTypeNoEnum;
 import com.mo9.raptor.enums.ResCodeEnum;
+import com.mo9.raptor.lock.Lock;
+import com.mo9.raptor.lock.RedisService;
+import com.mo9.raptor.redis.RedisLockKeySuffix;
+import com.mo9.raptor.service.DictService;
 import com.mo9.raptor.service.LoanProductService;
 import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.IDWorker;
@@ -32,8 +38,12 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
+
 /**
- * 还款
+ * 借款
  * Created by xzhang on 2018/9/13.
  */
 @RestController()
@@ -58,6 +68,12 @@ public class LoanOrderController {
     private LoanProductService productService;
 
     @Autowired
+    private DictService dictService;
+
+    @Autowired
+    private RedisService redisService;
+
+    @Autowired
     private IEventLauncher loanEventLauncher;
 
     @Autowired
@@ -78,15 +94,27 @@ public class LoanOrderController {
         String clientId = request.getHeader(ReqHeaderParams.CLIENT_ID);
         String clientVersion = request.getHeader(ReqHeaderParams.CLIENT_VERSION);
 
+        // 检查用户是否存在及是否合法
         UserEntity user = userService.findByUserCodeAndStatus(userCode, StatusEnum.PASSED);
         if (user == null) {
             return response.buildFailureResponse(ResCodeEnum.USER_NOT_EXIST);
         }
+
+        // 检查是否有每日限额配置, 没配直接不让借
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        String dateFormat = sdf.format(new Date());
+        DictDataEntity dictData = dictService.findDictData(DictTypeNoEnum.DAILY_LEND_AMOUNT.name(), dateFormat);
+        if (dictData == null) {
+            return response.buildFailureResponse(ResCodeEnum.NO_LEND_AMOUNT);
+        }
+
+        // 查询是否有在接订单
         LoanOrderEntity loanOrderEntity = loanOrderService.getLastIncompleteOrder(userCode);
         if (loanOrderEntity != null) {
             return response.buildFailureResponse(ResCodeEnum.ONLY_ONE_ORDER);
         }
 
+        // 检查借款参数是否合法
         BigDecimal principal = req.getCapital();
         int loanTerm = req.getPeriod();
         LoanProductEntity product = productService.findByAmountAndPeriod(principal, loanTerm);
@@ -94,36 +122,52 @@ public class LoanOrderController {
             return response.buildFailureResponse(ResCodeEnum.ERROR_LOAN_PARAMS);
         }
 
-        LoanOrderEntity loanOrder = new LoanOrderEntity();
         String orderId = sockpuppet + "-" + idWorker.nextId();
-        loanOrder.setOrderId(orderId);
-        loanOrder.setOwnerId(userCode);
-        loanOrder.setType("RAPTOR");
-        loanOrder.setLoanNumber(principal);
-        loanOrder.setPostponeUnitCharge(product.getRenewalBaseAmount());
-        loanOrder.setLoanTerm(loanTerm);
-        loanOrder.setStatus(StatusEnum.PENDING.name());
-        loanOrder.setInterestValue(product.getInterest());
-        loanOrder.setPenaltyValue(product.getPenaltyForDay());
-        loanOrder.setChargeValue(principal.subtract(product.getActuallyGetAmount()));
-        loanOrder.setClientId(clientId);
-        loanOrder.setClientVersion(clientVersion);
-
-        long now = System.currentTimeMillis();
-        Long today = TimeUtils.extractDateTime(now);
-        loanOrder.setRepaymentDate(today + loanTerm * EngineStaticValue.DAY_MILLIS);
-        loanOrder.setCreateTime(now);
-        loanOrder.setUpdateTime(now);
-        /** 创建借款订单 */
-        loanOrderService.save(loanOrder);
+        // 锁定用户借款行为
+        Lock lock = new Lock(userCode + RedisLockKeySuffix.PRE_LOAN_ORDER_KEY, idWorker.nextId()+"");
         try {
-            AuditLaunchEvent event = new AuditLaunchEvent(userCode, loanOrder.getOrderId());
-            loanEventLauncher.launch(event);
+            if (redisService.lock(lock.getName(), lock.getValue(), 5000, TimeUnit.MILLISECONDS)) {
+                // 锁定后检查今天是否还有限额
+                BigDecimal dailyLendAmount = lendOrderService.getDailyLendAmount();
+                if (new BigDecimal(dictData.getName()).compareTo(dailyLendAmount.add(principal)) <= 0) {
+                    logger.warn("今日已放款[{}]元, 不再放款!", dailyLendAmount.toPlainString());
+                    return response.buildFailureResponse(ResCodeEnum.NO_LEND_AMOUNT);
+                }
+
+                LoanOrderEntity loanOrder = new LoanOrderEntity();
+                loanOrder.setOrderId(orderId);
+                loanOrder.setOwnerId(userCode);
+                loanOrder.setType("RAPTOR");
+                loanOrder.setLoanNumber(principal);
+                loanOrder.setPostponeUnitCharge(product.getRenewalBaseAmount());
+                loanOrder.setLoanTerm(loanTerm);
+                loanOrder.setStatus(StatusEnum.PENDING.name());
+                loanOrder.setInterestValue(product.getInterest());
+                loanOrder.setPenaltyValue(product.getPenaltyForDay());
+                loanOrder.setChargeValue(principal.subtract(product.getActuallyGetAmount()));
+                loanOrder.setClientId(clientId);
+                loanOrder.setClientVersion(clientVersion);
+
+                long now = System.currentTimeMillis();
+                Long today = TimeUtils.extractDateTime(now);
+                loanOrder.setRepaymentDate(today + loanTerm * EngineStaticValue.DAY_MILLIS);
+                loanOrder.setCreateTime(now);
+                loanOrder.setUpdateTime(now);
+                /** 创建借款订单 */
+                loanOrderService.save(loanOrder);
+                AuditLaunchEvent event = new AuditLaunchEvent(userCode, loanOrder.getOrderId());
+                loanEventLauncher.launch(event);
+                return response;
+            } else {
+                logger.warn("用户[{}]预借款[{}], 竞争锁失败", userCode);
+                return response.buildFailureResponse(ResCodeEnum.GET_LOCK_FAILED);
+            }
         } catch (Exception e) {
             logger.error("借款订单[{}]审核出错", orderId, e);
             return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
+        } finally {
+            redisService.unlock(lock.getName());
         }
-        return response;
     }
 
     /**

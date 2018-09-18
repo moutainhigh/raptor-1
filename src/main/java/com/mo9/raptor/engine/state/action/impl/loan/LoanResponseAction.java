@@ -38,7 +38,7 @@ public class LoanResponseAction implements IAction {
         LoanResponseEvent loanResponse;
         if (StatusEnum.SUCCESS.name().equals(status)) {
             loanResponse = new LoanResponseEvent(
-                    lendOrderEntity.getOrderId(),
+                    lendOrderEntity.getApplyUniqueCode(),
                     lendOrderEntity.getChannelLendNumber(),
                     true,
                     lendOrderEntity.getChanelResponseTime(),
@@ -46,7 +46,7 @@ public class LoanResponseAction implements IAction {
                     "放款成功");
         } else {
             loanResponse = new LoanResponseEvent(
-                    lendOrderEntity.getOrderId(),
+                    lendOrderEntity.getApplyUniqueCode(),
                     lendOrderEntity.getChannelLendNumber(),
                     false,
                     -1L,
