@@ -49,40 +49,40 @@ public interface UserService {
      * @param userEntity
      * @param b
      */
-    void updateCallHistory(UserEntity userEntity, boolean b);
+    void updateCallHistory(UserEntity userEntity, boolean b) throws Exception;
 
     /**
      * 修改身份信息状态
      * @param userEntity
      * @param b
      */
-    void updateCertifyInfo(UserEntity userEntity, boolean b);
+    void updateCertifyInfo(UserEntity userEntity, boolean b) throws Exception;
 
     /**
      * 修改通讯录状态
      * @param userEntity
      * @param b
      */
-    void updateMobileContacts(UserEntity userEntity, boolean b);
+    void updateMobileContacts(UserEntity userEntity, boolean b) throws Exception;
     /**
      * 修改是否收到通讯录数据
      * @param userEntity
      * @param b
      */
-    void updateReceiveCallHistory(UserEntity userEntity, boolean b);
+    void updateReceiveCallHistory(UserEntity userEntity, boolean b) throws Exception;
 
     /**
      * 修改银行卡认证状态
      * @param userEntity
      * @param statusEnum
      */
-    void updateBankAuthStatus(UserEntity userEntity, BankAuthStatusEnum statusEnum);
+    void updateBankAuthStatus(UserEntity userEntity, BankAuthStatusEnum statusEnum) throws Exception;
 
     /**
      * 检查身份基本信息认证，银行卡认证，手机通讯录认证，手机通话记录是否上传，是否收到通讯录数据
      * @param userEntity
      * @return
      */
-    Boolean checkAuditStatus(UserEntity userEntity);
+    void checkAuditStatus(UserEntity userEntity) throws Exception;
 
 }
