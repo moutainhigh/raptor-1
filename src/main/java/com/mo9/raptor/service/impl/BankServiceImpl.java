@@ -71,8 +71,7 @@ public class BankServiceImpl implements BankService {
         ResCodeEnum resCodeEnum = gatewayUtils.verifyBank( bankNo ,  cardId ,  userName ,  mobile) ;
         if(ResCodeEnum.SUCCESS == resCodeEnum){
             this.create( bankNo , cardId , userName , mobile , bankName , userCode) ;
-            userEntity.setBankAuthStatus(BankAuthStatusEnum.SUCCESS.name());
-            userService.save(userEntity);
+            userService.updateBankAuthStatus(userEntity,BankAuthStatusEnum.SUCCESS);
         }
         return resCodeEnum ;
     }

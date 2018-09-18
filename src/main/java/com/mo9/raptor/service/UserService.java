@@ -2,6 +2,7 @@ package com.mo9.raptor.service;
 
 import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.entity.UserEntity;
+import com.mo9.raptor.enums.BankAuthStatusEnum;
 
 /**
  * @author zma
@@ -63,4 +64,25 @@ public interface UserService {
      * @param b
      */
     void updateMobileContacts(UserEntity userEntity, boolean b);
+    /**
+     * 修改是否收到通讯录数据
+     * @param userEntity
+     * @param b
+     */
+    void updateReceiveCallHistory(UserEntity userEntity, boolean b);
+
+    /**
+     * 修改银行卡认证状态
+     * @param userEntity
+     * @param statusEnum
+     */
+    void updateBankAuthStatus(UserEntity userEntity, BankAuthStatusEnum statusEnum);
+
+    /**
+     * 检查身份基本信息认证，银行卡认证，手机通讯录认证，手机通话记录是否上传，是否收到通讯录数据
+     * @param userEntity
+     * @return
+     */
+    Boolean checkAuditStatus(UserEntity userEntity);
+
 }

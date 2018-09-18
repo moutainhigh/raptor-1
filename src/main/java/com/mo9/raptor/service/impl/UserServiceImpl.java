@@ -2,6 +2,7 @@ package com.mo9.raptor.service.impl;
 
 import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.entity.UserEntity;
+import com.mo9.raptor.enums.BankAuthStatusEnum;
 import com.mo9.raptor.repository.UserRepository;
 import com.mo9.raptor.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,14 +60,42 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateCertifyInfo(UserEntity userEntity, boolean b) {
-        userEntity.setCertifyInfo(true);
+        userEntity.setCertifyInfo(b);
         userRepository.save(userEntity);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateMobileContacts(UserEntity userEntity, boolean b) {
-        userEntity.setMobileContacts(true);
+        userEntity.setMobileContacts(b);
         userRepository.save(userEntity);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateReceiveCallHistory(UserEntity userEntity, boolean b) {
+        userEntity.setReceiveCallHistory(b);
+        userRepository.save(userEntity);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateBankAuthStatus(UserEntity userEntity, BankAuthStatusEnum statusEnum) {
+        userEntity.setBankAuthStatus(statusEnum.name());
+        userRepository.save(userEntity);
+    }
+
+    @Override
+    public Boolean checkAuditStatus(UserEntity userEntity) {
+        String bankAuthStatus = userEntity.getBankAuthStatus();
+        Boolean certifyInfo = userEntity.getCertifyInfo();
+        Boolean mobileContacts = userEntity.getMobileContacts();
+        Boolean callHistory = userEntity.getCallHistory();
+        Boolean receiveCallHistory = userEntity.getReceiveCallHistory();
+        if (callHistory && certifyInfo && mobileContacts && receiveCallHistory && BankAuthStatusEnum.SUCCESS.name().equals(bankAuthStatus)){
+            return true;
+        }else {
+            return false;
+        }
     }
 }
