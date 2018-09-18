@@ -60,6 +60,9 @@ public class RiskController {
         List<TRiskCallLog> riskCallLogList = riskCallLogService.coverReqToEntity(callLogReq);
         riskCallLogService.batchSave(riskCallLogList);
             
+        //todo 保存完成后，数据传给忆楠一份
+        
+        
         return "ok";
     }
 }
