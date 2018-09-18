@@ -156,7 +156,7 @@ public class UserController {
             UserCertifyInfoEntity userCertifyInfoEntity = userCertifyInfoService.findByUserCode(userCode);
             userCertifyInfoService.modifyCertifyInfo(userEntity, userCertifyInfoEntity, modifyCertifyReq);
             if(!userEntity.getCertifyInfo()){
-                userService.updateCertifyInfo(userEntity, true);
+                userService.updateMobileContacts(userEntity, true);
             }
             return response.buildSuccessResponse(true);
         }catch (Exception e){

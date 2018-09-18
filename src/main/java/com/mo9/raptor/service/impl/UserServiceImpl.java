@@ -62,4 +62,11 @@ public class UserServiceImpl implements UserService {
         userEntity.setCertifyInfo(true);
         userRepository.save(userEntity);
     }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateMobileContacts(UserEntity userEntity, boolean b) {
+        userEntity.setMobileContacts(true);
+        userRepository.save(userEntity);
+    }
 }
