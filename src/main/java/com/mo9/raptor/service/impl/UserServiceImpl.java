@@ -59,14 +59,14 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateCertifyInfo(UserEntity userEntity, boolean b) {
-        userEntity.setCertifyInfo(true);
+        userEntity.setCertifyInfo(b);
         userRepository.save(userEntity);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateMobileContacts(UserEntity userEntity, boolean b) {
-        userEntity.setMobileContacts(true);
+        userEntity.setMobileContacts(b);
         userRepository.save(userEntity);
     }
 }
