@@ -114,7 +114,7 @@ public class GatewayUtils {
             params.put("mobile", user.getMobile());
             PayOrderEntity payOrderEntity = payOrderService.getByOrderId(payOrderLog.getPayOrderId());
             //orderId : 订单号;
-            params.put("remark", "FASTRAPTOR_" + payOrderEntity.getOrderId());
+            params.put("remark", "FASTRAPTOR_" + payOrderEntity.getOrderId() + "_" + payOrderEntity.getLoanOrderId());
 
             params.put("userMobile", user.getMobile());
             params.put("bankmobile", payOrderLog.getBankMobile());
