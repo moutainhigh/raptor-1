@@ -57,37 +57,34 @@
         <table>
             <tr>
                 <td width="40%" align="right"><label>支付订单：</label></td>
-                <td ><input readonly="readonly" type="text" name="loanOrderId" th:value="${loanOrderId}"/></td>
+                <td ><input readonly="readonly" type="text" name="loanOrderId" th:value="${payInfo.loanOrderId}"/></td>
             </tr>
             <tr>
                 <td width="40%" align="right"><label>支付金额：</label></td>
-                <td ><input readonly="readonly" type="text" name="payNumber" th:value="${payNumber}"/></td>
+                <td ><input readonly="readonly" type="text" name="payNumber" th:value="${payInfo.payNumber}"/></td>
+            </tr>
+            <tr>
+                <td width="40%" align="right"><label>姓名：</label></td>
+                <td ><input readonly="readonly" type="text" name="userName" th:value="${payInfo.userName}"/></td>
+            </tr>
+            <tr>
+                <td width="40%" align="right"><label>身份证号：</label></td>
+                <td ><input readonly="readonly" type="text" name="idCard" th:value="${payInfo.idCard}"/></td>
             </tr>
         </table>
 
         <form method="post" action="#" th:action ="@{/cash/cashier/submit}">
             <table>
                 <tr>
-                    <td width="40%" align="right"><label>姓名：</label></td>
-                    <td ><input readonly="readonly" type="text" name="userName" th:value="${bank.userName}"/></td>
-                </tr>
-                <tr>
-                    <td width="40%" align="right"><label>身份证号：</label></td>
-                    <td ><input readonly="readonly" type="text" name="cardId" th:value="${bank.cardId}"/></td>
-                </tr>
-                <tr>
                     <td width="40%" align="right"><label>银行卡：</label></td>
                     <td ><select name="bankNo" th:if="${not #lists.isEmpty(banks)}" th:each="bank:${banks}">
                         <option th:value="${bank.bankNo}" th:text="${bank.bankNo}"></option>
                     </select></td>
                 </tr>
-                <!--<tr>-->
-                    <!--<td width="40%" align="right"><label>预留手机号：</label></td>-->
-                    <!--<td ><select name="mobile" >-->
-                        <!--<option th:value="${bank.mobile}" th:text="${bank.mobile}"></option>-->
-                    <!--</select></td>-->
-                <!--</tr>-->
-
+                <tr>
+                    <td width="40%" align="right"><label>预留手机号：</label></td>
+                    <td ><input type="text" id="mobile" name="mobile" value=""/></td>
+                </tr>
                 <tr>
                     <td width="40%" align="right"><label>支付渠道：</label></td>
                     <td ><select name="channel" th:if="${not #lists.isEmpty(channels)}" th:each="channel:${channels}">
@@ -96,8 +93,8 @@
                 </tr>
             </table>
 
-            <input itemType="hidden" name="code" th:value="${code}"/>
-
+            <input type="hidden" name="code" th:value="${code}"/>
+            <input type="submit" value="提交" />
         </form>
     </fieldset>
 <br/><br/>
