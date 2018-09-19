@@ -26,7 +26,7 @@ public interface ILoanCalculator {
      * @param loanOrder
      * @return
      */
-    Item realItem(Long date, LoanOrderEntity loanOrder);
+    Item realItem(Long date, LoanOrderEntity loanOrder, String payType);
 
     /**
      * 获得入账item

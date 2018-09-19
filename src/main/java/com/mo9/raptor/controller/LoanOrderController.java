@@ -21,6 +21,7 @@ import com.mo9.raptor.entity.DictDataEntity;
 import com.mo9.raptor.entity.LoanProductEntity;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.DictTypeNoEnum;
+import com.mo9.raptor.enums.PayTypeEnum;
 import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.lock.Lock;
 import com.mo9.raptor.lock.RedisService;
@@ -184,7 +185,7 @@ public class LoanOrderController {
             return response;
         }
         ILoanCalculator calculator = loanCalculatorFactory.load(loanOrderEntity);
-        Item realItem = calculator.realItem(System.currentTimeMillis(), loanOrderEntity);
+        Item realItem = calculator.realItem(System.currentTimeMillis(), loanOrderEntity, PayTypeEnum.REPAY_AS_PLAN.name());
 
         LoanOrderRes res = new LoanOrderRes();
         res.setOrderId(loanOrderEntity.getOrderId());
