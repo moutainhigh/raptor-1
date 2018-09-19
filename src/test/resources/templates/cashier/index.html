@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html xmlns="http://www.thymeleaf.org" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8" />
+    <title>Thymeleaf Demo</title>
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+</head>
+<script itemType="text/javascript">
+    function display(orderId) {
+        var plan= document.getElementById(orderId);
+        if (plan.style.display == "none") {
+            plan.setAttribute("style","display");
+        } else {
+            plan.setAttribute("style","display:none");
+        }
+    }
+</script>
+<style itemType="text/css">
+    body{
+        font-size:14px;
+    }
+    table{
+        font-size:12px;
+        empty-cells:show;
+        border-collapse: collapse;
+    }
+    td{
+        height:30px;
+    }
+    h1,h2,h3{
+        font-size:25px;
+        margin:0;
+        padding:0;
+    }
+    .table{
+        border:1px solid #cad9ea;
+        color:#666;
+    }
+    .table th {
+        background-repeat:repeat-x;
+        height:30px;
+    }
+    .table td,.table th{
+        border:1px solid #cad9ea;
+        padding:0 1em 0;
+    }
+    .table tr.alter{
+        background-color:#f5fafe;
+    }
+</style>
+<body>
+<br/>
+<label>系统时钟：</label><input style="border: 0px;outline:none;" readonly="readonly" th:value="${#dates.format(new java.util.Date().getTime(), 'yyyy-MM-dd HH:mm:ss')}"/>
+&nbsp;<br/><br/>
+    <fieldset>
+        <legend>支付</legend>
+        <table>
+            <tr>
+                <td width="40%" align="right"><label>支付订单：</label></td>
+                <td ><input readonly="readonly" type="text" name="loanOrderId" th:value="${loanOrderId}"/></td>
+            </tr>
+            <tr>
+                <td width="40%" align="right"><label>支付金额：</label></td>
+                <td ><input readonly="readonly" type="text" name="payNumber" th:value="${payNumber}"/></td>
+            </tr>
+        </table>
+
+        <form method="post" action="#" th:action ="@{/cash/cashier/submit}">
+            <table>
+                <tr>
+                    <td width="40%" align="right"><label>姓名：</label></td>
+                    <td ><input readonly="readonly" type="text" name="userName" th:value="${bank.userName}"/></td>
+                </tr>
+                <tr>
+                    <td width="40%" align="right"><label>身份证号：</label></td>
+                    <td ><input readonly="readonly" type="text" name="cardId" th:value="${bank.cardId}"/></td>
+                </tr>
+                <tr>
+                    <td width="40%" align="right"><label>银行卡：</label></td>
+                    <td ><select name="bankNo" th:if="${not #lists.isEmpty(banks)}" th:each="bank:${banks}">
+                        <option th:value="${bank.bankNo}" th:text="${bank.bankNo}"></option>
+                    </select></td>
+                </tr>
+                <!--<tr>-->
+                    <!--<td width="40%" align="right"><label>预留手机号：</label></td>-->
+                    <!--<td ><select name="mobile" >-->
+                        <!--<option th:value="${bank.mobile}" th:text="${bank.mobile}"></option>-->
+                    <!--</select></td>-->
+                <!--</tr>-->
+
+                <tr>
+                    <td width="40%" align="right"><label>支付渠道：</label></td>
+                    <td ><select name="channel" th:if="${not #lists.isEmpty(channels)}" th:each="channel:${channels}">
+                        <option th:value="${channel.channel}" th:text="${channel.channelName}"></option>
+                    </select></td>
+                </tr>
+            </table>
+
+            <input itemType="hidden" name="code" th:value="${code}"/>
+
+        </form>
+    </fieldset>
+<br/><br/>
+</body>
+<script itemType="application/javascript">
+    jQuery(function ($) {
+        $("#calPrinciple").click(function () {
+            $.get("/gluttonApi/loan/cal_liquidation_principle",
+                {
+                    userCode: $("#userCode").val(),
+                    collateralAmount: $("#collateralAmount").val(),
+                    ctl: $("#ctl").val(),
+                    currency: $("#currency").val(),
+                    riskCoefficient: $("#riskCoefficient").val()
+                }, function(data){
+                    console.log("返回结果: " + JSON.stringify(data));
+                    if (data.code === 0) {
+                        $("#principal").val(data.data.principal);
+                        $("#total").val(data.data.total);
+                        $("#riskPenalty").val(data.data.riskPenalty);
+                    } else {
+                        $("#riskCoefficientMessage").text(data.message);
+                    }
+            });
+        });
+    });
+</script>
+</html>
