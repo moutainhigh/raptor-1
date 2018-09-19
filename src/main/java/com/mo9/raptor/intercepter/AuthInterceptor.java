@@ -37,6 +37,9 @@ public class AuthInterceptor extends HandlerInterceptorAdapter {
     @Value("${system.switch}")
     private String systemSwitch ;
 
+    @Value("${system.clientVersion}")
+    private Integer systemClientVersion = 0;
+
     @Value("${raptor.exclude.urls}")
     private String[] excludeUrls = new String[0];
 
@@ -63,9 +66,17 @@ public class AuthInterceptor extends HandlerInterceptorAdapter {
             }
             Boolean isLogin = validateLoginStatus(accountCode,accessToken,clientId);
             if (!isLogin){
-                httpError(response);
+                response.setStatus(401);
                 return false;
             }
+            //校验客户端版本
+            Boolean version = validateClientVersion(request);
+            if (!version){
+                response.setStatus(480);
+                return false;
+            }
+
+
         }else {
             httpError(response);
             return false;
@@ -73,6 +84,15 @@ public class AuthInterceptor extends HandlerInterceptorAdapter {
         return true;
     }
 
+    /**
+     * 校验客户端版本
+     * @param request
+     * @return
+     */
+    private Boolean validateClientVersion(HttpServletRequest request) {
+        String clientVersion = getClientVersion(request);
+        return Integer.valueOf(clientVersion) >= systemClientVersion;
+    }
     /**
      * 检查是否在登录状态，延长登录时间
      * @param accountMobile
@@ -86,10 +106,9 @@ public class AuthInterceptor extends HandlerInterceptorAdapter {
             return false;
         }else {
             Long expire = redisServiceApi.getExpireSeconds(RedisParams.getAccessToken(clientId,accountMobile),raptorRedis);
-            //过期时间小于14天的,更新token，暂定app登录15天过期
-            if(expire < RedisParams.EXPIRE_14D) {
-                //TODO 根据clientId 对pc和app进行区分
-                redisServiceApi.expireSeconds(RedisParams.getAccessToken(clientId,accountMobile), RedisParams.EXPIRE_15D,raptorRedis);
+            //过期时间小于29天的,更新token，app登录30天过期
+            if(expire < RedisParams.EXPIRE_29D) {
+                redisServiceApi.expireSeconds(RedisParams.getAccessToken(clientId,accountMobile), RedisParams.EXPIRE_30D,raptorRedis);
             }
         }
         return true;
@@ -105,6 +124,9 @@ public class AuthInterceptor extends HandlerInterceptorAdapter {
 
     public String getClientId(HttpServletRequest request) {
         return request.getHeader("Client-Id");
+    }
+    public String getClientVersion(HttpServletRequest request) {
+        return request.getHeader("Client-Version");
     }
     public void httpError(HttpServletResponse response) {
         response.setStatus(403);

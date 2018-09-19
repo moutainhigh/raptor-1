@@ -9,6 +9,7 @@ import com.mo9.raptor.risk.entity.TRiskTelInfo;
 import com.mo9.raptor.risk.service.RiskCallLogService;
 import com.mo9.raptor.risk.service.RiskTelBillService;
 import com.mo9.raptor.risk.service.RiskTelInfoService;
+import com.mo9.raptor.utils.httpclient.HttpClientApi;
 import com.mo9.raptor.utils.oss.OSSFileUpload;
 import com.mo9.raptor.utils.oss.OSSProperties;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
@@ -52,9 +53,20 @@ public class RiskController {
     
     @Resource
     private OSSProperties ossProperties;
-
+    
+    @Resource
+    private HttpClientApi httpClientApi;
+    
     @Value("${raptor.sockpuppet}")
     private String sockpuppet;
+    
+    @Value("${risk.dianhuaapi.url}")
+    private String dianhuUrl;
+    
+    @Value("${risk.dianhuaapi.token}")
+    private String dianhuToken;
+    
+    
 
     @PostMapping(value = "/save_call_log")
     public String saveCallLogResult(@RequestBody CallLogReq callLogReq){
@@ -76,18 +88,24 @@ public class RiskController {
         List<TRiskCallLog> riskCallLogList = riskCallLogService.coverReqToEntity(callLogReq);
         riskCallLogService.batchSave(riskCallLogList);
             
-        this.uploadFile2Oss(callLogReq.toString(), callLogReq.getData().getTel());
+        //上传通话记录文件
+        this.uploadFile2Oss(callLogReq.toString(), sockpuppet + "-" + callLogReq.getData().getTel() + ".json" );
+        
+        //上传运营商报告文件
+        String report = this.getCallLogReport(callLogReq.getData().getSid());
+        if (report != null){
+            this.uploadFile2Oss(report, sockpuppet + "-" + callLogReq.getData().getTel() + "-report.json");
+        }
+        
         //todo 保存完成后，数据传给忆楠一份
         
         
         return "ok";
     }
     
-    private void uploadFile2Oss(String str, String mobile){
+    private void uploadFile2Oss(String str, String fileName){
         
         try {
-            String fileName = sockpuppet + "-" + mobile + ".json";
-            
             new OSSClient(ossProperties.getWriteEndpoint(), ossProperties.getAccessKeyId(), ossProperties.getAccessKeySecret())
                     .putObject(
                         ossProperties.getBucketName(),
@@ -103,5 +121,29 @@ public class RiskController {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+    
+    private String getCallLogReport(String sid){
+        String url = dianhuUrl + "report?token=" + dianhuToken + "&sid=" + sid;
+
+        logger.info(url);
+        try {
+            String report = httpClientApi.doGet(url);
+            
+            JSONObject jsonObject = JSONObject.parseObject(report);
+            Long status = jsonObject.getLong("status");
+            
+            if (status != 0){
+                logger.error("运营商报告获取异常：" + report);
+                return null;
+            }
+            
+            if (report != null){
+                return report;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
