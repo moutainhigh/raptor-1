@@ -53,6 +53,17 @@ public class BankEntity {
 	@Column(name = "mobile")
 	private String mobile ;
 
+
+	/**银行卡扫描开始计数*/
+	@Column(name = "card_start_count")
+	private Integer cardStartCount ;
+	/**银行卡扫描成功计数*/
+	@Column(name = "card_success_count")
+	private Integer cardSuccessCount ;
+	/**银行卡扫描失败计数*/
+	@Column(name = "card_fail_count")
+	private Integer cardFailCount ;
+
 	/**
 	 * 创建时间
 	 */
@@ -137,5 +148,29 @@ public class BankEntity {
 
 	public void setUserCode(String userCode) {
 		this.userCode = userCode;
+	}
+
+	public Integer getCardStartCount() {
+		return cardStartCount;
+	}
+
+	public void setCardStartCount(Integer cardStartCount) {
+		this.cardStartCount = cardStartCount;
+	}
+
+	public Integer getCardSuccessCount() {
+		return cardSuccessCount;
+	}
+
+	public void setCardSuccessCount(Integer cardSuccessCount) {
+		this.cardSuccessCount = cardSuccessCount;
+	}
+
+	public Integer getCardFailCount() {
+		return cardFailCount;
+	}
+
+	public void setCardFailCount(Integer cardFailCount) {
+		this.cardFailCount = cardFailCount;
 	}
 }
