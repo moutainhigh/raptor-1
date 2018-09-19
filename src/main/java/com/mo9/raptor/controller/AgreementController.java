@@ -1,14 +1,18 @@
 package com.mo9.raptor.controller;
 
-import org.apache.commons.io.FileUtils;
+import com.mo9.raptor.utils.ModelUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.io.File;
+import javax.servlet.http.HttpServletRequest;
+import java.io.BufferedReader;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -26,14 +30,21 @@ public class AgreementController {
      * @return
      */
     @RequestMapping(value = "/agreement")
-    public String get(Model model) {
-        //打程jar后正常读取文件
+    public String getServiceAgreement(Model model,HttpServletRequest request) {
+
         InputStream stream = getClass().getClassLoader().getResourceAsStream("static/file/服务协议.md");
-        File targetFile = new File("file/服务协议.md");
         try {
-            FileUtils.copyInputStreamToFile(stream, targetFile);
-            String s = FileUtils.readFileToString(targetFile, "UTF-8");
-            model.addAttribute("content",s);
+            BufferedReader in = new BufferedReader(new InputStreamReader(stream,"UTF-8"));
+            StringBuffer buffer = new StringBuffer();
+            String line = "";
+            while ((line = in.readLine()) != null){
+                buffer.append(line+"\n");
+            }
+            Map variables = new HashMap<>(16);
+            variables.put("realName","张三");
+            variables.put("idCard","5222554545484654");
+            String process = ModelUtils.process(buffer.toString(), variables);
+            model.addAttribute("content",process);
         } catch (Exception e) {
             logger.error("获取服务协议发生异常，",e);
         }
