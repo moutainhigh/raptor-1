@@ -204,6 +204,8 @@ public class GatewayUtils {
             LoanOrderLendRes loanOrderLendRes = JSON.parseObject(result, LoanOrderLendRes.class);
             if ("success".equals(loanOrderLendRes.getStatus())) {
                 return loanOrderLendRes;
+            } else {
+                logger.error("查询放款订单状态报错, 返回为: [{}]", result);
             }
 //            JSONObject data = JSON.parseObject(result) ;
 //            String status = data.getString("status") ; //请求状态 success 请求成功 failed 请求失败
