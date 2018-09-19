@@ -119,7 +119,7 @@ public class PayOrderController {
         }
 
         ILoanCalculator calculator = loanCalculatorFactory.load(loanOrder);
-        Item realItem = calculator.realItem(System.currentTimeMillis(), loanOrder);
+        Item realItem = calculator.realItem(System.currentTimeMillis(), loanOrder, PayTypeEnum.REPAY_AS_PLAN.name());
 
         JSONObject data = new JSONObject();
 
@@ -180,9 +180,8 @@ public class PayOrderController {
         }
 
         ILoanCalculator calculator = loanCalculatorFactory.load(loanOrder);
-        Item realItem = calculator.realItem(System.currentTimeMillis(), loanOrder);
+        Item realItem = calculator.realItem(System.currentTimeMillis(), loanOrder, PayTypeEnum.REPAY_POSTPONE.name());
         BigDecimal applyAmount = realItem.sum()
-                .subtract(realItem.getFieldNumber(FieldTypeEnum.PRINCIPAL))
                 .subtract(realItem.getFieldNumber(FieldTypeEnum.PENALTY))
                 .multiply(new BigDecimal(basicRenewableDaysTimes))
                 .add(realItem.getFieldNumber(FieldTypeEnum.PENALTY));

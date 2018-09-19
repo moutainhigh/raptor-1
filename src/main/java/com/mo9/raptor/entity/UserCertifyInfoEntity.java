@@ -123,11 +123,66 @@ public class UserCertifyInfoEntity {
     @Column(name = "ocr_id_card_address")
     private String ocrIdCardAddress;
 
+    /**
+     * 身份证正面扫描开始计数
+     */
+    @Column(name = "front_start_count")
+    private Integer frontStartCount = 0;
+
+    /**
+     * 身份证正面扫描成功计数
+     */
+    @Column(name = "front_success_count")
+    private Integer frontSuccessCount = 0;
+
+    /**
+     * 身份证正面扫描失败计数
+     */
+    @Column(name = "front_fail_count")
+    private Integer frontFailCount = 0;
+
+    /**
+     * 身份证背面扫描开始计数
+     */
+    @Column(name = "back_start_count")
+    private Integer backStartCount = 0;
+
+    /**
+     * 身份证背面扫描成功计数
+     */
+    @Column(name = "back_success_count")
+    private Integer backSuccessCount = 0;
+
+    /**
+     * 身份证背面扫描失败计数
+     */
+    @Column(name = "back_fail_count")
+    private Integer backFailCount = 0;
+
+    /**
+     * 活体扫描开始计数
+     */
+    @Column(name = "liveness_start_count")
+    private Integer livenessStartCount = 0;
+
+    /**
+     * 活体扫描成功计数
+     */
+    @Column(name = "liveness_success_count")
+    private Integer livenessSuccessCount = 0;
+
+    /**
+     * 活体扫描成功计数
+     */
+    @Column(name = "liveness_fail_count")
+    private Integer livenessFailCount = 0;
+
     @Column(name = "update_time")
     private Long updateTime;
 
     @Column(name = "create_time")
     private Long createTime;
+
 
     public Long getId() {
         return id;
@@ -303,5 +358,77 @@ public class UserCertifyInfoEntity {
 
     public void setCreateTime(Long createTime) {
         this.createTime = createTime;
+    }
+
+    public Integer getFrontStartCount() {
+        return frontStartCount;
+    }
+
+    public void setFrontStartCount(Integer frontStartCount) {
+        this.frontStartCount = frontStartCount;
+    }
+
+    public Integer getFrontSuccessCount() {
+        return frontSuccessCount;
+    }
+
+    public void setFrontSuccessCount(Integer frontSuccessCount) {
+        this.frontSuccessCount = frontSuccessCount;
+    }
+
+    public Integer getFrontFailCount() {
+        return frontFailCount;
+    }
+
+    public void setFrontFailCount(Integer frontFailCount) {
+        this.frontFailCount = frontFailCount;
+    }
+
+    public Integer getBackStartCount() {
+        return backStartCount;
+    }
+
+    public void setBackStartCount(Integer backStartCount) {
+        this.backStartCount = backStartCount;
+    }
+
+    public Integer getBackSuccessCount() {
+        return backSuccessCount;
+    }
+
+    public void setBackSuccessCount(Integer backSuccessCount) {
+        this.backSuccessCount = backSuccessCount;
+    }
+
+    public Integer getBackFailCount() {
+        return backFailCount;
+    }
+
+    public void setBackFailCount(Integer backFailCount) {
+        this.backFailCount = backFailCount;
+    }
+
+    public Integer getLivenessStartCount() {
+        return livenessStartCount;
+    }
+
+    public void setLivenessStartCount(Integer livenessStartCount) {
+        this.livenessStartCount = livenessStartCount;
+    }
+
+    public Integer getLivenessSuccessCount() {
+        return livenessSuccessCount;
+    }
+
+    public void setLivenessSuccessCount(Integer livenessSuccessCount) {
+        this.livenessSuccessCount = livenessSuccessCount;
+    }
+
+    public Integer getLivenessFailCount() {
+        return livenessFailCount;
+    }
+
+    public void setLivenessFailCount(Integer livenessFailCount) {
+        this.livenessFailCount = livenessFailCount;
     }
 }

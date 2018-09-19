@@ -63,7 +63,7 @@ public class LentStateHandler implements IStateHandler<LoanOrderEntity> {
             String payOrderId = loanEntryEvent.getPayOrderId();
             PayOrderEntity payOrderEntity = payOrderService.getByOrderId(payOrderId);
             ILoanCalculator loanCalculator = loanCalculatorFactory.load(loanOrder);
-            Item realItem = loanCalculator.realItem(System.currentTimeMillis(), loanOrder);
+            Item realItem = loanCalculator.realItem(System.currentTimeMillis(), loanOrder, payType);
             loanOrder = loanCalculator.itemEntry(loanOrder, payType, payOrderEntity.getPostponeDays(), realItem, entryItem);
 
             // 还款合法, 则向还款订单发送入账反馈

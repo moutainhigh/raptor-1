@@ -6,6 +6,7 @@ import com.mo9.raptor.service.CardBinInfoService;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * Created by jyou on 2018/9/18.
@@ -21,6 +22,7 @@ public class CardBinInfoServiceImpl implements CardBinInfoService {
 
     @Override
     public CardBinInfoEntity findByCardPrefix(String cardPrefix) {
-        return cardBinInfoRepository.findByCardPrefix(cardPrefix);
+        List<CardBinInfoEntity> list =  cardBinInfoRepository.findByCardPrefix(cardPrefix);
+        return list == null || list.size() == 0 ? null : list.get(0);
     }
 }
