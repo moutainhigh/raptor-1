@@ -26,4 +26,18 @@ public interface UserCertifyInfoService {
      * @param modifyCertifyReq
      */
     void modifyCertifyInfo(UserEntity userEntity, UserCertifyInfoEntity userCertifyInfoEntity, ModifyCertifyReq modifyCertifyReq);
+
+    /**
+     * 根据身份证查询身份信息是否存在
+     * @param idCard
+     * @return
+     */
+    UserCertifyInfoEntity findByIdCard(String idCard);
+
+    /**
+     * 根据ocr身份证查询身份信息是否存在
+     * @param ocrIdCard
+     * @return
+     */
+    UserCertifyInfoEntity findByOcrIdCard(String ocrIdCard);
 }

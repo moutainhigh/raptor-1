@@ -51,7 +51,7 @@ public abstract class AbstractLoanCalculator implements ILoanCalculator {
 
         Field chargeField = new Field();
         chargeField.setFieldType(FieldTypeEnum.ALL_CHARGE);
-        chargeField.setNumber(loanOrder.getPostponeUnitCharge());
+        chargeField.setNumber(BigDecimal.ZERO);
         originalItem.put(FieldTypeEnum.ALL_CHARGE, chargeField);
 
         originalItem.setSequence(1);

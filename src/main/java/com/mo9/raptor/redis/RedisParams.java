@@ -42,13 +42,13 @@ public class RedisParams {
      */
     public static final long EXPIRE_1D = 60 * 60 *24;
     /**
-     * 15天,xmemcached对应的是秒
+     * 29天,xmemcached对应的是秒
      */
-    public static final long EXPIRE_15D = 60 * 60 *24  * 15;
+    public static final long EXPIRE_29D = 60 * 60 *24  * 29;
     /**
-     * 14天,xmemcached对应的是秒
+     * 30天,xmemcached对应的是秒
      */
-    public static final long EXPIRE_14D = 60 * 60 *24  * 14;
+    public static final long EXPIRE_30D = 60 * 60 *24  * 30;
 
     /**
      * 还款支付码

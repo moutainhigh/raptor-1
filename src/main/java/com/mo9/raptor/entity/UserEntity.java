@@ -78,16 +78,19 @@ public class UserEntity extends AbstractStateEntity implements IStateEntity {
     @Column(name = "call_history_text")
     private String callHistoryText;
 
+    @Column(name = "receive_call_history")
+    private Boolean receiveCallHistory;
+
     @Column(name = "user_ip")
     private String userIp;
 
     @Column(name = "last_login_time")
-    private long lastLoginTime;
+    private Long lastLoginTime;
     /**
      * 提交认证时间
      */
     @Column(name = "auth_time")
-    private long authTime;
+    private Long authTime;
 
     @Override
     public Long getId() {
@@ -177,6 +180,14 @@ public class UserEntity extends AbstractStateEntity implements IStateEntity {
 
     public void setCallHistory(Boolean callHistory) {
         this.callHistory = callHistory;
+    }
+
+    public Boolean getReceiveCallHistory() {
+        return receiveCallHistory;
+    }
+
+    public void setReceiveCallHistory(Boolean receiveCallHistory) {
+        this.receiveCallHistory = receiveCallHistory;
     }
 
     public String getLivingBodyCertify() {

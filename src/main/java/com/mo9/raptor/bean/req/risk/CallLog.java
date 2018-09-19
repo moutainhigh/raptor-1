@@ -83,6 +83,6 @@ public class CallLog {
     }
 
     public String toString(){
-        return ReflectionToStringBuilder.toString(this, ToStringStyle.MULTI_LINE_STYLE);
+        return com.alibaba.fastjson.JSON.toJSONString(this);
     }
 }

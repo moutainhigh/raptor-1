@@ -1,6 +1,6 @@
 package com.mo9.raptor.risk.service.impl;
 
-import com.mo9.raptor.bean.req.risk.CallLogBill;
+import com.mo9.raptor.bean.req.risk.Bill;
 import com.mo9.raptor.bean.req.risk.CallLogReq;
 import com.mo9.raptor.risk.entity.TRiskTelBill;
 import com.mo9.raptor.risk.repo.RiskTelBillRepository;
@@ -36,10 +36,10 @@ public class RiskTelBillServiceImpl implements RiskTelBillService {
     @Override
     public List<TRiskTelBill> coverReq2Entity(CallLogReq callLogReq) {
         List<TRiskTelBill> riskTelBillList = new ArrayList<>();
-        List<CallLogBill> callLogBill = callLogReq.getData().getBill();
+        List<Bill> callLogBill = callLogReq.getData().getBill();
 
         TRiskTelBill riskTelBill = null;
-        for (CallLogBill bill : callLogBill) {
+        for (Bill bill : callLogBill) {
             riskTelBill = new TRiskTelBill();
 
             riskTelBill.setSid(callLogReq.getData().getSid());
