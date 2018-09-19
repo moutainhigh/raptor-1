@@ -1,5 +1,6 @@
 package com.mo9.raptor.service.impl;
 
+import com.mo9.raptor.bean.req.BankReq;
 import com.mo9.raptor.entity.BankEntity;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.BankAuthStatusEnum;
@@ -52,25 +53,45 @@ public class BankServiceImpl implements BankService {
     }
 
     @Override
-    public ResCodeEnum verify(String bankNo, String mobile, String bankName, UserEntity userEntity){
+    public ResCodeEnum verify(BankReq bankReq, UserEntity userEntity){
+        String bankNo = bankReq.getCard() ;
+        String mobile = bankReq.getCardMobile() ;
+        String bankName = bankReq.getBankName() ;
+        /**银行卡扫描开始计数*/
+        Integer cardStartCount = bankReq.getCardStartCount();
+        /**银行卡扫描成功计数*/
+        Integer cardSuccessCount = bankReq.getCardSuccessCount() ;
+        /**银行卡扫描失败计数*/
+        Integer cardFailCount = bankReq.getCardFailCount() ;
         BankEntity bankEntity = this.findByBankNo(bankNo) ;
         String cardId = userEntity.getIdCard();
         String userName = userEntity.getRealName();
         String userCode = userEntity.getUserCode();
         if(bankEntity != null){
+            //数量增加
+            /**银行卡扫描开始计数*/
+            Integer cardStartCountUser = bankEntity.getCardStartCount();
+            /**银行卡扫描成功计数*/
+            Integer cardSuccessCountUser = bankEntity.getCardSuccessCount() ;
+            /**银行卡扫描失败计数*/
+            Integer cardFailCountUser = bankEntity.getCardFailCount() ;
+            bankEntity.setCardStartCount(cardStartCountUser + cardStartCount);
+            bankEntity.setCardSuccessCount(cardSuccessCountUser + cardSuccessCount);
+            bankEntity.setCardFailCount(cardFailCountUser + cardFailCount);
+            bankEntity.setUpdateTime(System.currentTimeMillis());
+            bankRepository.save(bankEntity) ;
+
             //判断本地数据四要素正确情况
             if(!(cardId.equals(bankEntity.getCardId()) && userName.equals(bankEntity.getUserName()) && mobile.equals(bankEntity.getMobile()))){
                 logger.error("本地 四要素验证失败" + bankNo + " - " + cardId + " - " + userName + " - " + mobile);
                 return ResCodeEnum.BANK_VERIFY_ERROR ;
             }else{
-                bankEntity.setUpdateTime(System.currentTimeMillis());
-                bankRepository.save(bankEntity) ;
                 return ResCodeEnum.SUCCESS ;
             }
         }
         ResCodeEnum resCodeEnum = gatewayUtils.verifyBank( bankNo ,  cardId ,  userName ,  mobile) ;
         if(ResCodeEnum.SUCCESS == resCodeEnum){
-            this.create( bankNo , cardId , userName , mobile , bankName , userCode) ;
+            this.create( bankNo , cardId , userName , mobile , bankName , userCode , cardStartCount , cardSuccessCount , cardFailCount) ;
             try {
                 userService.updateBankAuthStatus(userEntity,BankAuthStatusEnum.SUCCESS);
             } catch (Exception e) {
@@ -85,7 +106,7 @@ public class BankServiceImpl implements BankService {
     public void createOrUpdateBank(String bankNo, String cardId, String userName, String mobile, String channel, String bankName , String userCode) {
         BankEntity bankEntity = this.findByBankNo(bankNo) ;
         if(bankEntity == null){
-            this.create( bankNo , cardId , userName , mobile , bankName,userCode) ;
+            this.create( bankNo , cardId , userName , mobile , bankName,userCode , 0 , 0 , 0) ;
         }else{
             //更新update时间
             bankEntity.setUpdateTime(System.currentTimeMillis());
@@ -102,7 +123,8 @@ public class BankServiceImpl implements BankService {
      * @param bankName
      * @param userCode
      */
-    private void create(String bankNo , String cardId , String userName , String mobile , String bankName , String userCode){
+    private void create(String bankNo , String cardId , String userName , String mobile , String bankName , String userCode ,
+                        Integer cardStartCount , Integer cardSuccessCount , Integer cardFailCount){
         //验证成功
         Long time = System.currentTimeMillis() ;
         BankEntity bankEntity = new BankEntity();
@@ -114,6 +136,9 @@ public class BankServiceImpl implements BankService {
         bankEntity.setBankName(bankName);
         bankEntity.setUpdateTime(time) ;
         bankEntity.setUserCode(userCode);
+        bankEntity.setCardStartCount( cardStartCount);
+        bankEntity.setCardSuccessCount( cardSuccessCount);
+        bankEntity.setCardFailCount( cardFailCount);
         //存储四要素信息
         bankRepository.save(bankEntity);
     }
