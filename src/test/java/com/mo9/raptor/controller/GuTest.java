@@ -152,8 +152,8 @@ public class GuTest {
      */
     @Test
     public void orderQuotaList(){
-        //http://localhost/raptorApi/loan_quota/list
-        //http://localhost/raptorApi/system/switch
+        //https://riskclone.mo9.com/raptorApi/loan_quota/list
+        //https://riskclone.mo9.com/raptorApi/system/switch
     }
 
 

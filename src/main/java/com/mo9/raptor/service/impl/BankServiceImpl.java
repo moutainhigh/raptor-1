@@ -1,5 +1,6 @@
 package com.mo9.raptor.service.impl;
 
+import com.mo9.raptor.bean.req.BankReq;
 import com.mo9.raptor.entity.BankEntity;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.BankAuthStatusEnum;
@@ -52,7 +53,10 @@ public class BankServiceImpl implements BankService {
     }
 
     @Override
-    public ResCodeEnum verify(String bankNo, String mobile, String bankName, UserEntity userEntity){
+    public ResCodeEnum verify(BankReq bankReq, UserEntity userEntity){
+        String bankNo = bankReq.getCard() ;
+        String mobile = bankReq.getCardMobile() ;
+        String bankName = bankReq.getBankName() ;
         BankEntity bankEntity = this.findByBankNo(bankNo) ;
         String cardId = userEntity.getIdCard();
         String userName = userEntity.getRealName();
