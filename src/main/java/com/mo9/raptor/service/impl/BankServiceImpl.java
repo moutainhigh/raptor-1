@@ -86,6 +86,12 @@ public class BankServiceImpl implements BankService {
                 logger.error("本地 四要素验证失败" + bankNo + " - " + cardId + " - " + userName + " - " + mobile);
                 return ResCodeEnum.BANK_VERIFY_ERROR ;
             }else{
+                try {
+                    userService.updateBankAuthStatus(userEntity,BankAuthStatusEnum.SUCCESS);
+                } catch (Exception e) {
+                    logger.error("更新银行卡状态,系统内部异常",e);
+                    return ResCodeEnum.EXCEPTION_CODE;
+                }
                 return ResCodeEnum.SUCCESS ;
             }
         }
