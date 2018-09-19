@@ -80,8 +80,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void updateReceiveCallHistory(UserEntity userEntity, boolean b) throws Exception {
+    public void updateReceiveCallHistory(String userCode, boolean b) throws Exception {
+        UserEntity userEntity = userRepository.findByUserCode(userCode);
         userEntity.setReceiveCallHistory(b);
+        userEntity.setCallHistory(b);
         userRepository.save(userEntity);
         checkAuditStatus(userEntity);
     }
