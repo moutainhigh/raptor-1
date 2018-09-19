@@ -4,8 +4,11 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.mo9.raptor.RaptorApplicationTest;
+import com.mo9.raptor.bean.req.BankReq;
 import com.mo9.raptor.bean.res.LoanOrderLendRes;
+import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.service.BankService;
+import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.GatewayUtils;
 import com.mo9.raptor.utils.Md5Encrypt;
 import com.mo9.raptor.utils.httpclient.HttpClientApi;
@@ -88,6 +91,8 @@ public class GuTest {
 
     @Autowired
     private BankService bankService ;
+    @Autowired
+    private UserService userService ;
     /**
      * 银行卡相关 - 接口
      */
@@ -97,7 +102,16 @@ public class GuTest {
         String cardId = "320684199109100052" ;
         String userName = "顾晓桐" ;
         String mobile = "13916393513" ;
-       // bankService.verify( bankNo , cardId , userName , mobile , "ddd" , "222");
+
+        BankReq bankReq = new BankReq();
+        bankReq.setCardStartCount(1);
+        bankReq.setCardSuccessCount(1);
+        bankReq.setCardFailCount(1);
+        bankReq.setCard(bankNo);
+        bankReq.setBankName("xxxxx");
+        bankReq.setCardMobile(mobile);
+        UserEntity userEntity = userService.findByUserCodeAndDeleted("1122",false);
+        bankService.verify( bankReq , userEntity);
     }
 
     /**

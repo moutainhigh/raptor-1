@@ -19,7 +19,7 @@ public interface ChannelRepository extends JpaRepository<ChannelEntity,Long> {
      * @param channelType   渠道类型
      * @return         logs
      */
-    @Query(value = "select * from t_raptor_channel where channel = ?1 channel_type = ?2 and deleted = false", nativeQuery = true)
+    @Query(value = "select * from t_raptor_channel where channel = ?1 and channel_type = ?2 and deleted = false", nativeQuery = true)
     ChannelEntity getChannelByType(String channel, String channelType);
 
     /**

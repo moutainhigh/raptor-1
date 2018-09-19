@@ -7,6 +7,10 @@ public class PayInfoCache implements Serializable {
 
     private String userCode;
 
+    private String userName;
+
+    private String idCard;
+
     private String loanOrderId;
 
     private String payType;
@@ -14,6 +18,10 @@ public class PayInfoCache implements Serializable {
     private BigDecimal payNumber;
 
     private int period;
+
+    private String clientId;
+
+    private String clientVersion;
 
     public String getLoanOrderId() {
         return loanOrderId;
@@ -53,5 +61,37 @@ public class PayInfoCache implements Serializable {
 
     public void setUserCode(String userCode) {
         this.userCode = userCode;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+
+    public String getIdCard() {
+        return idCard;
+    }
+
+    public void setIdCard(String idCard) {
+        this.idCard = idCard;
+    }
+
+    public String getClientId() {
+        return clientId;
+    }
+
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
+    }
+
+    public String getClientVersion() {
+        return clientVersion;
+    }
+
+    public void setClientVersion(String clientVersion) {
+        this.clientVersion = clientVersion;
     }
 }
