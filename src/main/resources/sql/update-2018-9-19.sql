@@ -46,3 +46,7 @@ ALTER TABLE `t_raptor_user_certify_info`
 
 ALTER TABLE `t_raptor_user_certify_info`
   ADD COLUMN `liveness_fail_count`  int(10) NULL DEFAULT 0 COMMENT '活体扫描失败计数' AFTER `liveness_success_count`;
+
+
+ALTER TABLE `t_raptor_user`
+  CHANGE COLUMN `description` `description` text COMMENT '状态说明' AFTER `status`;
