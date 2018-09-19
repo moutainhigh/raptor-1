@@ -49,6 +49,12 @@ public class LendOrderEntity extends AbstractOrderEntity {
     @Column(name = "bank_mobile")
     private String bankMobile;
 
+    /**
+     * 第三方放款流水号, 比如 mo9
+     */
+    @Column(name = "deal_code")
+    private String dealCode;
+
     /** 渠道 */
     @Column(name = "channel")
     private String channel;
@@ -182,5 +188,13 @@ public class LendOrderEntity extends AbstractOrderEntity {
 
     public void setFailReason(String failReason) {
         this.failReason = failReason;
+    }
+
+    public String getDealCode() {
+        return dealCode;
+    }
+
+    public void setDealCode(String dealCode) {
+        this.dealCode = dealCode;
     }
 }

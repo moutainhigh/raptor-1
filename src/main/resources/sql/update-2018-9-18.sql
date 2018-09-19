@@ -14,3 +14,6 @@ CREATE TABLE `t_raptor_card_bin_info` (
 
 ALTER TABLE `t_raptor_lend_order`
   ADD COLUMN `fail_reason`  VARCHAR(1024) COMMENT '失败原因' AFTER `channel`;
+
+ALTER TABLE `t_raptor_lend_order`
+  ADD COLUMN `deal_code`  VARCHAR(64) COMMENT '第三方放款流水号' AFTER `bank_mobile`;

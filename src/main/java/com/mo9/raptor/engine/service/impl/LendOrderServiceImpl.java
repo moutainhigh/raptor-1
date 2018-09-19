@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -39,5 +40,10 @@ public class LendOrderServiceImpl implements ILendOrderService {
         Map<String, BigDecimal> dailyLendAmount = lendOrderRepository.getTotalLendAmount(date);
         BigDecimal lendAmount = dailyLendAmount.get("dailyLendAmount");
         return lendAmount == null ? BigDecimal.ZERO : lendAmount;
+    }
+
+    @Override
+    public List<LendOrderEntity> listAllLendingOrder() {
+        return lendOrderRepository.listAllLendingOrder();
     }
 }
