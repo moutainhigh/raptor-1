@@ -3,6 +3,8 @@ package com.mo9.raptor.repository;
 import com.mo9.raptor.entity.CardBinInfoEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
+
 /**
  * Created by jyou on 2018/9/18.
  *
@@ -15,6 +17,6 @@ public interface CardBinInfoRepository extends JpaRepository<CardBinInfoEntity,L
      * @param cardPrefix
      * @return
      */
-    CardBinInfoEntity findByCardPrefix(String cardPrefix);
+    List<CardBinInfoEntity> findByCardPrefix(String cardPrefix);
 
 }
