@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -109,7 +110,7 @@ public class GatewayUtils {
             params.put("m", "newPayGu");
             params.put("channel", payOrderLog.getChannel());
             params.put("subchannel", payOrderLog.getChannel());
-            params.put("amount", "1");
+            params.put("amount", payOrderLog.getRepayAmount().toString());
             UserEntity user = userService.findByUserCode(payOrderLog.getUserCode());
             params.put("mobile", user.getMobile());
             PayOrderEntity payOrderEntity = payOrderService.getByOrderId(payOrderLog.getPayOrderId());
