@@ -30,6 +30,8 @@ public class LoanOrderLendRes {
 
     private String thirdDealcode;
 
+    private String failReason;
+
     public String getStatus() {
         return status;
     }
@@ -100,5 +102,13 @@ public class LoanOrderLendRes {
 
     public void setThirdDealcode(String thirdDealcode) {
         this.thirdDealcode = thirdDealcode;
+    }
+
+    public String getFailReason() {
+        return failReason;
+    }
+
+    public void setFailReason(String failReason) {
+        this.failReason = failReason;
     }
 }

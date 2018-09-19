@@ -99,6 +99,9 @@ public class PayOrderController {
         BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
         String loanOrderId = req.getLoanOrderId();
         String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
+        String clientId = request.getHeader(ReqHeaderParams.CLIENT_ID);
+        String clientVersion = request.getHeader(ReqHeaderParams.CLIENT_VERSION);
+
         // 用户没删就行, 拉黑也能还
         UserEntity user = userService.findByUserCodeAndDeleted(userCode, false);
         if (user == null) {
@@ -128,6 +131,10 @@ public class PayOrderController {
         payInfoCache.setPayType(realItem.getRepaymentType().name());
         payInfoCache.setPayNumber(realItem.sum());
         payInfoCache.setPeriod(0);
+        payInfoCache.setUserName(user.getRealName());
+        payInfoCache.setIdCard(user.getIdCard());
+        payInfoCache.setClientId(clientId);
+        payInfoCache.setClientVersion(clientVersion);
 
         redisServiceApi.set(RedisParams.PAY_CODE + code, payInfoCache, RedisParams.EXPIRE_5M, raptorRedis);
 
@@ -145,6 +152,8 @@ public class PayOrderController {
     @ResponseBody
     public BaseResponse<JSONObject> renewal(@Valid @RequestBody LoanOrderRenewal req, HttpServletRequest request) {
         BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
+        String loanOrderId = req.getLoanOrderId();
+        int period = req.getPeriod();
         String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
         String clientId = request.getHeader(ReqHeaderParams.CLIENT_ID);
         String clientVersion = request.getHeader(ReqHeaderParams.CLIENT_VERSION);
@@ -155,11 +164,11 @@ public class PayOrderController {
         }
 
         // 延期天数暂时和借款订单脱离关系
-        Boolean checkRenewableDays = RenewableDaysEnum.checkRenewableDays(req.getPeriod());
+        Boolean checkRenewableDays = RenewableDaysEnum.checkRenewableDays(period);
         if (!checkRenewableDays) {
             return response.buildFailureResponse(ResCodeEnum.INVALID_RENEWAL_DAYS);
         }
-        Integer basicRenewableDaysTimes = RenewableDaysEnum.getBasicRenewableDaysTimes(req.getPeriod());
+        Integer basicRenewableDaysTimes = RenewableDaysEnum.getBasicRenewableDaysTimes(period);
 
         LoanOrderEntity loanOrder = loanOrderService.getByOrderId(req.getLoanOrderId());
         if (loanOrder == null || !StatusEnum.LENT.name().equals(loanOrder.getStatus())) {
@@ -184,10 +193,14 @@ public class PayOrderController {
 
         PayInfoCache payInfoCache = new PayInfoCache();
         payInfoCache.setUserCode(userCode);
-        payInfoCache.setLoanOrderId(req.getLoanOrderId());
+        payInfoCache.setLoanOrderId(loanOrderId);
         payInfoCache.setPayType(PayTypeEnum.REPAY_POSTPONE.name());
         payInfoCache.setPayNumber(applyAmount);
-        payInfoCache.setPeriod(req.getPeriod());
+        payInfoCache.setPeriod(period);
+        payInfoCache.setUserName(user.getRealName());
+        payInfoCache.setIdCard(user.getIdCard());
+        payInfoCache.setClientId(clientId);
+        payInfoCache.setClientVersion(clientVersion);
 
         redisServiceApi.set(RedisParams.PAY_CODE + code, payInfoCache, RedisParams.EXPIRE_5M, raptorRedis);
 
@@ -211,11 +224,7 @@ public class PayOrderController {
         model.addAttribute("code", code);
 
         /** 增加支付信息 */
-        model.addAttribute("userCode", payInfoCache.getUserCode());
-        model.addAttribute("loanOrderId", payInfoCache.getLoanOrderId());
-        model.addAttribute("payType", payInfoCache.getPayType());
-        model.addAttribute("payNumber", payInfoCache.getPayNumber());
-        model.addAttribute("period", payInfoCache.getPeriod());
+        model.addAttribute("payInfo", payInfoCache);
 
         /** 增加可用于扣款的银行卡列表 */
         List<BankEntity> banks = new ArrayList<BankEntity>();
@@ -231,13 +240,11 @@ public class PayOrderController {
     }
 
     @PostMapping("/cashier/submit")
-    public BaseResponse<JSONObject> cashierSubmit (HttpServletRequest request,
-                                                   @RequestParam String code,
+    @ResponseBody
+    public BaseResponse<JSONObject> cashierSubmit (@RequestParam String code,
                                                    @RequestParam String channel,
                                                    @RequestParam String bankNo,
-                                                   @RequestParam String mobile,
-                                                   @RequestParam String userName,
-                                                   @RequestParam String cardId) {
+                                                   @RequestParam String mobile) {
 
         PayInfoCache payInfoCache =  (PayInfoCache) redisServiceApi.get(RedisParams.PAY_CODE + code, raptorRedis);
 
@@ -246,17 +253,7 @@ public class PayOrderController {
             return response.buildFailureResponse(ResCodeEnum.PAY_INFO_EXPIRED);
         }
 
-        String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
-
-        String clientId = request.getHeader(ReqHeaderParams.CLIENT_ID);
-        String clientVersion = request.getHeader(ReqHeaderParams.CLIENT_VERSION);
-        // 用户没删就行, 拉黑也能还
-        UserEntity user = userService.findByUserCodeAndDeleted(userCode, false);
-        if (user == null) {
-            return response.buildFailureResponse(ResCodeEnum.USER_NOT_EXIST);
-        }
-
-        // 检查可用渠道
+        // 检查渠道
         ChannelEntity channelEntity = channelService.getChannelByType(channel, ChannelTypeEnum.REPAY.name());
         if (channelEntity == null) {
             return response.buildFailureResponse(ResCodeEnum.NO_REPAY_CHANNEL);
@@ -267,36 +264,37 @@ public class PayOrderController {
         payOrder.setOrderId(orderId);
         payOrder.setStatus(StatusEnum.PENDING.name());
 
-        payOrder.setOwnerId(userCode);
-
+        payOrder.setOwnerId(payInfoCache.getUserCode());
         payOrder.setType(payInfoCache.getPayType());
         payOrder.setApplyNumber(payInfoCache.getPayNumber());
         payOrder.setPostponeDays(payInfoCache.getPeriod());
         payOrder.setLoanOrderId(payInfoCache.getLoanOrderId());
 
         payOrder.setPayCurrency(CurrencyEnum.getDefaultCurrency().name());
-        payOrder.setChannel(channelEntity.getChannel());
+        payOrder.setChannel(channel);
         payOrder.create();
 
         PayOrderLogEntity payOrderLog = new PayOrderLogEntity();
-        payOrderLog.setOrderId(payOrder.getLoanOrderId());
+        payOrderLog.setIdCard(payInfoCache.getIdCard());
+        payOrderLog.setUserName(payInfoCache.getUserName());
+        payOrderLog.setRepayAmount(payInfoCache.getPayNumber());
+        payOrderLog.setUserCode(payInfoCache.getUserCode());
+        payOrderLog.setClientId(payInfoCache.getClientId());
+        payOrderLog.setClientVersion(payInfoCache.getClientVersion());
+        payOrderLog.setOrderId(payInfoCache.getLoanOrderId());
+
         payOrderLog.setPayOrderId(payOrder.getOrderId());
+        payOrderLog.setChannel(channel);
         payOrderLog.setBankCard(bankNo);
         payOrderLog.setBankMobile(mobile);
-        payOrderLog.setIdCard(cardId);
-        payOrderLog.setUserName(userName);
-        payOrderLog.setChannel(channelEntity.getChannel());
-        payOrderLog.setRepayAmount(payOrder.getApplyNumber());
-        payOrderLog.setUserCode(userCode);
-        payOrderLog.setClientId(clientId);
-        payOrderLog.setClientVersion(clientVersion);
+
         payOrderLog.create();
         payOrderService.savePayOrderAndLog(payOrder, payOrderLog);
 
         PayOderChannelRes res = getRes(orderId, channelEntity.getId());
         JSONObject data = new JSONObject();
 
-        data.put("url", res.getResult());
+        data.put("entities", res);
 
         return response.buildSuccessResponse(data);
     }
@@ -306,6 +304,7 @@ public class PayOrderController {
      * @return
      */
     @GetMapping("/get_repay_channels")
+    @ResponseBody
     public BaseResponse<JSONObject> getRepayChannels () {
         BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
         List<ChannelDetailRes> channels = new ArrayList<ChannelDetailRes>();
