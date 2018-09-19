@@ -103,6 +103,16 @@ public class UserCertifyInfoServiceImpl implements UserCertifyInfoService {
         if(modifyCertifyReq.getOcrGender() != null){
             entity.setOcrGender(modifyCertifyReq.getOcrGender());
         }
+
+        entity.setFrontStartCount(entity.getFrontStartCount() + modifyCertifyReq.getFrontStartCount());
+        entity.setFrontSuccessCount(entity.getFrontSuccessCount() + modifyCertifyReq.getFrontSuccessCount());
+        entity.setFrontFailCount(entity.getFrontFailCount() + modifyCertifyReq.getFrontFailCount());
+        entity.setBackStartCount(entity.getBackStartCount() + modifyCertifyReq.getBackStartCount());
+        entity.setBackSuccessCount(entity.getBackSuccessCount() + modifyCertifyReq.getBackSuccessCount());
+        entity.setBackFailCount(entity.getBackFailCount() + modifyCertifyReq.getBackFailCount());
+        entity.setLivenessStartCount(entity.getLivenessStartCount() + modifyCertifyReq.getLivenessStartCount());
+        entity.setLivenessSuccessCount(entity.getLivenessSuccessCount() + modifyCertifyReq.getLivenessSuccessCount());
+        entity.setLivenessFailCount(entity.getLivenessFailCount() + modifyCertifyReq.getLivenessFailCount());
         long now = System.currentTimeMillis();
         if(entity.getCreateTime() == null){
             entity.setCreateTime(now);

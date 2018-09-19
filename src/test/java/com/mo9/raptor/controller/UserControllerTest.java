@@ -41,11 +41,13 @@ public class UserControllerTest {
 
     private static  final String localHostUrl = "http://localhost/raptorApi/";
 
+    private static  final String cloneHostUrl = "https://riskclone.mo9.com/raptorApi/";
+
     Map<String, String> headers = new HashMap<>();
 
     @Before
     public void before(){
-        headers.put("Account-Code", "AA20A480E526D644D13D9AC5593D268E");
+        headers.put("Account-Code", "AA20A480E526D644D13D9AC5593D2686");
         headers.put("Client-Id", "503");
     }
 
@@ -147,7 +149,7 @@ public class UserControllerTest {
     public void testModifyCertifyInfo() throws IOException {
         JSONObject json = new JSONObject();
         json.put("realName", "ukar");
-        json.put("idCard", "789");
+        json.put("idCard", "456");
         json.put("issuingOrgan", "123456");
         json.put("validityStartPeriod", "ukar");
         json.put("validityEndPeriod", "ukar");
@@ -165,7 +167,8 @@ public class UserControllerTest {
         json.put("ocrBirthday", "ukar");
         json.put("ocrIdCardAddress", "ukar");
 
-        HttpResult httpResult = httpClientApi.doPostJson(localHostUrl + "/user/modify_certify_info", json.toJSONString(), headers);
+//        HttpResult httpResult = httpClientApi.doPostJson(localHostUrl + "/user/modify_certify_info", json.toJSONString(), headers);
+        HttpResult httpResult = httpClientApi.doPostJson(cloneHostUrl + "/user/modify_certify_info", json.toJSONString(), headers);
         System.out.println(httpResult.getCode());
         System.out.println(httpResult.getData());
     }

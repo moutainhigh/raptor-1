@@ -118,6 +118,60 @@ public class ModifyCertifyReq {
     @NotBlank(message = "识别地址不能为空")
     private String ocrIdCardAddress;
 
+    /**
+     * 身份证正面扫描开始计数
+     */
+    @NotNull(message = "身份证正面扫描开始计数不能为空")
+    private Integer frontStartCount;
+
+    /**
+     * 身份证正面扫描成功计数
+     */
+    @NotNull(message = "身份证正面扫描成功计数不能为空")
+    private Integer frontSuccessCount;
+
+    /**
+     * 身份证正面扫描失败计数
+     */
+    @NotNull(message = "身份证正面扫描失败计数不能为空")
+    private Integer frontFailCount;
+
+    /**
+     * 身份证背面扫描开始计数
+     */
+    @NotNull(message = "身份证背面扫描开始计数不能为空")
+    private Integer backStartCount;
+
+    /**
+     * 身份证背面扫描成功计数
+     */
+    @NotNull(message = "身份证背面扫描成功计数不能为空")
+    private Integer backSuccessCount;
+
+    /**
+     * 身份证背面扫描失败计数
+     */
+    @NotNull(message = "身份证背面扫描失败计数不能为空")
+    private Integer backFailCount;
+
+    /**
+     * 活体扫描开始计数
+     */
+    @NotNull(message = "活体扫描开始计数不能为空")
+    private Integer livenessStartCount;
+
+    /**
+     * 活体扫描成功计数
+     */
+    @NotNull(message = "活体扫描成功计数不能为空")
+    private Integer livenessSuccessCount;
+
+    /**
+     * 活体扫描成功计数
+     */
+    @NotNull(message = "活体扫描成功计数不能为空")
+    private Integer livenessFailCount;
+
     public String getRealName() {
         return realName;
     }
@@ -260,5 +314,77 @@ public class ModifyCertifyReq {
 
     public void setOcrIdCardAddress(String ocrIdCardAddress) {
         this.ocrIdCardAddress = ocrIdCardAddress;
+    }
+
+    public Integer getFrontStartCount() {
+        return frontStartCount;
+    }
+
+    public void setFrontStartCount(Integer frontStartCount) {
+        this.frontStartCount = frontStartCount;
+    }
+
+    public Integer getFrontSuccessCount() {
+        return frontSuccessCount;
+    }
+
+    public void setFrontSuccessCount(Integer frontSuccessCount) {
+        this.frontSuccessCount = frontSuccessCount;
+    }
+
+    public Integer getFrontFailCount() {
+        return frontFailCount;
+    }
+
+    public void setFrontFailCount(Integer frontFailCount) {
+        this.frontFailCount = frontFailCount;
+    }
+
+    public Integer getBackStartCount() {
+        return backStartCount;
+    }
+
+    public void setBackStartCount(Integer backStartCount) {
+        this.backStartCount = backStartCount;
+    }
+
+    public Integer getBackSuccessCount() {
+        return backSuccessCount;
+    }
+
+    public void setBackSuccessCount(Integer backSuccessCount) {
+        this.backSuccessCount = backSuccessCount;
+    }
+
+    public Integer getBackFailCount() {
+        return backFailCount;
+    }
+
+    public void setBackFailCount(Integer backFailCount) {
+        this.backFailCount = backFailCount;
+    }
+
+    public Integer getLivenessStartCount() {
+        return livenessStartCount;
+    }
+
+    public void setLivenessStartCount(Integer livenessStartCount) {
+        this.livenessStartCount = livenessStartCount;
+    }
+
+    public Integer getLivenessSuccessCount() {
+        return livenessSuccessCount;
+    }
+
+    public void setLivenessSuccessCount(Integer livenessSuccessCount) {
+        this.livenessSuccessCount = livenessSuccessCount;
+    }
+
+    public Integer getLivenessFailCount() {
+        return livenessFailCount;
+    }
+
+    public void setLivenessFailCount(Integer livenessFailCount) {
+        this.livenessFailCount = livenessFailCount;
     }
 }
