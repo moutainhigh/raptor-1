@@ -1,11 +1,7 @@
 package com.mo9.raptor.engine.state.action.impl.loan;
 
-import com.alibaba.druid.support.spring.stat.annotation.Stat;
-import com.mo9.raptor.engine.entity.LendOrderEntity;
-import com.mo9.raptor.engine.enums.StatusEnum;
-import com.mo9.raptor.engine.service.ILendOrderService;
 import com.mo9.raptor.engine.state.action.IAction;
-import com.mo9.raptor.engine.state.event.impl.loan.LoanLaunchEvent;
+import com.mo9.raptor.engine.state.event.impl.lend.LendResponseEvent;
 import com.mo9.raptor.engine.state.event.impl.loan.LoanResponseEvent;
 import com.mo9.raptor.engine.state.launcher.IEventLauncher;
 import org.slf4j.Logger;
@@ -19,40 +15,25 @@ public class LoanResponseAction implements IAction {
 
     private static final Logger logger = LoggerFactory.getLogger(LoanResponseAction.class);
 
-    private String loanOrderId;
+    private LendResponseEvent event;
 
     private IEventLauncher loanEventLauncher;
 
-    private ILendOrderService lendOrderService;
-
-    public LoanResponseAction(String loanOrderId, ILendOrderService lendOrderService, IEventLauncher loanEventLauncher) {
-        this.loanOrderId = loanOrderId;
+    public LoanResponseAction(LendResponseEvent event,IEventLauncher loanEventLauncher) {
+        this.event = event;
         this.loanEventLauncher = loanEventLauncher;
-        this.lendOrderService = lendOrderService;
     }
 
     @Override
     public void run(){
-        LendOrderEntity lendOrderEntity = lendOrderService.getByOrderId(loanOrderId);
-        String status = lendOrderEntity.getStatus();
-        LoanResponseEvent loanResponse;
-        if (StatusEnum.SUCCESS.name().equals(status)) {
-            loanResponse = new LoanResponseEvent(
-                    lendOrderEntity.getApplyUniqueCode(),
-                    lendOrderEntity.getChannelLendNumber(),
-                    true,
-                    lendOrderEntity.getChanelResponseTime(),
-                    "放款成功",
-                    "放款成功");
-        } else {
-            loanResponse = new LoanResponseEvent(
-                    lendOrderEntity.getApplyUniqueCode(),
-                    lendOrderEntity.getChannelLendNumber(),
-                    false,
-                    -1L,
-                    "放款失败",
-                    "放款失败");
-        }
+        boolean succeeded = event.isSucceeded();
+        LoanResponseEvent loanResponse = new LoanResponseEvent(
+                event.getEntityUniqueId(),
+                event.getActualLent(),
+                succeeded,
+                event.getSuccessTime(),
+                event.getLendSignature(),
+                event.getExplanation());
         try {
             loanEventLauncher.launch(loanResponse);
         } catch (Exception e) {
@@ -67,6 +48,6 @@ public class LoanResponseAction implements IAction {
 
     @Override
     public String getOrderId() {
-        return loanOrderId;
+        return event.getEntityUniqueId();
     }
 }

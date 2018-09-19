@@ -48,8 +48,9 @@ public class LendingStateHandler implements IStateHandler<LendOrderEntity> {
                 lendOrder.setChannelOrderId(lendResponse.getChannelOrderId());
                 lendOrder.setChannelResponse(lendResponse.getChannelResponse());
                 lendOrder.setChannel(lendResponse.getChannel());
+                lendOrder.setFailReason(lendResponse.getFailReason());
             }
-            actionExecutor.append(new LoanResponseAction(lendOrder.getApplyUniqueCode(), lendOrderService, loanEventLauncher));
+            actionExecutor.append(new LoanResponseAction(lendResponse, loanEventLauncher));
         }  else {
             throw new InvalidEventException("放款订单状态与事件类型不匹配，状态：" + lendOrder.getStatus() + "，事件：" + event);
         }

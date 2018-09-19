@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -28,4 +29,10 @@ public interface LendOrderRepository extends JpaRepository<LendOrderEntity,Long>
     @Query(value = "select sum(apply_number) as 'dailyLendAmount' from t_raptor_lend_order where status in ('LENDING', 'PENDING') AND create_time >= ?1 and deleted = false", nativeQuery = true)
     Map<String , BigDecimal> getTotalLendAmount(Long date);
 
+    /**
+     * 获取所有放款中的订单
+     * @return
+     */
+    @Query(value = "select * from t_raptor_lend_order where status = 'LENDING' AND  deleted = false", nativeQuery = true)
+    List<LendOrderEntity> listAllLendingOrder();
 }
