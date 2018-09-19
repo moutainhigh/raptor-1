@@ -7,6 +7,7 @@ import com.mo9.raptor.entity.UserCertifyInfoEntity;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.risk.entity.TRiskCallLog;
 import com.mo9.raptor.risk.repo.RiskCallLogRepository;
+import com.mo9.raptor.risk.service.LinkFaceService;
 import com.mo9.raptor.risk.service.RiskAuditService;
 import com.mo9.raptor.service.UserCertifyInfoService;
 import com.mo9.raptor.service.UserService;
@@ -42,7 +43,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
     private RiskCallLogRepository riskCallLogRepository;
 
     @Resource
-    private LinkFaceServiceImpl linkFaceService;
+    private LinkFaceService linkFaceService;
 
     @Resource
     private UserCertifyInfoService userCertifyInfoService;

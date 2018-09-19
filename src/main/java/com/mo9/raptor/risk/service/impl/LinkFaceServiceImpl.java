@@ -38,12 +38,6 @@ public class LinkFaceServiceImpl implements com.mo9.raptor.risk.service.LinkFace
     private LinkfaceLogService linkfaceLogService;
 
 
-    public static void main(String[] args) {
-        LinkFaceServiceImpl linkFaceService = new LinkFaceServiceImpl();
-        double code = linkFaceService.preventHack("", "https://btc-app-prod.oss-cn-hongkong.aliyuncs.com/dandelion/image/2a63142cf70746358d7f1352249b60e2.JPG");
-        System.out.println(code);
-    }
-
     /**
      * 防hack接口，验证用户照片是否为活体照片
      *
