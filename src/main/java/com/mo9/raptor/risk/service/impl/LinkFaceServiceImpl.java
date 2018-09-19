@@ -1,4 +1,4 @@
-package com.mo9.raptor.linkface;
+package com.mo9.raptor.risk.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.entity.LinkfaceLogEntity;
@@ -8,6 +8,7 @@ import okio.BufferedSink;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -18,13 +19,14 @@ import java.util.HashMap;
  * @author yngong
  */
 @Service("linkFaceService")
-public class LinkFaceService {
+public class LinkFaceServiceImpl implements com.mo9.raptor.risk.service.LinkFaceService {
 
+    private static final Logger logger = LoggerFactory.getLogger(LinkFaceServiceImpl.class);
 
-    private static final Logger logger = LoggerFactory.getLogger(LinkFaceService.class);
-
-    private static String apiId = "a1ebd74878904c0ba36e26f1e93a7966";
-    private static String apiSecret = "49b539c83a4e4e838ffd24f7ab0da4e8";
+    @Value("${linkface.apiId}")
+    private String apiId;
+    @Value("${linkface.apiSecret}")
+    private String apiSecret;
 
     private OkHttpClient okHttpClient = new OkHttpClient();
 
@@ -37,7 +39,7 @@ public class LinkFaceService {
 
 
     public static void main(String[] args) {
-        LinkFaceService linkFaceService = new LinkFaceService();
+        LinkFaceServiceImpl linkFaceService = new LinkFaceServiceImpl();
         double code = linkFaceService.preventHack("", "https://btc-app-prod.oss-cn-hongkong.aliyuncs.com/dandelion/image/2a63142cf70746358d7f1352249b60e2.JPG");
         System.out.println(code);
     }
@@ -47,6 +49,7 @@ public class LinkFaceService {
      *
      * @return
      */
+    @Override
     public double preventHack(String userCode, String imageUrl) {
         String callUrl = "https://cloudapi.linkface.cn/hackness/selfie_hack_detect";
         HashMap<String, Object> callParams = new HashMap<>(2);
@@ -113,6 +116,7 @@ public class LinkFaceService {
      * @param name
      * @return
      */
+    @Override
     public double judgeOnePerson(String userCode, String imageUrl, String idNumber, String name) {
         String callUrl = "https://cloudapi.linkface.cn/identity/selfie_idnumber_verification";
         HashMap<String, Object> callParams = new HashMap<>(2);
@@ -180,6 +184,7 @@ public class LinkFaceService {
      *
      * @return
      */
+    @Override
     public double judgeIdCardPolice(String userCode, String imageUrl, String idNumber, String name) {
         String callUrl = "https://cloudapi.linkface.cn/identity/selfie_idnumber_verification";
 
