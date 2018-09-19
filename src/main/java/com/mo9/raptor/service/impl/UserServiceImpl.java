@@ -22,7 +22,7 @@ public class UserServiceImpl implements UserService {
     private UserRepository userRepository;
 
     @Autowired
-    private IEventLauncher loanEventLauncher;
+    private IEventLauncher userEventLauncher;
     @Override
     public UserEntity findByUserCode(String userCode) {
         return userRepository.findByUserCode(userCode);
@@ -90,6 +90,11 @@ public class UserServiceImpl implements UserService {
     @Transactional(rollbackFor = Exception.class)
     public void updateBankAuthStatus(UserEntity userEntity, BankAuthStatusEnum statusEnum) throws Exception {
         userEntity.setBankAuthStatus(statusEnum.name());
+        if (BankAuthStatusEnum.SUCCESS == statusEnum){
+            userEntity.setBankCardSet(true);
+        }else {
+            userEntity.setBankCardSet(false);
+        }
         userRepository.save(userEntity);
         checkAuditStatus(userEntity);
     }
@@ -97,15 +102,16 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void checkAuditStatus(UserEntity userEntity) throws Exception {
-        String bankAuthStatus = userEntity.getBankAuthStatus();
         Boolean certifyInfo = userEntity.getCertifyInfo();
         Boolean mobileContacts = userEntity.getMobileContacts();
         Boolean callHistory = userEntity.getCallHistory();
+        Boolean bankCardSet = userEntity.getBankCardSet();
         Boolean receiveCallHistory = userEntity.getReceiveCallHistory();
-        if (callHistory && certifyInfo && mobileContacts && receiveCallHistory && BankAuthStatusEnum.SUCCESS.name().equals(bankAuthStatus)) {
+        if (callHistory && certifyInfo && mobileContacts && receiveCallHistory && bankCardSet) {
             // 信息采集完成 发起审核
+            userEntity.setAuthTime(System.currentTimeMillis());
             AuditLaunchEvent auditLaunchEvent = new AuditLaunchEvent(userEntity.getUserCode(),userEntity.getUserCode());
-            loanEventLauncher.launch(auditLaunchEvent);
+            userEventLauncher.launch(auditLaunchEvent);
         }
     }
 }
