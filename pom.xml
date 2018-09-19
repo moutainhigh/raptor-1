@@ -41,7 +41,7 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- 用于贷款计算器demo页 -->
+        <!-- web页 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
@@ -123,6 +123,20 @@
             <artifactId>commons-io</artifactId>
             <version>RELEASE</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.7</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>3.9.1</version>
+        </dependency>
+
+
     </dependencies>
 
     <build>

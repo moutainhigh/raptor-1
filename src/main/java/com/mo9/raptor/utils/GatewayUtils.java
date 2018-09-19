@@ -109,7 +109,7 @@ public class GatewayUtils {
             params.put("m", "newPayGu");
             params.put("channel", payOrderLog.getChannel());
             params.put("subchannel", payOrderLog.getChannel());
-            params.put("amount", payOrderLog.getRepayAmount().toPlainString());
+            params.put("amount", "1");
             UserEntity user = userService.findByUserCode(payOrderLog.getUserCode());
             params.put("mobile", user.getMobile());
             PayOrderEntity payOrderEntity = payOrderService.getByOrderId(payOrderLog.getPayOrderId());
@@ -125,7 +125,7 @@ public class GatewayUtils {
 
             String mysig = Md5Encrypt.sign(params, "643138394F10DA5E9647709A3FA8DD7F");
             params.put("sign", mysig);
-            String gatewayUrl = "http://guxt.local.mo9.com/gateway/pay.shtml";
+            String gatewayUrl = "https://new.mo9.com/gateway/pay.shtml";
             String resJson = httpClientApi.doGet(gatewayUrl, params);
             payOrderLog.setChannelSyncResponse(resJson);
             payOrderLog.setUpdateTime(System.currentTimeMillis());
@@ -204,6 +204,8 @@ public class GatewayUtils {
             LoanOrderLendRes loanOrderLendRes = JSON.parseObject(result, LoanOrderLendRes.class);
             if ("success".equals(loanOrderLendRes.getStatus())) {
                 return loanOrderLendRes;
+            } else {
+                logger.error("查询放款订单状态报错, 返回为: [{}]", result);
             }
 //            JSONObject data = JSON.parseObject(result) ;
 //            String status = data.getString("status") ; //请求状态 success 请求成功 failed 请求失败

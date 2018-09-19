@@ -39,7 +39,7 @@ public class UserControllerTest {
 
     private static  final String localUrl = "http://192.168.14.114:8010/raptorApi/";
 
-    private static  final String localHostUrl = "http://localhost/raptorApi/";
+    private static  final String localHostUrl = "http://localhost:8081/raptorApi/";
 
     private static  final String cloneHostUrl = "https://riskclone.mo9.com/raptorApi/";
 

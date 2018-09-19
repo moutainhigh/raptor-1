@@ -132,7 +132,7 @@ public class UserController {
             response.setMessage(ResCodeEnum.USER_CARD_ID_NOT_EXIST.getMessage());
             return response;
         }
-        ResCodeEnum resCodeEnum = bankService.verify(bankReq.getCard() , bankReq.getCardMobile() , bankReq.getBankName() , userEntity);
+        ResCodeEnum resCodeEnum = bankService.verify(bankReq , userEntity);
         if(ResCodeEnum.SUCCESS != resCodeEnum){
             response.setCode(resCodeEnum.getCode());
             response.setMessage(resCodeEnum.getMessage());
@@ -251,4 +251,22 @@ public class UserController {
         return response.buildSuccessResponse(map);
     }
 
+    /**
+     * 告知服务通话记录已上传
+     * @param request
+     * @return
+     */
+    @RequestMapping(value = "/phone_record_uploaded")
+    public BaseResponse phoneRecordUploaded(HttpServletRequest request){
+        BaseResponse<String> response = new BaseResponse<>();
+        String userCode = request.getParameter("uid");
+        try {
+            UserEntity userEntity = userService.findByUserCodeAndDeleted(userCode, false);
+            userService.updateCallHistory(userEntity,true);
+        } catch (Exception e) {
+            logger.error("通讯录授权成功,用户点击完成接口----->>>>userCode={},发生异常{}",userCode,e);
+            return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
+        }
+        return response.buildSuccessResponse("ok");
+    }
 }

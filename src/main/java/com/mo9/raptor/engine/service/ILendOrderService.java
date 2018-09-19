@@ -3,6 +3,7 @@ package com.mo9.raptor.engine.service;
 import com.mo9.raptor.engine.entity.LendOrderEntity;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * 贷款订单service
@@ -28,5 +29,11 @@ public interface ILendOrderService {
      * @return
      */
     BigDecimal getDailyLendAmount();
+
+    /**
+     * 获取所有放款中的订单
+     * @return
+     */
+    List<LendOrderEntity> listAllLendingOrder();
 
 }

@@ -1,3 +1,6 @@
+ /**********************添加是否收到通讯录数据字段**********************/
+ALTER TABLE `t_raptor_user`
+  ADD COLUMN `receive_call_history` tinyint(4) NOT NULL DEFAULT '0' COMMENT '是否收到通话记录数据' AFTER `call_history`;
 DROP TABLE IF EXISTS `t_raptor_card_bin_info`;
 CREATE TABLE `t_raptor_card_bin_info` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT ,
@@ -11,3 +14,9 @@ CREATE TABLE `t_raptor_card_bin_info` (
   PRIMARY KEY (`id`),
   INDEX `CARD_PREFIX` (`CARD_PREFIX`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='银行卡bin表';
+
+ALTER TABLE `t_raptor_lend_order`
+  ADD COLUMN `fail_reason`  VARCHAR(1024) COMMENT '失败原因' AFTER `channel`;
+
+ALTER TABLE `t_raptor_lend_order`
+  ADD COLUMN `deal_code`  VARCHAR(64) COMMENT '第三方放款流水号' AFTER `bank_mobile`;

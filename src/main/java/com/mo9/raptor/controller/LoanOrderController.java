@@ -190,7 +190,7 @@ public class LoanOrderController {
         res.setOrderId(loanOrderEntity.getOrderId());
         res.setActuallyGet(loanOrderEntity.getLoanNumber().subtract(loanOrderEntity.getChargeValue()).toPlainString());
         res.setRepayAmount(realItem.sum().toPlainString());
-        res.setRepayTime(loanOrderEntity.getRepaymentDate());
+        res.setRepayTime(realItem.getRepayDate());
         res.setState(loanOrderEntity.getStatus());
         res.setAbateAmount("0");
         LendOrderEntity lendOrderEntity = lendOrderService.getByOrderId(loanOrderEntity.getOrderId());

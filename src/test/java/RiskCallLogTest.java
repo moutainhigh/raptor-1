@@ -96,7 +96,7 @@ public class RiskCallLogTest extends BaseTest{
                     "  \"data\": { " +
                     "    \"tel\": \"15826472370\", " +
                     "    \"uid\": \"\", " +
-                    "    \"sid\": \"SIDb869ade4841a4c0090828a1c8a180349\", " +
+                    "    \"sid\": \"SID3a3fc98a8f364d07a625f5dd6e3c75c3\", " +
                     "    \"call_log_missing_month_list\": [], " +
                     "    \"call_log_possibly_missing_month_list\": [], " +
                     "    \"call_log_ part _missing_month_list\": [], " +
