@@ -180,25 +180,30 @@ public class LoanOrderController {
     public BaseResponse<LoanOrderRes> getLastIncomplete(HttpServletRequest request) {
         BaseResponse<LoanOrderRes> response = new BaseResponse<LoanOrderRes>();
         String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
-        LoanOrderEntity loanOrderEntity = loanOrderService.getLastIncompleteOrder(userCode);
-        if (loanOrderEntity == null) {
-            return response;
-        }
-        ILoanCalculator calculator = loanCalculatorFactory.load(loanOrderEntity);
-        Item realItem = calculator.realItem(System.currentTimeMillis(), loanOrderEntity, PayTypeEnum.REPAY_AS_PLAN.name());
+        try {
+            LoanOrderEntity loanOrderEntity = loanOrderService.getLastIncompleteOrder(userCode);
+            if (loanOrderEntity == null) {
+                return response;
+            }
+            ILoanCalculator calculator = loanCalculatorFactory.load(loanOrderEntity);
+            Item realItem = calculator.realItem(System.currentTimeMillis(), loanOrderEntity, PayTypeEnum.REPAY_AS_PLAN.name());
 
-        LoanOrderRes res = new LoanOrderRes();
-        res.setOrderId(loanOrderEntity.getOrderId());
-        res.setActuallyGet(loanOrderEntity.getLoanNumber().subtract(loanOrderEntity.getChargeValue()).toPlainString());
-        res.setRepayAmount(realItem.sum().toPlainString());
-        res.setRepayTime(realItem.getRepayDate());
-        res.setState(loanOrderEntity.getStatus());
-        res.setAbateAmount("0");
-        LendOrderEntity lendOrderEntity = lendOrderService.getByOrderId(loanOrderEntity.getOrderId());
-        res.setReceiveBankCard(lendOrderEntity.getBankCard());
-        res.setRenew(calculator.getRenew(loanOrderEntity));
-        res.setAgreementUrl("https://www.baidu.com");
-        return response.buildSuccessResponse(res);
+            LoanOrderRes res = new LoanOrderRes();
+            res.setOrderId(loanOrderEntity.getOrderId());
+            res.setActuallyGet(loanOrderEntity.getLoanNumber().subtract(loanOrderEntity.getChargeValue()).toPlainString());
+            res.setRepayAmount(realItem.sum().toPlainString());
+            res.setRepayTime(realItem.getRepayDate());
+            res.setState(String.valueOf(LoanOrderRes.StateEnum.getCode(loanOrderEntity.getStatus())));
+            res.setAbateAmount("0");
+            LendOrderEntity lendOrderEntity = lendOrderService.getByOrderId(loanOrderEntity.getOrderId());
+            res.setReceiveBankCard(lendOrderEntity.getBankCard());
+            res.setRenew(calculator.getRenew(loanOrderEntity));
+            res.setAgreementUrl("https://www.baidu.com");
+            return response.buildSuccessResponse(res);
+        } catch (Exception e) {
+            logger.error("用户[{}]获取上一笔未还清订单错误, ", userCode, e);
+            return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
+        }
     }
 
 }
