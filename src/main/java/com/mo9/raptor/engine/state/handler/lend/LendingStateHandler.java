@@ -37,7 +37,7 @@ public class LendingStateHandler implements IStateHandler<LendOrderEntity> {
                 lendOrder.setStatus(StatusEnum.SUCCESS.name());
                 lendOrder.setChanelResponseTime(lendResponse.getSuccessTime());
                 lendOrder.setChannelLendNumber(lendResponse.getActualLent());
-                lendOrder.setChannelOrderId(lendResponse.getChannelOrderId());
+                lendOrder.setDealCode(lendResponse.getChannelOrderId());
                 lendOrder.setChannelResponse(lendResponse.getChannelResponse());
                 lendOrder.setChannel(lendResponse.getChannel());
             } else {
@@ -45,7 +45,7 @@ public class LendingStateHandler implements IStateHandler<LendOrderEntity> {
                 lendOrder.setStatus(StatusEnum.FAILED.name());
                 lendOrder.setChanelResponseTime(lendResponse.getSuccessTime());
                 lendOrder.setChannelLendNumber(lendResponse.getActualLent());
-                lendOrder.setChannelOrderId(lendResponse.getChannelOrderId());
+                lendOrder.setDealCode(lendResponse.getChannelOrderId());
                 lendOrder.setChannelResponse(lendResponse.getChannelResponse());
                 lendOrder.setChannel(lendResponse.getChannel());
                 lendOrder.setFailReason(lendResponse.getFailReason());
