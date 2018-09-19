@@ -11,6 +11,12 @@ import javax.validation.constraints.Pattern;
 public class CashRepayReq {
 
     /**
+     * 支付码
+     */
+    @NotBlank
+    private String code;
+
+    /**
      * 付款渠道类型
      */
     @NotNull
@@ -41,12 +47,6 @@ public class CashRepayReq {
     @NotBlank
     @Pattern(regexp = "^\\d{14,19}[0-9Xx]$", message = "身份证号不符合规则")
     private String idCard;
-
-    /**
-     * 订单号
-     */
-    @NotBlank
-    private String orderId;
 
     public Integer getChannelType() {
         return channelType;
@@ -88,11 +88,11 @@ public class CashRepayReq {
         this.idCard = idCard;
     }
 
-    public String getOrderId() {
-        return orderId;
+    public String getCode() {
+        return code;
     }
 
-    public void setOrderId(String orderId) {
-        this.orderId = orderId;
+    public void setCode(String code) {
+        this.code = code;
     }
 }

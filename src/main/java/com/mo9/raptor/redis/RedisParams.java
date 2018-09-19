@@ -51,6 +51,11 @@ public class RedisParams {
     public static final long EXPIRE_14D = 60 * 60 *24  * 14;
 
     /**
+     * 还款支付码
+     */
+    public static final String PAY_CODE = "PAY_CODE_";
+
+    /**
      * ip限制
      */
     public static final String LIMIT_IP_RATES = "limit_ip_rates_";
