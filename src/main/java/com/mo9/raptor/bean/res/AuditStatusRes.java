@@ -1,5 +1,7 @@
 package com.mo9.raptor.bean.res;
 
+import java.util.Map;
+
 /**
  * 获取账户审核状态
  * @author zma
@@ -14,6 +16,10 @@ public class AuditStatusRes {
      * 认证信息（OCR）有没有上传并通过
      */
     private Boolean certifyInfo;
+    /**
+     * 认证详细信息
+     */
+    private Map<String,String> certifyInfoDetail;
     /**
      *手机通讯录有没有上传
      */
@@ -69,6 +75,14 @@ public class AuditStatusRes {
 
     public void setAccountBankCardVerified(Boolean accountBankCardVerified) {
         this.accountBankCardVerified = accountBankCardVerified;
+    }
+
+    public Map<String, String> getCertifyInfoDetail() {
+        return certifyInfoDetail;
+    }
+
+    public void setCertifyInfoDetail(Map<String, String> certifyInfoDetail) {
+        this.certifyInfoDetail = certifyInfoDetail;
     }
 
     public AccountBankCardRes getAccountBankCard() {

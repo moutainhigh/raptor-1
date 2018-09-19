@@ -56,7 +56,7 @@ public class UserContactsController {
             long count = userContactsService.findMobileContactsCount(userCode);
             if(count == 1){
                 //更新用户表通讯录状态
-                userService.updateCallHistory(userEntity, true);
+                userService.updateMobileContacts(userEntity, true);
             }
             return response.buildSuccessResponse(true);
         }catch (Exception e){
