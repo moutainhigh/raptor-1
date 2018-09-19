@@ -150,7 +150,7 @@ public class LoanMo9mqListener implements IMqMsgListener{
                         orderId,
                         true,
                         lendAmount,
-                        "放款签名",
+                        "先玩后付",
                         lendId,
                         channelResponse,
                         lendSettleTime,
@@ -161,18 +161,19 @@ public class LoanMo9mqListener implements IMqMsgListener{
 				logger.error("订单[{}]放款成功事件报错", orderId, e);
 			}
 		} else {
+            // 失败原因
+            String failReason = bodyJson.getString("failReason");
 			try {
 				logger.error("MQ接收到了订单[{}]放款失败的信息", orderId);
 				LendResponseEvent lendResponse = new LendResponseEvent(
 						orderId,
 						false,
-						null,
-						"放款签名",
+						"先玩后付",
 						lendId,
 						channelResponse,
-						lendSettleTime,
 						"放款失败",
-						lendChannel);
+						lendChannel,
+                        failReason);
 				lendEventLauncher.launch(lendResponse);
 			} catch (Exception e) {
 				logger.error("订单[{}]放款成功事件报错", orderId, e);

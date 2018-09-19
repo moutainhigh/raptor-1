@@ -16,6 +16,12 @@ public class BankReq {
     private String cardMobile;
     @NotBlank(message = "卡号不能为空")
     private String card;
+    @NotBlank(message = "银行卡扫描开始计数不能为空")
+    private Integer cardStartCount ;
+    @NotBlank(message = "银行卡扫描成功计数不能为空")
+    private Integer cardSuccessCount ;
+    @NotBlank(message = "银行卡扫描失败计数不能为空")
+    private Integer cardFailCount ;
 
     public String getBankName() {
         return bankName;
@@ -39,5 +45,29 @@ public class BankReq {
 
     public void setCard(String card) {
         this.card = card;
+    }
+
+    public Integer getCardStartCount() {
+        return cardStartCount;
+    }
+
+    public void setCardStartCount(Integer cardStartCount) {
+        this.cardStartCount = cardStartCount;
+    }
+
+    public Integer getCardSuccessCount() {
+        return cardSuccessCount;
+    }
+
+    public void setCardSuccessCount(Integer cardSuccessCount) {
+        this.cardSuccessCount = cardSuccessCount;
+    }
+
+    public Integer getCardFailCount() {
+        return cardFailCount;
+    }
+
+    public void setCardFailCount(Integer cardFailCount) {
+        this.cardFailCount = cardFailCount;
     }
 }

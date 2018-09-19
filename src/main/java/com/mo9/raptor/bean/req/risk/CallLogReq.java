@@ -19,7 +19,7 @@ public class CallLogReq{
     
     private String msg;
     
-    private CallLogData data;
+    private Data data;
 
     public Integer getStatus() {
         return status;
@@ -37,16 +37,16 @@ public class CallLogReq{
         this.msg = msg;
     }
 
-    public CallLogData getData() {
+    public Data getData() {
         return data;
     }
 
-    public void setData(CallLogData data) {
+    public void setData(Data data) {
         this.data = data;
     }
     
     public String toString(){
-        return ReflectionToStringBuilder.toString(this, ToStringStyle.MULTI_LINE_STYLE);
+        return com.alibaba.fastjson.JSON.toJSONString(this);
     }
 }
 

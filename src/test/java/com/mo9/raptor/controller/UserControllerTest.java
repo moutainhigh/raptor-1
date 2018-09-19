@@ -39,7 +39,7 @@ public class UserControllerTest {
 
     private static  final String localUrl = "http://192.168.14.114:8010/raptorApi/";
 
-    private static  final String localHostUrl = "http://localhost/raptorApi/";
+    private static  final String localHostUrl = "http://localhost:8081/raptorApi/";
 
     Map<String, String> headers = new HashMap<>();
 
@@ -147,8 +147,24 @@ public class UserControllerTest {
     public void testModifyCertifyInfo() throws IOException {
         JSONObject json = new JSONObject();
         json.put("realName", "ukar");
-        json.put("ocrRealName", "ukar");
         json.put("idCard", "789");
+        json.put("issuingOrgan", "123456");
+        json.put("validityStartPeriod", "ukar");
+        json.put("validityEndPeriod", "ukar");
+        json.put("type", 0);
+        json.put("accountFrontImg", "ukar");
+        json.put("accountBackImg", "ukar");
+        json.put("accountOcr", "ukar");
+        json.put("ocrRealName", "ukar");
+        json.put("ocrIdCard", "ukar");
+        json.put("ocrIssueAt", "ukar");
+        json.put("ocrDurationStartTime", "ukar");
+        json.put("ocrDurationEndTime", "ukar");
+        json.put("ocrGender", 0);
+        json.put("ocrNationality", "ukar");
+        json.put("ocrBirthday", "ukar");
+        json.put("ocrIdCardAddress", "ukar");
+
         HttpResult httpResult = httpClientApi.doPostJson(localHostUrl + "/user/modify_certify_info", json.toJSONString(), headers);
         System.out.println(httpResult.getCode());
         System.out.println(httpResult.getData());

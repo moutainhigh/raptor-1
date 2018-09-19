@@ -132,7 +132,7 @@ public class UserController {
             response.setMessage(ResCodeEnum.USER_CARD_ID_NOT_EXIST.getMessage());
             return response;
         }
-        ResCodeEnum resCodeEnum = bankService.verify(bankReq.getCard() , bankReq.getCardMobile() , bankReq.getBankName() , userEntity);
+        ResCodeEnum resCodeEnum = bankService.verify(bankReq , userEntity);
         if(ResCodeEnum.SUCCESS != resCodeEnum){
             response.setCode(resCodeEnum.getCode());
             response.setMessage(resCodeEnum.getMessage());
@@ -147,7 +147,7 @@ public class UserController {
      * @return
      */
     @PostMapping(value = "/modify_certify_info")
-    public BaseResponse<Boolean> modifyCertifyInfo(HttpServletRequest request, @RequestBody ModifyCertifyReq modifyCertifyReq){
+    public BaseResponse<Boolean> modifyCertifyInfo(HttpServletRequest request, @RequestBody @Validated ModifyCertifyReq modifyCertifyReq){
         BaseResponse response = new BaseResponse();
         String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
         try{
@@ -156,11 +156,17 @@ public class UserController {
                 logger.warn("修改账户身份认证信息-->用户不存在");
                 return response.buildFailureResponse(ResCodeEnum.USER_NOT_EXIST);
             }
+            UserCertifyInfoEntity entity1 = userCertifyInfoService.findByIdCard(modifyCertifyReq.getIdCard());
+            if(entity1 != null && !userCode.equals(entity1.getUserCode())){
+                logger.warn("修改账户身份认证信息-->身份证已存在,idCard={}", modifyCertifyReq.getIdCard());
+                return response.buildFailureResponse(ResCodeEnum.IDCARD_IS_EXIST);
+            }
             UserCertifyInfoEntity userCertifyInfoEntity = userCertifyInfoService.findByUserCode(userCode);
             userCertifyInfoService.modifyCertifyInfo(userEntity, userCertifyInfoEntity, modifyCertifyReq);
-            if(!userEntity.getCertifyInfo()){
-                userService.updateMobileContacts(userEntity, true);
-            }
+            userEntity.setCertifyInfo(true);
+            userEntity.setIdCard(modifyCertifyReq.getIdCard());
+            userEntity.setRealName(modifyCertifyReq.getRealName());
+            userService.save(userEntity);
             return response.buildSuccessResponse(true);
         }catch (Exception e){
             logger.error("修改账户身份认证信息-->系统内部异常", e);
@@ -245,4 +251,22 @@ public class UserController {
         return response.buildSuccessResponse(map);
     }
 
+    /**
+     * 通讯录授权成功后用户点击完成接口
+     * @param request
+     * @return
+     */
+    @RequestMapping(value = "/notify_call_history")
+    public BaseResponse notifyCallHistory(HttpServletRequest request){
+        BaseResponse<Boolean> response = new BaseResponse<Boolean>();
+        String userCode = request.getParameter("uid");
+        try {
+            UserEntity userEntity = userService.findByUserCodeAndDeleted(userCode, false);
+            userService.updateCallHistory(userEntity,true);
+        } catch (Exception e) {
+            logger.error("通讯录授权成功,用户点击完成接口----->>>>发生异常{}",e);
+            return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
+        }
+        return response.buildSuccessResponse(true);
+    }
 }

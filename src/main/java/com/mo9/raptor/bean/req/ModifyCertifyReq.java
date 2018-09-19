@@ -1,5 +1,8 @@
 package com.mo9.raptor.bean.req;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+
 /**
  * Created by jyou on 2018/9/17.
  *
@@ -10,91 +13,109 @@ public class ModifyCertifyReq {
     /**
      *真实姓名
      */
+    @NotBlank(message = "真实姓名不能为空")
     private String realName;
 
     /**
      *身份证
      */
+    @NotBlank(message = "身份证不能为空")
     private String idCard;
 
     /**
      *发证机关
      */
+    @NotBlank(message = "发证机关不能为空")
     private String issuingOrgan;
 
     /**
      *有效期开始时间
      */
+    @NotBlank(message = "有效期开始时间不能为空")
     private String validityStartPeriod;
 
     /**
      *有效期结束时间
      */
+    @NotBlank(message = "有效期结束时间不能为空")
     private String validityEndPeriod;
 
     /**
      *"0: 其他，1: 长期"
      */
+    @NotNull(message = "type不能为空")
     private Integer type;
 
     /**
      *身份证正面照片地址
      */
+    @NotBlank(message = "身份证正面照片地址不能为空")
     private String accountFrontImg;
 
     /**
      *身份证反面照片地址
      */
+    @NotBlank(message = "身份证反面照片地址不能为空")
     private String accountBackImg;
 
     /**
      *账户ocr照片
      */
+    @NotBlank(message = "账户ocr照片不能为空")
     private String accountOcr;
 
     /**
      *识别真实姓名
      */
+    @NotBlank(message = "识别真实姓名不能为空")
     private String ocrRealName;
 
     /**
      *识别身份证
      */
+    @NotBlank(message = "识别身份证不能为空")
     private String ocrIdCard;
 
     /**
      *识别签发地
      */
+    @NotBlank(message = "识别签发地不能为空")
     private String ocrIssueAt;
 
     /**
      *识别身份有效期起始日期
      */
+    @NotBlank(message = "别身份有效期起始日期不能为空")
     private String ocrDurationStartTime;
 
     /**
      *识别身份有效期结束日期
      */
+    @NotBlank(message = "识别身份有效期结束日期不能为空")
     private String ocrDurationEndTime;
 
     /**
      *识别性别(0 : 男, 1 : 女, 2 : 未知)
      */
+    @NotNull(message = "识别性别不能为空")
     private Integer ocrGender;
 
     /**
      *识别民族
      */
+    @NotBlank(message = "识别民族不能为空")
     private String ocrNationality;
 
     /**
      *识别生日
      */
+    @NotBlank(message = "识别生日不能为空")
     private String ocrBirthday;
 
     /**
      *识别地址
      */
+    @NotBlank(message = "识别地址不能为空")
     private String ocrIdCardAddress;
 
     public String getRealName() {

@@ -41,7 +41,7 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- 用于贷款计算器demo页 -->
+        <!-- web页 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-thymeleaf</artifactId>

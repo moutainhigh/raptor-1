@@ -41,7 +41,15 @@ public class LendExecuteAction implements IAction {
             ResCodeEnum resCodeEnum = gatewayUtils.loan(lendOrder);
             if (!ResCodeEnum.SUCCESS.equals(resCodeEnum)) {
                 // TODO: 放款失败
-                LendResponseEvent lendResponse = new LendResponseEvent(lendOrder.getOrderId(), false, "放款失败", null);
+                LendResponseEvent lendResponse = new LendResponseEvent(
+                        lendOrder.getOrderId(),
+                        false,
+                        "",
+                        null,
+                        null,
+                        "同步返回放款失败",
+                        null,
+                        "同步返回放款失败");
                 lendEventLauncher.launch(lendResponse);
             }
         } catch (Exception e) {

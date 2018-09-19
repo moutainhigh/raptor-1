@@ -17,6 +17,7 @@ public enum ResCodeEnum {
     // xx=10 银行卡验证
     BANK_VERIFY_ERROR(11151001, "银行卡验证失败", "银行卡验证失败"),
     BANK_VERIFY_EXCEPTION(11151002, "银行卡验证超时", "银行卡验证超时"),
+    BANK_CARD_NOT_EXIST(11151003,"银行卡查询不存在","银行卡查询不存在"),
 
     // xx=20 验证码
     CAPTCHA_GET_TOO_OFTEN(11152001, "验证码获取过于频繁", "验证码获取过于频繁"),
@@ -35,6 +36,9 @@ public enum ResCodeEnum {
     // xx=40 用户相关
     USER_CARD_ID_NOT_EXIST(11154000 , "用户身份证号不存在" , "用户身份证号不存在"),
     USER_NOT_EXIST(11154001 , "用户不存在" , "用户不存在"),
+    IDCARD_IS_EXIST(11154002,"身份证已存在", "身份证已存在"),
+    OCR_IDCARD_IS_EXIST(11154003,"ocr身份证已存在", "ocr身份证已存在"),
+    CARD_CREDIT_IS_EXIST(11154004,"身份证信息已存在", "身份证信息已存在"),
 
     /**
      * xx=50, 还款
@@ -44,6 +48,7 @@ public enum ResCodeEnum {
     ILLEGAL_LOAN_ORDER_STATUE(11155003, "不合法的借款订单状态", "借款订单不可还款"),
     ILLEGAL_REPAYMENT(11155004, "非法的还款操作", "非法的还款操作"),
     GET_LOCK_FAILED(11155005, "锁竞争失败", "系统繁忙，请稍后重试"),
+    PAY_INFO_EXPIRED(11155000, "支付信息已过期", "支付信息已过期"),
 
     /**
      * xx=60, 借款

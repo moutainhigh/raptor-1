@@ -1,7 +1,10 @@
 package com.mo9.raptor.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.mo9.raptor.RaptorApplicationTest;
+import com.mo9.raptor.bean.res.LoanOrderLendRes;
 import com.mo9.raptor.service.BankService;
 import com.mo9.raptor.utils.GatewayUtils;
 import com.mo9.raptor.utils.Md5Encrypt;
@@ -128,7 +131,8 @@ public class GuTest {
      */
     @Test
     public void getOrderMsg (){
-        gatewayUtils.getOrderMsg("990354214320");
+        LoanOrderLendRes orderMsg = gatewayUtils.getOrderMsg("990354214320");
+        System.out.println(JSONObject.toJSONString(orderMsg, SerializerFeature.PrettyFormat));
     }
 
     /**
@@ -152,8 +156,8 @@ public class GuTest {
      */
     @Test
     public void orderQuotaList(){
-        //http://localhost/raptorApi/loan_quota/list
-        //http://localhost/raptorApi/system/switch
+        //https://riskclone.mo9.com/raptorApi/loan_quota/list
+        //https://riskclone.mo9.com/raptorApi/system/switch
     }
 
 
