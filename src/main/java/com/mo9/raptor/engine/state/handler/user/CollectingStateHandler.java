@@ -10,6 +10,7 @@ import com.mo9.raptor.engine.state.handler.IStateHandler;
 import com.mo9.raptor.engine.state.handler.StateHandler;
 import com.mo9.raptor.engine.state.launcher.IEventLauncher;
 import com.mo9.raptor.entity.UserEntity;
+import com.mo9.raptor.risk.service.RiskAuditService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -23,13 +24,16 @@ class CollectingStateHandler implements IStateHandler<UserEntity> {
     @Autowired
     private IEventLauncher userEventLauncher;
 
+    @Autowired
+    private RiskAuditService riskAuditService;
+
     @Override
     public UserEntity handle(UserEntity user, IEvent event, IActionExecutor actionExecutor) throws InvalidEventException {
 
         if (event instanceof AuditLaunchEvent) {
             user.setStatus(StatusEnum.AUDITING.name());
             user.setDescription(user.getDescription() + " " + event.getEventTime());
-            actionExecutor.append(new UserAuditAction(user.getUserCode(), userEventLauncher));
+            actionExecutor.append(new UserAuditAction(user.getUserCode(), userEventLauncher, riskAuditService));
         } else {
             throw new InvalidEventException("还款订单状态与事件类型不匹配，状态：" + user.getStatus() + "，事件：" + event);
         }

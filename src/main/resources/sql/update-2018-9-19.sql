@@ -19,3 +19,7 @@ CREATE TABLE `t_raptor_linkface_log` (
   `status` varchar(255) NOT NULL COMMENT  '当前状态' ,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+ALTER TABLE `t_raptor_user`
+  CHANGE COLUMN `description` `description` text COMMENT '状态说明' AFTER `status`;
