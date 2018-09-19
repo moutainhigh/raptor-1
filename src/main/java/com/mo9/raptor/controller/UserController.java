@@ -222,6 +222,13 @@ public class UserController {
             auditStatusRes.setCallHistory(userEntity.getCallHistory());
             auditStatusRes.setMobileContacts(userEntity.getMobileContacts());
             AccountBankCardRes accountBankCardRes = null;
+            Map<String,String> certifyInfoDetail  = null;
+            if (userEntity.getCertifyInfo()){
+                certifyInfoDetail = new HashMap<>(16);
+                certifyInfoDetail.put("realName",userEntity.getRealName());
+                certifyInfoDetail.put("idCard",userEntity.getIdCard());
+            }
+            auditStatusRes.setCertifyInfoDetail(certifyInfoDetail);
             String bankAuthStatus = userEntity.getBankAuthStatus();
             //银行验证是否成功，不成功直接返回
             if (!BankAuthStatusEnum.SUCCESS.name().equals(bankAuthStatus)){
