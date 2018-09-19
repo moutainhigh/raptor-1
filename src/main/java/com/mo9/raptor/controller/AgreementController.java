@@ -32,7 +32,7 @@ public class AgreementController {
     @RequestMapping(value = "/agreement")
     public String getServiceAgreement(Model model,HttpServletRequest request) {
 
-        InputStream stream = getClass().getClassLoader().getResourceAsStream("static/js/服务协议.md");
+        InputStream stream = getClass().getClassLoader().getResourceAsStream("static/md/agreement.md");
         try {
             BufferedReader in = new BufferedReader(new InputStreamReader(stream,"UTF-8"));
             StringBuffer buffer = new StringBuffer();
