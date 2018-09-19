@@ -28,4 +28,13 @@ public interface LoanOrderRepository extends JpaRepository<LoanOrderEntity,Long>
      */
     @Query(value = "select * from t_raptor_loan_order where owner_id = ?1 AND status IN ?2 and deleted = false ORDER BY create_time DESC limit 1", nativeQuery = true)
     LoanOrderEntity getLastIncompleteOrder(String userCode, List<String> processing);
+
+    /**
+     * 根据还款日获取订单
+     * @param begin
+     * @param end
+     * @return
+     */
+    @Query(value = "select * from t_raptor_loan_order where repayment_date > ?1 AND repayment_date < ?2 and status = 'LENT' and deleted = false", nativeQuery = true)
+    List<LoanOrderEntity> listByRepaymentDate(Long begin, Long end);
 }

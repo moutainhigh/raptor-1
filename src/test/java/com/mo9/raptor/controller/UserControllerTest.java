@@ -41,6 +41,8 @@ public class UserControllerTest {
 
     private static  final String localHostUrl = "http://localhost:8081/raptorApi/";
 
+    private static  final String cloneHostUrl = "https://riskclone.mo9.com/raptorApi/";
+
     Map<String, String> headers = new HashMap<>();
 
     @Before
@@ -148,7 +150,7 @@ public class UserControllerTest {
         JSONObject json = new JSONObject();
         json.put("realName", "ukar");
         json.put("idCard", "789");
-        json.put("issuingOrgan", "123456");
+        json.put("issuingOrgan", "123456789");
         json.put("validityStartPeriod", "ukar");
         json.put("validityEndPeriod", "ukar");
         json.put("type", 0);
@@ -165,7 +167,7 @@ public class UserControllerTest {
         json.put("ocrBirthday", "ukar");
         json.put("ocrIdCardAddress", "ukar");
 
-        HttpResult httpResult = httpClientApi.doPostJson(localHostUrl + "/user/modify_certify_info", json.toJSONString(), headers);
+        HttpResult httpResult = httpClientApi.doPostJson(cloneHostUrl + "/user/modify_certify_info", json.toJSONString(), headers);
         System.out.println(httpResult.getCode());
         System.out.println(httpResult.getData());
     }
