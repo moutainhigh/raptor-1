@@ -252,21 +252,21 @@ public class UserController {
     }
 
     /**
-     * 通讯录授权成功后用户点击完成接口
+     * 告知服务通话记录已上传
      * @param request
      * @return
      */
-    @RequestMapping(value = "/notify_call_history")
-    public BaseResponse notifyCallHistory(HttpServletRequest request){
-        BaseResponse<Boolean> response = new BaseResponse<Boolean>();
+    @RequestMapping(value = "/phone_record_uploaded")
+    public BaseResponse phoneRecordUploaded(HttpServletRequest request){
+        BaseResponse<String> response = new BaseResponse<>();
         String userCode = request.getParameter("uid");
         try {
             UserEntity userEntity = userService.findByUserCodeAndDeleted(userCode, false);
             userService.updateCallHistory(userEntity,true);
         } catch (Exception e) {
-            logger.error("通讯录授权成功,用户点击完成接口----->>>>发生异常{}",e);
+            logger.error("通讯录授权成功,用户点击完成接口----->>>>userCode={},发生异常{}",userCode,e);
             return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
         }
-        return response.buildSuccessResponse(true);
+        return response.buildSuccessResponse("ok");
     }
 }

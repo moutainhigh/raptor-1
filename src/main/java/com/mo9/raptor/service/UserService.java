@@ -66,10 +66,10 @@ public interface UserService {
     void updateMobileContacts(UserEntity userEntity, boolean b) throws Exception;
     /**
      * 修改是否收到通讯录数据
-     * @param userEntity
+     * @param userCode
      * @param b
      */
-    void updateReceiveCallHistory(UserEntity userEntity, boolean b) throws Exception;
+    void updateReceiveCallHistory(String userCode, boolean b) throws Exception;
 
     /**
      * 修改银行卡认证状态
