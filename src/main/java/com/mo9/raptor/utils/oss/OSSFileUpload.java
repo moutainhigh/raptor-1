@@ -75,7 +75,7 @@ public class OSSFileUpload {
                 + FilenameUtils.getExtension(oldFileName);
     }
 
-    private String buildFileURL(String fileName) {
+    public String buildFileURL(String fileName) {
         StringBuilder sb = new StringBuilder();
         sb.append(ossProperties.getHttpPrefix())
                 .append(ossProperties.getReadEndpoint().substring(ossProperties.getHttpPrefix().length()))
