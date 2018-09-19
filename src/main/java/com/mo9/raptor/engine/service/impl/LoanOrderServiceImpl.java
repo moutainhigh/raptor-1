@@ -95,6 +95,6 @@ public class LoanOrderServiceImpl implements ILoanOrderService {
 
     @Override
     public List<LoanOrderEntity> listByRepaymentDate(Long begin, Long end) {
-        return null;
+        return loanOrderRepository.listByRepaymentDate(begin, end);
     }
 }
