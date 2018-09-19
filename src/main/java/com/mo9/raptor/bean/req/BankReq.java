@@ -16,11 +16,8 @@ public class BankReq {
     private String cardMobile;
     @NotBlank(message = "卡号不能为空")
     private String card;
-    @NotBlank(message = "银行卡扫描开始计数不能为空")
     private Integer cardStartCount ;
-    @NotBlank(message = "银行卡扫描成功计数不能为空")
     private Integer cardSuccessCount ;
-    @NotBlank(message = "银行卡扫描失败计数不能为空")
     private Integer cardFailCount ;
 
     public String getBankName() {
