@@ -88,7 +88,7 @@ public class LoanMo9mqListener implements IMqMsgListener{
     @Autowired
     private LoanCalculatorFactory loanCalculatorFactory;
 
-	@Autowired
+	//@Autowired
 	private RabbitProducer rabbitProducer;
 
 	@Override
@@ -154,7 +154,7 @@ public class LoanMo9mqListener implements IMqMsgListener{
 
 		// TODO: 发送消息给贷后
         if ("success".equals(status)) {
-            notifyMisRepay(payOrderLog);
+            //notifyMisRepay(payOrderLog);
         }
 		return MqAction.CommitMessage;
 	}
@@ -246,7 +246,7 @@ public class LoanMo9mqListener implements IMqMsgListener{
 
 		// TODO: 发送消息给贷后
         if ("1".equals(status)) {
-            notifyMisLend(orderId);
+            //notifyMisLend(orderId);
         }
 		return MqAction.CommitMessage;
 	}

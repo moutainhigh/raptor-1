@@ -20,15 +20,15 @@ import java.io.UnsupportedEncodingException;
  * @author xtgu
  * @date :   2018-07-10 14:30
  */
-@Component
+//@Component
 public class RabbitProducer {
 
     private static final Logger logger = LoggerFactory.getLogger(RabbitProducer.class);
 
-    @Resource
+//    @Resource
     private RabbitConfig rabbitConfig;
 
-    @Resource
+//    @Resource
     private RabbitTemplate rabbitTemplate;
 
     @Autowired
