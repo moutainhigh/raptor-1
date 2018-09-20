@@ -99,6 +99,8 @@ public class LoanMo9mqListener implements IMqMsgListener{
 		}
 
 		//修改或者存储银行卡信息 TODO
+
+		// TODO: 发送消息给贷后
 		return MqAction.CommitMessage;
 	}
 
@@ -182,10 +184,12 @@ public class LoanMo9mqListener implements IMqMsgListener{
                         failReason);
 				lendEventLauncher.launch(lendResponse);
 			} catch (Exception e) {
-				logger.error("订单[{}]放款成功事件报错", orderId, e);
+				logger.error("订单[{}]放款失败事件报错", orderId, e);
 			}
 		}
 		//修改或者存储银行卡信息 TODO
+
+		// TODO: 发送消息给贷后
 		return MqAction.CommitMessage;
 	}
 

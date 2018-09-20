@@ -1,5 +1,6 @@
 package com.mo9.raptor.controller;
 
+import com.alibaba.druid.support.json.JSONUtils;
 import com.alibaba.fastjson.JSONObject;
 import com.aliyun.oss.OSSClient;
 import com.mo9.raptor.bean.req.risk.CallLogReq;
@@ -9,6 +10,7 @@ import com.mo9.raptor.risk.entity.TRiskTelInfo;
 import com.mo9.raptor.risk.service.RiskCallLogService;
 import com.mo9.raptor.risk.service.RiskTelBillService;
 import com.mo9.raptor.risk.service.RiskTelInfoService;
+import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.httpclient.HttpClientApi;
 import com.mo9.raptor.utils.oss.OSSFileUpload;
 import com.mo9.raptor.utils.oss.OSSProperties;
@@ -52,6 +54,9 @@ public class RiskController {
     private RiskCallLogService riskCallLogService;
     
     @Resource
+    private UserService userService;
+    
+    @Resource
     private OSSProperties ossProperties;
     
     @Resource
@@ -67,38 +72,77 @@ public class RiskController {
     private String dianhuToken;
     
     
+    @PostMapping(value = "/call_log_auth_result")
+    public String callLogAuthResult(@RequestBody String authJson){
+        logger.info("----收到通话授权结果数据-----> " + authJson);
+        JSONObject jsonObject = JSONObject.parseObject(authJson);
+        Long status = jsonObject.getLong("status");
+        
+        if (status == 0){
+            logger.info("通话记录爬虫授权成功");
+        }
+        
+        return "ok";
+    }
 
     @PostMapping(value = "/save_call_log")
-    public String saveCallLogResult(@RequestBody CallLogReq callLogReq){
-        logger.info("----收到通话记录post数据-----");
-        logger.info(callLogReq.toString());
+    public String saveCallLogResult(@RequestBody String callLogJson){
+        logger.info("----收到通话记录post数据-----> " + callLogJson);
+
+        CallLogReq callLogReq = JSONObject.parseObject(callLogJson, CallLogReq.class);
         
-        if (callLogReq.getStatus() != 0){
-            logger.error(">>>>>>>>>>>第三方通话记录爬虫失败");
+        boolean callLogStatus = true;
+
+        if (callLogReq.getStatus() != 0 || callLogReq.getData() == null){
+            logger.error("--------------第三方通话记录爬虫失败----------");
+            callLogStatus = false;
         }
-        //机主信息
-        TRiskTelInfo riskTelInfo = riskTelInfoService.coverReq2Entity(callLogReq);
-        riskTelInfoService.save(riskTelInfo);
-        
-        //账单信息
-        List<TRiskTelBill> riskTelBillList = riskTelBillService.coverReq2Entity(callLogReq);
-        riskTelBillService.batchSave(riskTelBillList);
-        
-        //通话记录
-        List<TRiskCallLog> riskCallLogList = riskCallLogService.coverReqToEntity(callLogReq);
-        riskCallLogService.batchSave(riskCallLogList);
-            
-        //上传通话记录文件
-        this.uploadFile2Oss(callLogReq.toString(), sockpuppet + "-" + callLogReq.getData().getTel() + ".json" );
-        
-        //上传运营商报告文件
-        String report = this.getCallLogReport(callLogReq.getData().getSid());
-        if (report != null){
-            this.uploadFile2Oss(report, sockpuppet + "-" + callLogReq.getData().getTel() + "-report.json");
+        if (callLogStatus){
+            //机主信息
+            TRiskTelInfo riskTelInfo = riskTelInfoService.coverReq2Entity(callLogReq);
+            riskTelInfoService.save(riskTelInfo);
+
+            //账单信息
+            List<TRiskTelBill> riskTelBillList = riskTelBillService.coverReq2Entity(callLogReq);
+            riskTelBillService.batchSave(riskTelBillList);
+
+            //通话记录
+            List<TRiskCallLog> riskCallLogList = riskCallLogService.coverReqToEntity(callLogReq);
+            riskCallLogService.batchSave(riskCallLogList);
+
+            //上传通话记录文件
+            this.uploadFile2Oss(callLogReq.toString(), sockpuppet + "-" + callLogReq.getData().getTel() + ".json" );
+
+            try {
+                if (callLogReq.getData() != null){
+                    userService.updateReceiveCallHistory(callLogReq.getData().getUid(), callLogStatus);
+                    logger.info("更新用户通话记录历史信息成功，tel: " + callLogReq.getData().getTel() + ", uid: " + callLogReq.getData().getUid());
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
         }
+
         
-        //todo 保存完成后，数据传给忆楠一份
         
+        return "ok";
+    }
+    
+    
+    @PostMapping(value = "/call_log_report_status")
+    public String receiveCallLogReport(@RequestBody String statusJson){
+        logger.info("-----收到运营商生成报告状态通知-------> " + statusJson);
+        JSONObject jsonObject = JSONObject.parseObject(statusJson);
+        int status= jsonObject.getInteger("status");
+        if (status == 0){
+            //上传运营商报告文件
+            String report = this.getCallLogReport(jsonObject.getString("sid"));
+            String tel = jsonObject.getString("tel");
+            if (report != null){
+                this.uploadFile2Oss(report, sockpuppet + "-" + tel + "-report.json");
+            }
+        }
         
         return "ok";
     }
@@ -122,7 +166,12 @@ public class RiskController {
             e.printStackTrace();
         }
     }
-    
+
+    /**
+     * 获取运营商报告
+     * @param sid
+     * @return
+     */
     private String getCallLogReport(String sid){
         String url = dianhuUrl + "report?token=" + dianhuToken + "&sid=" + sid;
 
@@ -132,6 +181,13 @@ public class RiskController {
             
             JSONObject jsonObject = JSONObject.parseObject(report);
             Long status = jsonObject.getLong("status");
+            
+            if (status == 3101){
+                Thread.sleep(5 * 1000);
+                logger.info("运营商报告数据生成中，5s后重新拉取");
+
+                report = getCallLogReport(sid);
+            }
             
             if (status != 0){
                 logger.error("运营商报告获取异常：" + report);
@@ -146,4 +202,5 @@ public class RiskController {
         }
         return null;
     }
+    
 }

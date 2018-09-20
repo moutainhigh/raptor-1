@@ -36,4 +36,12 @@ public interface BankRepository extends JpaRepository<BankEntity,Long> {
      */
     @Query(value = "select * from t_raptor_bank where user_code = ?1  ORDER BY update_time DESC limit 1", nativeQuery = true)
     BankEntity findByUserCodeLastOne(String userCode);
+
+    /**
+     * 根据用户查询银行卡类表
+     * @param userCode
+     * @return
+     */
+    @Query(value = "select * from t_raptor_bank where user_code = ?1  ORDER BY update_time DESC ", nativeQuery = true)
+    List<BankEntity> findByUserCode(String userCode);
 }

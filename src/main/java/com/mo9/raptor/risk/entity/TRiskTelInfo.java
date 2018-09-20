@@ -33,6 +33,9 @@ public class TRiskTelInfo {
     
     @Column(name = "address")
     private String address;
+    
+    @Column(name = "open_date")
+    private String openDate;
 
     @Column(name = "created_at")
     private Date createdAt = new Date();
@@ -98,6 +101,14 @@ public class TRiskTelInfo {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public String getOpenDate() {
+        return openDate;
+    }
+
+    public void setOpenDate(String openDate) {
+        this.openDate = openDate;
     }
 
     public Date getCreatedAt() {

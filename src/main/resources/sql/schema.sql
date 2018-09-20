@@ -253,3 +253,30 @@ DEFAULT CHARACTER SET=latin1 COLLATE=latin1_swedish_ci
 ROW_FORMAT=COMPACT
 ;
 
+
+/**************************个人银行卡相关表*************************/
+DROP TABLE IF EXISTS `t_raptor_bank_log`;
+CREATE TABLE `t_raptor_bank_log` (
+`id`  bigint(20) NOT NULL AUTO_INCREMENT ,
+`user_code`  varchar(64) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '用户编号' ,
+`mobile`  varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL ,
+`bank_no`  varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '银行卡' ,
+`bank_name`  varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL ,
+`card_id`  varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL ,
+`user_name`  varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL ,
+`status`  varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL ,
+`card_start_count`  int(8) NULL DEFAULT NULL COMMENT '银行卡扫描开始计数' ,
+`card_success_count`  int(8) NULL DEFAULT NULL COMMENT '银行卡扫描成功计数' ,
+`card_fail_count`  int(8) NULL DEFAULT NULL COMMENT '银行卡扫描失败计数' ,
+`create_time`  bigint(20) NULL DEFAULT NULL ,
+PRIMARY KEY (`id`),
+INDEX `mobile` (`mobile`) USING BTREE ,
+INDEX `bank_no` (`bank_no`) USING BTREE
+)
+ENGINE=InnoDB
+DEFAULT CHARACTER SET=utf8 COLLATE=utf8_general_ci
+AUTO_INCREMENT=7
+ROW_FORMAT=COMPACT
+;
+
+

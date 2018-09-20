@@ -37,21 +37,8 @@ public class LendExecuteAction implements IAction {
     public void run() {
         try {
             LendOrderEntity lendOrder = lendOrderService.getByOrderId(orderId);
-            // TODO: 补充参数
+
             ResCodeEnum resCodeEnum = gatewayUtils.loan(lendOrder);
-            if (!ResCodeEnum.SUCCESS.equals(resCodeEnum)) {
-                // TODO: 放款失败
-                LendResponseEvent lendResponse = new LendResponseEvent(
-                        lendOrder.getOrderId(),
-                        false,
-                        "",
-                        null,
-                        null,
-                        "同步返回放款失败",
-                        null,
-                        "同步返回放款失败");
-                lendEventLauncher.launch(lendResponse);
-            }
         } catch (Exception e) {
             logger.error("下单后, orderId: {}放款时发生错误:", this.orderId, e);
         }

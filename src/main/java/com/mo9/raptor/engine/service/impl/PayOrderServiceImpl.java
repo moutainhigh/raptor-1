@@ -62,6 +62,11 @@ public class PayOrderServiceImpl implements IPayOrderService {
     }
 
     @Override
+    public List<PayOrderEntity> listByLoanOrderIdAndType(String loanOrderId, PayTypeEnum payType) {
+        return payOrderRepository.listByLoanOrderIdAndType(loanOrderId, payType.name());
+    }
+
+    @Override
     public List<PayOrderEntity> listByUser(String userCode) {
         return payOrderRepository.listByUser(userCode);
     }
