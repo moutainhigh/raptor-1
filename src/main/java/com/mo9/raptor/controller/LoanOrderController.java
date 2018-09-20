@@ -124,6 +124,11 @@ public class LoanOrderController {
         if (product == null) {
             return response.buildFailureResponse(ResCodeEnum.ERROR_LOAN_PARAMS);
         }
+        BigDecimal actuallyGetAmount = product.getActuallyGetAmount();
+        BigDecimal amount = product.getAmount();
+        if (amount.compareTo(actuallyGetAmount) < 0) {
+            return response.buildFailureResponse(ResCodeEnum.PRODUCT_ERROR);
+        }
 
         String orderId = sockpuppet + "-" + idWorker.nextId();
         // 锁定用户借款行为

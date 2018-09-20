@@ -5,14 +5,26 @@ import com.alibaba.fastjson.JSONObject;
 import com.mo9.mqclient.IMqMsgListener;
 import com.mo9.mqclient.MqAction;
 import com.mo9.mqclient.MqMessage;
+import com.mo9.raptor.bean.res.LendInfoMqRes;
+import com.mo9.raptor.bean.res.RepayInfoMqRes;
+import com.mo9.raptor.bean.res.UserInfoMqRes;
+import com.mo9.raptor.engine.entity.LendOrderEntity;
+import com.mo9.raptor.engine.entity.PayOrderEntity;
+import com.mo9.raptor.engine.enums.StatusEnum;
+import com.mo9.raptor.engine.service.ILendOrderService;
+import com.mo9.raptor.engine.service.IPayOrderService;
 import com.mo9.raptor.engine.state.event.impl.lend.LendResponseEvent;
 import com.mo9.raptor.engine.state.event.impl.pay.DeductResponseEvent;
 import com.mo9.raptor.engine.state.launcher.IEventLauncher;
 import com.mo9.raptor.entity.PayOrderLogEntity;
-import com.mo9.raptor.service.BankService;
-import com.mo9.raptor.service.PayOrderLogService;
+import com.mo9.raptor.entity.UserCertifyInfoEntity;
+import com.mo9.raptor.entity.UserContactsEntity;
+import com.mo9.raptor.entity.UserEntity;
+import com.mo9.raptor.mq.producer.RabbitProducer;
+import com.mo9.raptor.service.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -31,13 +43,31 @@ public class LoanMo9mqListener implements IMqMsgListener{
 	private BankService bankService ;
 
 	@Autowired
+	private IPayOrderService payOrderService;
+
+	@Autowired
 	private PayOrderLogService payOrderLogService;
+
+	@Autowired
+	private ILendOrderService lendOrderService;
+
+	@Autowired
+	private UserService userService;
+
+	@Autowired
+	private UserCertifyInfoService userCertifyInfoService;
+
+	@Autowired
+	private UserContactsService userContactsService;
 
 	@Autowired
 	private IEventLauncher payEventLauncher;
 
 	@Autowired
 	private IEventLauncher lendEventLauncher;
+
+	@Autowired
+	private RabbitProducer rabbitProducer;
 
 	@Override
 	 public MqAction consume(MqMessage msg, Object consumeContext) {
@@ -101,10 +131,13 @@ public class LoanMo9mqListener implements IMqMsgListener{
 		//修改或者存储银行卡信息 TODO
 
 		// TODO: 发送消息给贷后
+        if ("success".equals(status)) {
+            notifyMisRepay(payOrderLog);
+        }
 		return MqAction.CommitMessage;
 	}
 
-	/**
+    /**
 	 * 放款
 	 * @param msg
 	 * @return
@@ -190,8 +223,61 @@ public class LoanMo9mqListener implements IMqMsgListener{
 		//修改或者存储银行卡信息 TODO
 
 		// TODO: 发送消息给贷后
+        if ("1".equals(status)) {
+            notifyMisLend(orderId);
+        }
 		return MqAction.CommitMessage;
 	}
 
+    /**
+     * 通知贷后放款
+     * @param orderId
+     */
+    private void notifyMisLend(String orderId) {
+        LendOrderEntity lendOrderEntity = lendOrderService.getByOrderId(orderId);
+        LendInfoMqRes lendInfo = new LendInfoMqRes();
+        BeanUtils.copyProperties(lendOrderEntity, lendInfo);
+
+        String ownerId = lendOrderEntity.getOwnerId();
+        UserEntity userEntity = userService.findByUserCode(ownerId);
+        UserInfoMqRes userInfo = new UserInfoMqRes();
+        UserCertifyInfoEntity userCertifyInfoEntity = userCertifyInfoService.findByUserCode(ownerId);
+        userInfo.setUserCode(ownerId);
+        userInfo.setMobile(userEntity.getMobile());
+        userInfo.setRealName(userEntity.getRealName());
+        userInfo.setIdCard(userEntity.getIdCard());
+        userInfo.setCreditStatus(userEntity.getCreditStatus());
+        userInfo.setUserIp(userEntity.getUserIp());
+        userInfo.setLastLoginTime(userEntity.getLastLoginTime());
+        userInfo.setOcrIdCardAddress(userCertifyInfoEntity.getOcrIdCardAddress());
+        userInfo.setCallHistory(userEntity.getCallHistory());
+        UserContactsEntity userContactsEntity = userContactsService.getByUserCode(ownerId);
+        userInfo.setContactsList(userContactsEntity.getContactsList());
+        userInfo.setDeleted(userEntity.getDeleted());
+
+        JSONObject result = new JSONObject();
+        result.put("lendInfo", lendInfo);
+        result.put("userInfo", userInfo);
+        rabbitProducer.sendMessageLoan(orderId, result.toJSONString());
+    }
+
+
+    /**
+     * 通知贷后还款
+     * @param payOrderLog  还款log
+     */
+    private void notifyMisRepay(PayOrderLogEntity payOrderLog) {
+        RepayInfoMqRes repayInfo = new RepayInfoMqRes();
+        BeanUtils.copyProperties(payOrderLog, repayInfo);
+
+        PayOrderEntity payOrderEntity = payOrderService.getByOrderId(payOrderLog.getPayOrderId());
+        repayInfo.setPostponeDays(payOrderEntity.getPostponeDays());
+        String status = payOrderEntity.getStatus();
+        repayInfo.setEntryDone(StatusEnum.ENTRY_DONE.name().equals(status));
+
+        JSONObject result = new JSONObject();
+        result.put("repayInfo", repayInfo);
+        rabbitProducer.sendMessageRepay(payOrderLog.getPayOrderId(), result.toJSONString());
+    }
 
 }
