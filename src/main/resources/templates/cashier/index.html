@@ -77,8 +77,8 @@
             <table>
                 <tr>
                     <td width="40%" align="right"><label>银行卡：</label></td>
-                    <td ><select name="bankNo" th:if="${not #lists.isEmpty(banks)}" th:each="bank:${banks}">
-                        <option th:value="${bank.bankNo}" th:text="${bank.bankNo}"></option>
+                    <td ><select name="bankNo" >
+                        <option th:if="${not #lists.isEmpty(banks)}" th:each="bank:${banks}" th:value="${bank.bankNo}" th:text="${bank.bankNo}"></option>
                     </select></td>
                 </tr>
                 <tr>
@@ -87,8 +87,8 @@
                 </tr>
                 <tr>
                     <td width="40%" align="right"><label>支付渠道：</label></td>
-                    <td ><select name="channel" th:if="${not #lists.isEmpty(channels)}" th:each="channel:${channels}">
-                        <option th:value="${channel.channel}" th:text="${channel.channelName}"></option>
+                    <td ><select name="channel">
+                        <option th:if="${not #lists.isEmpty(channels)}" th:each="channel:${channels}" th:value="${channel.channel}" th:text="${channel.channelName}"></option>
                     </select></td>
                 </tr>
             </table>
