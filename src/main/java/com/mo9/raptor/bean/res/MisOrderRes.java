@@ -54,11 +54,14 @@ public class MisOrderRes {
     /** 借贷服务费 */
     private BigDecimal chargeValue;
 
-    /** 借贷服务费 */
+    /** 优惠 */
     private BigDecimal reliefAmount;
 
     /** 延期单位服务费 */
     private BigDecimal postponeUnitCharge;
+
+    /** 延期单位服务费 */
+    private Integer postponeCount;
 
     /** 放款时间 */
     private Long lendTime;
@@ -203,5 +206,13 @@ public class MisOrderRes {
 
     public void setRepaymentDate(Long repaymentDate) {
         this.repaymentDate = repaymentDate;
+    }
+
+    public Integer getPostponeCount() {
+        return postponeCount;
+    }
+
+    public void setPostponeCount(Integer postponeCount) {
+        this.postponeCount = postponeCount;
     }
 }

@@ -48,4 +48,7 @@ public interface PayOrderRepository extends JpaRepository<PayOrderEntity,Long>, 
     /** 获取用户所有订单 */
     @Query(value = "select * from t_raptor_pay_order where owner_id = ?1 and deleted = false", nativeQuery = true)
     List<PayOrderEntity> listByUser(String userCode);
+
+    @Query(value = "select * from t_raptor_pay_order where loan_order_id = ?1 AND type = ?2 and deleted = false", nativeQuery = true)
+    List<PayOrderEntity> listByLoanOrderIdAndType(String loanOrderId, String payType);
 }

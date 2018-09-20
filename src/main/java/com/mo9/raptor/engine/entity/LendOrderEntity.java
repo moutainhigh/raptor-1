@@ -68,6 +68,10 @@ public class LendOrderEntity extends AbstractOrderEntity {
     private BigDecimal channelLendNumber;
 
     /** 渠道响应 */
+    @Column(name = "channel_sync_response")
+    private String channelSyncResponse;
+
+    /** 渠道响应 */
     @Column(name = "channel_response")
     private String channelResponse;
 
@@ -196,5 +200,13 @@ public class LendOrderEntity extends AbstractOrderEntity {
 
     public void setDealCode(String dealCode) {
         this.dealCode = dealCode;
+    }
+
+    public String getChannelSyncResponse() {
+        return channelSyncResponse;
+    }
+
+    public void setChannelSyncResponse(String channelSyncResponse) {
+        this.channelSyncResponse = channelSyncResponse;
     }
 }

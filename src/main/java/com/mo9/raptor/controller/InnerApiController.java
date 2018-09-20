@@ -2,16 +2,19 @@ package com.mo9.raptor.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.bean.BaseResponse;
-import com.mo9.raptor.bean.req.OrderAddReq;
-import com.mo9.raptor.engine.entity.LendOrderEntity;
+import com.mo9.raptor.bean.res.MisOrderRes;
 import com.mo9.raptor.engine.entity.LoanOrderEntity;
-import com.mo9.raptor.engine.service.ILendOrderService;
+import com.mo9.raptor.engine.entity.PayOrderEntity;
+import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.engine.service.ILoanOrderService;
+import com.mo9.raptor.engine.service.IPayOrderService;
+import com.mo9.raptor.enums.PayTypeEnum;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
 import java.util.List;
 
 /**
@@ -22,12 +25,13 @@ import java.util.List;
 @RequestMapping("/inner")
 public class InnerApiController {
 
+    private static final Logger logger = LoggerFactory.getLogger(InnerApiController.class);
 
     @Autowired
     private ILoanOrderService loanOrderService;
 
     @Autowired
-    private ILendOrderService lendOrderService;
+    private IPayOrderService payOrderService;
 
     /**
      * 获取所有放款信息
@@ -47,13 +51,17 @@ public class InnerApiController {
             return response;
         }
         for (LoanOrderEntity loanOrderEntity : loanOrderEntities) {
-            String orderId = loanOrderEntity.getOrderId();
-            LendOrderEntity lendOrder = lendOrderService.getByOrderId(orderId);
-
+            MisOrderRes res = new MisOrderRes();
+            BeanUtils.copyProperties(loanOrderEntity, res);
+            if (StatusEnum.PAYOFF.name().equals(loanOrderEntity.getStatus())) {
+                res.setPayoffTime(loanOrderEntity.getUpdateTime());
+            }
+            List<PayOrderEntity> payOrderEntities = payOrderService.listByLoanOrderIdAndType(loanOrderEntity.getOrderId(), PayTypeEnum.REPAY_POSTPONE);
+            if (payOrderEntities != null) {
+                res.setPostponeCount(payOrderEntities.size());
+            }
+            // TODO: 发送mq
         }
-
-
-
 
         return response;
     }
