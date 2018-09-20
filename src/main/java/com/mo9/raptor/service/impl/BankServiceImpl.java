@@ -6,8 +6,10 @@ import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.BankAuthStatusEnum;
 import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.repository.BankRepository;
+import com.mo9.raptor.service.BankLogService;
 import com.mo9.raptor.service.BankService;
 import com.mo9.raptor.service.UserService;
+import com.mo9.raptor.utils.CommonValues;
 import com.mo9.raptor.utils.GatewayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +34,9 @@ public class BankServiceImpl implements BankService {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private BankLogService bankLogService;
 
     @Override
     public BankEntity findByMobileLastOne(String mobile) {
@@ -68,22 +73,12 @@ public class BankServiceImpl implements BankService {
         String userName = userEntity.getRealName();
         String userCode = userEntity.getUserCode();
         if(bankEntity != null){
-            //数量增加
-            /**银行卡扫描开始计数*/
-            Integer cardStartCountUser = bankEntity.getCardStartCount();
-            /**银行卡扫描成功计数*/
-            Integer cardSuccessCountUser = bankEntity.getCardSuccessCount() ;
-            /**银行卡扫描失败计数*/
-            Integer cardFailCountUser = bankEntity.getCardFailCount() ;
-            bankEntity.setCardStartCount(cardStartCountUser + cardStartCount);
-            bankEntity.setCardSuccessCount(cardSuccessCountUser + cardSuccessCount);
-            bankEntity.setCardFailCount(cardFailCountUser + cardFailCount);
-            bankEntity.setUpdateTime(System.currentTimeMillis());
-            bankRepository.save(bankEntity) ;
-
             //判断本地数据四要素正确情况
             if(!(cardId.equals(bankEntity.getCardId()) && userName.equals(bankEntity.getUserName()) && mobile.equals(bankEntity.getMobile()))){
                 logger.error("本地 四要素验证失败" + bankNo + " - " + cardId + " - " + userName + " - " + mobile);
+                //存储log
+                bankLogService.create(bankNo , cardId , userName , mobile , bankName , userCode ,
+                        cardStartCount , cardSuccessCount ,cardFailCount , CommonValues.FAILED);
                 return ResCodeEnum.BANK_VERIFY_ERROR ;
             }else{
                 try {
@@ -92,18 +87,32 @@ public class BankServiceImpl implements BankService {
                     logger.error("更新银行卡状态,系统内部异常",e);
                     return ResCodeEnum.EXCEPTION_CODE;
                 }
+                //存储log
+                bankLogService.create(bankNo , cardId , userName , mobile , bankName , userCode ,
+                        cardStartCount , cardSuccessCount ,cardFailCount , CommonValues.SUCCESS);
                 return ResCodeEnum.SUCCESS ;
             }
         }
         ResCodeEnum resCodeEnum = gatewayUtils.verifyBank( bankNo ,  cardId ,  userName ,  mobile) ;
         if(ResCodeEnum.SUCCESS == resCodeEnum){
-            this.create( bankNo , cardId , userName , mobile , bankName , userCode , cardStartCount , cardSuccessCount , cardFailCount) ;
+            this.create( bankNo , cardId , userName , mobile , bankName , userCode ) ;
+            //存储log
+            bankLogService.create(bankNo , cardId , userName , mobile , bankName , userCode ,
+                    cardStartCount , cardSuccessCount ,cardFailCount , CommonValues.SUCCESS);
             try {
                 userService.updateBankAuthStatus(userEntity,BankAuthStatusEnum.SUCCESS);
             } catch (Exception e) {
                 logger.error("更新银行卡状态,系统内部异常",e);
                 return ResCodeEnum.EXCEPTION_CODE;
             }
+        }else if(ResCodeEnum.BANK_VERIFY_EXCEPTION == resCodeEnum){
+            //存储log
+            bankLogService.create(bankNo , cardId , userName , mobile , bankName , userCode ,
+                    cardStartCount , cardSuccessCount ,cardFailCount , CommonValues.TIMEOUT);
+        }else{
+            //存储log
+            bankLogService.create(bankNo , cardId , userName , mobile , bankName , userCode ,
+                    cardStartCount , cardSuccessCount ,cardFailCount , CommonValues.FAILED);
         }
         return resCodeEnum ;
     }
@@ -112,7 +121,7 @@ public class BankServiceImpl implements BankService {
     public void createOrUpdateBank(String bankNo, String cardId, String userName, String mobile, String channel, String bankName , String userCode) {
         BankEntity bankEntity = this.findByBankNo(bankNo) ;
         if(bankEntity == null){
-            this.create( bankNo , cardId , userName , mobile , bankName,userCode , 0 , 0 , 0) ;
+            this.create( bankNo , cardId , userName , mobile , bankName,userCode) ;
         }else{
             //更新update时间
             bankEntity.setUpdateTime(System.currentTimeMillis());
@@ -129,8 +138,7 @@ public class BankServiceImpl implements BankService {
      * @param bankName
      * @param userCode
      */
-    private void create(String bankNo , String cardId , String userName , String mobile , String bankName , String userCode ,
-                        Integer cardStartCount , Integer cardSuccessCount , Integer cardFailCount){
+    private void create(String bankNo , String cardId , String userName , String mobile , String bankName , String userCode){
         //验证成功
         Long time = System.currentTimeMillis() ;
         BankEntity bankEntity = new BankEntity();
@@ -142,9 +150,6 @@ public class BankServiceImpl implements BankService {
         bankEntity.setBankName(bankName);
         bankEntity.setUpdateTime(time) ;
         bankEntity.setUserCode(userCode);
-        bankEntity.setCardStartCount( cardStartCount);
-        bankEntity.setCardSuccessCount( cardSuccessCount);
-        bankEntity.setCardFailCount( cardFailCount);
         //存储四要素信息
         bankRepository.save(bankEntity);
     }

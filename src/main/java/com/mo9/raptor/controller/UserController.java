@@ -14,10 +14,9 @@ import com.mo9.raptor.enums.BankAuthStatusEnum;
 import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.redis.RedisParams;
 import com.mo9.raptor.redis.RedisServiceApi;
-import com.mo9.raptor.service.BankService;
-import com.mo9.raptor.service.CaptchaService;
-import com.mo9.raptor.service.UserCertifyInfoService;
-import com.mo9.raptor.service.UserService;
+import com.mo9.raptor.service.*;
+import com.mo9.raptor.utils.CommonUtils;
+import com.mo9.raptor.utils.CommonValues;
 import com.mo9.raptor.utils.IpUtils;
 import com.mo9.raptor.utils.RegexUtils;
 import org.apache.commons.lang.StringUtils;
@@ -59,6 +58,12 @@ public class UserController {
 
     @Autowired
     private BankService bankService ;
+
+    @Autowired
+    private BankLogService banklogService ;
+
+    @Autowired
+    private CommonUtils commonUtils ;
 
     @Resource
     private UserCertifyInfoService userCertifyInfoService;
@@ -130,6 +135,17 @@ public class UserController {
             //身份证不存在
             response.setCode(ResCodeEnum.USER_CARD_ID_NOT_EXIST.getCode());
             response.setMessage(ResCodeEnum.USER_CARD_ID_NOT_EXIST.getMessage());
+            return response;
+        }
+        Boolean flag = commonUtils.fiveMinutesNumberOk(userCode) ;
+        if(!flag){
+            //存储log
+            banklogService.create(bankReq.getCard() , userEntity.getIdCard() , userEntity.getRealName() , bankReq.getCardMobile() ,
+                     bankReq.getBankName() ,userCode ,
+                    bankReq.getCardStartCount() , bankReq.getCardSuccessCount() , bankReq.getCardFailCount(), CommonValues.FAILED);
+            //验证过于频繁
+            response.setCode(ResCodeEnum.BANK_VERIFY_TOO_FREQUENTLY.getCode());
+            response.setMessage(ResCodeEnum.BANK_VERIFY_TOO_FREQUENTLY.getMessage());
             return response;
         }
         ResCodeEnum resCodeEnum = bankService.verify(bankReq , userEntity);
