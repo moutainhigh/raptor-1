@@ -28,7 +28,7 @@ public class DingTalkServiceImpl implements DingTalkService {
     @Value(value = "${suona.dingtalk.notice.hook}")
     private String dingTalkNoticeHook;
 
-    @Value(value = "${libra.environment}")
+    @Value(value = "${raptor.environment}")
     private String environment;
 
     @Autowired
