@@ -73,46 +73,45 @@ public class RiskController {
     
 
     @PostMapping(value = "/save_call_log")
-    public String saveCallLogResult(@RequestBody CallLogReq callLogReq){
-        logger.info("----收到通话记录post数据-----");
-        logger.info(callLogReq.toString());
+    public String saveCallLogResult(@RequestBody String callLogResult){
+        logger.info("----收到通话记录post数据-----> " + callLogResult);
         
-        boolean callLogStatus = true;
-        
-        if (callLogReq.getStatus() != 0){
-            logger.error(">>>>>>>>>>>第三方通话记录爬虫失败");
-            callLogStatus = false;
-        }
-        if (callLogStatus){
-            //机主信息
-            TRiskTelInfo riskTelInfo = riskTelInfoService.coverReq2Entity(callLogReq);
-            riskTelInfoService.save(riskTelInfo);
-
-            //账单信息
-            List<TRiskTelBill> riskTelBillList = riskTelBillService.coverReq2Entity(callLogReq);
-            riskTelBillService.batchSave(riskTelBillList);
-
-            //通话记录
-            List<TRiskCallLog> riskCallLogList = riskCallLogService.coverReqToEntity(callLogReq);
-            riskCallLogService.batchSave(riskCallLogList);
-
-            //上传通话记录文件
-            this.uploadFile2Oss(callLogReq.toString(), sockpuppet + "-" + callLogReq.getData().getTel() + ".json" );
-
-            //上传运营商报告文件
-            String report = this.getCallLogReport(callLogReq.getData().getSid());
-            if (report != null){
-                this.uploadFile2Oss(report, sockpuppet + "-" + callLogReq.getData().getTel() + "-report.json");
-            }
-        }
-
-        //todo 保存完成后，数据传给忆楠一份
-        
-        try {
-            userService.updateReceiveCallHistory(callLogReq.getData().getTel(), callLogStatus);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+//        boolean callLogStatus = true;
+//        
+//        if (callLogReq.getStatus() != 0){
+//            logger.error(">>>>>>>>>>>第三方通话记录爬虫失败");
+//            callLogStatus = false;
+//        }
+//        if (callLogStatus){
+//            //机主信息
+//            TRiskTelInfo riskTelInfo = riskTelInfoService.coverReq2Entity(callLogReq);
+//            riskTelInfoService.save(riskTelInfo);
+//
+//            //账单信息
+//            List<TRiskTelBill> riskTelBillList = riskTelBillService.coverReq2Entity(callLogReq);
+//            riskTelBillService.batchSave(riskTelBillList);
+//
+//            //通话记录
+//            List<TRiskCallLog> riskCallLogList = riskCallLogService.coverReqToEntity(callLogReq);
+//            riskCallLogService.batchSave(riskCallLogList);
+//
+//            //上传通话记录文件
+//            this.uploadFile2Oss(callLogReq.toString(), sockpuppet + "-" + callLogReq.getData().getTel() + ".json" );
+//
+//            //上传运营商报告文件
+//            String report = this.getCallLogReport(callLogReq.getData().getSid());
+//            if (report != null){
+//                this.uploadFile2Oss(report, sockpuppet + "-" + callLogReq.getData().getTel() + "-report.json");
+//            }
+//        }
+//
+//        //todo 保存完成后，数据传给忆楠一份
+//        
+//        try {
+//            userService.updateReceiveCallHistory(callLogReq.getData().getTel(), callLogStatus);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
         
         return "ok";
     }
