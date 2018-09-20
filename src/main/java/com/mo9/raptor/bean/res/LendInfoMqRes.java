@@ -1,5 +1,8 @@
 package com.mo9.raptor.bean.res;
 
+import com.mo9.raptor.engine.enums.NumberMode;
+
+import javax.persistence.Column;
 import java.math.BigDecimal;
 
 /**
@@ -16,8 +19,32 @@ public class LendInfoMqRes {
      */
     private String ownerId;
 
-    /** 请求放款数目 */
-    private BigDecimal applyNumber;
+    /** 借贷数目 */
+    private BigDecimal loanNumber;
+
+    /** 借贷期限 */
+    private Integer loanTerm;
+
+    /** 放款数目 */
+    private BigDecimal lentNumber;
+
+    /** 利息模式 - 默认固定利息 */
+    private String interestMode = NumberMode.QUANTITY.name();
+
+    /** 利息模式下对应值 */
+    private BigDecimal interestValue;
+
+    /** 罚息模式 */
+    private String penaltyMode = NumberMode.QUANTITY.name();
+
+    /** 利息模式下对应值 */
+    private BigDecimal penaltyValue;
+
+    /** 借贷服务费 */
+    private BigDecimal chargeValue;
+
+    /** 延期单位服务费 */
+    private BigDecimal postponeUnitCharge;
 
     /** 请求放款时间 */
     private Long applyTime;
@@ -65,14 +92,6 @@ public class LendInfoMqRes {
 
     public void setOwnerId(String ownerId) {
         this.ownerId = ownerId;
-    }
-
-    public BigDecimal getApplyNumber() {
-        return applyNumber;
-    }
-
-    public void setApplyNumber(BigDecimal applyNumber) {
-        this.applyNumber = applyNumber;
     }
 
     public Long getApplyTime() {
@@ -153,5 +172,77 @@ public class LendInfoMqRes {
 
     public void setChanelResponseTime(Long chanelResponseTime) {
         this.chanelResponseTime = chanelResponseTime;
+    }
+
+    public BigDecimal getLoanNumber() {
+        return loanNumber;
+    }
+
+    public void setLoanNumber(BigDecimal loanNumber) {
+        this.loanNumber = loanNumber;
+    }
+
+    public Integer getLoanTerm() {
+        return loanTerm;
+    }
+
+    public void setLoanTerm(Integer loanTerm) {
+        this.loanTerm = loanTerm;
+    }
+
+    public BigDecimal getLentNumber() {
+        return lentNumber;
+    }
+
+    public void setLentNumber(BigDecimal lentNumber) {
+        this.lentNumber = lentNumber;
+    }
+
+    public String getInterestMode() {
+        return interestMode;
+    }
+
+    public void setInterestMode(String interestMode) {
+        this.interestMode = interestMode;
+    }
+
+    public BigDecimal getInterestValue() {
+        return interestValue;
+    }
+
+    public void setInterestValue(BigDecimal interestValue) {
+        this.interestValue = interestValue;
+    }
+
+    public String getPenaltyMode() {
+        return penaltyMode;
+    }
+
+    public void setPenaltyMode(String penaltyMode) {
+        this.penaltyMode = penaltyMode;
+    }
+
+    public BigDecimal getPenaltyValue() {
+        return penaltyValue;
+    }
+
+    public void setPenaltyValue(BigDecimal penaltyValue) {
+        this.penaltyValue = penaltyValue;
+    }
+
+    public BigDecimal getChargeValue() {
+        return chargeValue;
+    }
+
+    public void setChargeValue(BigDecimal chargeValue) {
+        this.chargeValue = chargeValue;
+    }
+
+    public BigDecimal getPostponeUnitCharge() {
+        return postponeUnitCharge;
+    }
+
+    public void setPostponeUnitCharge(BigDecimal postponeUnitCharge) {
+        this.postponeUnitCharge = postponeUnitCharge;
     }
 }

@@ -257,8 +257,19 @@ public class LoanMo9mqListener implements IMqMsgListener{
      */
     private void notifyMisLend(String orderId) {
         LendOrderEntity lendOrderEntity = lendOrderService.getByOrderId(orderId);
-        LendInfoMqRes lendInfo = new LendInfoMqRes();
+		LoanOrderEntity loanOrderEntity = loanOrderService.getByOrderId(orderId);
+		LendInfoMqRes lendInfo = new LendInfoMqRes();
         BeanUtils.copyProperties(lendOrderEntity, lendInfo);
+        lendInfo.setLoanNumber(loanOrderEntity.getLoanNumber());
+        lendInfo.setLoanTerm(loanOrderEntity.getLoanTerm());
+        lendInfo.setLentNumber(loanOrderEntity.getLentNumber());
+        lendInfo.setInterestValue(loanOrderEntity.getInterestValue());
+        lendInfo.setPenaltyValue(loanOrderEntity.getPenaltyValue());
+        lendInfo.setChargeValue(loanOrderEntity.getChargeValue());
+        lendInfo.setPostponeUnitCharge(loanOrderEntity.getPostponeUnitCharge());
+
+
+
 
         String ownerId = lendOrderEntity.getOwnerId();
         UserEntity userEntity = userService.findByUserCode(ownerId);
