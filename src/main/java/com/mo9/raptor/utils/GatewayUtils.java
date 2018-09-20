@@ -7,9 +7,11 @@ import com.mo9.raptor.engine.entity.LendOrderEntity;
 import com.mo9.raptor.engine.entity.PayOrderEntity;
 import com.mo9.raptor.engine.service.ILendOrderService;
 import com.mo9.raptor.engine.service.IPayOrderService;
+import com.mo9.raptor.entity.BankEntity;
 import com.mo9.raptor.entity.PayOrderLogEntity;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.ResCodeEnum;
+import com.mo9.raptor.service.BankService;
 import com.mo9.raptor.service.PayOrderLogService;
 import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.httpclient.HttpClientApi;
@@ -52,6 +54,9 @@ public class GatewayUtils {
 
     @Autowired
     private HttpClientApi httpClientApi ;
+
+    @Autowired
+    private BankService bankService ;
 
     /**
      * 放款
@@ -119,8 +124,9 @@ public class GatewayUtils {
             UserEntity user = userService.findByUserCode(payOrderLog.getUserCode());
             params.put("mobile", user.getMobile());
             PayOrderEntity payOrderEntity = payOrderService.getByOrderId(payOrderLog.getPayOrderId());
+            BankEntity bankEntity = bankService.findByBankNo(payOrderLog.getBankCard());
             //orderId : 订单号;
-            params.put("remark", "FASTRAPTOR_" + payOrderEntity.getOrderId() + "_" + payOrderEntity.getLoanOrderId());
+            params.put("remark", "FASTRAPTOR_" + payOrderEntity.getOrderId() + "_" + payOrderEntity.getLoanOrderId() + "_" + bankEntity.getBankName());
 
             params.put("userMobile", user.getMobile());
             params.put("bankmobile", payOrderLog.getBankMobile());
