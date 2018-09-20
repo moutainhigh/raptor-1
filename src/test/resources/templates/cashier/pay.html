@@ -6,8 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Document</title>
-  <link rel="stylesheet" href="../../static/styles/normalize.css">
-  <link rel="stylesheet" href="../../static/styles/pay.css">
+  <link rel="stylesheet" th:href="@{/styles/normalize.css}">
+  <link rel="stylesheet" th:href="@{/styles/pay.css}">
 </head>
 
 <body>
@@ -15,16 +15,16 @@
     <div class="go-back"></div>
     <div class="amount-part">
       <div class="title">支付金额</div>
-      <div class="amount" th:value="${payInfo.payNumber}"></div>
+      <div class="amount" th:text="${payInfo.payNumber}"></div>
     </div>
     <div class="term-part">
       <div class="title">支付方式</div>
-      <ul>
+      <ul class="term-picker">
         <li class="term-item" th:if="${not #lists.isEmpty(channels)}" th:each="channel:${channels}">
           <div class="checkbox"></div>
           <div class="logo"></div>
           <div class="text" th:text="${channel.channelName}"></div>
-          <div class="bank-card" th:text="${defaultBank.bankName}">招商银行 尾号5360</div>
+          <div class="bank-card" th:text="${defaultBank.bankName} + ' 尾号' + ${#strings.substring(defaultBank.bankNo, #strings.length(defaultBank.bankNo) - 4, #strings.length(defaultBank.bankNo))}"></div>
           <div class="logo-more"></div>
         </li>
       </ul>
@@ -42,19 +42,9 @@
           <div class="title">选择银行卡</div>
         </div>
         <ul>
-          <li class="bank-card-item choosen ">
-            <div class="bank-name">招商银行</div>
-            <div class="card-number">尾号1234</div>
-            <div class="btn-check"></div>
-          </li>
-          <li class="bank-card-item">
-            <div class="bank-name">招商银行</div>
-            <div class="card-number">尾号1234</div>
-            <div class="btn-check"></div>
-          </li>
-          <li class="bank-card-item">
-            <div class="bank-name">招商银行</div>
-            <div class="card-number">尾号1234</div>
+          <li class="bank-card-item choosen " th:if="${not #lists.isEmpty(banks)}" th:each="bank:${banks}">
+            <div class="bank-name" th:text="${bank.bankName}"></div>
+            <div class="card-number" th:text="'尾号' + ${#strings.substring(bank.bankNo, #strings.length(bank.bankNo) - 4, #strings.length(bank.bankNo))}"></div>
             <div class="btn-check"></div>
           </li>
           <li class='add-new-card'>
@@ -66,6 +56,8 @@
       </div>
     </div>
   </div>
+  <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+  <script th:src="@{/scripts/index.js}"></script>
 </body>
 
 </html>

@@ -1,0 +1,73 @@
+@import './common.scss';
+
+body {}
+
+.wrapper {
+  .top-bar {
+    background-color: $color_blue;
+    color: #fff;
+    height: p(64);
+    font-size: p(18);
+    display: flex;
+    padding: 0 p(20);
+    box-sizing: border-box;
+    padding-top: p(20);
+    // justify-content: center;
+    align-items: center;
+
+    .logo-go-back {
+      width: p(10);
+      height: p(18);
+      // margin-left: p(20);
+      @extend .bg_img;
+      background-image: url(../images/logo_lt.png);
+    }
+
+    .text {
+      flex: 1;
+      text-align: center;
+
+    }
+  }
+
+  form {
+    background-color: #fff;
+    font-size: p(14);
+
+    .form-item {
+      border-bottom: 1px solid $color_bg;
+      display: flex;
+      height: p(45);
+      align-items: center;
+
+      .text {
+        padding-left: p(20);
+        width: p(118);
+        // flex: 1;
+        color: $color_text_grey;
+      }
+
+      input {
+        flex: 1;
+        margin-right: p(20);
+        border: none;
+        outline: none;
+
+        &:focus {
+          border: none;
+        }
+      }
+    }
+  }
+
+  .btn-part {
+    width: 100%;
+    position: absolute;
+    bottom: p(122);
+
+    .btn-submit {
+
+      margin: 0 auto;
+    }
+  }
+}

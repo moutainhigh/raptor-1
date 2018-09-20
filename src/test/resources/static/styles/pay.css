@@ -9,10 +9,23 @@
   height: 12vw;
   line-height: 12vw;
   border-radius: 6vw;
-  background-color: #5782da;
   text-align: center;
   font-size: 3.73333vw;
   color: #fff;
+  -webkit-box-shadow: 0 0.53333vw 1.6vw 0 #bfbfbf;
+          box-shadow: 0 0.53333vw 1.6vw 0 #bfbfbf;
+  cursor: pointer;
+  background-color: #5782da;
+}
+
+.btn.green {
+  background-color: #00e17f;
+  -webkit-box-shadow: none;
+          box-shadow: none;
+}
+
+.btn.grey {
+  background-color: #cfcfcf;
 }
 
 ul {
@@ -22,6 +35,28 @@ ul {
 
 body {
   background-color: #ededed;
+}
+
+::-webkit-input-placeholder {
+  /* Chrome */
+  color: #808080;
+}
+
+:-ms-input-placeholder {
+  /* IE 10+ */
+  color: #808080;
+}
+
+::-moz-placeholder {
+  /* Firefox 19+ */
+  color: #808080;
+  opacity: 1;
+}
+
+:-moz-placeholder {
+  /* Firefox 4 - 18 */
+  color: #808080;
+  opacity: 1;
 }
 
 body .wrapper .go-back {
@@ -85,8 +120,12 @@ body .wrapper .term-part ul li.term-item {
 body .wrapper .term-part ul li.term-item .checkbox {
   width: 4vw;
   height: 3.73333vw;
-  background-color: #08ca75;
   border-radius: 50%;
+  border: 1px solid #cfcfcf;
+}
+
+body .wrapper .term-part ul li.term-item.choosen .checkbox {
+  background-color: #08ca75;
 }
 
 body .wrapper .term-part ul li.term-item .logo {
@@ -135,6 +174,7 @@ body .wrapper .btn-part .agreement a {
 }
 
 body .wrapper .card-picker-container {
+  display: none;
   position: absolute;
   top: 0;
   width: 100%;

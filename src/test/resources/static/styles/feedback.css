@@ -1,4 +1,4 @@
-.bg_img {
+.bg_img, body .wrapper .logo-status {
   background-repeat: no-repeat;
   background-size: 100% auto;
   background-position: 50% 50%;
@@ -58,4 +58,52 @@ body {
   color: #808080;
   opacity: 1;
 }
-/*# sourceMappingURL=common.css.map */
+
+body {
+  background-color: #5782da;
+}
+
+body .wrapper {
+  color: #fff;
+}
+
+body .wrapper .logo-status {
+  width: 34.66667vw;
+  height: 34.66667vw;
+  margin: 0 auto;
+  margin-top: 25.33333vw;
+}
+
+body .wrapper .msg-part {
+  margin-top: 11.2vw;
+  text-align: center;
+  font-size: 4.8vw;
+}
+
+body .wrapper .msg-part .msg,
+body .wrapper .msg-part .order {
+  line-height: 7.46667vw;
+}
+
+body .wrapper .tip {
+  text-align: center;
+  width: 100%;
+  opacity: 0.5;
+  font-size: 3.73333vw;
+  position: absolute;
+  bottom: 71.46667vw;
+}
+
+body .wrapper .btn-next {
+  margin: 0 auto;
+  margin-top: 30.4vw;
+}
+
+body .wrapper .info-part {
+  text-align: center;
+  font-size: 3.2vw;
+  opacity: 0.5;
+  line-height: 5.33333vw;
+  margin-top: 27.46667vw;
+}
+/*# sourceMappingURL=feedback.css.map */

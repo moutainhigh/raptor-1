@@ -238,7 +238,7 @@ public class PayOrderController {
         List<ChannelEntity> channels = channelService.listByChannelType(ChannelTypeEnum.REPAY.name());
         model.addAttribute("channels", channels);
 
-        return "cashier/index";
+        return "cashier/pay";
     }
 
     @PostMapping("/cashier/submit")

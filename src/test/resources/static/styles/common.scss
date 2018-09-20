@@ -24,13 +24,50 @@ $btn_border_radius:p(45/2);
   height: $btn_height;
   line-height: $btn_height;
   border-radius: $btn_border_radius;
-  background-color: $color_blue;
   text-align: center;
   font-size: p(14);
   color: #fff;
+  box-shadow: 0 p(2) p(6) 0 #bfbfbf;
+  cursor: pointer;
+  background-color: $color_blue;
+
+  &.green {
+    background-color: #00e17f;
+    box-shadow: none;
+  }
+
+  &.grey {
+    background-color: #cfcfcf;
+  }
 }
 
 ul {
   padding: 0;
   margin: 0;
+}
+
+body {
+  background-color: $color_bg;
+}
+
+::-webkit-input-placeholder {
+  /* Chrome */
+  color: $color_text_grey;
+}
+
+:-ms-input-placeholder {
+  /* IE 10+ */
+  color: $color_text_grey;
+}
+
+::-moz-placeholder {
+  /* Firefox 19+ */
+  color: $color_text_grey;
+  opacity: 1;
+}
+
+:-moz-placeholder {
+  /* Firefox 4 - 18 */
+  color: $color_text_grey;
+  opacity: 1;
 }
