@@ -109,7 +109,7 @@ public class RiskController {
         }
 
         try {
-            userService.updateReceiveCallHistory(callLogReq.getData().getTel(), callLogStatus);
+            userService.updateReceiveCallHistory(callLogReq.getData().getUid(), callLogStatus);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -136,7 +136,12 @@ public class RiskController {
             e.printStackTrace();
         }
     }
-    
+
+    /**
+     * 获取运营商报告
+     * @param sid
+     * @return
+     */
     private String getCallLogReport(String sid){
         String url = dianhuUrl + "report?token=" + dianhuToken + "&sid=" + sid;
 
