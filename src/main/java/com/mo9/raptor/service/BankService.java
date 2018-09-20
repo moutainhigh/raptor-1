@@ -5,6 +5,8 @@ import com.mo9.raptor.entity.BankEntity;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.ResCodeEnum;
 
+import java.util.List;
+
 /**
  * Created by xtgu on 2018/9/12.
  * @author xtgu
@@ -25,6 +27,13 @@ public interface BankService {
      * @return
      */
     BankEntity findByUserCodeLastOne(String userCode);
+
+    /**
+     * 根据用户查询所有银行卡列表
+     * @param userCode
+     * @return
+     */
+    List<BankEntity> findByUserCode(String userCode);
 
     /**
      * 根据银行卡号查询
