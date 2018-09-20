@@ -93,8 +93,8 @@ public class RiskController {
         
         boolean callLogStatus = true;
 
-        if (callLogReq.getStatus() != 0 || callLogReq.getData().getTel() == null){
-            logger.error(">>>>>>>>>>>第三方通话记录爬虫失败");
+        if (callLogReq.getStatus() != 0 || callLogReq.getData() == null){
+            logger.error("--------------第三方通话记录爬虫失败----------");
             callLogStatus = false;
         }
         if (callLogStatus){
@@ -113,13 +113,18 @@ public class RiskController {
             //上传通话记录文件
             this.uploadFile2Oss(callLogReq.toString(), sockpuppet + "-" + callLogReq.getData().getTel() + ".json" );
 
+            try {
+                if (callLogReq.getData() != null){
+                    userService.updateReceiveCallHistory(callLogReq.getData().getUid(), callLogStatus);
+                    logger.info("更新用户通话记录历史信息成功，tel: " + callLogReq.getData().getTel() + ", uid: " + callLogReq.getData().getUid());
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
         }
 
-        try {
-            userService.updateReceiveCallHistory(callLogReq.getData().getUid(), callLogStatus);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        
         
         return "ok";
     }
