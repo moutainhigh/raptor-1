@@ -30,6 +30,14 @@ public interface IPayOrderService {
     List<PayOrderEntity> listByOrderIds(List<String> payOrderIds);
 
     /**
+     * 根据借款订单和类型获取
+     * @param loanOrderId
+     * @param payType
+     * @return
+     */
+    List<PayOrderEntity> listByLoanOrderIdAndType(String loanOrderId, PayTypeEnum payType);
+
+    /**
      * 保存订单
      */
     void save(PayOrderEntity payOrder);

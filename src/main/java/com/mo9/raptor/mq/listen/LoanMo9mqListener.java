@@ -69,6 +69,8 @@ public class LoanMo9mqListener implements IMqMsgListener{
 		BigDecimal amount = bodyJson.getBigDecimal("amount");
 		String dealcode = bodyJson.getString("dealcode");
 		String channelDealcode = bodyJson.getString("channelDealcode");
+        // 失败原因
+        String failReason = bodyJson.getString("failReason");
 		DeductResponseEvent event;
 		if ("success".equals(status)) {
 			// 还款扣款成功事件
@@ -86,6 +88,7 @@ public class LoanMo9mqListener implements IMqMsgListener{
 		payOrderLog.setDealCode(dealcode);
 		payOrderLog.setChannelResponse(body);
 		payOrderLog.setChannelRepayNumber(amount);
+		payOrderLog.setFailReason(failReason);
 		payOrderLogService.save(payOrderLog);
 
 		// 发送还款扣款成功事件
@@ -96,6 +99,8 @@ public class LoanMo9mqListener implements IMqMsgListener{
 		}
 
 		//修改或者存储银行卡信息 TODO
+
+		// TODO: 发送消息给贷后
 		return MqAction.CommitMessage;
 	}
 
@@ -179,10 +184,12 @@ public class LoanMo9mqListener implements IMqMsgListener{
                         failReason);
 				lendEventLauncher.launch(lendResponse);
 			} catch (Exception e) {
-				logger.error("订单[{}]放款成功事件报错", orderId, e);
+				logger.error("订单[{}]放款失败事件报错", orderId, e);
 			}
 		}
 		//修改或者存储银行卡信息 TODO
+
+		// TODO: 发送消息给贷后
 		return MqAction.CommitMessage;
 	}
 
