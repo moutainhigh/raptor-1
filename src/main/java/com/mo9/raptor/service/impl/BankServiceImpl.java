@@ -53,6 +53,11 @@ public class BankServiceImpl implements BankService {
     }
 
     @Override
+    public List<BankEntity> findByUserCode(String userCode) {
+        return bankRepository.findByUserCode(userCode);
+    }
+
+    @Override
     public BankEntity findByBankNo(String bankNo) {
         return bankRepository.findByBankNo(bankNo) ;
     }
