@@ -53,7 +53,7 @@ public class DeductingStateHandler implements IStateHandler<PayOrderEntity> {
             } else {
                 payOrder.setStatus(StatusEnum.DEDUCT_FAILED.name());
             }
-            payOrder.setDescription(payOrder.getDescription() + " " + event.getEventTime() + ":" + deductResponseEvent.getExplanation());
+            payOrder.setDescription(payOrder.getDescription() + " " + event.getEventTime() + ":" + deductResponseEvent.getExplanation() + ";");
         } else {
             throw new InvalidEventException("还款订单状态与事件类型不匹配，状态：" + payOrder.getStatus() + "，事件：" + event);
         }

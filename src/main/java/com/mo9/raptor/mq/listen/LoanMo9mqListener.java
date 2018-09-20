@@ -126,9 +126,9 @@ public class LoanMo9mqListener implements IMqMsgListener{
 		DeductResponseEvent event;
 		if ("success".equals(status)) {
 			// 还款扣款成功事件
-			event = new DeductResponseEvent(orderId, amount, true, System.currentTimeMillis() + ":还款" + amount.toPlainString());
+			event = new DeductResponseEvent(orderId, amount, true, "还款" + amount.toPlainString());
 		} else {
-			event = new DeductResponseEvent(orderId, null, false, System.currentTimeMillis() + ":还款失败");
+			event = new DeductResponseEvent(orderId, null, false, "还款失败");
 		}
 		PayOrderLogEntity payOrderLog = payOrderLogService.getByPayOrderId(orderId);
 		if (payOrderLog == null) {
