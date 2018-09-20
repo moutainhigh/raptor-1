@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.thymeleaf.org" xmlns:th="http://www.w3.org/1999/xhtml">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <link rel="stylesheet" href="../../static/styles/normalize.css">
+  <link rel="stylesheet" href="../../static/styles/pay.css">
+</head>
+
+<body>
+  <div class="wrapper">
+    <div class="go-back"></div>
+    <div class="amount-part">
+      <div class="title">支付金额</div>
+      <div class="amount" th:value="${payInfo.payNumber}"></div>
+    </div>
+    <div class="term-part">
+      <div class="title">支付方式</div>
+      <ul>
+        <li class="term-item" th:if="${not #lists.isEmpty(channels)}" th:each="channel:${channels}">
+          <div class="checkbox"></div>
+          <div class="logo"></div>
+          <div class="text" th:text="${channel.channelName}"></div>
+          <div class="bank-card" th:text="${defaultBank.bankName}">招商银行 尾号5360</div>
+          <div class="logo-more"></div>
+        </li>
+      </ul>
+    </div>
+    <div class="btn-part">
+      <div class="btn-submit btn">提交</div>
+      <div class="agreement">
+        已阅读并同意 <a>「天天有钱支付协议」</a>
+      </div>
+    </div>
+    <div class="card-picker-container">
+      <div class="card-picker">
+        <div class="title-part">
+          <div class="logo-go-back"></div>
+          <div class="title">选择银行卡</div>
+        </div>
+        <ul>
+          <li class="bank-card-item choosen ">
+            <div class="bank-name">招商银行</div>
+            <div class="card-number">尾号1234</div>
+            <div class="btn-check"></div>
+          </li>
+          <li class="bank-card-item">
+            <div class="bank-name">招商银行</div>
+            <div class="card-number">尾号1234</div>
+            <div class="btn-check"></div>
+          </li>
+          <li class="bank-card-item">
+            <div class="bank-name">招商银行</div>
+            <div class="card-number">尾号1234</div>
+            <div class="btn-check"></div>
+          </li>
+          <li class='add-new-card'>
+            <div class="logo-card"></div>
+            <div class="text">添加其他银行卡付款</div>
+            <div class="logo-more"></div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

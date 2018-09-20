@@ -225,9 +225,12 @@ public class PayOrderController {
         /** 增加支付信息 */
         model.addAttribute("payInfo", payInfoCache);
 
+        BankEntity bank = bankService.findByUserCodeLastOne(payInfoCache.getUserCode());
+        /** 默认支付银行卡 */
+        model.addAttribute("defaultBank", bank);
+
         /** 增加可用于扣款的银行卡列表 */
         List<BankEntity> banks = new ArrayList<BankEntity>();
-        BankEntity bank = bankService.findByUserCodeLastOne(payInfoCache.getUserCode());
         banks.add(bank);
         model.addAttribute("banks", banks);
 

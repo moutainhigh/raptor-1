@@ -1,0 +1,253 @@
+.bg_img, body .wrapper .go-back, body .wrapper .term-part ul li.term-item .logo, body .wrapper .term-part ul li.term-item .logo-more, body .wrapper .card-picker-container .card-picker .title-part .logo-go-back, body .wrapper .card-picker-container .card-picker ul li.bank-card-item .btn-check, body .wrapper .card-picker-container .card-picker ul li.add-new-card .logo-card, body .wrapper .card-picker-container .card-picker ul li.add-new-card .logo-more {
+  background-repeat: no-repeat;
+  background-size: 100% auto;
+  background-position: 50% 50%;
+}
+
+.btn {
+  width: 89.33333vw;
+  height: 12vw;
+  line-height: 12vw;
+  border-radius: 6vw;
+  background-color: #5782da;
+  text-align: center;
+  font-size: 3.73333vw;
+  color: #fff;
+}
+
+ul {
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  background-color: #ededed;
+}
+
+body .wrapper .go-back {
+  color: #fff;
+  position: absolute;
+  margin-left: 5.33333vw;
+  margin-top: 8.53333vw;
+  width: 2.66667vw;
+  height: 4.8vw;
+  background-image: url(../images/logo_lt.png);
+}
+
+body .wrapper .amount-part {
+  background-color: #5782da;
+  height: 49.33333vw;
+  text-align: center;
+  color: #fff;
+}
+
+body .wrapper .amount-part .title {
+  font-size: 4.8vw;
+  padding-top: 17.6vw;
+}
+
+body .wrapper .amount-part .amount {
+  font-size: 7.46667vw;
+  padding-top: 3.46667vw;
+}
+
+body .wrapper .term-part {
+  background-color: #fff;
+  color: #808080;
+}
+
+body .wrapper .term-part .title {
+  font-size: 4.26667vw;
+  padding-left: 5.33333vw;
+  padding-top: 4vw;
+}
+
+body .wrapper .term-part ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+body .wrapper .term-part ul li.term-item {
+  padding-left: 5.33333vw;
+  -webkit-box-sizing: border-box;
+          box-sizing: border-box;
+  border-bottom: 1px solid #ededed;
+  height: 16vw;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+}
+
+body .wrapper .term-part ul li.term-item .checkbox {
+  width: 4vw;
+  height: 3.73333vw;
+  background-color: #08ca75;
+  border-radius: 50%;
+}
+
+body .wrapper .term-part ul li.term-item .logo {
+  width: 10.66667vw;
+  height: 10.66667vw;
+  margin: 0 3.73333vw;
+  background-image: url(../images/payeco.png);
+}
+
+body .wrapper .term-part ul li.term-item .text {
+  font-size: 4.26667vw;
+  color: #333333;
+  padding-right: 4.26667vw;
+}
+
+body .wrapper .term-part ul li.term-item .bank-card {
+  font-size: 3.73333vw;
+  color: #808080;
+  padding-right: 8.53333vw;
+}
+
+body .wrapper .term-part ul li.term-item .logo-more {
+  width: 2.4vw;
+  height: 4vw;
+  background-image: url(../images/logo_gt.png);
+}
+
+body .wrapper .btn-part {
+  width: 100%;
+  position: absolute;
+  text-align: center;
+  bottom: 24vw;
+}
+
+body .wrapper .btn-part .btn-submit {
+  margin: 0 auto;
+}
+
+body .wrapper .btn-part .agreement {
+  margin-top: 4vw;
+  font-size: 3.2vw;
+}
+
+body .wrapper .btn-part .agreement a {
+  color: #5782da;
+}
+
+body .wrapper .card-picker-container {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+body .wrapper .card-picker-container .card-picker {
+  width: 100%;
+  position: absolute;
+  bottom: 0;
+  background-color: #fff;
+  padding-bottom: 16vw;
+  font-size: 4.26667vw;
+  color: #333333;
+}
+
+body .wrapper .card-picker-container .card-picker .title-part {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  height: 15.73333vw;
+  line-height: 15.73333vw;
+  border-bottom: 1px solid #ededed;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+}
+
+body .wrapper .card-picker-container .card-picker .title-part .logo-go-back {
+  width: 2.66667vw;
+  height: 4.8vw;
+  margin-left: 5.33333vw;
+  background-image: url(../images/logo_lt_grey.png);
+}
+
+body .wrapper .card-picker-container .card-picker .title-part .title {
+  text-align: center;
+  -webkit-box-flex: 1;
+      -ms-flex: 1;
+          flex: 1;
+  margin-right: 5.33333vw;
+}
+
+body .wrapper .card-picker-container .card-picker ul {
+  margin: 0;
+  padding: 0;
+  padding-left: 5.33333vw;
+  list-style: none;
+}
+
+body .wrapper .card-picker-container .card-picker ul li {
+  height: 15.73333vw;
+  line-height: 15.73333vw;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  border-bottom: 1px solid #ededed;
+}
+
+body .wrapper .card-picker-container .card-picker ul li.bank-card-item {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-box-pack: auto;
+      -ms-flex-pack: auto;
+          justify-content: auto;
+}
+
+body .wrapper .card-picker-container .card-picker ul li.bank-card-item .card-number {
+  padding-left: 1.86667vw;
+  font-size: 3.73333vw;
+  color: #808080;
+}
+
+body .wrapper .card-picker-container .card-picker ul li.bank-card-item .btn-check {
+  position: absolute;
+  right: 5.33333vw;
+  width: 7.46667vw;
+  height: 7.46667vw;
+}
+
+body .wrapper .card-picker-container .card-picker ul li.bank-card-item.choosen .btn-check {
+  background-image: url(../images/check.png);
+}
+
+body .wrapper .card-picker-container .card-picker ul li.add-new-card {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+}
+
+body .wrapper .card-picker-container .card-picker ul li.add-new-card .logo-card {
+  width: 6.66667vw;
+  height: 4.8vw;
+  background-image: url(../images/card.png);
+}
+
+body .wrapper .card-picker-container .card-picker ul li.add-new-card .text {
+  padding-left: 4.26667vw;
+}
+
+body .wrapper .card-picker-container .card-picker ul li.add-new-card .logo-more {
+  width: 2.4vw;
+  height: 4vw;
+  background-image: url(../images/logo_gt.png);
+  position: absolute;
+  right: 5.33333vw;
+}
+/*# sourceMappingURL=pay.css.map */

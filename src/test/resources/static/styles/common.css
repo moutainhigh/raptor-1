@@ -1,0 +1,22 @@
+.bg_img {
+  background-repeat: no-repeat;
+  background-size: 100% auto;
+  background-position: 50% 50%;
+}
+
+.btn {
+  width: 89.33333vw;
+  height: 12vw;
+  line-height: 12vw;
+  border-radius: 6vw;
+  background-color: #5782da;
+  text-align: center;
+  font-size: 3.73333vw;
+  color: #fff;
+}
+
+ul {
+  padding: 0;
+  margin: 0;
+}
+/*# sourceMappingURL=common.css.map */

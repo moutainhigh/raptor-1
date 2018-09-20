@@ -1,0 +1,36 @@
+$design_screen_width:375;
+
+// px to vw
+@function p($px, $design_screen_width: 375) {
+  @return $px / ($design_screen_width/100) * 1vw;
+}
+
+$color_blue:#5782da;
+$color_text_grey:#808080;
+$color_text_black:#333333;
+$color_bg:#ededed;
+$btn_width:p(335);
+$btn_height:p(45);
+$btn_border_radius:p(45/2);
+
+.bg_img {
+  background-repeat: no-repeat;
+  background-size: 100% auto;
+  background-position: 50% 50%;
+}
+
+.btn {
+  width: $btn_width;
+  height: $btn_height;
+  line-height: $btn_height;
+  border-radius: $btn_border_radius;
+  background-color: $color_blue;
+  text-align: center;
+  font-size: p(14);
+  color: #fff;
+}
+
+ul {
+  padding: 0;
+  margin: 0;
+}
