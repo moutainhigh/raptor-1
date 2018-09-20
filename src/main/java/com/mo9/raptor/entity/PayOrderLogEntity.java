@@ -64,25 +64,25 @@ public class PayOrderLogEntity extends BaseEntity {
     private String clientVersion;
 
     /**
-     * 客户端版本号
+     * 还款银行卡
      */
     @Column(name = "bank_card")
     private String bankCard;
 
     /**
-     * 客户端版本号
+     * 银行预留手机
      */
     @Column(name = "bank_mobile")
     private String bankMobile;
 
     /**
-     * 客户端版本号
+     * 用户真实姓名
      */
     @Column(name = "user_name")
     private String userName;
 
     /**
-     * 客户端版本号
+     * 银行卡号
      */
     @Column(name = "id_card")
     private String idCard;
@@ -110,6 +110,12 @@ public class PayOrderLogEntity extends BaseEntity {
      */
     @Column(name = "channel_sync_response")
     private String channelSyncResponse;
+
+    /**
+     * 延期次数
+     */
+    @Column(name = "postpone_count")
+    private Integer postponeCount;
 
     /**
      * 失败原因
@@ -251,6 +257,14 @@ public class PayOrderLogEntity extends BaseEntity {
 
     public void setFailReason(String failReason) {
         this.failReason = failReason;
+    }
+
+    public Integer getPostponeCount() {
+        return postponeCount;
+    }
+
+    public void setPostponeCount(Integer postponeCount) {
+        this.postponeCount = postponeCount;
     }
 
     public void create() {

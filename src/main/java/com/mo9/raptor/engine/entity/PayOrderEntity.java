@@ -68,7 +68,6 @@ public class PayOrderEntity extends AbstractOrderEntity {
 
     /**
      * 还除本金之外的所有金额时, 可推迟还款时间, 一般为一个账期
-     * TODO: 可能删掉
      */
     @Column(name = "postpone_days")
     private Integer postponeDays = 0;

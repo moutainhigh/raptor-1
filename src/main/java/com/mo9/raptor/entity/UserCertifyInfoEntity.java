@@ -28,7 +28,7 @@ public class UserCertifyInfoEntity {
     private String idCard;
 
     /**
-     * 识别地址
+     * 发证机关
      */
     @Column(name = "issuing_organ")
     private String issuingOrgan;
@@ -76,7 +76,7 @@ public class UserCertifyInfoEntity {
     private String ocrRealName;
 
     /**
-     * orc识别身份证号
+     * ocr识别身份证号
      */
     @Column(name = "ocr_id_card")
     private String ocrIdCard;
@@ -88,37 +88,37 @@ public class UserCertifyInfoEntity {
     private String ocrIssueAt;
 
     /**
-     * orc识别有效开始日期
+     * ocr识别有效开始日期
      */
     @Column(name = "ocr_duration_start_time")
     private String ocrDurationStartTime;
 
     /**
-     * orc识别有效结束日期
+     * ocr识别有效结束日期
      */
     @Column(name = "ocr_duration_end_time")
     private String ocrDurationEndTime;
 
     /**
-     * orc识别性别
+     * ocr识别性别
      */
     @Column(name = "ocr_gender")
     private Integer ocrGender;
 
     /**
-     * orc识别民族
+     * ocr识别民族
      */
     @Column(name = "ocr_nationality")
     private String ocrNationality;
 
     /**
-     * orc识别生日
+     * ocr识别生日
      */
     @Column(name = "ocr_birthday")
     private String ocrBirthday;
 
     /**
-     * orc识别身份地址
+     * ocr识别身份地址
      */
     @Column(name = "ocr_id_card_address")
     private String ocrIdCardAddress;

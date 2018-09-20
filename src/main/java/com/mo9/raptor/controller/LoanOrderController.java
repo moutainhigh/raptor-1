@@ -112,7 +112,7 @@ public class LoanOrderController {
         }
 
         // 查询是否有在接订单
-        LoanOrderEntity loanOrderEntity = loanOrderService.getLastIncompleteOrder(userCode);
+        LoanOrderEntity loanOrderEntity = loanOrderService.getLastIncompleteOrder(userCode, StatusEnum.PROCESSING);
         if (loanOrderEntity != null) {
             return response.buildFailureResponse(ResCodeEnum.ONLY_ONE_ORDER);
         }
@@ -123,6 +123,11 @@ public class LoanOrderController {
         LoanProductEntity product = productService.findByAmountAndPeriod(principal, loanTerm);
         if (product == null) {
             return response.buildFailureResponse(ResCodeEnum.ERROR_LOAN_PARAMS);
+        }
+        BigDecimal actuallyGetAmount = product.getActuallyGetAmount();
+        BigDecimal amount = product.getAmount();
+        if (amount.compareTo(actuallyGetAmount) < 0) {
+            return response.buildFailureResponse(ResCodeEnum.PRODUCT_ERROR);
         }
 
         String orderId = sockpuppet + "-" + idWorker.nextId();
