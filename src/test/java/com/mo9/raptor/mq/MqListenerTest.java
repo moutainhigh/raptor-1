@@ -65,6 +65,18 @@ public class MqListenerTest {
     }
 
     /**
+     * 模拟放款mq
+     */
+    @Test
+    public void mockLend2 () {
+
+        String params = "{\"channelResponse\":\"<YLPMSGBEAN><VERSION>2.1<\\/VERSION><MSG_TYPE>100001<\\/MSG_TYPE><BATCH_NO>MO9PAYPDAFERAOCLNQEOOK<\\/BATCH_NO><USER_NAME>18616705830<\\/USER_NAME><TRANS_STATE>0000<\\/TRANS_STATE><MSG_SIGN><\\/MSG_SIGN><TRANS_DETAILS><TRANS_DETAIL><SN>2604441<\\/SN><BANK_CODE><\\/BANK_CODE><ACC_NO>6214832135845811<\\/ACC_NO><ACC_NAME>周成龙<\\/ACC_NAME><ACC_PROVINCE><\\/ACC_PROVINCE><ACC_CITY><\\/ACC_CITY><AMOUNT>0.01<\\/AMOUNT><MOBILE_NO><\\/MOBILE_NO><PAY_STATE>0000<\\/PAY_STATE><BANK_NO><\\/BANK_NO><BANK_NAME>招商银行<\\/BANK_NAME><ACC_TYPE>00<\\/ACC_TYPE><ACC_PROP>0<\\/ACC_PROP><ID_TYPE>0<\\/ID_TYPE><ID_NO>31011519880509063X<\\/ID_NO><CNY>CNY<\\/CNY><EXCHANGE_RATE><\\/EXCHANGE_RATE><SETT_AMOUNT><\\/SETT_AMOUNT><USER_LEVEL><\\/USER_LEVEL><SETT_DATE><\\/SETT_DATE><REMARK>交易成功<\\/REMARK><RESERVE><\\/RESERVE><RETURN_URL><\\/RETURN_URL><MER_ORDER_NO>PDAFERAOCLNQEOOK<\\/MER_ORDER_NO><MER_SEQ_NO><\\/MER_SEQ_NO><TRANS_DESC>猛禽放款<\\/TRANS_DESC><SUCCESS_DATE>2018-09-19 16:48:01<\\/SUCCESS_DATE><QUERY_NO_FLAG><\\/QUERY_NO_FLAG><SMS_CODE><\\/SMS_CODE><\\/TRANS_DETAIL><\\/TRANS_DETAILS><\\/YLPMSGBEAN>\",\"lendAmount\":0.01,\"lendChannelType\":\"\",\"status\":\"1\",\"lendSettleTime\":1537346881558,\"bankIdcardNo\":\"31011519880509063X\",\"bankMobile\":\"13120502501\",\"bankName\":\"招商银行\",\"eventType\":1301,\"lendChannel\":\"yilianpay\",\"operator\":\"gateway\",\"bankCardNo\":\"6214832135845811\",\"eventId\":\"PDAFERAOCLNQEOOK\",\"eventTime\":1537346881579,\"lendReqpTime\":1537346878699,\"lendId\":\"PDAFERAOCLNQEOOK\",\"bankUserName\":\"周成龙\",\"orderId\":\"SMALL-WHITE-MOUSE-227108215912009728\",\"bankBranch\":\"未知\"}";
+
+        MqMessage message = new MqMessage("TOPIC", "MQ_RAPTOR_LOAN_TAG", params);
+        loanMo9mqListener.consume(message, null);
+    }
+
+    /**
      * 模拟还款mq
      */
     @Test

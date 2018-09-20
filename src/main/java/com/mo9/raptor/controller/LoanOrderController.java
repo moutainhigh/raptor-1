@@ -21,6 +21,7 @@ import com.mo9.raptor.entity.DictDataEntity;
 import com.mo9.raptor.entity.LoanProductEntity;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.DictTypeNoEnum;
+import com.mo9.raptor.enums.PayTypeEnum;
 import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.lock.Lock;
 import com.mo9.raptor.lock.RedisService;
@@ -40,6 +41,8 @@ import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -176,28 +179,37 @@ public class LoanOrderController {
      * @return
      */
     @GetMapping("/get_last_incomplete")
-    public BaseResponse<LoanOrderRes> getLastIncomplete(HttpServletRequest request) {
-        BaseResponse<LoanOrderRes> response = new BaseResponse<LoanOrderRes>();
+    public BaseResponse<Map<String,LoanOrderRes>> getLastIncomplete(HttpServletRequest request) {
+        BaseResponse<Map<String,LoanOrderRes>> response = new BaseResponse<>();
         String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
-        LoanOrderEntity loanOrderEntity = loanOrderService.getLastIncompleteOrder(userCode);
-        if (loanOrderEntity == null) {
-            return response;
-        }
-        ILoanCalculator calculator = loanCalculatorFactory.load(loanOrderEntity);
-        Item realItem = calculator.realItem(System.currentTimeMillis(), loanOrderEntity);
+        try {
+            HashMap<String,LoanOrderRes> map = new HashMap<>(16);
+            LoanOrderEntity loanOrderEntity = loanOrderService.getLastIncompleteOrder(userCode);
+            if (loanOrderEntity == null) {
+                return response;
+            }
+            ILoanCalculator calculator = loanCalculatorFactory.load(loanOrderEntity);
+            Item realItem = calculator.realItem(System.currentTimeMillis(), loanOrderEntity, PayTypeEnum.REPAY_AS_PLAN.name());
 
-        LoanOrderRes res = new LoanOrderRes();
-        res.setOrderId(loanOrderEntity.getOrderId());
-        res.setActuallyGet(loanOrderEntity.getLoanNumber().subtract(loanOrderEntity.getChargeValue()).toPlainString());
-        res.setRepayAmount(realItem.sum().toPlainString());
-        res.setRepayTime(realItem.getRepayDate());
-        res.setState(loanOrderEntity.getStatus());
-        res.setAbateAmount("0");
-        LendOrderEntity lendOrderEntity = lendOrderService.getByOrderId(loanOrderEntity.getOrderId());
-        res.setReceiveBankCard(lendOrderEntity.getBankCard());
-        res.setRenew(calculator.getRenew(loanOrderEntity));
-        res.setAgreementUrl("https://www.baidu.com");
-        return response.buildSuccessResponse(res);
+            LoanOrderRes res = new LoanOrderRes();
+            res.setOrderId(loanOrderEntity.getOrderId());
+            res.setActuallyGet(loanOrderEntity.getLoanNumber().subtract(loanOrderEntity.getChargeValue()).toPlainString());
+            res.setRepayAmount(realItem.sum().toPlainString());
+            res.setRepayTime(realItem.getRepayDate());
+            res.setState(String.valueOf(LoanOrderRes.StateEnum.getCode(loanOrderEntity.getStatus())));
+            res.setAbateAmount("0");
+            LendOrderEntity lendOrderEntity = lendOrderService.getByOrderId(loanOrderEntity.getOrderId());
+            if (lendOrderEntity != null) {
+                res.setReceiveBankCard(lendOrderEntity.getBankCard());
+            }
+            res.setRenew(calculator.getRenew(loanOrderEntity));
+            res.setAgreementUrl("https://www.baidu.com");
+            map.put("entity",res);
+            return response.buildSuccessResponse(map);
+        } catch (Exception e) {
+            logger.error("用户[{}]获取上一笔未还清订单错误, ", userCode, e);
+            return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
+        }
     }
 
 }

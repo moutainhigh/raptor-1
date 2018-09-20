@@ -64,35 +64,43 @@ public class LoanMo9mqListener implements IMqMsgListener{
 		JSONObject remark = JSON.parseObject(body);
 		JSONObject bodyJson = remark.getJSONObject("remark");
 		String status = bodyJson.getString("status");
+		String orderId = bodyJson.getString("orderId");
+		String channel = bodyJson.getString("channel");
+		BigDecimal amount = bodyJson.getBigDecimal("amount");
+		String dealcode = bodyJson.getString("dealcode");
+		String channelDealcode = bodyJson.getString("channelDealcode");
+        // 失败原因
+        String failReason = bodyJson.getString("failReason");
+		DeductResponseEvent event;
 		if ("success".equals(status)) {
-			String channel = bodyJson.getString("channel");
-			BigDecimal amount = bodyJson.getBigDecimal("amount");
-			String dealcode = bodyJson.getString("dealcode");
-			String channelDealcode = bodyJson.getString("channelDealcode");
-			String orderId = bodyJson.getString("orderId");
-			PayOrderLogEntity payOrderLog = payOrderLogService.getByPayOrderId(orderId);
-			if (payOrderLog == null) {
-				logger.error("还款订单号[{}], 查不到对应的还款log", orderId);
-				return MqAction.CommitMessage;
-			}
-			payOrderLog.setChannel(channel);
-			payOrderLog.setDealCode(dealcode);
-			payOrderLog.setThirdChannelNo(channelDealcode);
-			payOrderLog.setChannelResponse(body);
-			payOrderLogService.save(payOrderLog);
-
-			// 发送还款扣款成功事件
-			try {
-				DeductResponseEvent event = new DeductResponseEvent(orderId, amount, true, System.currentTimeMillis() + ":还款" + amount.toPlainString());
-				payEventLauncher.launch(event);
-			} catch (Exception e) {
-				logger.error("发送还款订单[{}]还款成功事件异常", orderId, e);
-			}
+			// 还款扣款成功事件
+			event = new DeductResponseEvent(orderId, amount, true, System.currentTimeMillis() + ":还款" + amount.toPlainString());
 		} else {
-			logger.warn("收到失败的还款信息, 无视");
+			event = new DeductResponseEvent(orderId, null, false, System.currentTimeMillis() + ":还款失败");
 		}
+		PayOrderLogEntity payOrderLog = payOrderLogService.getByPayOrderId(orderId);
+		if (payOrderLog == null) {
+			logger.error("还款订单号[{}], 查不到对应的还款log", orderId);
+			return MqAction.CommitMessage;
+		}
+		payOrderLog.setChannel(channel);
+		payOrderLog.setThirdChannelNo(channelDealcode);
+		payOrderLog.setDealCode(dealcode);
+		payOrderLog.setChannelResponse(body);
+		payOrderLog.setChannelRepayNumber(amount);
+		payOrderLog.setFailReason(failReason);
+		payOrderLogService.save(payOrderLog);
+
+		// 发送还款扣款成功事件
+		try {
+			payEventLauncher.launch(event);
+		} catch (Exception e) {
+			logger.error("发送还款订单[{}]还款成功事件异常", orderId, e);
+		}
+
 		//修改或者存储银行卡信息 TODO
 
+		// TODO: 发送消息给贷后
 		return MqAction.CommitMessage;
 	}
 
@@ -176,10 +184,12 @@ public class LoanMo9mqListener implements IMqMsgListener{
                         failReason);
 				lendEventLauncher.launch(lendResponse);
 			} catch (Exception e) {
-				logger.error("订单[{}]放款成功事件报错", orderId, e);
+				logger.error("订单[{}]放款失败事件报错", orderId, e);
 			}
 		}
 		//修改或者存储银行卡信息 TODO
+
+		// TODO: 发送消息给贷后
 		return MqAction.CommitMessage;
 	}
 

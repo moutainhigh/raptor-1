@@ -33,11 +33,6 @@ public class UserEntity extends AbstractStateEntity implements IStateEntity {
     @Column(name = "credit_status")
     private String creditStatus;
     /**
-     * 审核状态
-     */
-    @Column(name = "audit_status")
-    private String auditStatus;
-    /**
      * 手机通讯录是否上传
      */
     @Column(name = "mobile_contacts")
@@ -140,14 +135,6 @@ public class UserEntity extends AbstractStateEntity implements IStateEntity {
 
     public void setCreditStatus(String creditStatus) {
         this.creditStatus = creditStatus;
-    }
-
-    public String getAuditStatus() {
-        return auditStatus;
-    }
-
-    public void setAuditStatus(String auditStatus) {
-        this.auditStatus = auditStatus;
     }
 
     public Boolean getMobileContacts() {

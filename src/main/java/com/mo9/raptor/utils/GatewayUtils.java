@@ -5,10 +5,10 @@ import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.bean.res.LoanOrderLendRes;
 import com.mo9.raptor.engine.entity.LendOrderEntity;
 import com.mo9.raptor.engine.entity.PayOrderEntity;
+import com.mo9.raptor.engine.service.ILendOrderService;
 import com.mo9.raptor.engine.service.IPayOrderService;
 import com.mo9.raptor.entity.PayOrderLogEntity;
 import com.mo9.raptor.entity.UserEntity;
-import com.mo9.raptor.enums.PayTypeEnum;
 import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.service.PayOrderLogService;
 import com.mo9.raptor.service.UserService;
@@ -46,6 +46,9 @@ public class GatewayUtils {
 
     @Autowired
     private PayOrderLogService payOrderLogService;
+
+    @Autowired
+    private ILendOrderService lendOrderService;
 
     @Autowired
     private HttpClientApi httpClientApi ;
@@ -88,13 +91,15 @@ public class GatewayUtils {
             String status = jsonObject.getString("status");
             if ("failed".equals(status)) {
                 logger.info("订单[{}]放款, 渠道返回同步失败, 返回信息  [{}]", lendOrder.getOrderId(), resJson);
-                return ResCodeEnum.EXCEPTION_CODE;
             } else {
                 logger.info("订单[{}]放款, 渠道返回同步返回信息  [{}]", lendOrder.getOrderId(), resJson);
             }
+            lendOrder.setUpdateTime(System.currentTimeMillis());
+            lendOrder.setChannelSyncResponse(resJson);
+            lendOrderService.save(lendOrder);
         } catch (Exception e) {
             logger.error("订单[{}]放款异常 - ", lendOrder.getOrderId(), e);
-            // 可以等待再次放款
+            return ResCodeEnum.EXCEPTION_CODE;
         }
         return ResCodeEnum.SUCCESS ;
     }
@@ -109,7 +114,7 @@ public class GatewayUtils {
             params.put("m", "newPayGu");
             params.put("channel", payOrderLog.getChannel());
             params.put("subchannel", payOrderLog.getChannel());
-            params.put("amount", "1");
+            params.put("amount", payOrderLog.getRepayAmount().toString());
             UserEntity user = userService.findByUserCode(payOrderLog.getUserCode());
             params.put("mobile", user.getMobile());
             PayOrderEntity payOrderEntity = payOrderService.getByOrderId(payOrderLog.getPayOrderId());
@@ -125,7 +130,7 @@ public class GatewayUtils {
 
             String mysig = Md5Encrypt.sign(params, "643138394F10DA5E9647709A3FA8DD7F");
             params.put("sign", mysig);
-            String gatewayUrl = "https://new.mo9.com/gateway/pay.shtml";
+            String gatewayUrl = this.gatewayUrl + "/pay.shtml";
             String resJson = httpClientApi.doGet(gatewayUrl, params);
             payOrderLog.setChannelSyncResponse(resJson);
             payOrderLog.setUpdateTime(System.currentTimeMillis());

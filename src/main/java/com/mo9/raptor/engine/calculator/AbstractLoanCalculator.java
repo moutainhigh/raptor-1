@@ -34,7 +34,7 @@ public abstract class AbstractLoanCalculator implements ILoanCalculator {
     public Item originItem(LoanOrderEntity loanOrder) {
 
         Item originalItem = new Item();
-        if (StatusEnum.BEFORE_LENDING.contains(StatusEnum.valueOf(loanOrder.getStatus()))) {
+        if (!StatusEnum.LENT.name().equals(loanOrder.getStatus())) {
             return originalItem;
         }
 
@@ -63,7 +63,7 @@ public abstract class AbstractLoanCalculator implements ILoanCalculator {
      * 实时账单
      */
     @Override
-    public Item realItem(Long date, LoanOrderEntity loanOrder) {
+    public Item realItem(Long date, LoanOrderEntity loanOrder, String payType) {
 
         Item item = originItem(loanOrder);
         if (item.size() == 0) {
@@ -89,6 +89,14 @@ public abstract class AbstractLoanCalculator implements ILoanCalculator {
             item.setItemType(ItemTypeEnum.PREPAY);
         }
         item.put(FieldTypeEnum.PENALTY, penaltyField);
+        if (payType.equals(PayTypeEnum.REPAY_POSTPONE.name())) {
+            // 移除本金, 增加延期服务费
+            item.remove(FieldTypeEnum.PRINCIPAL);
+            Field chargeField = new Field();
+            chargeField.setFieldType(FieldTypeEnum.ALL_CHARGE);
+            chargeField.setNumber(loanOrder.getPostponeUnitCharge());
+            item.put(FieldTypeEnum.ALL_CHARGE, chargeField);
+        }
         return item;
     }
 
@@ -96,7 +104,7 @@ public abstract class AbstractLoanCalculator implements ILoanCalculator {
     public Item entryItem (Long date, String payType, BigDecimal paid, LoanOrderEntity loanOrder) throws LoanEntryException {
         BigDecimal originalPaid = paid.multiply(BigDecimal.ONE);
         Item entryItem = new Item();
-        Item realItem = this.realItem(date, loanOrder);
+        Item realItem = this.realItem(date, loanOrder, payType);
         entryItem.setRepayDate(realItem.getRepayDate());
         entryItem.setItemType(realItem.getItemType());
         if (payType.equals(PayTypeEnum.REPAY_POSTPONE.name())) {
@@ -106,7 +114,7 @@ public abstract class AbstractLoanCalculator implements ILoanCalculator {
                 paid = paid.subtract(penaltyField.getNumber());
             }
 
-            BigDecimal unitCharge = loanOrder.getPostponeUnitCharge();
+            BigDecimal unitCharge = realItem.getFieldNumber(FieldTypeEnum.ALL_CHARGE);
             Field interestField = new Field();
             Field chargeField = new Field();
             while(paid.compareTo(BigDecimal.ZERO) > 0) {
@@ -117,7 +125,7 @@ public abstract class AbstractLoanCalculator implements ILoanCalculator {
                     throw new LoanEntryException("订单延期还款" + originalPaid.toPlainString() + "无法入账的金额" + paid.toPlainString());
                 }
                 if (paid.compareTo(loanOrder.getInterestValue()) >= 0) {
-                    interestField.setNumber(interestField.getNumber().add(loanOrder.getInterestValue()));
+                    interestField.setNumber(interestField.getNumber().add(realItem.getFieldNumber(FieldTypeEnum.INTEREST)));
                     paid = paid.subtract(loanOrder.getInterestValue());
                 } else {
                     throw new LoanEntryException("订单延期还款" + originalPaid.toPlainString() + "无法入账的金额" + paid.toPlainString());
@@ -168,7 +176,7 @@ public abstract class AbstractLoanCalculator implements ILoanCalculator {
             return true;
         }
 
-        Item realItem = this.realItem(date, loanOrder);
+        Item realItem = this.realItem(date, loanOrder, payType);
         BigDecimal principal = realItem.getFieldNumber(FieldTypeEnum.PRINCIPAL);
         BigDecimal penalty = realItem.getFieldNumber(FieldTypeEnum.PENALTY);
         int paidAmount = entryItem.sum().intValue();
@@ -223,7 +231,7 @@ public abstract class AbstractLoanCalculator implements ILoanCalculator {
         if (!StatusEnum.LENT.name().equals(loanOrder.getStatus())) {
             return null;
         }
-        Item item = this.realItem(System.currentTimeMillis(), loanOrder);
+        Item item = this.realItem(System.currentTimeMillis(), loanOrder, PayTypeEnum.REPAY_POSTPONE.name());
         List<JSONObject> renew = new ArrayList<JSONObject>();
         for (int i = 1; i <= 2; i++) {
             JSONObject unit = new JSONObject();

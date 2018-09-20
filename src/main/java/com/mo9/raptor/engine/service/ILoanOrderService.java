@@ -4,6 +4,8 @@ import com.mo9.raptor.bean.condition.FetchLoanOrderCondition;
 import com.mo9.raptor.engine.entity.LoanOrderEntity;
 import org.springframework.data.domain.Page;
 
+import java.util.List;
+
 /**
  * 贷款订单service
  * Created by xzhang on 2018/7/6.
@@ -36,4 +38,13 @@ public interface ILoanOrderService {
      * @return
      */
     LoanOrderEntity getLastIncompleteOrder(String userCode);
+
+
+    /**
+     * 根据还款日获取订单
+     * @param begin
+     * @param end
+     * @return
+     */
+    List<LoanOrderEntity> listByRepaymentDate(Long begin, Long end);
 }
