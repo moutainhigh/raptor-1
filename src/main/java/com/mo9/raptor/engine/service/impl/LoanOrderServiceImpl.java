@@ -90,7 +90,7 @@ public class LoanOrderServiceImpl implements ILoanOrderService {
 
     @Override
     public LoanOrderEntity getLastIncompleteOrder(String userCode) {
-        return loanOrderRepository.getLastIncompleteOrder(userCode, StatusEnum.PROCESSING);
+        return loanOrderRepository.getLastIncompleteOrder(userCode);
     }
 
     @Override

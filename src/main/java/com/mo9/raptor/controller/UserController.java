@@ -163,10 +163,9 @@ public class UserController {
             }
             UserCertifyInfoEntity userCertifyInfoEntity = userCertifyInfoService.findByUserCode(userCode);
             userCertifyInfoService.modifyCertifyInfo(userEntity, userCertifyInfoEntity, modifyCertifyReq);
-            userEntity.setCertifyInfo(true);
             userEntity.setIdCard(modifyCertifyReq.getIdCard());
             userEntity.setRealName(modifyCertifyReq.getRealName());
-            userService.save(userEntity);
+            userService.updateCertifyInfo(userEntity,true);
             return response.buildSuccessResponse(true);
         }catch (Exception e){
             logger.error("修改账户身份认证信息-->系统内部异常", e);
