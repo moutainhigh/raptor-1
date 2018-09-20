@@ -264,8 +264,11 @@ CREATE TABLE `t_raptor_bank_log` (
 `bank_name`  varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL ,
 `card_id`  varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL ,
 `user_name`  varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL ,
+`status`  varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL ,
+`card_start_count`  int(8) NULL DEFAULT NULL COMMENT '银行卡扫描开始计数' ,
+`card_success_count`  int(8) NULL DEFAULT NULL COMMENT '银行卡扫描成功计数' ,
+`card_fail_count`  int(8) NULL DEFAULT NULL COMMENT '银行卡扫描失败计数' ,
 `create_time`  bigint(20) NULL DEFAULT NULL ,
-`update_time`  bigint(20) NULL DEFAULT NULL ,
 PRIMARY KEY (`id`),
 INDEX `mobile` (`mobile`) USING BTREE ,
 INDEX `bank_no` (`bank_no`) USING BTREE
@@ -275,4 +278,5 @@ DEFAULT CHARACTER SET=utf8 COLLATE=utf8_general_ci
 AUTO_INCREMENT=7
 ROW_FORMAT=COMPACT
 ;
+
 
