@@ -19,6 +19,16 @@ public class LendInfoMqRes {
      */
     private String ownerId;
 
+    private String orderType;
+
+    private String orderStatus;
+
+    private BigDecimal reliefAmount = BigDecimal.ZERO;
+
+    private Integer postponeCount;
+
+    private Long repaymentTime;
+
     /** 借贷数目 */
     private BigDecimal loanNumber;
 
@@ -244,5 +254,45 @@ public class LendInfoMqRes {
 
     public void setPostponeUnitCharge(BigDecimal postponeUnitCharge) {
         this.postponeUnitCharge = postponeUnitCharge;
+    }
+
+    public String getOrderType() {
+        return orderType;
+    }
+
+    public void setOrderType(String orderType) {
+        this.orderType = orderType;
+    }
+
+    public String getOrderStatus() {
+        return orderStatus;
+    }
+
+    public void setOrderStatus(String orderStatus) {
+        this.orderStatus = orderStatus;
+    }
+
+    public BigDecimal getReliefAmount() {
+        return reliefAmount;
+    }
+
+    public void setReliefAmount(BigDecimal reliefAmount) {
+        this.reliefAmount = reliefAmount;
+    }
+
+    public Integer getPostponeCount() {
+        return postponeCount;
+    }
+
+    public void setPostponeCount(Integer postponeCount) {
+        this.postponeCount = postponeCount;
+    }
+
+    public Long getRepaymentTime() {
+        return repaymentTime;
+    }
+
+    public void setRepaymentTime(Long repaymentTime) {
+        this.repaymentTime = repaymentTime;
     }
 }

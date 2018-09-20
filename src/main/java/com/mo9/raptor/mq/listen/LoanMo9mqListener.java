@@ -267,7 +267,11 @@ public class LoanMo9mqListener implements IMqMsgListener{
         lendInfo.setPenaltyValue(loanOrderEntity.getPenaltyValue());
         lendInfo.setChargeValue(loanOrderEntity.getChargeValue());
         lendInfo.setPostponeUnitCharge(loanOrderEntity.getPostponeUnitCharge());
-
+        lendInfo.setOrderType(loanOrderEntity.getType());
+        lendInfo.setOrderStatus(loanOrderEntity.getStatus());
+        List<PayOrderEntity> payOrderEntities = payOrderService.listByLoanOrderIdAndType(orderId, PayTypeEnum.REPAY_POSTPONE);
+        lendInfo.setPostponeCount(payOrderEntities.size());
+        lendInfo.setRepaymentTime(loanOrderEntity.getRepaymentDate());
 
 
 
