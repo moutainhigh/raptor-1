@@ -32,6 +32,18 @@ public class ProductRes {
      */
     private BigDecimal actuallyGet;
 
+    /**
+     * 逾期的每天费用
+     */
+    private BigDecimal dueFee;
+
+    /**
+     * 延期费用每7天
+     */
+    private BigDecimal renewFee;
+
+
+
     public BigDecimal getLoanable() {
         return loanable;
     }
@@ -62,5 +74,21 @@ public class ProductRes {
 
     public void setActuallyGet(BigDecimal actuallyGet) {
         this.actuallyGet = actuallyGet;
+    }
+
+    public BigDecimal getDueFee() {
+        return dueFee;
+    }
+
+    public void setDueFee(BigDecimal dueFee) {
+        this.dueFee = dueFee;
+    }
+
+    public BigDecimal getRenewFee() {
+        return renewFee;
+    }
+
+    public void setRenewFee(BigDecimal renewFee) {
+        this.renewFee = renewFee;
     }
 }
