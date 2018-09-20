@@ -113,17 +113,30 @@ public class RiskController {
             //上传通话记录文件
             this.uploadFile2Oss(callLogReq.toString(), sockpuppet + "-" + callLogReq.getData().getTel() + ".json" );
 
-            //上传运营商报告文件
-            String report = this.getCallLogReport(callLogReq.getData().getSid());
-            if (report != null){
-                this.uploadFile2Oss(report, sockpuppet + "-" + callLogReq.getData().getTel() + "-report.json");
-            }
         }
 
         try {
             userService.updateReceiveCallHistory(callLogReq.getData().getUid(), callLogStatus);
         } catch (Exception e) {
             e.printStackTrace();
+        }
+        
+        return "ok";
+    }
+    
+    
+    @PostMapping(value = "/call_log_report_status")
+    public String receiveCallLogReport(@RequestBody String statusJson){
+        logger.info("-----收到运营商生成报告状态通知-------> " + statusJson);
+        JSONObject jsonObject = JSONObject.parseObject(statusJson);
+        int status= jsonObject.getInteger("status");
+        if (status == 0){
+            //上传运营商报告文件
+            String report = this.getCallLogReport(jsonObject.getString("sid"));
+            String tel = jsonObject.getString("tel");
+            if (report != null){
+                this.uploadFile2Oss(report, sockpuppet + "-" + tel + "-report.json");
+            }
         }
         
         return "ok";
@@ -165,8 +178,8 @@ public class RiskController {
             Long status = jsonObject.getLong("status");
             
             if (status == 3101){
-                Thread.sleep(10 * 1000);
-                logger.info("运营商报告数据生成中，10s后重新拉取");
+                Thread.sleep(5 * 1000);
+                logger.info("运营商报告数据生成中，5s后重新拉取");
 
                 report = getCallLogReport(sid);
             }
