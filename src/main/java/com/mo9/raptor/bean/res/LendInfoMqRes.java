@@ -38,15 +38,12 @@ public class LendInfoMqRes {
     private String bankMobile;
 
     /**
-     * 第三方放款流水号, 比如 mo9
+     * mo9放款流水号,
      */
     private String dealCode;
 
     /** 渠道 */
     private String channel;
-
-    /** 渠道订单ID */
-    private String channelOrderId;
 
     /** 渠道放款数目 */
     private BigDecimal channelLendNumber;
@@ -140,14 +137,6 @@ public class LendInfoMqRes {
 
     public void setChannel(String channel) {
         this.channel = channel;
-    }
-
-    public String getChannelOrderId() {
-        return channelOrderId;
-    }
-
-    public void setChannelOrderId(String channelOrderId) {
-        this.channelOrderId = channelOrderId;
     }
 
     public BigDecimal getChannelLendNumber() {

@@ -1,6 +1,7 @@
 package com.mo9.raptor.bean.res;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * 还款mq通知
@@ -49,34 +50,29 @@ public class RepayInfoMqRes {
     private String clientVersion;
 
     /**
-     * 客户端版本号
+     * 还款银行卡
      */
     private String bankCard;
 
     /**
-     * 客户端版本号
+     * 银行预留手机
      */
     private String bankMobile;
 
     /**
-     * 客户端版本号
+     * 用户真实姓名
      */
     private String userName;
 
     /**
-     * 客户端版本号
+     * 银行卡号
      */
     private String idCard;
 
     /**
-     * 第三方放款流水号, 比如 mo9
+     * 放款流水号, 比如 mo9
      */
     private String dealCode;
-
-    /**
-     * 银行放款流水号
-     */
-    private String thirdChannelNo;
 
     /**
      * 延期天数
@@ -87,6 +83,18 @@ public class RepayInfoMqRes {
      * 是否入账完成
      */
     private Boolean isEntryDone;
+
+    /**
+     * 本次还款明细
+     */
+    private List<RepayDetailRes> repayDetail;
+
+    /**
+     * 应还明细
+     */
+    private List<RepayDetailRes> shouldPay;
+
+
 
     public String getOrderId() {
         return orderId;
@@ -192,14 +200,6 @@ public class RepayInfoMqRes {
         this.dealCode = dealCode;
     }
 
-    public String getThirdChannelNo() {
-        return thirdChannelNo;
-    }
-
-    public void setThirdChannelNo(String thirdChannelNo) {
-        this.thirdChannelNo = thirdChannelNo;
-    }
-
     public Integer getPostponeDays() {
         return postponeDays;
     }
@@ -214,5 +214,21 @@ public class RepayInfoMqRes {
 
     public void setEntryDone(Boolean entryDone) {
         isEntryDone = entryDone;
+    }
+
+    public List<RepayDetailRes> getRepayDetail() {
+        return repayDetail;
+    }
+
+    public void setRepayDetail(List<RepayDetailRes> repayDetail) {
+        this.repayDetail = repayDetail;
+    }
+
+    public List<RepayDetailRes> getShouldPay() {
+        return shouldPay;
+    }
+
+    public void setShouldPay(List<RepayDetailRes> shouldPay) {
+        this.shouldPay = shouldPay;
     }
 }

@@ -94,6 +94,11 @@ public class LoanOrderServiceImpl implements ILoanOrderService {
     }
 
     @Override
+    public LoanOrderEntity getLastIncompleteOrder(String userCode, List<String> processing) {
+        return loanOrderRepository.getLastIncompleteOrder(userCode, processing);
+    }
+
+    @Override
     public List<LoanOrderEntity> listByRepaymentDate(Long begin, Long end) {
         return loanOrderRepository.listByRepaymentDate(begin, end);
     }

@@ -273,6 +273,7 @@ public class PayOrderController {
         payOrder.setChannel(channel);
         payOrder.create();
 
+        List<PayOrderEntity> payOrderEntities = payOrderService.listByLoanOrderIdAndType(payInfoCache.getLoanOrderId(), PayTypeEnum.REPAY_POSTPONE);
         PayOrderLogEntity payOrderLog = new PayOrderLogEntity();
         payOrderLog.setIdCard(payInfoCache.getIdCard());
         payOrderLog.setUserName(payInfoCache.getUserName());
@@ -281,6 +282,7 @@ public class PayOrderController {
         payOrderLog.setClientId(payInfoCache.getClientId());
         payOrderLog.setClientVersion(payInfoCache.getClientVersion());
         payOrderLog.setOrderId(payInfoCache.getLoanOrderId());
+        payOrderLog.setPostponeCount(payOrderEntities.size() + 1);
 
         payOrderLog.setPayOrderId(payOrder.getOrderId());
         payOrderLog.setChannel(channel);

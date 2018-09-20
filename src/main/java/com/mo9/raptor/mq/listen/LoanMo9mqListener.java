@@ -6,20 +6,30 @@ import com.mo9.mqclient.IMqMsgListener;
 import com.mo9.mqclient.MqAction;
 import com.mo9.mqclient.MqMessage;
 import com.mo9.raptor.bean.res.LendInfoMqRes;
+import com.mo9.raptor.bean.res.RepayDetailRes;
 import com.mo9.raptor.bean.res.RepayInfoMqRes;
 import com.mo9.raptor.bean.res.UserInfoMqRes;
+import com.mo9.raptor.engine.calculator.ILoanCalculator;
+import com.mo9.raptor.engine.calculator.LoanCalculatorFactory;
 import com.mo9.raptor.engine.entity.LendOrderEntity;
+import com.mo9.raptor.engine.entity.LoanOrderEntity;
 import com.mo9.raptor.engine.entity.PayOrderEntity;
 import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.engine.service.ILendOrderService;
+import com.mo9.raptor.engine.service.ILoanOrderService;
+import com.mo9.raptor.engine.service.IPayOrderDetailService;
 import com.mo9.raptor.engine.service.IPayOrderService;
 import com.mo9.raptor.engine.state.event.impl.lend.LendResponseEvent;
 import com.mo9.raptor.engine.state.event.impl.pay.DeductResponseEvent;
 import com.mo9.raptor.engine.state.launcher.IEventLauncher;
+import com.mo9.raptor.engine.structure.field.Field;
+import com.mo9.raptor.engine.structure.field.FieldTypeEnum;
+import com.mo9.raptor.engine.structure.item.Item;
 import com.mo9.raptor.entity.PayOrderLogEntity;
 import com.mo9.raptor.entity.UserCertifyInfoEntity;
 import com.mo9.raptor.entity.UserContactsEntity;
 import com.mo9.raptor.entity.UserEntity;
+import com.mo9.raptor.enums.PayTypeEnum;
 import com.mo9.raptor.mq.producer.RabbitProducer;
 import com.mo9.raptor.service.*;
 import org.slf4j.Logger;
@@ -29,6 +39,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 先玩后付相关监听器
@@ -49,7 +62,13 @@ public class LoanMo9mqListener implements IMqMsgListener{
 	private PayOrderLogService payOrderLogService;
 
 	@Autowired
+	private ILoanOrderService loanOrderService;
+
+	@Autowired
 	private ILendOrderService lendOrderService;
+
+	@Autowired
+	private IPayOrderDetailService payOrderDetailService;
 
 	@Autowired
 	private UserService userService;
@@ -65,6 +84,9 @@ public class LoanMo9mqListener implements IMqMsgListener{
 
 	@Autowired
 	private IEventLauncher lendEventLauncher;
+
+    @Autowired
+    private LoanCalculatorFactory loanCalculatorFactory;
 
 	@Autowired
 	private RabbitProducer rabbitProducer;
@@ -258,6 +280,7 @@ public class LoanMo9mqListener implements IMqMsgListener{
         JSONObject result = new JSONObject();
         result.put("lendInfo", lendInfo);
         result.put("userInfo", userInfo);
+        logger.info(result.toJSONString());
         rabbitProducer.sendMessageLoan(orderId, result.toJSONString());
     }
 
@@ -275,8 +298,27 @@ public class LoanMo9mqListener implements IMqMsgListener{
         String status = payOrderEntity.getStatus();
         repayInfo.setEntryDone(StatusEnum.ENTRY_DONE.name().equals(status));
 
+        List<RepayDetailRes> repayDetail = payOrderDetailService.getRepayDetail(payOrderEntity.getOrderId());
+        repayInfo.setRepayDetail(repayDetail);
+
+        LoanOrderEntity loanOrderEntity = loanOrderService.getByOrderId(payOrderEntity.getLoanOrderId());
+        ILoanCalculator calculator = loanCalculatorFactory.load(loanOrderEntity);
+        Item realItem = calculator.realItem(System.currentTimeMillis(), loanOrderEntity, PayTypeEnum.REPAY_AS_PLAN.name());
+        List<RepayDetailRes> shouldPay = new ArrayList<RepayDetailRes>();
+        for (Map.Entry<FieldTypeEnum, Field> entry : realItem.entrySet()) {
+            BigDecimal number = entry.getValue().getNumber();
+            if (BigDecimal.ZERO.compareTo(number) < 0) {
+                RepayDetailRes res = new RepayDetailRes();
+                res.setFieldType(entry.getKey().name());
+                res.setNumber(number);
+                shouldPay.add(res);
+            }
+        }
+        repayInfo.setShouldPay(shouldPay);
+
         JSONObject result = new JSONObject();
         result.put("repayInfo", repayInfo);
+        logger.info(result.toJSONString());
         rabbitProducer.sendMessageRepay(payOrderLog.getPayOrderId(), result.toJSONString());
     }
 

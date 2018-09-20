@@ -41,3 +41,7 @@ CREATE TABLE `t_raptor_rabbit_producer_mq` (
 ALTER TABLE t_raptor_user  DROP COLUMN audit_status;
 ALTER TABLE t_raptor_user  DROP COLUMN mobile_contacts_text;
 ALTER TABLE t_raptor_user  DROP COLUMN call_history_text;
+
+
+ALTER TABLE `t_raptor_pay_order_log`
+  ADD COLUMN `postpone_count` int COMMENT '延期次数' AFTER `channel_response`;

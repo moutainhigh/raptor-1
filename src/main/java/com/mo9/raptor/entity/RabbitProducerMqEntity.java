@@ -10,7 +10,7 @@ import javax.persistence.*;
  * mq消息表
  */
 @Entity
-@Table(name = "t_libra_rabbit_producer_mq")
+@Table(name = "t_raptor_rabbit_producer_mq")
 public class RabbitProducerMqEntity {
 
 	public enum ProducerMqEntityStatus {

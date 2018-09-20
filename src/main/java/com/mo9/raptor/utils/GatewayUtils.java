@@ -109,6 +109,7 @@ public class GatewayUtils {
      * @return
      */
     public ResCodeEnum payoff(PayOrderLogEntity payOrderLog){
+        ResCodeEnum resCodeEnum;
         try {
             Map<String,String> params = new HashMap<String,String>();
             params.put("m", "newPayGu");
@@ -132,24 +133,29 @@ public class GatewayUtils {
             params.put("sign", mysig);
             String gatewayUrl = this.gatewayUrl + "/pay.shtml";
             String resJson = httpClientApi.doGet(gatewayUrl, params);
-            payOrderLog.setChannelSyncResponse(resJson);
-            payOrderLog.setUpdateTime(System.currentTimeMillis());
-            payOrderLogService.save(payOrderLog);
+
 
             JSONObject jsonObject = JSONObject.parseObject(resJson);
             String code = jsonObject.getString("code");
+            String dealCode = null;
             if ("0000".equals(code)) {
                 logger.info("还款订单[{}]还款请求发送成功, 返回为[{}]", payOrderLog.getPayOrderId(), resJson);
-                return ResCodeEnum.SUCCESS;
+                dealCode = jsonObject.getJSONObject("data").getString("dealcode");
+                resCodeEnum = ResCodeEnum.SUCCESS;
             } else {
                 logger.info("还款订单[{}]还款请求发送失败, 返回为[{}]", payOrderLog.getPayOrderId(), resJson);
                 // return ResCodeEnum.SUCCESS;
-                return ResCodeEnum.EXCEPTION_CODE;
+                resCodeEnum = ResCodeEnum.EXCEPTION_CODE;
             }
+            payOrderLog.setChannelSyncResponse(resJson);
+            payOrderLog.setUpdateTime(System.currentTimeMillis());
+            payOrderLog.setDealCode(dealCode);
+            payOrderLogService.save(payOrderLog);
         } catch (Exception e) {
             logger.error("还款订单[{}]还款报错", payOrderLog.getPayOrderId(), e);
-            return ResCodeEnum.EXCEPTION_CODE;
+            resCodeEnum = ResCodeEnum.EXCEPTION_CODE;
         }
+        return resCodeEnum;
     }
 
     /**

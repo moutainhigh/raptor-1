@@ -112,7 +112,7 @@ public class LoanOrderController {
         }
 
         // 查询是否有在接订单
-        LoanOrderEntity loanOrderEntity = loanOrderService.getLastIncompleteOrder(userCode);
+        LoanOrderEntity loanOrderEntity = loanOrderService.getLastIncompleteOrder(userCode, StatusEnum.PROCESSING);
         if (loanOrderEntity != null) {
             return response.buildFailureResponse(ResCodeEnum.ONLY_ONE_ORDER);
         }
