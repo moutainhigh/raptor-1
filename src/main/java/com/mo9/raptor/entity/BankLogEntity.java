@@ -8,7 +8,7 @@ import javax.persistence.*;
  *
  */
 @Entity
-@Table(name = "t_raptor_bank")
+@Table(name = "t_raptor_bank_log")
 public class BankLogEntity {
 
 
