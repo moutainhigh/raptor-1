@@ -41,6 +41,8 @@ import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -177,10 +179,11 @@ public class LoanOrderController {
      * @return
      */
     @GetMapping("/get_last_incomplete")
-    public BaseResponse<LoanOrderRes> getLastIncomplete(HttpServletRequest request) {
-        BaseResponse<LoanOrderRes> response = new BaseResponse<LoanOrderRes>();
+    public BaseResponse<Map<String,LoanOrderRes>> getLastIncomplete(HttpServletRequest request) {
+        BaseResponse<Map<String,LoanOrderRes>> response = new BaseResponse<>();
         String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
         try {
+            HashMap<String,LoanOrderRes> map = new HashMap<>(16);
             LoanOrderEntity loanOrderEntity = loanOrderService.getLastIncompleteOrder(userCode);
             if (loanOrderEntity == null) {
                 return response;
@@ -199,7 +202,8 @@ public class LoanOrderController {
             res.setReceiveBankCard(lendOrderEntity.getBankCard());
             res.setRenew(calculator.getRenew(loanOrderEntity));
             res.setAgreementUrl("https://www.baidu.com");
-            return response.buildSuccessResponse(res);
+            map.put("entity",res);
+            return response.buildSuccessResponse(map);
         } catch (Exception e) {
             logger.error("用户[{}]获取上一笔未还清订单错误, ", userCode, e);
             return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
