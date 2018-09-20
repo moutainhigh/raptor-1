@@ -111,6 +111,12 @@ public class PayOrderLogEntity extends BaseEntity {
     @Column(name = "channel_sync_response")
     private String channelSyncResponse;
 
+    /**
+     * 失败原因
+     */
+    @Column(name = "fail_reason")
+    private String failReason;
+
     public String getOrderId() {
         return orderId;
     }
@@ -237,6 +243,14 @@ public class PayOrderLogEntity extends BaseEntity {
 
     public void setChannelSyncResponse(String channelSyncResponse) {
         this.channelSyncResponse = channelSyncResponse;
+    }
+
+    public String getFailReason() {
+        return failReason;
+    }
+
+    public void setFailReason(String failReason) {
+        this.failReason = failReason;
     }
 
     public void create() {

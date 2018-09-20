@@ -69,6 +69,8 @@ public class LoanMo9mqListener implements IMqMsgListener{
 		BigDecimal amount = bodyJson.getBigDecimal("amount");
 		String dealcode = bodyJson.getString("dealcode");
 		String channelDealcode = bodyJson.getString("channelDealcode");
+        // 失败原因
+        String failReason = bodyJson.getString("failReason");
 		DeductResponseEvent event;
 		if ("success".equals(status)) {
 			// 还款扣款成功事件
@@ -86,6 +88,7 @@ public class LoanMo9mqListener implements IMqMsgListener{
 		payOrderLog.setDealCode(dealcode);
 		payOrderLog.setChannelResponse(body);
 		payOrderLog.setChannelRepayNumber(amount);
+		payOrderLog.setFailReason(failReason);
 		payOrderLogService.save(payOrderLog);
 
 		// 发送还款扣款成功事件

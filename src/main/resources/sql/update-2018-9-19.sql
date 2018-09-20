@@ -50,3 +50,10 @@ ALTER TABLE `t_raptor_user_certify_info`
 
 ALTER TABLE `t_raptor_user`
   CHANGE COLUMN `description` `description` text COMMENT '状态说明' AFTER `status`;
+
+
+
+ ALTER TABLE `t_raptor_pay_order_log`
+   ADD COLUMN `fail_reason`  VARCHAR(1024) COMMENT '失败原因' AFTER `channel_sync_response`;
+
+
