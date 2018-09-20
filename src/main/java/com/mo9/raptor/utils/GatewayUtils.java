@@ -8,10 +8,12 @@ import com.mo9.raptor.engine.entity.PayOrderEntity;
 import com.mo9.raptor.engine.service.ILendOrderService;
 import com.mo9.raptor.engine.service.IPayOrderService;
 import com.mo9.raptor.entity.BankEntity;
+import com.mo9.raptor.entity.CardBinInfoEntity;
 import com.mo9.raptor.entity.PayOrderLogEntity;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.service.BankService;
+import com.mo9.raptor.service.CardBinInfoService;
 import com.mo9.raptor.service.PayOrderLogService;
 import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.httpclient.HttpClientApi;
@@ -21,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -55,8 +58,8 @@ public class GatewayUtils {
     @Autowired
     private HttpClientApi httpClientApi ;
 
-    @Autowired
-    private BankService bankService ;
+    @Resource
+    private CardBinInfoService cardBinInfoService;
 
     /**
      * 放款
@@ -124,9 +127,13 @@ public class GatewayUtils {
             UserEntity user = userService.findByUserCode(payOrderLog.getUserCode());
             params.put("mobile", user.getMobile());
             PayOrderEntity payOrderEntity = payOrderService.getByOrderId(payOrderLog.getPayOrderId());
-            BankEntity bankEntity = bankService.findByBankNo(payOrderLog.getBankCard());
+            CardBinInfoEntity cardBinInfoEntity = cardBinInfoService.findByCardPrefix(payOrderLog.getBankCard());
+            String bankName = "银行卡" ;
+            if(cardBinInfoEntity != null){
+                bankName = cardBinInfoEntity.getCardBank() ;
+            }
             //orderId : 订单号;
-            params.put("remark", "FASTRAPTOR_" + payOrderEntity.getOrderId() + "_" + payOrderEntity.getLoanOrderId() + "_" + bankEntity.getBankName());
+            params.put("remark", "FASTRAPTOR_" + payOrderEntity.getOrderId() + "_" + payOrderEntity.getLoanOrderId() + "_" + bankName);
 
             params.put("userMobile", user.getMobile());
             params.put("bankmobile", payOrderLog.getBankMobile());
