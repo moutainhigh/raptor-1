@@ -199,7 +199,9 @@ public class LoanOrderController {
             res.setState(String.valueOf(LoanOrderRes.StateEnum.getCode(loanOrderEntity.getStatus())));
             res.setAbateAmount("0");
             LendOrderEntity lendOrderEntity = lendOrderService.getByOrderId(loanOrderEntity.getOrderId());
-            res.setReceiveBankCard(lendOrderEntity.getBankCard());
+            if (lendOrderEntity != null) {
+                res.setReceiveBankCard(lendOrderEntity.getBankCard());
+            }
             res.setRenew(calculator.getRenew(loanOrderEntity));
             res.setAgreementUrl("https://www.baidu.com");
             map.put("entity",res);

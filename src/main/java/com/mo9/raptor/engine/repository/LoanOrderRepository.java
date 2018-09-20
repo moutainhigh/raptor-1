@@ -30,6 +30,14 @@ public interface LoanOrderRepository extends JpaRepository<LoanOrderEntity,Long>
     LoanOrderEntity getLastIncompleteOrder(String userCode, List<String> processing);
 
     /**
+     * 获取上一条为完成的订单
+     * @param userCode
+     * @return
+     */
+    @Query(value = "select * from t_raptor_loan_order where owner_id = ?1 and deleted = false ORDER BY create_time DESC limit 1", nativeQuery = true)
+    LoanOrderEntity getLastIncompleteOrder(String userCode);
+
+    /**
      * 根据还款日获取订单
      * @param begin
      * @param end

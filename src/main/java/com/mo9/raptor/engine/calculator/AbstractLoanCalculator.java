@@ -34,7 +34,7 @@ public abstract class AbstractLoanCalculator implements ILoanCalculator {
     public Item originItem(LoanOrderEntity loanOrder) {
 
         Item originalItem = new Item();
-        if (StatusEnum.BEFORE_LENDING.contains(StatusEnum.valueOf(loanOrder.getStatus()))) {
+        if (!StatusEnum.LENT.name().equals(loanOrder.getStatus())) {
             return originalItem;
         }
 

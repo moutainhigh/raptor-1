@@ -48,7 +48,7 @@ public enum ResCodeEnum {
     ILLEGAL_LOAN_ORDER_STATUE(11155003, "不合法的借款订单状态", "借款订单不可还款"),
     ILLEGAL_REPAYMENT(11155004, "非法的还款操作", "非法的还款操作"),
     GET_LOCK_FAILED(11155005, "锁竞争失败", "系统繁忙，请稍后重试"),
-    PAY_INFO_EXPIRED(11155000, "支付信息已过期", "支付信息已过期"),
+    PAY_INFO_EXPIRED(11155006, "支付信息已过期", "支付信息已过期"),
 
     /**
      * xx=60, 借款
