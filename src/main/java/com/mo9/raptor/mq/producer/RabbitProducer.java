@@ -37,19 +37,19 @@ public class RabbitProducer {
     /**
      * 放款tag
      */
-    @Value("${raptor.mq.tag.loan}")
+//    @Value("${raptor.mq.tag.loan}")
     private String loanKey;
 
     /**
      * 还款tag
      */
-    @Value("${raptor.mq.tag.repay}")
+//    @Value("${raptor.mq.tag.repay}")
     private String repayKey;
 
     /**
      * 用户tag
      */
-    @Value("${raptor.mq.tag.user}")
+//    @Value("${raptor.mq.tag.user}")
     private String userKey;
 
     /**
