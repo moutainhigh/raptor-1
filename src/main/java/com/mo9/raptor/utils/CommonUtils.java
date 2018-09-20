@@ -31,12 +31,12 @@ public class CommonUtils {
     public Boolean fiveMinutesNumberOk(String userCode){
         boolean flag = false ;
         //五分钟四次
-        for(int i = 0 ; i < 4 ; i ++){
+        for(int i = 0 ; i < 10 ; i ++){
             String key = userCode + CommonValues.BANK_VERIFY + "_" + i ;
             Object object = redisServiceApi.get(key , raptorRedis) ;
             if(object == null){
                 try {
-                    redisServiceApi.set(key , key , 5*60*1000L , raptorRedis) ;
+                    redisServiceApi.set(key , key , 5*60L , raptorRedis) ;
                 } catch (Exception e) {
                     logger.error("银行卡验证 , 缓存次数异常 ! ");
                 }
