@@ -115,7 +115,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
             if (score == ERROR_SCORE_CODE) {
                 return new AuditResponseEvent(userCode, false, "调用LINKFACE出错");
             } else {
-                return new AuditResponseEvent(userCode, score >= limit, score >= limit ? "" : "验证用户照片是否为活体照片,相似度低于" + limit);
+                return new AuditResponseEvent(userCode, score <= limit, score <= limit ? "" : "验证用户照片是否为活体照片,HACK可能性高于" + limit);
             }
         }
         return new AuditResponseEvent(userCode, false, "查询不到用户" + userCode + "数据");
