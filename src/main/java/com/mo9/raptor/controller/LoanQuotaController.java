@@ -58,6 +58,8 @@ public class LoanQuotaController {
             productRes.setInterest(productEntity.getInterest());
             productRes.setActuallyGet(productEntity.getActuallyGetAmount());
             productRes.setPeriod(productEntity.getPeriod());
+            productRes.setDueFee(productEntity.getPenaltyForDay());
+            productRes.setRenewFee(productEntity.getRenewalBaseAmount()) ;
             list.add(productRes) ;
         }
         return list ;
