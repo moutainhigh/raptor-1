@@ -137,7 +137,19 @@ public class AuthInterceptor extends HandlerInterceptorAdapter {
      * @return
      */
     private boolean isExclude(String uri) {
-        return Arrays.asList(excludeUrls).contains(uri);
+        for (String urlPattern: excludeUrls){
+            if (urlPattern.contains("*")){
+                String subUrl = urlPattern.substring(0,urlPattern.indexOf("*"));
+                if (uri.startsWith(subUrl)){
+                    return true;
+                }
+            }else {
+                if (uri.equals(urlPattern)){
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
 }
