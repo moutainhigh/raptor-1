@@ -36,3 +36,8 @@ CREATE TABLE `t_raptor_rabbit_producer_mq` (
   AUTO_INCREMENT=1
   ROW_FORMAT=COMPACT
 ;
+
+/***************************删除用户表冗余字段，审核状态，手机通讯录，手机通话记录******************************/
+ALTER TABLE t_raptor_user  DROP COLUMN audit_status;
+ALTER TABLE t_raptor_user  DROP COLUMN mobile_contacts_text;
+ALTER TABLE t_raptor_user  DROP COLUMN call_history_text;
