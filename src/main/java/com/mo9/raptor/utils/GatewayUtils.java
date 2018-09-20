@@ -5,10 +5,10 @@ import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.bean.res.LoanOrderLendRes;
 import com.mo9.raptor.engine.entity.LendOrderEntity;
 import com.mo9.raptor.engine.entity.PayOrderEntity;
+import com.mo9.raptor.engine.service.ILendOrderService;
 import com.mo9.raptor.engine.service.IPayOrderService;
 import com.mo9.raptor.entity.PayOrderLogEntity;
 import com.mo9.raptor.entity.UserEntity;
-import com.mo9.raptor.enums.PayTypeEnum;
 import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.service.PayOrderLogService;
 import com.mo9.raptor.service.UserService;
@@ -19,7 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -47,6 +46,9 @@ public class GatewayUtils {
 
     @Autowired
     private PayOrderLogService payOrderLogService;
+
+    @Autowired
+    private ILendOrderService lendOrderService;
 
     @Autowired
     private HttpClientApi httpClientApi ;
@@ -89,13 +91,15 @@ public class GatewayUtils {
             String status = jsonObject.getString("status");
             if ("failed".equals(status)) {
                 logger.info("订单[{}]放款, 渠道返回同步失败, 返回信息  [{}]", lendOrder.getOrderId(), resJson);
-                return ResCodeEnum.EXCEPTION_CODE;
             } else {
                 logger.info("订单[{}]放款, 渠道返回同步返回信息  [{}]", lendOrder.getOrderId(), resJson);
             }
+            lendOrder.setUpdateTime(System.currentTimeMillis());
+            lendOrder.setChannelSyncResponse(resJson);
+            lendOrderService.save(lendOrder);
         } catch (Exception e) {
             logger.error("订单[{}]放款异常 - ", lendOrder.getOrderId(), e);
-            // 可以等待再次放款
+            return ResCodeEnum.EXCEPTION_CODE;
         }
         return ResCodeEnum.SUCCESS ;
     }
