@@ -72,6 +72,18 @@ public class RiskController {
     private String dianhuToken;
     
     
+    @PostMapping(value = "/call_log_auth_result")
+    public String callLogAuthResult(@RequestBody String authJson){
+        logger.info("----收到通话授权结果数据-----> " + authJson);
+        JSONObject jsonObject = JSONObject.parseObject(authJson);
+        Long status = jsonObject.getLong("status");
+        
+        if (status == 0){
+            logger.info("通话记录爬虫授权成功");
+        }
+        
+        return "ok";
+    }
 
     @PostMapping(value = "/save_call_log")
     public String saveCallLogResult(@RequestBody String callLogJson){
@@ -151,6 +163,13 @@ public class RiskController {
             
             JSONObject jsonObject = JSONObject.parseObject(report);
             Long status = jsonObject.getLong("status");
+            
+            if (status == 3101){
+                Thread.sleep(10 * 1000);
+                logger.info("运营商报告数据生成中，10s后重新拉取");
+
+                report = getCallLogReport(sid);
+            }
             
             if (status != 0){
                 logger.error("运营商报告获取异常：" + report);
