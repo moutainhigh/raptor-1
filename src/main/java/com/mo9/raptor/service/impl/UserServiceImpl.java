@@ -10,6 +10,7 @@ import com.mo9.raptor.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 /**
  * @author zma
@@ -31,6 +32,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserEntity findByUserCodeAndDeleted(String userCode, boolean isDelete) {
+        if (StringUtils.isEmpty(userCode)){
+            return null;
+        }
         return userRepository.findByUserCodeAndDeleted(userCode,isDelete);
     }
 
@@ -46,6 +50,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserEntity save(UserEntity userEntity) {
+        userEntity.setUpdateTime(System.currentTimeMillis());
         return userRepository.save(userEntity);
     }
 
@@ -58,7 +63,7 @@ public class UserServiceImpl implements UserService {
     @Transactional(rollbackFor = Exception.class)
     public void updateCallHistory(UserEntity userEntity, boolean b) throws Exception {
         userEntity.setCallHistory(b);
-        userRepository.save(userEntity);
+        this.save(userEntity);
         checkAuditStatus(userEntity);
     }
 
@@ -66,7 +71,7 @@ public class UserServiceImpl implements UserService {
     @Transactional(rollbackFor = Exception.class)
     public void updateCertifyInfo(UserEntity userEntity, boolean b) throws Exception {
         userEntity.setCertifyInfo(b);
-        userRepository.save(userEntity);
+        this.save(userEntity);
         checkAuditStatus(userEntity);
     }
 
@@ -74,7 +79,7 @@ public class UserServiceImpl implements UserService {
     @Transactional(rollbackFor = Exception.class)
     public void updateMobileContacts(UserEntity userEntity, boolean b) throws Exception {
         userEntity.setMobileContacts(b);
-        userRepository.save(userEntity);
+        this.save(userEntity);
         checkAuditStatus(userEntity);
     }
 
@@ -84,7 +89,7 @@ public class UserServiceImpl implements UserService {
         UserEntity userEntity = userRepository.findByUserCode(userCode);
         userEntity.setReceiveCallHistory(b);
         userEntity.setCallHistory(b);
-        userRepository.save(userEntity);
+        this.save(userEntity);
         checkAuditStatus(userEntity);
     }
 

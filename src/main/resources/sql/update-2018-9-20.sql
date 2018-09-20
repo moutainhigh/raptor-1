@@ -10,4 +10,5 @@ ALTER TABLE `t_raptor_pay_order_log`
 
 ALTER TABLE `t_raptor_pay_order_log`
   CHANGE COLUMN `channel_sync_response` `channel_sync_response` text COMMENT '渠道异步响应' AFTER `channel_response`;
-
+/***************************删除原用户审核状态字段******************************/
+ALTER TABLE t_raptor_user  DROP COLUMN audit_status;
