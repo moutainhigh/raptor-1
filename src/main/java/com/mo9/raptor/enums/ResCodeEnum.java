@@ -18,6 +18,7 @@ public enum ResCodeEnum {
     BANK_VERIFY_ERROR(11151001, "银行卡验证失败", "银行卡验证失败"),
     BANK_VERIFY_EXCEPTION(11151002, "银行卡验证超时", "银行卡验证超时"),
     BANK_CARD_NOT_EXIST(11151003,"银行卡查询不存在","银行卡查询不存在"),
+    BANK_VERIFY_TOO_FREQUENTLY(11151004, "银行卡验证频繁 , 请稍后再试", "银行卡验证频繁 , 请稍后再试"),
 
     // xx=20 验证码
     CAPTCHA_GET_TOO_OFTEN(11152001, "验证码获取过于频繁", "验证码获取过于频繁"),
