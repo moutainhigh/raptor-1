@@ -62,16 +62,6 @@ public class UserEntity extends AbstractStateEntity implements IStateEntity {
      */
     @Column(name = "living_body_certify")
     private String livingBodyCertify;
-    /**
-     * 用户联系人信息文本
-     */
-    @Column(name = "mobile_contacts_text")
-    private String mobileContactsText;
-    /**
-     * 用户通话记录文本
-     */
-    @Column(name = "call_history_text")
-    private String callHistoryText;
 
     @Column(name = "receive_call_history")
     private Boolean receiveCallHistory;
@@ -183,22 +173,6 @@ public class UserEntity extends AbstractStateEntity implements IStateEntity {
 
     public void setLivingBodyCertify(String livingBodyCertify) {
         this.livingBodyCertify = livingBodyCertify;
-    }
-
-    public String getMobileContactsText() {
-        return mobileContactsText;
-    }
-
-    public void setMobileContactsText(String mobileContactsText) {
-        this.mobileContactsText = mobileContactsText;
-    }
-
-    public String getCallHistoryText() {
-        return callHistoryText;
-    }
-
-    public void setCallHistoryText(String callHistoryText) {
-        this.callHistoryText = callHistoryText;
     }
 
     public String getUserIp() {
