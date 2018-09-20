@@ -31,18 +31,18 @@ public class UserAuditAction implements IAction {
     public void run() {
         /** TODO:调用用户审核 */
 
-        try {
-            userEventLauncher.launch(new AuditResponseEvent(userCode, true, ""));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        /** 发送审核结果 */
-//        AuditResponseEvent event = riskAuditService.audit(this.userCode);
 //        try {
-//            userEventLauncher.launch(event);
+//            userEventLauncher.launch(new AuditResponseEvent(userCode, true, ""));
 //        } catch (Exception e) {
 //            e.printStackTrace();
 //        }
+        /** 发送审核结果 */
+        AuditResponseEvent event = riskAuditService.audit(this.userCode);
+        try {
+            userEventLauncher.launch(event);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
