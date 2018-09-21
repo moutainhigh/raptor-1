@@ -32,7 +32,7 @@ class CollectingStateHandler implements IStateHandler<UserEntity> {
 
         if (event instanceof AuditLaunchEvent) {
             user.setStatus(StatusEnum.AUDITING.name());
-            user.setDescription(user.getDescription() + " " + event.getEventTime());
+            user.setDescription(user.getDescription() + event.getEventTime() + "发起审核;");
             actionExecutor.append(new UserAuditAction(user.getUserCode(), userEventLauncher, riskAuditService));
         } else {
             throw new InvalidEventException("还款订单状态与事件类型不匹配，状态：" + user.getStatus() + "，事件：" + event);
