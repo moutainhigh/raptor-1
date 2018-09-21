@@ -85,7 +85,7 @@ public class UserCertifyInfoServiceImpl implements UserCertifyInfoService {
             entity.setOcrIdCard(modifyCertifyReq.getOcrIdCard());
         }
         if(StringUtils.isNotBlank(modifyCertifyReq.getOcrIssueAt())){
-            entity.setOcrIdCard(modifyCertifyReq.getOcrIssueAt());
+            entity.setOcrIssueAt(modifyCertifyReq.getOcrIssueAt());
         }
 
         if(StringUtils.isNotBlank(modifyCertifyReq.getOcrDurationStartTime())){
