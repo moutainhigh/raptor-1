@@ -1,5 +1,6 @@
 package com.mo9.raptor.engine.service.impl;
 
+import com.mo9.raptor.bean.res.RepayDetailRes;
 import com.mo9.raptor.engine.entity.PayOrderDetailEntity;
 import com.mo9.raptor.engine.repository.PayOrderDetailRepository;
 import com.mo9.raptor.engine.service.IPayOrderDetailService;
@@ -7,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -37,5 +39,18 @@ public class PayOrderDetailServiceImpl implements IPayOrderDetailService {
             }
         }
         return payOrderDetails;
+    }
+
+    @Override
+    public List<RepayDetailRes> getRepayDetail(String payOrderId) {
+        List<RepayDetailRes> resList = new ArrayList<RepayDetailRes>();
+        List<PayOrderDetailEntity> payOrderDetailEntities = payOrderDetailRepository.listByPayOrderId(payOrderId);
+        for (PayOrderDetailEntity payOrderDetailEntity : payOrderDetailEntities) {
+            RepayDetailRes res = new RepayDetailRes();
+            res.setFieldType(payOrderDetailEntity.getField());
+            res.setNumber(payOrderDetailEntity.getPaid());
+            resList.add(res);
+        }
+        return resList;
     }
 }

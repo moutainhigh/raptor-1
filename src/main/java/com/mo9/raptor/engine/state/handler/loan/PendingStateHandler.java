@@ -51,6 +51,7 @@ public class PendingStateHandler implements IStateHandler<LoanOrderEntity> {
             loanOrder.setStatus(StatusEnum.AUDITING.name());
             if (loanOrder.getAuditMode().equals(AuditModeEnum.AUTO.name())) {
                 /** 自动审核模式的订单，则自动审核通过（目前没有业务审核），所以，附加执行一个审核通过的行为 */
+                loanOrder.setDescription(loanOrder.getDescription() + " " + event.getEventTime() + ":" + "自动发起审核;");
                 actionExecutor.append(new LoanAuditAction(loanOrder, loanEventLauncher));
             }
         } else {

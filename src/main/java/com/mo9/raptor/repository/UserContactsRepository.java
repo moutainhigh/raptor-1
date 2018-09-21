@@ -12,4 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 public interface UserContactsRepository extends JpaRepository<UserContactsEntity,Long> {
     @Query("select count(*) from UserContactsEntity t where t.userCode = ?1")
     long findMobileContactsCount(String userCode);
+
+    @Query("select t from UserContactsEntity t where t.userCode = ?1")
+    UserContactsEntity getByUserCode(String userCode);
 }

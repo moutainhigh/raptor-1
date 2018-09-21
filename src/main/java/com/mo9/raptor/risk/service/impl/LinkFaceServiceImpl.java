@@ -33,6 +33,8 @@ public class LinkFaceServiceImpl implements com.mo9.raptor.risk.service.LinkFace
     private static final int HTTP_OK = 200;
     private static final double SCORE_ERROR_CODE = -1;
     private static final String FIELD_SCORE = "score";
+    private static final String FIELD_CONFIDENCE= "confidence";
+
 
     @Resource
     private LinkfaceLogService linkfaceLogService;
@@ -151,10 +153,10 @@ public class LinkFaceServiceImpl implements com.mo9.raptor.risk.service.LinkFace
                     linkfaceLogEntity.setCallResult(res);
                     linkfaceLogService.update(linkfaceLogEntity);
                     JSONObject jsonObject = JSONObject.parseObject(res);
-                    if (jsonObject.containsKey(FIELD_SCORE)) {
+                    if (jsonObject.containsKey(FIELD_CONFIDENCE)) {
                         linkfaceLogEntity.setStatus("FINISH");
                         linkfaceLogService.update(linkfaceLogEntity);
-                        return jsonObject.getDoubleValue(FIELD_SCORE);
+                        return jsonObject.getDoubleValue(FIELD_CONFIDENCE);
                     } else {
                         linkfaceLogEntity.setStatus("RESULT_NOT_OK");
                         linkfaceLogService.update(linkfaceLogEntity);
@@ -219,10 +221,10 @@ public class LinkFaceServiceImpl implements com.mo9.raptor.risk.service.LinkFace
                     linkfaceLogEntity.setCallResult(res);
                     linkfaceLogService.update(linkfaceLogEntity);
                     JSONObject jsonObject = JSONObject.parseObject(res);
-                    if (jsonObject.containsKey(FIELD_SCORE)) {
+                    if (jsonObject.containsKey(FIELD_CONFIDENCE)) {
                         linkfaceLogEntity.setStatus("FINISH");
                         linkfaceLogService.update(linkfaceLogEntity);
-                        return jsonObject.getDoubleValue(FIELD_SCORE);
+                        return jsonObject.getDoubleValue(FIELD_CONFIDENCE);
                     } else {
                         linkfaceLogEntity.setStatus("RESULT_NOT_OK");
                         linkfaceLogService.update(linkfaceLogEntity);
