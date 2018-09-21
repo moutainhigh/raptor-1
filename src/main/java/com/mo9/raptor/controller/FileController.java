@@ -55,11 +55,11 @@ public class FileController {
         try{
             UserEntity userEntity = userService.findByUserCodeAndDeleted(userCode, false);
             if(userEntity == null ){
-                logger.warn("文件上传-->用户不存在");
+                logger.warn("文件上传-->用户不存在userCode={}", userCode);
                 return response.buildFailureResponse(ResCodeEnum.USER_NOT_EXIST);
             }
             if (file.getSize() > 1024 * 1024 * 2) {
-                logger.warn("文件上传-->大小超过限制");
+                logger.warn("文件上传-->大小超过限制userCode={}", userCode);
                 return response.buildFailureResponse(ResCodeEnum.FILE_SIZE_TOO_MAX);
             }
             FileStreamTransformer fileStreamTransformer = SpringMultipartFileTransformer.transformer(file);
@@ -67,6 +67,7 @@ public class FileController {
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("path", url);
             map.put("entity", jsonObject);
+            logger.info("文件上传-->上传成功userCode={}", userCode);
             return response.buildSuccessResponse(map);
         }catch (Exception e){
             logger.error("文件上传出现异常-->系统内部异常", e);
