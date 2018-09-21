@@ -281,10 +281,14 @@ public class UserController {
     @RequestMapping(value = "/phone_record_uploaded")
     public BaseResponse phoneRecordUploaded(HttpServletRequest request){
         BaseResponse<String> response = new BaseResponse<>();
-        String userCode = request.getParameter("uid");
+        String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
         try {
             UserEntity userEntity = userService.findByUserCodeAndDeleted(userCode, false);
-            userService.updateCallHistory(userEntity,true);
+            if (userEntity !=null){
+                userService.updateCallHistory(userEntity,true);
+            }else {
+                logger.warn("通讯录授权成功,用户点击完成接口----->>>>userCode={},未查询到用户",userCode);
+            }
         } catch (Exception e) {
             logger.error("通讯录授权成功,用户点击完成接口----->>>>userCode={},发生异常{}",userCode,e);
             return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);

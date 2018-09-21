@@ -48,11 +48,11 @@ public class MqListenerTest {
     @Test
     public void mockLend () {
 
-        LoanOrderEntity order = loanOrderService.getLastIncompleteOrder("123");
+        LoanOrderEntity order = loanOrderService.getLastIncompleteOrder("123", StatusEnum.PROCESSING);
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("orderId", order.getOrderId());
-        //params.put("lendAmount", order.getLoanNumber().subtract(order.getChargeValue()));
-        params.put("lendAmount", 100);
+        params.put("lendAmount", order.getLoanNumber().subtract(order.getChargeValue()));
+        //params.put("lendAmount", 100);
         params.put("status", "1");
         params.put("lendSettleTime", System.currentTimeMillis());
         params.put("channelResponse", JSONObject.toJSONString(params));
@@ -87,7 +87,7 @@ public class MqListenerTest {
         PayOrderEntity payOrderEntity = payOrderService.listByUserAndStatus("123", statuses).get(0);
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("status", "success");
-        params.put("channel", "先玩后付");
+        params.put("channel", "yilianh5pay");
         params.put("amount", payOrderEntity.getApplyNumber());
         //params.put("amount", 100);
         params.put("dealcode", idWorker.nextId());

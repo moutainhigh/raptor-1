@@ -7,9 +7,13 @@ import com.mo9.raptor.engine.entity.LendOrderEntity;
 import com.mo9.raptor.engine.entity.PayOrderEntity;
 import com.mo9.raptor.engine.service.ILendOrderService;
 import com.mo9.raptor.engine.service.IPayOrderService;
+import com.mo9.raptor.entity.BankEntity;
+import com.mo9.raptor.entity.CardBinInfoEntity;
 import com.mo9.raptor.entity.PayOrderLogEntity;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.ResCodeEnum;
+import com.mo9.raptor.service.BankService;
+import com.mo9.raptor.service.CardBinInfoService;
 import com.mo9.raptor.service.PayOrderLogService;
 import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.httpclient.HttpClientApi;
@@ -19,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -52,6 +57,9 @@ public class GatewayUtils {
 
     @Autowired
     private HttpClientApi httpClientApi ;
+
+    @Resource
+    private CardBinInfoService cardBinInfoService;
 
     /**
      * 放款
@@ -109,6 +117,7 @@ public class GatewayUtils {
      * @return
      */
     public ResCodeEnum payoff(PayOrderLogEntity payOrderLog){
+        ResCodeEnum resCodeEnum;
         try {
             Map<String,String> params = new HashMap<String,String>();
             params.put("m", "newPayGu");
@@ -118,8 +127,13 @@ public class GatewayUtils {
             UserEntity user = userService.findByUserCode(payOrderLog.getUserCode());
             params.put("mobile", user.getMobile());
             PayOrderEntity payOrderEntity = payOrderService.getByOrderId(payOrderLog.getPayOrderId());
+            CardBinInfoEntity cardBinInfoEntity = cardBinInfoService.findByCardPrefix(payOrderLog.getBankCard());
+            String bankName = "银行卡" ;
+            if(cardBinInfoEntity != null){
+                bankName = cardBinInfoEntity.getCardBank() ;
+            }
             //orderId : 订单号;
-            params.put("remark", "FASTRAPTOR_" + payOrderEntity.getOrderId() + "_" + payOrderEntity.getLoanOrderId());
+            params.put("remark", "FASTRAPTOR_" + payOrderEntity.getOrderId() + "_" + payOrderEntity.getLoanOrderId() + "_" + bankName);
 
             params.put("userMobile", user.getMobile());
             params.put("bankmobile", payOrderLog.getBankMobile());
@@ -132,24 +146,29 @@ public class GatewayUtils {
             params.put("sign", mysig);
             String gatewayUrl = this.gatewayUrl + "/pay.shtml";
             String resJson = httpClientApi.doGet(gatewayUrl, params);
-            payOrderLog.setChannelSyncResponse(resJson);
-            payOrderLog.setUpdateTime(System.currentTimeMillis());
-            payOrderLogService.save(payOrderLog);
+
 
             JSONObject jsonObject = JSONObject.parseObject(resJson);
             String code = jsonObject.getString("code");
+            String dealCode = null;
             if ("0000".equals(code)) {
                 logger.info("还款订单[{}]还款请求发送成功, 返回为[{}]", payOrderLog.getPayOrderId(), resJson);
-                return ResCodeEnum.SUCCESS;
+                dealCode = jsonObject.getJSONObject("data").getString("dealcode");
+                resCodeEnum = ResCodeEnum.SUCCESS;
             } else {
                 logger.info("还款订单[{}]还款请求发送失败, 返回为[{}]", payOrderLog.getPayOrderId(), resJson);
                 // return ResCodeEnum.SUCCESS;
-                return ResCodeEnum.EXCEPTION_CODE;
+                resCodeEnum = ResCodeEnum.EXCEPTION_CODE;
             }
+            payOrderLog.setChannelSyncResponse(resJson);
+            payOrderLog.setUpdateTime(System.currentTimeMillis());
+            payOrderLog.setDealCode(dealCode);
+            payOrderLogService.save(payOrderLog);
         } catch (Exception e) {
             logger.error("还款订单[{}]还款报错", payOrderLog.getPayOrderId(), e);
-            return ResCodeEnum.EXCEPTION_CODE;
+            resCodeEnum = ResCodeEnum.EXCEPTION_CODE;
         }
+        return resCodeEnum;
     }
 
     /**

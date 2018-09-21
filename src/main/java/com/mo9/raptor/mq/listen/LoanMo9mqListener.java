@@ -5,18 +5,43 @@ import com.alibaba.fastjson.JSONObject;
 import com.mo9.mqclient.IMqMsgListener;
 import com.mo9.mqclient.MqAction;
 import com.mo9.mqclient.MqMessage;
+import com.mo9.raptor.bean.res.LendInfoMqRes;
+import com.mo9.raptor.bean.res.RepayDetailRes;
+import com.mo9.raptor.bean.res.RepayInfoMqRes;
+import com.mo9.raptor.bean.res.UserInfoMqRes;
+import com.mo9.raptor.engine.calculator.ILoanCalculator;
+import com.mo9.raptor.engine.calculator.LoanCalculatorFactory;
+import com.mo9.raptor.engine.entity.LendOrderEntity;
+import com.mo9.raptor.engine.entity.LoanOrderEntity;
+import com.mo9.raptor.engine.entity.PayOrderEntity;
+import com.mo9.raptor.engine.enums.StatusEnum;
+import com.mo9.raptor.engine.service.ILendOrderService;
+import com.mo9.raptor.engine.service.ILoanOrderService;
+import com.mo9.raptor.engine.service.IPayOrderDetailService;
+import com.mo9.raptor.engine.service.IPayOrderService;
 import com.mo9.raptor.engine.state.event.impl.lend.LendResponseEvent;
 import com.mo9.raptor.engine.state.event.impl.pay.DeductResponseEvent;
 import com.mo9.raptor.engine.state.launcher.IEventLauncher;
+import com.mo9.raptor.engine.structure.field.Field;
+import com.mo9.raptor.engine.structure.field.FieldTypeEnum;
+import com.mo9.raptor.engine.structure.item.Item;
 import com.mo9.raptor.entity.PayOrderLogEntity;
-import com.mo9.raptor.service.BankService;
-import com.mo9.raptor.service.PayOrderLogService;
+import com.mo9.raptor.entity.UserCertifyInfoEntity;
+import com.mo9.raptor.entity.UserContactsEntity;
+import com.mo9.raptor.entity.UserEntity;
+import com.mo9.raptor.enums.PayTypeEnum;
+import com.mo9.raptor.mq.producer.RabbitProducer;
+import com.mo9.raptor.service.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 先玩后付相关监听器
@@ -31,13 +56,40 @@ public class LoanMo9mqListener implements IMqMsgListener{
 	private BankService bankService ;
 
 	@Autowired
+	private IPayOrderService payOrderService;
+
+	@Autowired
 	private PayOrderLogService payOrderLogService;
+
+	@Autowired
+	private ILoanOrderService loanOrderService;
+
+	@Autowired
+	private ILendOrderService lendOrderService;
+
+	@Autowired
+	private IPayOrderDetailService payOrderDetailService;
+
+	@Autowired
+	private UserService userService;
+
+	@Autowired
+	private UserCertifyInfoService userCertifyInfoService;
+
+	@Autowired
+	private UserContactsService userContactsService;
 
 	@Autowired
 	private IEventLauncher payEventLauncher;
 
 	@Autowired
 	private IEventLauncher lendEventLauncher;
+
+    @Autowired
+    private LoanCalculatorFactory loanCalculatorFactory;
+
+	//@Autowired
+	private RabbitProducer rabbitProducer;
 
 	@Override
 	 public MqAction consume(MqMessage msg, Object consumeContext) {
@@ -74,9 +126,9 @@ public class LoanMo9mqListener implements IMqMsgListener{
 		DeductResponseEvent event;
 		if ("success".equals(status)) {
 			// 还款扣款成功事件
-			event = new DeductResponseEvent(orderId, amount, true, System.currentTimeMillis() + ":还款" + amount.toPlainString());
+			event = new DeductResponseEvent(orderId, amount, true, "还款" + amount.toPlainString());
 		} else {
-			event = new DeductResponseEvent(orderId, null, false, System.currentTimeMillis() + ":还款失败");
+			event = new DeductResponseEvent(orderId, null, false, "还款失败");
 		}
 		PayOrderLogEntity payOrderLog = payOrderLogService.getByPayOrderId(orderId);
 		if (payOrderLog == null) {
@@ -101,10 +153,13 @@ public class LoanMo9mqListener implements IMqMsgListener{
 		//修改或者存储银行卡信息 TODO
 
 		// TODO: 发送消息给贷后
+        if ("success".equals(status)) {
+            //notifyMisRepay(payOrderLog);
+        }
 		return MqAction.CommitMessage;
 	}
 
-	/**
+    /**
 	 * 放款
 	 * @param msg
 	 * @return
@@ -190,8 +245,96 @@ public class LoanMo9mqListener implements IMqMsgListener{
 		//修改或者存储银行卡信息 TODO
 
 		// TODO: 发送消息给贷后
+        if ("1".equals(status)) {
+            //notifyMisLend(orderId);
+        }
 		return MqAction.CommitMessage;
 	}
 
+    /**
+     * 通知贷后放款
+     * @param orderId
+     */
+    private void notifyMisLend(String orderId) {
+        LendOrderEntity lendOrderEntity = lendOrderService.getByOrderId(orderId);
+		LoanOrderEntity loanOrderEntity = loanOrderService.getByOrderId(orderId);
+		LendInfoMqRes lendInfo = new LendInfoMqRes();
+        BeanUtils.copyProperties(lendOrderEntity, lendInfo);
+        lendInfo.setLoanNumber(loanOrderEntity.getLoanNumber());
+        lendInfo.setLoanTerm(loanOrderEntity.getLoanTerm());
+        lendInfo.setLentNumber(loanOrderEntity.getLentNumber());
+        lendInfo.setInterestValue(loanOrderEntity.getInterestValue());
+        lendInfo.setPenaltyValue(loanOrderEntity.getPenaltyValue());
+        lendInfo.setChargeValue(loanOrderEntity.getChargeValue());
+        lendInfo.setPostponeUnitCharge(loanOrderEntity.getPostponeUnitCharge());
+        lendInfo.setOrderType(loanOrderEntity.getType());
+        lendInfo.setOrderStatus(loanOrderEntity.getStatus());
+        List<PayOrderEntity> payOrderEntities = payOrderService.listByLoanOrderIdAndType(orderId, PayTypeEnum.REPAY_POSTPONE);
+        lendInfo.setPostponeCount(payOrderEntities.size());
+        lendInfo.setRepaymentTime(loanOrderEntity.getRepaymentDate());
+
+
+
+        String ownerId = lendOrderEntity.getOwnerId();
+        UserEntity userEntity = userService.findByUserCode(ownerId);
+        UserInfoMqRes userInfo = new UserInfoMqRes();
+        UserCertifyInfoEntity userCertifyInfoEntity = userCertifyInfoService.findByUserCode(ownerId);
+        userInfo.setUserCode(ownerId);
+        userInfo.setMobile(userEntity.getMobile());
+        userInfo.setRealName(userEntity.getRealName());
+        userInfo.setIdCard(userEntity.getIdCard());
+        userInfo.setCreditStatus(userEntity.getCreditStatus());
+        userInfo.setUserIp(userEntity.getUserIp());
+        userInfo.setLastLoginTime(userEntity.getLastLoginTime());
+        userInfo.setOcrIdCardAddress(userCertifyInfoEntity.getOcrIdCardAddress());
+        userInfo.setCallHistory(userEntity.getCallHistory());
+        UserContactsEntity userContactsEntity = userContactsService.getByUserCode(ownerId);
+        userInfo.setContactsList(userContactsEntity.getContactsList());
+        userInfo.setDeleted(userEntity.getDeleted());
+
+        JSONObject result = new JSONObject();
+        result.put("lendInfo", lendInfo);
+        result.put("userInfo", userInfo);
+        logger.info(result.toJSONString());
+        rabbitProducer.sendMessageLoan(orderId, result.toJSONString());
+    }
+
+
+    /**
+     * 通知贷后还款
+     * @param payOrderLog  还款log
+     */
+    private void notifyMisRepay(PayOrderLogEntity payOrderLog) {
+        RepayInfoMqRes repayInfo = new RepayInfoMqRes();
+        BeanUtils.copyProperties(payOrderLog, repayInfo);
+
+        PayOrderEntity payOrderEntity = payOrderService.getByOrderId(payOrderLog.getPayOrderId());
+        repayInfo.setPostponeDays(payOrderEntity.getPostponeDays());
+        String status = payOrderEntity.getStatus();
+        repayInfo.setEntryDone(StatusEnum.ENTRY_DONE.name().equals(status));
+
+        List<RepayDetailRes> repayDetail = payOrderDetailService.getRepayDetail(payOrderEntity.getOrderId());
+        repayInfo.setRepayDetail(repayDetail);
+
+        LoanOrderEntity loanOrderEntity = loanOrderService.getByOrderId(payOrderEntity.getLoanOrderId());
+        ILoanCalculator calculator = loanCalculatorFactory.load(loanOrderEntity);
+        Item realItem = calculator.realItem(System.currentTimeMillis(), loanOrderEntity, PayTypeEnum.REPAY_AS_PLAN.name());
+        List<RepayDetailRes> shouldPay = new ArrayList<RepayDetailRes>();
+        for (Map.Entry<FieldTypeEnum, Field> entry : realItem.entrySet()) {
+            BigDecimal number = entry.getValue().getNumber();
+            if (BigDecimal.ZERO.compareTo(number) < 0) {
+                RepayDetailRes res = new RepayDetailRes();
+                res.setFieldType(entry.getKey().name());
+                res.setNumber(number);
+                shouldPay.add(res);
+            }
+        }
+        repayInfo.setShouldPay(shouldPay);
+
+        JSONObject result = new JSONObject();
+        result.put("repayInfo", repayInfo);
+        logger.info(result.toJSONString());
+        rabbitProducer.sendMessageRepay(payOrderLog.getPayOrderId(), result.toJSONString());
+    }
 
 }

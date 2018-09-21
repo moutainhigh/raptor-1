@@ -39,6 +39,14 @@ public interface ILoanOrderService {
      */
     LoanOrderEntity getLastIncompleteOrder(String userCode);
 
+    /**
+     * 获取上一条为完成的订单
+     * @param userCode
+     * @param processing
+     * @return
+     */
+    LoanOrderEntity getLastIncompleteOrder(String userCode, List<String> processing);
+
 
     /**
      * 根据还款日获取订单
