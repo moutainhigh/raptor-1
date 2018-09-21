@@ -43,12 +43,6 @@ public class RiskController {
     private RiskTelInfoService riskTelInfoService;
     
     @Resource
-    private RiskTelBillService riskTelBillService;
-    
-    @Resource
-    private RiskCallLogService riskCallLogService;
-    
-    @Resource
     private DianHuaBangApiLogService dianHuaBangApiLogService;
     
     @Resource
@@ -107,17 +101,8 @@ public class RiskController {
             callLogStatus = false;
         }
         if (callLogStatus){
-            //机主信息
-            TRiskTelInfo riskTelInfo = riskTelInfoService.coverReq2Entity(callLogReq);
-            riskTelInfoService.save(riskTelInfo);
-
-            //账单信息
-            List<TRiskTelBill> riskTelBillList = riskTelBillService.coverReq2Entity(callLogReq);
-            riskTelBillService.batchSave(riskTelBillList);
-
-            //通话记录
-            List<TRiskCallLog> riskCallLogList = riskCallLogService.coverReqToEntity(callLogReq);
-            riskCallLogService.batchSave(riskCallLogList);
+            //保存通话记录所有信息
+            riskTelInfoService.saveAllCallLogData(callLogReq);
 
             //上传通话记录文件
             this.uploadFile2Oss(callLogReq.toString(), sockpuppet + "-" + callLogReq.getData().getTel() + ".json" );
@@ -132,8 +117,6 @@ public class RiskController {
             }
 
         }
-
-        
         
         return "ok";
     }
