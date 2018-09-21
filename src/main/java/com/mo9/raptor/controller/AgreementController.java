@@ -36,7 +36,7 @@ public class AgreementController {
 
     private static Logger logger = Log.get();
 
-    private static final String DATE_FORMAT = "yyyy年MM月dd";
+    private static final String DATE_FORMAT = "yyyy年MM月dd日";
 
     private static final String COMPANY_STAMP = "";
 
