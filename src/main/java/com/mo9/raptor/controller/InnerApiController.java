@@ -19,6 +19,7 @@ import java.util.List;
 
 /**
  * 内部调用接口
+ * 作废
  * Created by xzhang on 2018/9/19.
  */
 @RestController()
@@ -42,26 +43,26 @@ public class InnerApiController {
             @RequestParam("begin") Long begin,
             @RequestParam(value = "end", required = false) Long end) {
         BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
-        if (end == null) {
-            end = System.currentTimeMillis();
-        }
-        List<LoanOrderEntity> loanOrderEntities = loanOrderService.listByRepaymentDate(begin, end);
-        if (loanOrderEntities == null || loanOrderEntities.size() == 0) {
-            response.setMessage("无符合要求的订单");
-            return response;
-        }
-        for (LoanOrderEntity loanOrderEntity : loanOrderEntities) {
-            MisOrderRes res = new MisOrderRes();
-            BeanUtils.copyProperties(loanOrderEntity, res);
-            if (StatusEnum.PAYOFF.name().equals(loanOrderEntity.getStatus())) {
-                res.setPayoffTime(loanOrderEntity.getUpdateTime());
-            }
-            List<PayOrderEntity> payOrderEntities = payOrderService.listByLoanOrderIdAndType(loanOrderEntity.getOrderId(), PayTypeEnum.REPAY_POSTPONE);
-            if (payOrderEntities != null) {
-                res.setPostponeCount(payOrderEntities.size());
-            }
-            // TODO: 发送mq
-        }
+//        if (end == null) {
+//            end = System.currentTimeMillis();
+//        }
+//        List<LoanOrderEntity> loanOrderEntities = loanOrderService.listByRepaymentDate(begin, end);
+//        if (loanOrderEntities == null || loanOrderEntities.size() == 0) {
+//            response.setMessage("无符合要求的订单");
+//            return response;
+//        }
+//        for (LoanOrderEntity loanOrderEntity : loanOrderEntities) {
+//            MisOrderRes res = new MisOrderRes();
+//            BeanUtils.copyProperties(loanOrderEntity, res);
+//            if (StatusEnum.PAYOFF.name().equals(loanOrderEntity.getStatus())) {
+//                res.setPayoffTime(loanOrderEntity.getUpdateTime());
+//            }
+//            List<PayOrderEntity> payOrderEntities = payOrderService.listByLoanOrderIdAndType(loanOrderEntity.getOrderId(), PayTypeEnum.REPAY_POSTPONE);
+//            if (payOrderEntities != null) {
+//                res.setPostponeCount(payOrderEntities.size());
+//            }
+//            // TODO: 发送mq
+//        }
 
         return response;
     }

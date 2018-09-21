@@ -24,7 +24,7 @@ CREATE TABLE `t_raptor_user_contacts` (
 `update_time`  bigint NOT NULL ,
 PRIMARY KEY (`id`),
 INDEX `user_code` (`user_code`) USING BTREE
-)ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户通讯录表';
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户通讯录表';
 
 /**************************数据字典配置表（父表）*************************/
 DROP TABLE IF EXISTS `t_raptor_dict_type`;

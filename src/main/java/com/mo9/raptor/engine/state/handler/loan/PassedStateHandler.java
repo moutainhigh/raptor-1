@@ -51,6 +51,7 @@ public class PassedStateHandler implements IStateHandler<LoanOrderEntity> {
             loanOrder.setStatus(StatusEnum.LENDING.name());
             /** 自动放款模式订单，附加执行实际放款行为（通知钱包放款）*/
             if (loanOrder.getLendMode().equals(LendModeEnum.AUTO.name())) {
+                loanOrder.setDescription(loanOrder.getDescription() + " " + event.getEventTime() + ":" + "自动审核通过;");
                 actionExecutor.append(new LoanExecuteAction(loanOrder.getOrderId(), loanOrderService, lendOrderService, bankService, lendEventLauncher, idWorker));
             }
         } else {
