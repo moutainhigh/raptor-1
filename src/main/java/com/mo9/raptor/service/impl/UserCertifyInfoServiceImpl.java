@@ -103,6 +103,9 @@ public class UserCertifyInfoServiceImpl implements UserCertifyInfoService {
         if(modifyCertifyReq.getOcrGender() != null){
             entity.setOcrGender(modifyCertifyReq.getOcrGender());
         }
+        if(StringUtils.isNotBlank(modifyCertifyReq.getOcrIdCardAddress())){
+            entity.setOcrIdCardAddress(modifyCertifyReq.getOcrIdCardAddress());
+        }
 
         entity.setFrontStartCount(entity.getFrontStartCount() + modifyCertifyReq.getFrontStartCount());
         entity.setFrontSuccessCount(entity.getFrontSuccessCount() + modifyCertifyReq.getFrontSuccessCount());
