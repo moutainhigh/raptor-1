@@ -19,9 +19,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,7 +37,6 @@ public class AgreementController {
     private static Logger logger = LoggerFactory.getLogger(AgreementController.class);
 
     private static final String DATE_FORMAT = "yyyy年MM月dd";
-    private static final String COMPANY = "XXX有限公司";
 
     @Autowired
     private UserService userService;
@@ -74,7 +71,7 @@ public class AgreementController {
             }
             Map variables = new HashMap<>(16);
             variables.put("sign", MessageVariable.RAPTOR_SIGN_NAME);
-            variables.put("company", COMPANY);
+            variables.put("company", MessageVariable.COMPANY);
             variables.put("loanUserName", realName);
             variables.put("loanIdCard", idCard);
             variables.put("lentUserName", lentUserName);
@@ -100,7 +97,7 @@ public class AgreementController {
         InputStream stream = getClass().getClassLoader().getResourceAsStream("static/md/pay_agreement.md");
         try {
             Map variables = new HashMap<>(16);
-            variables.put("company", COMPANY);
+            variables.put("company", MessageVariable.COMPANY);
             variables.put("sign", MessageVariable.RAPTOR_SIGN_NAME);
             String process = ModelUtils.process(readStreamToString(stream), variables);
             model.addAttribute("title","支付协议");
@@ -135,6 +132,7 @@ public class AgreementController {
             String loanNumber = "";
             String loanTerm = "";
             String interestValue = "";
+            String loanOrderId = "";
             String repaymentDate = " 年 月 日";
 
             if (userEntity != null && orderEntity != null) {
@@ -146,6 +144,7 @@ public class AgreementController {
                 loanNumber = String.valueOf(orderEntity.getLoanNumber());
                 repaymentDate = new SimpleDateFormat(DATE_FORMAT).format(orderEntity.getRepaymentDate());
                 interestValue = String.valueOf(orderEntity.getInterestValue());
+                loanOrderId = orderEntity.getOrderId();
             }
             Map variables = new HashMap<>(16);
             variables.put("sign", MessageVariable.RAPTOR_SIGN_NAME);
@@ -153,7 +152,7 @@ public class AgreementController {
             variables.put("loanIdCard", idCard);
             variables.put("lentUserName", lentUserName);
             variables.put("lentAddress", lentAddress);
-            variables.put("company", COMPANY);
+            variables.put("company", MessageVariable.COMPANY);
             variables.put("lentTel", mobile);
             variables.put("loanTel", loanTel);
             variables.put("loanAddress", loanAddress);
@@ -162,6 +161,7 @@ public class AgreementController {
             variables.put("loanNumber", loanNumber);
             variables.put("repaymentDate", repaymentDate);
             variables.put("interestValue", interestValue);
+            variables.put("loanOrderId", loanOrderId);
 
             String process = ModelUtils.process(readStreamToString(stream), variables);
             model.addAttribute("title","借款协议");
@@ -183,8 +183,9 @@ public class AgreementController {
         InputStream stream = getClass().getClassLoader().getResourceAsStream("static/md/platform_service_agreement.md");
         try {
             Map variables = new HashMap<>(16);
-            variables.put("company", COMPANY);
+            variables.put("company", MessageVariable.COMPANY);
             variables.put("sign", MessageVariable.RAPTOR_SIGN_NAME);
+            variables.put("simpleCompany", MessageVariable.SIMPLE_COMPANY);
             String process = ModelUtils.process(readStreamToString(stream), variables);
             model.addAttribute("content",process);
             model.addAttribute("title","用户服务协议");

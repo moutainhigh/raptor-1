@@ -62,7 +62,7 @@ ALTER TABLE `t_raptor_user`
   ADD COLUMN `remark` VARCHAR(255) COMMENT '备注' AFTER `user_ip`;
 
 ALTER TABLE `t_raptor_user`
-  ADD COLUMN `description` VARCHAR(255) COMMENT '状态说明' AFTER `status`;
+  ADD COLUMN `description` VARCHAR(1024) COMMENT '状态说明' AFTER `status`;
 
 /**************************还款明细表*************************/
 DROP TABLE IF EXISTS `t_raptor_pay_order_detail`;
