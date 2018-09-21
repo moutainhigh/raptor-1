@@ -262,11 +262,9 @@ public class PayOrderController {
     @ResponseBody
     public BaseResponse<JSONObject> cashierSubmit (@RequestParam String code,
                                                    @RequestParam String channel,
-                                                   @RequestParam String bankNo, HttpServletRequest request) {
+                                                   @RequestParam String bankNo) {
 
         PayInfoCache payInfoCache =  (PayInfoCache) redisServiceApi.get(RedisParams.PAY_CODE + code, raptorRedis);
-
-
 
         BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
         if (payInfoCache == null) {
@@ -330,34 +328,24 @@ public class PayOrderController {
 
     @PostMapping("/card_cashier/submit")
     @ResponseBody
-    public void cardCashierSubmit (@RequestParam String code,
+    public BaseResponse<JSONObject> cardCashierSubmit (@RequestParam String code,
                                    @RequestParam String channel,
                                    @RequestParam String userName,
                                    @RequestParam String idCard,
                                    @RequestParam String bankNo,
-                                   @RequestParam String mobile,
-                                   HttpServletRequest request, HttpServletResponse response) {
+                                   @RequestParam String mobile) {
 
         PayInfoCache payInfoCache =  (PayInfoCache) redisServiceApi.get(RedisParams.PAY_CODE + code, raptorRedis);
 
+        BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
         if (payInfoCache == null) {
-            try {
-                response.sendRedirect(request.getContextPath() + "/cash/failed?code=" + code + "&message=" + ResCodeEnum.PAY_INFO_EXPIRED.getCode());
-                return;
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            return response.buildFailureResponse(ResCodeEnum.PAY_INFO_EXPIRED);
         }
 
         // 检查渠道
         ChannelEntity channelEntity = channelService.getChannelByType(channel, ChannelTypeEnum.REPAY.name());
         if (channelEntity == null) {
-            try {
-                response.sendRedirect(request.getContextPath() + "/cash/failed?code=" + code + "&message=" + ResCodeEnum.NO_REPAY_CHANNEL.getCode());
-                return;
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            return response.buildFailureResponse(ResCodeEnum.NO_REPAY_CHANNEL);
         }
 
         String orderId = sockpuppet + "-" + String.valueOf(idWorker.nextId());
@@ -396,20 +384,11 @@ public class PayOrderController {
 
         PayOderChannelRes res = getRes(orderId, channelEntity.getId());
 
-        boolean state = res.getState();
-        String result = res.getResult();
+        JSONObject data = new JSONObject();
 
-        try {
-            if (state) {
-                JSONObject json = JSONObject.parseObject(result);
-                String url = json.getString("url");
-                response.sendRedirect(url);
-            } else {
-                response.sendRedirect(request.getContextPath() + "/cash/failed?code=" + code + "&message=" + ResCodeEnum.CHANNEL_REPAY_FAILED.getCode());
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        data.put("entities", res);
+
+        return response.buildSuccessResponse(data);
     }
 
     @GetMapping("/failed")
