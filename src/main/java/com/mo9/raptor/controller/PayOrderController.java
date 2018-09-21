@@ -91,6 +91,11 @@ public class PayOrderController {
     @Value("${raptor.sockpuppet}")
     private String sockpuppet;
 
+    @GetMapping("/download")
+    public String download () {
+        return "cashier/download_guide";
+    }
+
     /**
      * 发起支付
      * @return
