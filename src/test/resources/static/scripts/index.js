@@ -88,6 +88,20 @@ function initCardSubmit() {
     })
 }
 
+function payAgain() {
+    $('#go-pay-again').click(function () {
+        var userAgent = navigator.userAgent;
+
+        if (userAgent.indexOf("Firefox") != -1 || userAgent.indexOf("Chrome") !=-1) {
+            window.location.href="about:blank";
+        }
+        /** 关闭窗口*/
+        window.opener=null;
+        window.open('','_self');
+        window.close();
+    })
+}
+
 function getUrlParam (name) {
     var r = window.location.search.substr(1).match(new RegExp("(^|&)" + name + "=([^&]*)(&|$)"));
     if (r!=null) {
@@ -102,6 +116,7 @@ function main() {
   initCardPicker()
     initSubmit()
     initCardSubmit()
+    payAgain()
 }
 
 $(document).ready(main)
