@@ -78,12 +78,14 @@ public class UserController {
         //校验手机号是否合法，不合法登录失败
         boolean check = RegexUtils.checkChinaMobileNumber(mobile);
         if (!check) {
+            logger.warn("用户登录----->>>>手机号=[{}]不合法",mobile);
             return response.buildFailureResponse(ResCodeEnum.MOBILE_NOT_MEET_THE_REQUIRE);
         }
         try {
             //检查用户是否在白名单，并可用
             UserEntity userEntity = userService.findByMobileAndDeleted(mobile,false);
             if (userEntity == null) {
+                logger.warn("用户登录----->>>>手机号=[{}]非白名单用户",mobile);
                 return response.buildFailureResponse(ResCodeEnum.NOT_WHITE_LIST_USER);
             }
             //校验验证码是否正确
@@ -103,6 +105,7 @@ public class UserController {
             userEntity.setLastLoginTime(System.currentTimeMillis());
             userEntity.setUserIp(IpUtils.getRemoteHost(request));
             userService.save(userEntity);
+            logger.info("用户登录成功----->>>>手机号=[{}]",mobile);
         } catch (IOException e) {
             Log.error(logger,e,"用户登录----->>>>验证码发送发生异常,手机号={}",mobile);
             return response.buildFailureResponse(ResCodeEnum.CAPTCHA_SEND_FAILED);
