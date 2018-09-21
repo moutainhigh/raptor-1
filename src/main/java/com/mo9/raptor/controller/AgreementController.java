@@ -6,8 +6,8 @@ import com.mo9.raptor.engine.service.ILoanOrderService;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.ModelUtils;
+import com.mo9.raptor.utils.log.Log;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -34,7 +34,7 @@ import java.util.Map;
 @RequestMapping("/agreement")
 public class AgreementController {
 
-    private static Logger logger = LoggerFactory.getLogger(AgreementController.class);
+    private static Logger logger = Log.get();
 
     private static final String DATE_FORMAT = "yyyy年MM月dd";
 
@@ -82,7 +82,7 @@ public class AgreementController {
             model.addAttribute("title","借款服务协议");
             model.addAttribute("content", process);
         } catch (Exception e) {
-            logger.error("获取服务协议发生异常，", e);
+            Log.error(logger,e,"获取服务协议发生异常，userCode={},orderId={}",userCode,orderId);
         }
         return "service/agreement";
     }
@@ -103,7 +103,7 @@ public class AgreementController {
             model.addAttribute("title","支付协议");
             model.addAttribute("content",process);
         } catch (Exception e) {
-            logger.error("获取支付协议发生异常，", e);
+            Log.error(logger,e,"获取支付协议发生异常");
         }
         return "service/agreement";
     }
@@ -167,7 +167,7 @@ public class AgreementController {
             model.addAttribute("title","借款协议");
             model.addAttribute("content", process);
         } catch (Exception e) {
-            logger.error("获取支付协议发生异常，", e);
+            Log.error(logger,e,"获取借款协议发生异常，userCode={},orderId={}",userCode,orderId);
         }
         return "service/agreement";
     }
@@ -190,7 +190,7 @@ public class AgreementController {
             model.addAttribute("content",process);
             model.addAttribute("title","用户服务协议");
         } catch (Exception e) {
-            logger.error("获取支付协议发生异常，", e);
+            Log.error(logger,e,"获取支付协议发生异常");
         }
         return "service/agreement";
     }
