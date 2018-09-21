@@ -287,7 +287,8 @@ public class UserController {
             if (userEntity !=null){
                 userService.updateCallHistory(userEntity,true);
             }else {
-                logger.warn("通讯录授权成功,用户点击完成接口----->>>>userCode={},未查询到用户",userCode);
+                logger.warn("通讯录授权失败,用户点击完成接口----->>>>userCode={},未查询到用户",userCode);
+                return response.buildFailureResponse(ResCodeEnum.NOT_WHITE_LIST_USER);
             }
         } catch (Exception e) {
             Log.error(logger,e,"通讯录授权成功,用户点击完成接口----->>>>发生异常 userCode={}",userCode);
