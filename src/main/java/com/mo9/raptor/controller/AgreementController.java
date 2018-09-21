@@ -38,6 +38,8 @@ public class AgreementController {
 
     private static final String DATE_FORMAT = "yyyy年MM月dd";
 
+    private static final String COMPANY_STAMP = "";
+
     @Autowired
     private UserService userService;
 
@@ -78,6 +80,7 @@ public class AgreementController {
             variables.put("lentAddress", lentAddress);
             variables.put("lendTime",lendTime);
             variables.put("loanOrderId",loanOrderId);
+            variables.put("companyStamp",COMPANY_STAMP);
             String process = ModelUtils.process(readStreamToString(stream), variables);
             model.addAttribute("title","借款服务协议");
             model.addAttribute("content", process);
@@ -99,6 +102,7 @@ public class AgreementController {
             Map variables = new HashMap<>(16);
             variables.put("company", MessageVariable.COMPANY);
             variables.put("sign", MessageVariable.RAPTOR_SIGN_NAME);
+            variables.put("companyStamp",COMPANY_STAMP);
             String process = ModelUtils.process(readStreamToString(stream), variables);
             model.addAttribute("title","支付协议");
             model.addAttribute("content",process);
@@ -186,6 +190,7 @@ public class AgreementController {
             variables.put("company", MessageVariable.COMPANY);
             variables.put("sign", MessageVariable.RAPTOR_SIGN_NAME);
             variables.put("simpleCompany", MessageVariable.SIMPLE_COMPANY);
+            variables.put("companyStamp",COMPANY_STAMP);
             String process = ModelUtils.process(readStreamToString(stream), variables);
             model.addAttribute("content",process);
             model.addAttribute("title","用户服务协议");
