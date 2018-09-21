@@ -1,6 +1,7 @@
 package com.mo9.raptor.engine.service;
 
 import com.mo9.raptor.bean.condition.FetchLoanOrderCondition;
+import com.mo9.raptor.engine.entity.LendOrderEntity;
 import com.mo9.raptor.engine.entity.LoanOrderEntity;
 import org.springframework.data.domain.Page;
 
@@ -55,4 +56,11 @@ public interface ILoanOrderService {
      * @return
      */
     List<LoanOrderEntity> listByRepaymentDate(Long begin, Long end);
+
+    /**
+     * 创建放款订单及借款订单
+     * @param loanOrder
+     * @param lendOrder
+     */
+    void saveLendOrder(LoanOrderEntity loanOrder, LendOrderEntity lendOrder) throws Exception;
 }

@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.mo9.mqclient.IMqMsgListener;
 import com.mo9.mqclient.MqAction;
 import com.mo9.mqclient.MqMessage;
+import com.mo9.raptor.bean.condition.FetchPayOrderCondition;
 import com.mo9.raptor.bean.res.LendInfoMqRes;
 import com.mo9.raptor.bean.res.RepayDetailRes;
 import com.mo9.raptor.bean.res.RepayInfoMqRes;
@@ -36,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -155,6 +157,21 @@ public class LoanMo9mqListener implements IMqMsgListener{
 		// TODO: 发送消息给贷后
         if ("success".equals(status)) {
             //notifyMisRepay(payOrderLog);
+			// 增加延期次数
+            List<FetchPayOrderCondition.Type> type = new ArrayList<FetchPayOrderCondition.Type>();
+            type.add(FetchPayOrderCondition.Type.REPAY_POSTPONE);
+            List<FetchPayOrderCondition.Status> statuses = new ArrayList<FetchPayOrderCondition.Status>();
+            statuses.add(FetchPayOrderCondition.Status.ENTRY_DONE);
+            FetchPayOrderCondition condition = new FetchPayOrderCondition();
+            condition.setTypes(type);
+            condition.setStates(statuses);
+            PayOrderEntity payOrderEntity = payOrderService.getByOrderId(orderId);
+            condition.setLoanOrderNumber(payOrderEntity.getLoanOrderId());
+            Page<PayOrderEntity> payOrderEntities = payOrderService.listPayOrderByCondition(condition);
+            LoanOrderEntity loanOrderEntity = loanOrderService.getByOrderId(payOrderEntity.getLoanOrderId());
+            loanOrderEntity.setPostponeCount(payOrderEntities.getContent().size());
+            loanOrderEntity.setUpdateTime(System.currentTimeMillis());
+            loanOrderService.save(loanOrderEntity);
         }
 		return MqAction.CommitMessage;
 	}
