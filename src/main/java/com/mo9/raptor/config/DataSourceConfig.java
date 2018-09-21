@@ -36,7 +36,7 @@ public class DataSourceConfig {
     @Primary
     @Bean(name = "primaryDataSource")
     @Qualifier("primaryDataSource")
-    @ConfigurationProperties(prefix="spring.datasource.primary")
+//    @ConfigurationProperties(prefix="spring.datasource.primary")
     public DataSource primaryDataSource() {
         DruidDataSource dataSource = new DruidDataSource();
         dataSource.setDriverClassName(primaryDriverClassName);
