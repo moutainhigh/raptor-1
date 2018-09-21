@@ -1,0 +1,50 @@
+@import './common.scss';
+
+body {
+  background-color: $color_blue;
+
+  .wrapper {
+    color: #fff;
+
+    .logo-status {
+      width: p(130);
+      height: p(130);
+      @extend .bg_img;
+      margin: 0 auto;
+      margin-top: p(95);
+    }
+
+    .msg-part {
+      margin-top: p(42);
+      text-align: center;
+      font-size: p(18);
+
+      .msg,
+      .order {
+        line-height: p(28);
+      }
+    }
+
+    .tip {
+      text-align: center;
+      width: 100%;
+      opacity: 0.5;
+      font-size: p(14);
+      position: absolute;
+      bottom: p(268);
+    }
+
+    .btn-next {
+      margin: 0 auto;
+      margin-top: p(114);
+    }
+
+    .info-part {
+      text-align: center;
+      font-size: p(12);
+      opacity: 0.5;
+      line-height: p(20);
+      margin-top: p(103);
+    }
+  }
+}
