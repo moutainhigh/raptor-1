@@ -1,0 +1,34 @@
+@import './common.scss';
+
+body {
+  background-color: #ff6300;
+
+  .wrapper {
+    width: 100%;
+    height: p(1334/2);
+    @extend .bg_img;
+    background-image: url(../images/download_guide/bg.jpg);
+    background-position: 50% 0;
+
+    .button {
+      width: 100%;
+      height: p(100/2);
+      position: absolute;
+      top: p(1034/2);
+      // background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .mask {
+      display: none;
+      position: absolute;
+      width: 100%;
+      min-height: p(1334/2);
+      height: 100vh;
+      background-color: rgba(0, 0, 0, 0.9);
+      top: 0;
+      @extend .bg_img;
+      background-image: url(../images/download_guide/mask.png);
+      background-position: 50% 0;
+    }
+  }
+}
