@@ -6,6 +6,7 @@ import com.mo9.raptor.risk.entity.TRiskTelBill;
 import com.mo9.raptor.risk.repo.RiskTelBillRepository;
 import com.mo9.raptor.risk.service.RiskTelBillService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -29,8 +30,15 @@ public class RiskTelBillServiceImpl implements RiskTelBillService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void batchSave(List<TRiskTelBill> riskTelBillList) {
-        riskTelBillRepository.saveAll(riskTelBillList);
+        for (TRiskTelBill riskTelBill : riskTelBillList) {
+            TRiskTelBill exists = riskTelBillRepository.findOneBill(riskTelBill.getMobile(), riskTelBill.getBillMonth());
+            if (exists != null){
+                continue;
+            }
+            riskTelBillRepository.saveAndFlush(riskTelBill);
+        }
     }
 
     @Override

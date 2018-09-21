@@ -69,6 +69,12 @@ public abstract class AbstractLoanCalculator implements ILoanCalculator {
         if (item.size() == 0) {
             return item;
         }
+
+//        Calendar userDate = Calendar.getInstance();
+//        userDate.setTimeInMillis(date);
+//        Calendar repaymentDate = Calendar.getInstance();
+//        repaymentDate.setTimeInMillis(loanOrder.getRepaymentDate());
+
         Long repaymentDate = loanOrder.getRepaymentDate();
         // 重新设置还款日
         item.setRepayDate(repaymentDate);

@@ -14,6 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -47,7 +48,8 @@ public class UserControllerTest {
 
     @Before
     public void before(){
-        headers.put("Account-Code", "AA20A480E526D644D13D9AC5593D268E");
+        //AA20A480E526D644D13D9AC5593D2681
+        headers.put("Account-Code", "123");
         headers.put("Client-Id", "503");
     }
 
@@ -159,7 +161,7 @@ public class UserControllerTest {
         json.put("accountOcr", "ukar");
         json.put("ocrRealName", "ukar");
         json.put("ocrIdCard", "ukar");
-        json.put("ocrIssueAt", "ukar");
+        json.put("ocrIssueAt", "ukar123456");
         json.put("ocrDurationStartTime", "ukar");
         json.put("ocrDurationEndTime", "ukar");
         json.put("ocrGender", 0);
@@ -167,7 +169,16 @@ public class UserControllerTest {
         json.put("ocrBirthday", "ukar");
         json.put("ocrIdCardAddress", "ukar");
 
-        HttpResult httpResult = httpClientApi.doPostJson(cloneHostUrl + "/user/modify_certify_info", json.toJSONString(), headers);
+        json.put("frontStartCount", 1);
+        json.put("frontSuccessCount",1 );
+        json.put("frontFailCount", 1);
+        json.put("backStartCount", 1);
+        json.put("backSuccessCount", 1);
+        json.put("backFailCount", 1);
+        json.put("livenessStartCount", 1);
+        json.put("livenessSuccessCount", 1);
+        json.put("livenessFailCount", 1);
+        HttpResult httpResult = httpClientApi.doPostJson(localHostUrl + "/user/modify_certify_info", json.toJSONString(), headers);
         System.out.println(httpResult.getCode());
         System.out.println(httpResult.getData());
     }
