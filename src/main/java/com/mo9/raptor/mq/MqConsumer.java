@@ -25,6 +25,7 @@ import java.util.Properties;
 @Component
 public class MqConsumer extends AliyunMqConsumer {
 
+
   /**
    * 消费者ID
    */

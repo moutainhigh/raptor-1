@@ -43,4 +43,9 @@ public class UserContactsServiceImpl implements UserContactsService {
     public long findMobileContactsCount(String userCode) {
         return userContactsRepository.findMobileContactsCount(userCode);
     }
+
+    @Override
+    public UserContactsEntity getByUserCode(String userCode) {
+        return userContactsRepository.getByUserCode(userCode);
+    }
 }

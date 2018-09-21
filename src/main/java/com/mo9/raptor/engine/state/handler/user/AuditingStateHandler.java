@@ -27,7 +27,7 @@ class AuditingStateHandler implements IStateHandler<UserEntity> {
             } else {
                 user.setStatus(StatusEnum.REJECTED.name());
             }
-            user.setDescription(user.getDescription() + " " + event.getEventTime() + ":" + auditResponseEvent.getExplanation());
+            user.setDescription(user.getDescription()  + event.getEventTime() + ":" + auditResponseEvent.getExplanation() + ";");
 
         } else {
             throw new InvalidEventException("还款订单状态与事件类型不匹配，状态：" + user.getStatus() + "，事件：" + event);

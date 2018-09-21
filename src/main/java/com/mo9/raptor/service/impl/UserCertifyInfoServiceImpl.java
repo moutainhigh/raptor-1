@@ -85,7 +85,7 @@ public class UserCertifyInfoServiceImpl implements UserCertifyInfoService {
             entity.setOcrIdCard(modifyCertifyReq.getOcrIdCard());
         }
         if(StringUtils.isNotBlank(modifyCertifyReq.getOcrIssueAt())){
-            entity.setOcrIdCard(modifyCertifyReq.getOcrIssueAt());
+            entity.setOcrIssueAt(modifyCertifyReq.getOcrIssueAt());
         }
 
         if(StringUtils.isNotBlank(modifyCertifyReq.getOcrDurationStartTime())){
@@ -102,6 +102,9 @@ public class UserCertifyInfoServiceImpl implements UserCertifyInfoService {
         }
         if(modifyCertifyReq.getOcrGender() != null){
             entity.setOcrGender(modifyCertifyReq.getOcrGender());
+        }
+        if(StringUtils.isNotBlank(modifyCertifyReq.getOcrIdCardAddress())){
+            entity.setOcrIdCardAddress(modifyCertifyReq.getOcrIdCardAddress());
         }
 
         entity.setFrontStartCount(entity.getFrontStartCount() + modifyCertifyReq.getFrontStartCount());

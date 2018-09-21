@@ -1,5 +1,6 @@
 package com.mo9.raptor.engine.service;
 
+import com.mo9.raptor.bean.res.RepayDetailRes;
 import com.mo9.raptor.engine.entity.PayOrderDetailEntity;
 
 import java.util.List;
@@ -27,4 +28,11 @@ public interface IPayOrderDetailService {
      * 保存订单
      */
     List<PayOrderDetailEntity> saveItem (List<PayOrderDetailEntity> payOrderDetails);
+
+    /**
+     * 获得还款明细
+     * @param orderId
+     * @return
+     */
+    List<RepayDetailRes> getRepayDetail(String orderId);
 }

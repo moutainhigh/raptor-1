@@ -45,26 +45,6 @@ public class LoanExecuteAction implements IAction {
 
     @Override
     public void run() {
-        LoanOrderEntity order = loanOrderService.getByOrderId(orderId);
-        LendOrderEntity lendOrder = new LendOrderEntity();
-        lendOrder.setOrderId(String.valueOf(idWorker.nextId()));
-        lendOrder.setOwnerId(order.getOwnerId());
-        lendOrder.setApplyUniqueCode(orderId);
-        lendOrder.setApplyNumber(order.getLoanNumber().subtract(order.getChargeValue()));
-        lendOrder.setApplyTime(System.currentTimeMillis());
-        BankEntity bankEntity = bankService.findByUserCodeLastOne(order.getOwnerId());
-        lendOrder.setUserName(bankEntity.getUserName());
-        lendOrder.setIdCard(bankEntity.getCardId());
-        lendOrder.setBankName(bankEntity.getBankName());
-        lendOrder.setBankCard(bankEntity.getBankNo());
-        lendOrder.setBankMobile(bankEntity.getMobile());
-        lendOrder.setStatus(StatusEnum.PENDING.name());
-
-        lendOrder.setType("");
-        long now = System.currentTimeMillis();
-        lendOrder.setCreateTime(now);
-        lendOrder.setUpdateTime(now);
-        lendOrderService.save(lendOrder);
 
         try {
             LendLaunchEvent event = new LendLaunchEvent(orderId);

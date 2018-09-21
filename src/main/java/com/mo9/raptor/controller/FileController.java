@@ -1,5 +1,6 @@
 package com.mo9.raptor.controller;
 
+import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.bean.BaseResponse;
 import com.mo9.raptor.bean.ReqHeaderParams;
 import com.mo9.raptor.bean.req.FileReq;
@@ -54,16 +55,19 @@ public class FileController {
         try{
             UserEntity userEntity = userService.findByUserCodeAndDeleted(userCode, false);
             if(userEntity == null ){
-                logger.warn("文件上传-->用户不存在");
+                logger.warn("文件上传-->用户不存在userCode={}", userCode);
                 return response.buildFailureResponse(ResCodeEnum.USER_NOT_EXIST);
             }
             if (file.getSize() > 1024 * 1024 * 2) {
-                logger.warn("文件上传-->大小超过限制");
+                logger.warn("文件上传-->大小超过限制userCode={}", userCode);
                 return response.buildFailureResponse(ResCodeEnum.FILE_SIZE_TOO_MAX);
             }
             FileStreamTransformer fileStreamTransformer = SpringMultipartFileTransformer.transformer(file);
             String url = ossFileUpload.upload(fileStreamTransformer);
-            map.put("path", url);
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("path", url);
+            map.put("entity", jsonObject);
+            logger.info("文件上传-->上传成功userCode={}", userCode);
             return response.buildSuccessResponse(map);
         }catch (Exception e){
             logger.error("文件上传出现异常-->系统内部异常", e);

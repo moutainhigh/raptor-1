@@ -1,0 +1,239 @@
+@import './common.scss';
+
+body {
+
+  .wrapper {
+    .go-back {
+      color: #fff;
+      position: absolute;
+      margin-left: p(20);
+      margin-top: p(32);
+      width: p(10);
+      height: p(18);
+      @extend .bg_img;
+      background-image: url(../images/logo_lt.png);
+
+    }
+
+    .amount-part {
+      background-color: $color_blue;
+      height: p(185);
+      text-align: center;
+      color: #fff;
+
+      .title {
+        font-size: p(18);
+        padding-top: p(66);
+      }
+
+      .amount {
+        font-size: p(28);
+        padding-top: p(13);
+        // margin-bottom: p(40);
+      }
+    }
+
+    .term-part {
+      background-color: #fff;
+      color: $color_text_grey;
+
+      .title {
+        font-size: p(16);
+        padding-left: p(20);
+        padding-top: p(15);
+      }
+
+      ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+
+
+        li.term-item {
+          padding-left: p(20);
+          box-sizing: border-box;
+          border-bottom: 1px solid $color_bg;
+          height: p(60);
+          display: flex;
+          align-items: center;
+
+          .checkbox {
+            width: p(15);
+            height: p(14);
+            border-radius: 50%;
+            border: 1px solid #cfcfcf;
+          }
+
+          &.choosen {
+            .checkbox {
+              background-color: #08ca75;
+            }
+          }
+
+          .logo {
+            width: p(40);
+            height: p(40);
+            margin: 0 p(14);
+            @extend .bg_img;
+            background-image: url(../images/payeco.png);
+
+          }
+
+          .text {
+            font-size: p(16);
+            color: $color_text_black;
+            padding-right: p(16);
+          }
+
+          .bank-card {
+            font-size: p(14);
+            color: $color_text_grey;
+            padding-right: p(32);
+          }
+
+          .logo-more {
+            width: p(9);
+            height: p(15);
+            @extend .bg_img;
+            background-image: url(../images/logo_gt.png);
+
+          }
+        }
+      }
+    }
+
+    .btn-part {
+      width: 100%;
+      position: absolute;
+      text-align: center;
+      bottom: p(90);
+
+      .btn-submit {
+        margin: 0 auto;
+      }
+
+      .agreement {
+        margin-top: p(15);
+        font-size: p(12);
+
+        a {
+          color: $color_blue;
+        }
+      }
+    }
+
+    .card-picker-container {
+      display: none;
+      position: absolute;
+      top: 0;
+      width: 100%;
+      height: 100vh;
+      background-color: rgba(0, 0, 0, 0.7);
+
+      .card-picker {
+        width: 100%;
+        position: absolute;
+        bottom: 0;
+        background-color: #fff;
+        padding-bottom: p(60);
+        font-size: p(16);
+        color: $color_text_black;
+
+        .title-part {
+          display: flex;
+          height: p(59);
+          line-height: p(59);
+          border-bottom: 1px solid $color_bg;
+          align-items: center;
+
+          .logo-go-back {
+            width: p(10);
+            height: p(18);
+            margin-left: p(20);
+            @extend .bg_img;
+            background-image: url(../images/logo_lt_grey.png);
+          }
+
+          .title {
+            text-align: center;
+            flex: 1;
+            margin-right: p(20);
+
+          }
+        }
+
+        ul {
+          margin: 0;
+          padding: 0;
+          padding-left: p(20);
+          list-style: none;
+
+
+          li {
+            height: p(59);
+            line-height: p(59);
+            display: flex;
+            border-bottom: 1px solid $color_bg;
+          }
+
+          li.bank-card-item {
+            display: flex;
+            // align-content: center;
+            align-items: center;
+            justify-content: auto;
+
+            .bank-name {}
+
+            .card-number {
+              padding-left: p(7);
+              font-size: p(14);
+              color: $color_text_grey;
+            }
+
+            .btn-check {
+              position: absolute;
+              right: p(20);
+              width: p(28);
+              height: p(28);
+              @extend .bg_img;
+            }
+
+            &.choosen {
+              .btn-check {
+                background-image: url(../images/check.png);
+              }
+            }
+          }
+
+          li.add-new-card {
+            display: flex;
+            align-items: center;
+
+            .logo-card {
+              @extend .bg_img;
+              width: p(25);
+              height: p(18);
+              background-image: url(../images/card.png);
+            }
+
+            .text {
+              padding-left: p(16);
+            }
+
+            .logo-more {
+              @extend .bg_img;
+              width: p(9);
+              height: p(15);
+              background-image: url(../images/logo_gt.png);
+              position: absolute;
+              right: p(20);
+            }
+          }
+        }
+      }
+
+
+    }
+  }
+
+}
