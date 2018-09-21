@@ -1,5 +1,6 @@
 package com.mo9.raptor.controller;
 
+import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.bean.BaseResponse;
 import com.mo9.raptor.bean.ReqHeaderParams;
 import com.mo9.raptor.bean.req.FileReq;
@@ -63,7 +64,9 @@ public class FileController {
             }
             FileStreamTransformer fileStreamTransformer = SpringMultipartFileTransformer.transformer(file);
             String url = ossFileUpload.upload(fileStreamTransformer);
-            map.put("path", url);
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("path", url);
+            map.put("entity", jsonObject);
             return response.buildSuccessResponse(map);
         }catch (Exception e){
             logger.error("文件上传出现异常-->系统内部异常", e);
