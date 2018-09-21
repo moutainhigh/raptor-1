@@ -21,6 +21,16 @@ public class OrderAddReq {
      */
     private int period;
 
+    /**
+     * 放款银行卡
+     */
+    private String card;
+
+    /**
+     * 银行预留手机
+     */
+    private String cardMobile;
+
     public BigDecimal getCapital() {
         return capital;
     }
@@ -35,5 +45,21 @@ public class OrderAddReq {
 
     public void setPeriod(int period) {
         this.period = period;
+    }
+
+    public String getCard() {
+        return card;
+    }
+
+    public void setCard(String card) {
+        this.card = card;
+    }
+
+    public String getCardMobile() {
+        return cardMobile;
+    }
+
+    public void setCardMobile(String cardMobile) {
+        this.cardMobile = cardMobile;
     }
 }

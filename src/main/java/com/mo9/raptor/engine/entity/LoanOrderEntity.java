@@ -94,6 +94,12 @@ public class LoanOrderEntity extends AbstractOrderEntity {
     @Column(name = "client_version")
     private String clientVersion;
 
+    /**
+     * 延期次数
+     */
+    @Column(name = "postpone_count")
+    private Integer postponeCount;
+
     public BigDecimal getLoanNumber() {
         return loanNumber;
     }
@@ -236,5 +242,13 @@ public class LoanOrderEntity extends AbstractOrderEntity {
 
     public void setClientVersion(String clientVersion) {
         this.clientVersion = clientVersion;
+    }
+
+    public Integer getPostponeCount() {
+        return postponeCount;
+    }
+
+    public void setPostponeCount(Integer postponeCount) {
+        this.postponeCount = postponeCount;
     }
 }

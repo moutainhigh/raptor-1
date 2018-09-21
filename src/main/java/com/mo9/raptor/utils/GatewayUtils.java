@@ -102,8 +102,10 @@ public class GatewayUtils {
             } else {
                 logger.info("订单[{}]放款, 渠道返回同步返回信息  [{}]", lendOrder.getOrderId(), resJson);
             }
+            String invoice = jsonObject.getString("invoice");
             lendOrder.setUpdateTime(System.currentTimeMillis());
             lendOrder.setChannelSyncResponse(resJson);
+            lendOrder.setDealCode(invoice);
             lendOrderService.save(lendOrder);
         } catch (Exception e) {
             logger.error("订单[{}]放款异常 - ", lendOrder.getOrderId(), e);
