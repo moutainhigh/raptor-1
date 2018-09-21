@@ -12,11 +12,10 @@ import com.mo9.raptor.engine.entity.LoanOrderEntity;
 import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.engine.service.ILendOrderService;
 import com.mo9.raptor.engine.service.ILoanOrderService;
-import com.mo9.raptor.engine.state.event.impl.AuditLaunchEvent;
-import com.mo9.raptor.engine.state.launcher.IEventLauncher;
 import com.mo9.raptor.engine.structure.item.Item;
 import com.mo9.raptor.engine.utils.EngineStaticValue;
 import com.mo9.raptor.engine.utils.TimeUtils;
+import com.mo9.raptor.entity.BankEntity;
 import com.mo9.raptor.entity.DictDataEntity;
 import com.mo9.raptor.entity.LoanProductEntity;
 import com.mo9.raptor.entity.UserEntity;
@@ -26,10 +25,12 @@ import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.lock.Lock;
 import com.mo9.raptor.lock.RedisService;
 import com.mo9.raptor.redis.RedisLockKeySuffix;
+import com.mo9.raptor.service.BankService;
 import com.mo9.raptor.service.DictService;
 import com.mo9.raptor.service.LoanProductService;
 import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.IDWorker;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,13 +78,13 @@ public class LoanOrderController {
     private RedisService redisService;
 
     @Autowired
-    private IEventLauncher loanEventLauncher;
-
-    @Autowired
     private LoanCalculatorFactory loanCalculatorFactory;
 
     @Value("${raptor.sockpuppet}")
     private String sockpuppet;
+
+    @Autowired
+    private BankService bankService;
 
     /**
      * 下单
@@ -161,10 +162,37 @@ public class LoanOrderController {
                 loanOrder.setRepaymentDate(today + loanTerm * EngineStaticValue.DAY_MILLIS);
                 loanOrder.setCreateTime(now);
                 loanOrder.setUpdateTime(now);
-                /** 创建借款订单 */
-                loanOrderService.save(loanOrder);
-                AuditLaunchEvent event = new AuditLaunchEvent(userCode, loanOrder.getOrderId());
-                loanEventLauncher.launch(event);
+
+                LendOrderEntity lendOrder = new LendOrderEntity();
+                lendOrder.setOrderId(String.valueOf(idWorker.nextId()));
+                lendOrder.setOwnerId(userCode);
+                lendOrder.setApplyUniqueCode(orderId);
+                lendOrder.setApplyNumber(loanOrder.getLoanNumber().subtract(loanOrder.getChargeValue()));
+                lendOrder.setApplyTime(System.currentTimeMillis());
+                BankEntity bankEntity = bankService.findByUserCodeLastOne(loanOrder.getOwnerId());
+                if (bankEntity == null) {
+                    return response.buildFailureResponse(ResCodeEnum.NO_LEND_INFO);
+                }
+                lendOrder.setUserName(bankEntity.getUserName());
+                lendOrder.setIdCard(bankEntity.getCardId());
+                lendOrder.setBankName(bankEntity.getBankName());
+                if (StringUtils.isBlank(req.getCard())) {
+                    lendOrder.setBankCard(bankEntity.getBankNo());
+                } else {
+                    lendOrder.setBankCard(req.getCard());
+                }
+                if (StringUtils.isBlank(req.getCardMobile())) {
+                    lendOrder.setBankMobile(bankEntity.getMobile());
+                } else {
+                    lendOrder.setBankMobile(req.getCard());
+                }
+                lendOrder.setStatus(StatusEnum.PENDING.name());
+                lendOrder.setType("");
+                lendOrder.setCreateTime(now);
+                lendOrder.setUpdateTime(now);
+
+                // 保存借款订单, 还款订单
+                loanOrderService.saveLendOrder(loanOrder, lendOrder);
                 return response;
             } else {
                 logger.warn("用户[{}]预借款[{}], 竞争锁失败", userCode);
