@@ -1,20 +1,19 @@
 package com.mo9.raptor.controller;
 
-import com.alibaba.druid.support.json.JSONUtils;
 import com.alibaba.fastjson.JSONObject;
 import com.aliyun.oss.OSSClient;
 import com.mo9.raptor.bean.req.risk.CallLogReq;
+import com.mo9.raptor.entity.DianHuaBangApiLogEntity;
 import com.mo9.raptor.risk.entity.TRiskCallLog;
 import com.mo9.raptor.risk.entity.TRiskTelBill;
 import com.mo9.raptor.risk.entity.TRiskTelInfo;
 import com.mo9.raptor.risk.service.RiskCallLogService;
 import com.mo9.raptor.risk.service.RiskTelBillService;
 import com.mo9.raptor.risk.service.RiskTelInfoService;
+import com.mo9.raptor.service.DianHuaBangApiLogService;
 import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.httpclient.HttpClientApi;
-import com.mo9.raptor.utils.oss.OSSFileUpload;
 import com.mo9.raptor.utils.oss.OSSProperties;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,12 +23,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 import java.io.*;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
-import java.util.logging.SimpleFormatter;
 
 /**
  * @author wtwei .
@@ -52,6 +47,9 @@ public class RiskController {
     
     @Resource
     private RiskCallLogService riskCallLogService;
+    
+    @Resource
+    private DianHuaBangApiLogService dianHuaBangApiLogService;
     
     @Resource
     private UserService userService;
@@ -90,6 +88,17 @@ public class RiskController {
         logger.info("----收到通话记录post数据-----> " + callLogJson);
 
         CallLogReq callLogReq = JSONObject.parseObject(callLogJson, CallLogReq.class);
+        
+        try {
+            //记录日志
+            if (callLogReq.getData() != null){
+                DianHuaBangApiLogEntity logEntity = this.createLogEntity(callLogReq);
+                dianHuaBangApiLogService.create(logEntity);
+            }
+        }catch (Exception e){
+            logger.error("保存电话邦调用日志出错", e);
+        }
+       
         
         boolean callLogStatus = true;
 
@@ -203,4 +212,14 @@ public class RiskController {
         return null;
     }
     
+    private DianHuaBangApiLogEntity createLogEntity(CallLogReq callLogReq){
+        DianHuaBangApiLogEntity entity = new DianHuaBangApiLogEntity();
+        
+        entity.setMobile(callLogReq.getData().getTel());
+        entity.setSid(callLogReq.getData().getSid());
+        entity.setUid(callLogReq.getData().getUid());
+        entity.setPlatform(sockpuppet);
+        
+        return entity;
+    }
 }
