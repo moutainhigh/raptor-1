@@ -1,16 +1,20 @@
 <!DOCTYPE html>
-<html lang="en" xmlns="http://www.thymeleaf.org" xmlns:th="http://www.w3.org/1999/xhtml">
+<html lang="en">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Document</title>
-  <link rel="stylesheet" th:href="@{/styles/normalize.css}">
-  <link rel="stylesheet" th:href="@{/styles/feedback.css}">
-  <style  th:inline="text">
+  <link rel="stylesheet" href="./styles/normalize.css">
+  <link rel="stylesheet" href="./styles/feedback.css">
+  <style>
     .logo-status {
-      background-image: url([[@{/images/fail.png}]]);
+      background-image: url(./images/wait.png);
+    }
+
+    .btn-next {
+      margin-top: 35vw !important;
     }
   </style>
 </head>
@@ -19,13 +23,12 @@
   <div class="wrapper">
     <div class="logo-status"></div>
     <div class="msg-part">
-      <div class="msg">支付失败</div>
+      <div class="msg"></div>
       <div class="order">
-        交易号: <span class="order-number" th:text="${code}"></span>
+        交易号: <span class="order-number">MLAISJAODOADA</span>
       </div>
-      <div style="display: none" th:text="${message}"></div>
     </div>
-    <div class="tip">请稍后重新尝试，或联系客服</div>
+    <div class="tip">请耐心等待支付结果</div>
     <div class="btn green btn-next">
       重新支付
     </div>
