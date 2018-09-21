@@ -19,6 +19,15 @@ public class TimeUtils {
         return calendar.getTimeInMillis();
     }
 
+    public static Calendar extractDateTime(Calendar calendar) {
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+
+        return calendar;
+    }
+
     /** 天数差：4月15日 - 4月16日 差1天，根据业务需要决定是否计头计尾 */
     public static int dateDiff (long start, long end) {
         return new Long ((extractDateTime(end) - extractDateTime(start)) / EngineStaticValue.DAY_MILLIS).intValue();

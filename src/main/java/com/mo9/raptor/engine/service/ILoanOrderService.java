@@ -1,6 +1,7 @@
 package com.mo9.raptor.engine.service;
 
 import com.mo9.raptor.bean.condition.FetchLoanOrderCondition;
+import com.mo9.raptor.engine.entity.LendOrderEntity;
 import com.mo9.raptor.engine.entity.LoanOrderEntity;
 import org.springframework.data.domain.Page;
 
@@ -39,6 +40,14 @@ public interface ILoanOrderService {
      */
     LoanOrderEntity getLastIncompleteOrder(String userCode);
 
+    /**
+     * 获取上一条为完成的订单
+     * @param userCode
+     * @param processing
+     * @return
+     */
+    LoanOrderEntity getLastIncompleteOrder(String userCode, List<String> processing);
+
 
     /**
      * 根据还款日获取订单
@@ -47,4 +56,11 @@ public interface ILoanOrderService {
      * @return
      */
     List<LoanOrderEntity> listByRepaymentDate(Long begin, Long end);
+
+    /**
+     * 创建放款订单及借款订单
+     * @param loanOrder
+     * @param lendOrder
+     */
+    void saveLendOrder(LoanOrderEntity loanOrder, LendOrderEntity lendOrder) throws Exception;
 }

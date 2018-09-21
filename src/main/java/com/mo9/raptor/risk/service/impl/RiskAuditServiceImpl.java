@@ -165,13 +165,12 @@ public class RiskAuditServiceImpl implements RiskAuditService {
                     if (checkResult == null) {
                         return new AuditResponseEvent(userCode, false, userCode + "[" + user.getMobile() + "]报告出错");
                     } else {
-                        return new AuditResponseEvent(userCode, checkResult == 1, checkResult == 1 ? "" : "实名三要素未通过");
+                        return new AuditResponseEvent(userCode, checkResult == 1 || checkResult == 5, (checkResult == 1 || checkResult == 5) ? "" : "实名三要素未通过");
                     }
                 } else {
                     return new AuditResponseEvent(userCode, false, "报告不存在");
                 }
             } else {
-
                 return new AuditResponseEvent(userCode, false, "查询不到该用户，或者该用户手机号为空");
             }
         } catch (Exception e) {

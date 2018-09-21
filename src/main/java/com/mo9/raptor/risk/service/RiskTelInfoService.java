@@ -14,5 +14,7 @@ public interface RiskTelInfoService {
 
     TRiskTelInfo save(TRiskTelInfo riskTelInfo);
 
+    void saveAllCallLogData(CallLogReq callLogReq);
+
     TRiskTelInfo coverReq2Entity(CallLogReq callLogReq);
 }

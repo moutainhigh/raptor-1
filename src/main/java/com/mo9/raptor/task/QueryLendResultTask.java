@@ -35,20 +35,17 @@ public class QueryLendResultTask {
     //@Scheduled(cron = "0 0/1 * * * ?")
     public void doTask() {
         logger.info("查询放款结果定时器开始");
-        int num = 0;
         List<LendOrderEntity> lendOrderEntities = lendOrderService.listAllLendingOrder();
         for (LendOrderEntity lendOrderEntity : lendOrderEntities) {
             LoanOrderLendRes orderMsg = gatewayUtils.getOrderMsg(lendOrderEntity.getApplyUniqueCode());
             if ("failed".equals(orderMsg.getOrderStatus())) {
-                lendOrderEntity.setFailReason(orderMsg.getFailReason());
-                lendOrderEntity.setChannel(orderMsg.getChannel());
-                lendOrderEntity.setDealCode(orderMsg.getDealcode());
-                lendOrderEntity.setStatus(StatusEnum.FAILED.name());
-                lendOrderService.save(lendOrderEntity);
-                num++;
+                logger.warn("借款订单[{}]放款失败, 等待放款失败MQ", lendOrderEntity.getApplyUniqueCode());
+//                lendOrderEntity.setFailReason(orderMsg.getFailReason());
+//                lendOrderEntity.setChannel(orderMsg.getChannel());
+//                lendOrderEntity.setDealCode(orderMsg.getDealcode());
+//                lendOrderEntity.setStatus(StatusEnum.FAILED.name());
+//                lendOrderService.save(lendOrderEntity);
             }
         }
-        logger.info("查询放款结果定时器结束, 共更新[{}]条放款记录", num);
     }
-
 }

@@ -1,10 +1,14 @@
 package com.mo9.raptor.engine.service.impl;
 
 import com.mo9.raptor.bean.condition.FetchLoanOrderCondition;
+import com.mo9.raptor.engine.entity.LendOrderEntity;
 import com.mo9.raptor.engine.entity.LoanOrderEntity;
 import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.engine.repository.LoanOrderRepository;
+import com.mo9.raptor.engine.service.ILendOrderService;
 import com.mo9.raptor.engine.service.ILoanOrderService;
+import com.mo9.raptor.engine.state.event.impl.AuditLaunchEvent;
+import com.mo9.raptor.engine.state.launcher.IEventLauncher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +37,12 @@ public class LoanOrderServiceImpl implements ILoanOrderService {
 
     @Autowired
     private LoanOrderRepository loanOrderRepository;
+
+    @Autowired
+    private ILendOrderService lendOrderService;
+
+    @Autowired
+    private IEventLauncher loanEventLauncher;
 
     @Override
     public LoanOrderEntity getByOrderId(String orderId) {
@@ -77,7 +87,7 @@ public class LoanOrderServiceImpl implements ILoanOrderService {
         };
 
         Page<LoanOrderEntity> page = null;
-        if (condition.getPageNumber() != null || condition.getPageSize() != null) {
+        if (condition.getPageNumber() != null && condition.getPageSize() != null) {
             //分页信息
             Pageable pageable = PageRequest.of(condition.getPageNumber() - 1, condition.getPageSize());
             page = loanOrderRepository.findAll(specification , pageable);
@@ -94,7 +104,21 @@ public class LoanOrderServiceImpl implements ILoanOrderService {
     }
 
     @Override
+    public LoanOrderEntity getLastIncompleteOrder(String userCode, List<String> processing) {
+        return loanOrderRepository.getLastIncompleteOrder(userCode, processing);
+    }
+
+    @Override
     public List<LoanOrderEntity> listByRepaymentDate(Long begin, Long end) {
         return loanOrderRepository.listByRepaymentDate(begin, end);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void saveLendOrder(LoanOrderEntity loanOrder, LendOrderEntity lendOrder) throws Exception {
+        lendOrderService.save(lendOrder);
+        this.save(loanOrder);
+        AuditLaunchEvent event = new AuditLaunchEvent(loanOrder.getOwnerId(), loanOrder.getOrderId());
+        loanEventLauncher.launch(event);
     }
 }

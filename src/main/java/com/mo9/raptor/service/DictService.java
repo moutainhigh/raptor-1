@@ -35,4 +35,11 @@ public interface DictService {
      * @return
      */
     String findDictName(String dictTypeNo, String dictDataNo);
+
+    /**
+     * 修改数据字典
+     * @param dictData
+     * @return
+     */
+    DictDataEntity updateDictData(DictDataEntity dictData);
 }

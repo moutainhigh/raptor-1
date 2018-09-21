@@ -7,6 +7,15 @@ package com.mo9.raptor.bean;
  */
 public interface MessageVariable {
     /**
+     * 公司名称
+     */
+    String COMPANY = "XXX有限公司";
+    /**
+     * 公司简称名称
+     */
+    String SIMPLE_COMPANY = "XXX";
+
+    /**
      * 产品名称
      */
     String RAPTOR_SIGN_NAME = "天天有钱";
