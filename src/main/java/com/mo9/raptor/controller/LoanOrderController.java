@@ -158,8 +158,7 @@ public class LoanOrderController {
                 loanOrder.setClientVersion(clientVersion);
 
                 long now = System.currentTimeMillis();
-                Long today = TimeUtils.extractDateTime(now);
-                loanOrder.setRepaymentDate(today + loanTerm * EngineStaticValue.DAY_MILLIS);
+                loanOrder.setRepaymentDate(now + loanTerm * EngineStaticValue.DAY_MILLIS);
                 loanOrder.setCreateTime(now);
                 loanOrder.setUpdateTime(now);
 
@@ -184,7 +183,7 @@ public class LoanOrderController {
                 if (StringUtils.isBlank(req.getCardMobile())) {
                     lendOrder.setBankMobile(bankEntity.getMobile());
                 } else {
-                    lendOrder.setBankMobile(req.getCard());
+                    lendOrder.setBankMobile(req.getCardMobile());
                 }
                 lendOrder.setStatus(StatusEnum.PENDING.name());
                 lendOrder.setType("");
