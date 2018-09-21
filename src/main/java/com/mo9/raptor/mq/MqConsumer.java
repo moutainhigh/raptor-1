@@ -22,37 +22,37 @@ import java.util.Properties;
  * mq监听器配置
  * @author xtgu
  */
-//@Component
+@Component
 public class MqConsumer extends AliyunMqConsumer {
 
   /**
    * 消费者ID
    */
-//  @Value("${aliyun.mq.consumer.id}")
+  @Value("${aliyun.mq.consumer.id}")
   private String consumerId;
 
   /**
    * 阿里云身份验证accessKey，在阿里云服务器管理控制台创建
    */
-//  @Value("${aliyun.mq.access.key}")
+  @Value("${aliyun.mq.access.key}")
   private String accessKey;
 
   /**
    * 阿里云身份验证secretKey，在阿里云服务器管理控制台创建
    */
-//  @Value("${aliyun.mq.secret.key}")
+  @Value("${aliyun.mq.secret.key}")
   private String secretKey;
 
   /**
    * 阿里云服务地址
    */
-//  @Value("${aliyun.mq.ons.addr}")
+  @Value("${aliyun.mq.ons.addr}")
   private String onsAddr;
 
   /**
    * 监听的topic - 先玩后付
    */
-//  @Value("${aliyun.mq.gateway.topic}")
+  @Value("${aliyun.mq.gateway.topic}")
   private String gatewayTopic;
 
   /**
