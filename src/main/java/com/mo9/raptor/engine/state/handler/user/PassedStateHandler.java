@@ -23,7 +23,7 @@ class PassedStateHandler implements IStateHandler<UserEntity> {
         if (event instanceof BlackEvent) {
             BlackEvent blackEvent = (BlackEvent) event;
             user.setStatus(StatusEnum.BLACK.name());
-            user.setDescription(user.getDescription() + " " + event.getEventTime() + ":" + blackEvent.getExplanation());
+            user.setDescription(user.getDescription() + event.getEventTime() + ":" + blackEvent.getExplanation() + ";");
         } else {
             throw new InvalidEventException("用户状态与事件类型不匹配，状态：" + user.getStatus() + "，事件：" + event);
         }

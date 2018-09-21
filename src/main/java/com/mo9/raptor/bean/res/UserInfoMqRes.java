@@ -43,6 +43,11 @@ public class UserInfoMqRes {
     private String contactsList;
 
     /**
+     * 性别
+     */
+    private Integer gender;
+
+    /**
      * 是否已删除
      */
     private Boolean deleted;
@@ -133,5 +138,13 @@ public class UserInfoMqRes {
 
     public void setDeleted(Boolean deleted) {
         this.deleted = deleted;
+    }
+
+    public Integer getGender() {
+        return gender;
+    }
+
+    public void setGender(Integer gender) {
+        this.gender = gender;
     }
 }

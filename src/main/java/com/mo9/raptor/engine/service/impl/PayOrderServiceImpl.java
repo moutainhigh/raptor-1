@@ -13,10 +13,12 @@ import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.repository.PayOrderRepository;
 import com.mo9.raptor.service.PayOrderLogService;
 import com.mo9.raptor.utils.GatewayUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -92,6 +94,9 @@ public class PayOrderServiceImpl implements IPayOrderService {
                 if(condition.getUserCode() != null){
                     list.add(cb.equal(root.get("ownerId").as(String.class) , condition.getUserCode()));
                 }
+                if (StringUtils.isNotBlank(condition.getLoanOrderNumber())) {
+                    list.add(cb.equal(root.get("loanOrderId").as(String.class) , condition.getLoanOrderNumber()));
+                }
                 if(condition.getFromTime() != null){
                     list.add(cb.ge(root.get("createTime").as(Long.class) , condition.getFromTime()));
                 }
@@ -128,9 +133,17 @@ public class PayOrderServiceImpl implements IPayOrderService {
             }
         };
         //分页信息
-        Pageable pageable = PageRequest.of(condition.getPageNumber() - 1, condition.getPageSize());
-        //查询
-        return payOrderRepository.findAll(specification , pageable);
+        Page<PayOrderEntity> page = null;
+        if (condition.getPageNumber() != null && condition.getPageSize() != null) {
+            //分页信息
+            Pageable pageable = PageRequest.of(condition.getPageNumber() - 1, condition.getPageSize());
+            page = payOrderRepository.findAll(specification , pageable);
+        } else {
+            List<PayOrderEntity> loanOrderEntityList = payOrderRepository.findAll(specification);
+            page = new PageImpl<PayOrderEntity>(loanOrderEntityList);
+        }
+
+        return page;
     }
 
     @Override

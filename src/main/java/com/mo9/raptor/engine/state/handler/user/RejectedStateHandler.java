@@ -24,10 +24,10 @@ class RejectedStateHandler implements IStateHandler<UserEntity> {
         if (event instanceof BlackEvent) {
             BlackEvent blackEvent = (BlackEvent) event;
             user.setStatus(StatusEnum.BLACK.name());
-            user.setDescription(user.getDescription() + " " + event.getEventTime() + ":" + blackEvent.getExplanation());
+            user.setDescription(user.getDescription() + event.getEventTime() + ":" + blackEvent.getExplanation() + ";");
         } else if (event instanceof CollectLaunchEvent) {
             user.setStatus(StatusEnum.COLLECTING.name());
-            user.setDescription(user.getDescription() + " " + event.getEventTime());
+            user.setDescription(user.getDescription() + event.getEventTime());
         } else {
             throw new InvalidEventException("还款订单状态与事件类型不匹配，状态：" + user.getStatus() + "，事件：" + event);
         }

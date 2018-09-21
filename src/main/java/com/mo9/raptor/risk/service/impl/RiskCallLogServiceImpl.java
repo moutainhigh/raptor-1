@@ -6,6 +6,7 @@ import com.mo9.raptor.risk.entity.TRiskCallLog;
 import com.mo9.raptor.risk.repo.RiskCallLogRepository;
 import com.mo9.raptor.risk.service.RiskCallLogService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -28,8 +29,15 @@ public class RiskCallLogServiceImpl implements RiskCallLogService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void batchSave(List<TRiskCallLog> callLogList){
-        riskCallLogRepository.saveAll(callLogList);
+        for (TRiskCallLog callLog : callLogList) {
+            TRiskCallLog exists = riskCallLogRepository.findOneCallLog(callLog.getMobile(), callLog.getCallTo(), callLog.getCallTime());
+            if (exists != null){
+                continue;
+            }
+            riskCallLogRepository.saveAndFlush(callLog);
+        }
     }
 
     @Override

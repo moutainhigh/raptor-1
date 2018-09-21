@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.mo9.mqclient.IMqMsgListener;
 import com.mo9.mqclient.MqAction;
 import com.mo9.mqclient.MqMessage;
+import com.mo9.raptor.bean.condition.FetchPayOrderCondition;
 import com.mo9.raptor.bean.res.LendInfoMqRes;
 import com.mo9.raptor.bean.res.RepayDetailRes;
 import com.mo9.raptor.bean.res.RepayInfoMqRes;
@@ -36,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -154,7 +156,23 @@ public class LoanMo9mqListener implements IMqMsgListener{
 
 		// TODO: 发送消息给贷后
         if ("success".equals(status)) {
-            //notifyMisRepay(payOrderLog);
+			// 增加延期次数
+            List<FetchPayOrderCondition.Type> type = new ArrayList<FetchPayOrderCondition.Type>();
+            type.add(FetchPayOrderCondition.Type.REPAY_POSTPONE);
+            List<FetchPayOrderCondition.Status> statuses = new ArrayList<FetchPayOrderCondition.Status>();
+            statuses.add(FetchPayOrderCondition.Status.ENTRY_DONE);
+            FetchPayOrderCondition condition = new FetchPayOrderCondition();
+            condition.setTypes(type);
+            condition.setStates(statuses);
+            PayOrderEntity payOrderEntity = payOrderService.getByOrderId(orderId);
+            condition.setLoanOrderNumber(payOrderEntity.getLoanOrderId());
+            Page<PayOrderEntity> payOrderEntities = payOrderService.listPayOrderByCondition(condition);
+            LoanOrderEntity loanOrderEntity = loanOrderService.getByOrderId(payOrderEntity.getLoanOrderId());
+			int count = payOrderEntities.getContent().size();
+			loanOrderEntity.setPostponeCount(count);
+            loanOrderEntity.setUpdateTime(System.currentTimeMillis());
+            loanOrderService.save(loanOrderEntity);
+			//notifyMisRepay(payOrderLog, count);
         }
 		return MqAction.CommitMessage;
 	}
@@ -180,68 +198,66 @@ public class LoanMo9mqListener implements IMqMsgListener{
 		String orderId = bodyJson.getString("orderId");
 		// 放款渠道
 		String lendChannel = bodyJson.getString("lendChannel");
-		if ("1".equals(status)) {
-			//银行卡卡号
-			String bankCardNo = bodyJson.getString("bankCardNo");
-			//银行预留身份证号
-			String bankIdcardNo = bodyJson.getString("bankIdcardNo");
-			//银行卡预留用户姓名
-			String bankUserName = bodyJson.getString("bankUserName");
-			//银行预留手机号码
-			String bankMobile = bodyJson.getString("bankMobile");
-			//银行名称
-			String bankName = bodyJson.getString("bankName");
-			// 支行
-			String bankBranch = bodyJson.getString("bankBranch");
-			// 实际放款金额
-			BigDecimal lendAmount = bodyJson.getBigDecimal("lendAmount");
-			//放款实际请求时间
-			Long lendReqpTime = bodyJson.getLong("lendReqpTime");
-			//放款渠道类型
-			String lendChannelType = bodyJson.getString("lendChannelType");
-			//事件ID
-			String eventId = bodyJson.getString("eventId");
-			//事件发送时间
-			Long eventTime = bodyJson.getLong("eventTime");
-			//操作者
-			String operator = bodyJson.getString("operator");
-			//事件类型
-			String eventType = bodyJson.getString("eventType");
 
-			try {
-				LendResponseEvent lendResponse = new LendResponseEvent(
-                        orderId,
-                        true,
-                        lendAmount,
-                        "先玩后付",
-                        lendId,
-                        channelResponse,
-                        lendSettleTime,
-                        "放款成功",
-						lendChannel);
-				lendEventLauncher.launch(lendResponse);
-			} catch (Exception e) {
-				logger.error("订单[{}]放款成功事件报错", orderId, e);
-			}
+		/*********下面参数暂无用**************/
+		//银行卡卡号
+		String bankCardNo = bodyJson.getString("bankCardNo");
+		//银行预留身份证号
+		String bankIdcardNo = bodyJson.getString("bankIdcardNo");
+		//银行卡预留用户姓名
+		String bankUserName = bodyJson.getString("bankUserName");
+		//银行预留手机号码
+		String bankMobile = bodyJson.getString("bankMobile");
+		//银行名称
+		String bankName = bodyJson.getString("bankName");
+		// 支行
+		String bankBranch = bodyJson.getString("bankBranch");
+		// 实际放款金额
+		BigDecimal lendAmount = bodyJson.getBigDecimal("lendAmount");
+		//放款实际请求时间
+		Long lendReqpTime = bodyJson.getLong("lendReqpTime");
+		//放款渠道类型
+		String lendChannelType = bodyJson.getString("lendChannelType");
+		//事件ID
+		String eventId = bodyJson.getString("eventId");
+		//事件发送时间
+		Long eventTime = bodyJson.getLong("eventTime");
+		//操作者
+		String operator = bodyJson.getString("operator");
+		//事件类型
+		String eventType = bodyJson.getString("eventType");
+
+
+		Boolean isSucceed = "1".equals(status);
+		LendResponseEvent lendResponse;
+		if (isSucceed) {
+			lendResponse = new LendResponseEvent(
+					orderId, true,
+					lendAmount, "先玩后付",
+					lendId, channelResponse,
+					lendSettleTime, "放款成功", lendChannel);
 		} else {
-            // 失败原因
-            String failReason = bodyJson.getString("failReason");
-			try {
-				logger.error("MQ接收到了订单[{}]放款失败的信息", orderId);
-				LendResponseEvent lendResponse = new LendResponseEvent(
-						orderId,
-						false,
-						"先玩后付",
-						lendId,
-						channelResponse,
-						"放款失败",
-						lendChannel,
-                        failReason);
-				lendEventLauncher.launch(lendResponse);
-			} catch (Exception e) {
-				logger.error("订单[{}]放款失败事件报错", orderId, e);
-			}
+			// 失败原因
+			String failReason = bodyJson.getString("failReason");
+			logger.error("MQ接收到了订单[{}]放款失败的信息", orderId);
+			lendResponse = new LendResponseEvent(
+					orderId, false,
+					"先玩后付", lendId,
+					channelResponse, "放款失败",
+					lendChannel, failReason);
 		}
+		try {
+			LendOrderEntity lendOrderEntity = lendOrderService.getByOrderId(orderId);
+			if (lendOrderEntity == null || !StatusEnum.LENDING.name().equals(lendOrderEntity.getStatus())) {
+				logger.info("接收到了订单[{}]放款的MQ, 然而查不到放款订单, 可能由于放款请求未结束而MQ先到, 延后再次发送MQ");
+				return MqAction.ReconsumeLater;
+			}
+
+			lendEventLauncher.launch(lendResponse);
+		} catch (Exception e) {
+			logger.error("订单[{}]放款[{}]事件报错,", orderId, isSucceed, e);
+		}
+
 		//修改或者存储银行卡信息 TODO
 
 		// TODO: 发送消息给贷后
@@ -260,6 +276,7 @@ public class LoanMo9mqListener implements IMqMsgListener{
 		LoanOrderEntity loanOrderEntity = loanOrderService.getByOrderId(orderId);
 		LendInfoMqRes lendInfo = new LendInfoMqRes();
         BeanUtils.copyProperties(lendOrderEntity, lendInfo);
+        lendInfo.setLoanOrderId(lendOrderEntity.getApplyUniqueCode());
         lendInfo.setLoanNumber(loanOrderEntity.getLoanNumber());
         lendInfo.setLoanTerm(loanOrderEntity.getLoanTerm());
         lendInfo.setLentNumber(loanOrderEntity.getLentNumber());
@@ -290,6 +307,7 @@ public class LoanMo9mqListener implements IMqMsgListener{
         userInfo.setCallHistory(userEntity.getCallHistory());
         UserContactsEntity userContactsEntity = userContactsService.getByUserCode(ownerId);
         userInfo.setContactsList(userContactsEntity.getContactsList());
+        userInfo.setGender(userCertifyInfoEntity.getOcrGender());
         userInfo.setDeleted(userEntity.getDeleted());
 
         JSONObject result = new JSONObject();
@@ -304,7 +322,7 @@ public class LoanMo9mqListener implements IMqMsgListener{
      * 通知贷后还款
      * @param payOrderLog  还款log
      */
-    private void notifyMisRepay(PayOrderLogEntity payOrderLog) {
+    private void notifyMisRepay(PayOrderLogEntity payOrderLog, Integer postponeCount) {
         RepayInfoMqRes repayInfo = new RepayInfoMqRes();
         BeanUtils.copyProperties(payOrderLog, repayInfo);
 
@@ -312,6 +330,8 @@ public class LoanMo9mqListener implements IMqMsgListener{
         repayInfo.setPostponeDays(payOrderEntity.getPostponeDays());
         String status = payOrderEntity.getStatus();
         repayInfo.setEntryDone(StatusEnum.ENTRY_DONE.name().equals(status));
+        repayInfo.setPayType(payOrderEntity.getType());
+        repayInfo.setPostponeDays(postponeCount);
 
         List<RepayDetailRes> repayDetail = payOrderDetailService.getRepayDetail(payOrderEntity.getOrderId());
         repayInfo.setRepayDetail(repayDetail);

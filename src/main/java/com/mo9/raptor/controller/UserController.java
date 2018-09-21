@@ -19,9 +19,9 @@ import com.mo9.raptor.utils.CommonUtils;
 import com.mo9.raptor.utils.CommonValues;
 import com.mo9.raptor.utils.IpUtils;
 import com.mo9.raptor.utils.RegexUtils;
+import com.mo9.raptor.utils.log.Log;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.validation.annotation.Validated;
@@ -42,7 +42,7 @@ import java.util.UUID;
 @RequestMapping(value = "/user")
 public class UserController {
 
-    private static Logger logger = LoggerFactory.getLogger(UserController.class);
+    private static Logger logger = Log.get();
 
     @Autowired
     UserService userService;
@@ -78,12 +78,14 @@ public class UserController {
         //校验手机号是否合法，不合法登录失败
         boolean check = RegexUtils.checkChinaMobileNumber(mobile);
         if (!check) {
+            logger.warn("用户登录----->>>>手机号=[{}]不合法",mobile);
             return response.buildFailureResponse(ResCodeEnum.MOBILE_NOT_MEET_THE_REQUIRE);
         }
         try {
             //检查用户是否在白名单，并可用
             UserEntity userEntity = userService.findByMobileAndDeleted(mobile,false);
             if (userEntity == null) {
+                logger.warn("用户登录----->>>>手机号=[{}]非白名单用户",mobile);
                 return response.buildFailureResponse(ResCodeEnum.NOT_WHITE_LIST_USER);
             }
             //校验验证码是否正确
@@ -103,11 +105,12 @@ public class UserController {
             userEntity.setLastLoginTime(System.currentTimeMillis());
             userEntity.setUserIp(IpUtils.getRemoteHost(request));
             userService.save(userEntity);
+            logger.info("用户登录成功----->>>>手机号=[{}]",mobile);
         } catch (IOException e) {
-            logger.error("用户登录----->>>>验证码发送发生异常{}",e);
+            Log.error(logger,e,"用户登录----->>>>验证码发送发生异常,手机号={}",mobile);
             return response.buildFailureResponse(ResCodeEnum.CAPTCHA_SEND_FAILED);
         } catch (Exception e) {
-            logger.error("用户登录----->>>>发生异常{}",e);
+            Log.error(logger,e,"用户登录----->>>>发生异常,手机号={}",mobile);
             return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
         }
         return response.buildSuccessResponse(resMap);
@@ -184,7 +187,7 @@ public class UserController {
             userService.updateCertifyInfo(userEntity,true);
             return response.buildSuccessResponse(true);
         }catch (Exception e){
-            logger.error("修改账户身份认证信息-->系统内部异常", e);
+            Log.error(logger,e,"修改账户身份认证信息-->系统内部异常");
             return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
         }
     }
@@ -209,7 +212,7 @@ public class UserController {
             redisServiceApi.remove(RedisParams.getAccessToken(clientId,userCode), raptorRedis);
             return response.buildSuccessResponse(true);
         }catch (Exception e){
-            logger.error("用户登出-->系统内部异常", e);
+            Log.error(logger,e,"用户登出-->系统内部异常");
             return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
         }
 
@@ -266,7 +269,7 @@ public class UserController {
             }
             auditStatusRes.setAccountBankCard(accountBankCardRes);
         } catch (Exception e) {
-            logger.error("查询用户审核状态----->>>>发生异常{}",e);
+            Log.error(logger,e,"查询用户审核状态----->>>>发生异常,userCode={}",userCode);
             return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
         }
         map.put("entity",auditStatusRes);
@@ -287,10 +290,11 @@ public class UserController {
             if (userEntity !=null){
                 userService.updateCallHistory(userEntity,true);
             }else {
-                logger.warn("通讯录授权成功,用户点击完成接口----->>>>userCode={},未查询到用户",userCode);
+                logger.warn("通讯录授权失败,用户点击完成接口----->>>>userCode={},未查询到用户",userCode);
+                return response.buildFailureResponse(ResCodeEnum.NOT_WHITE_LIST_USER);
             }
         } catch (Exception e) {
-            logger.error("通讯录授权成功,用户点击完成接口----->>>>userCode={},发生异常{}",userCode,e);
+            Log.error(logger,e,"通讯录授权成功,用户点击完成接口----->>>>发生异常 userCode={}",userCode);
             return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
         }
         return response.buildSuccessResponse("ok");

@@ -25,6 +25,16 @@ public class RepayInfoMqRes {
     private String payOrderId;
 
     /**
+     * 还款类型
+     */
+    private String payType;
+
+    /**
+     * 延期次数
+     */
+    private Integer postponeCount;
+
+    /**
      * 还款申请金额
      */
     private BigDecimal repayAmount;
@@ -230,5 +240,21 @@ public class RepayInfoMqRes {
 
     public void setShouldPay(List<RepayDetailRes> shouldPay) {
         this.shouldPay = shouldPay;
+    }
+
+    public String getPayType() {
+        return payType;
+    }
+
+    public void setPayType(String payType) {
+        this.payType = payType;
+    }
+
+    public Integer getPostponeCount() {
+        return postponeCount;
+    }
+
+    public void setPostponeCount(Integer postponeCount) {
+        this.postponeCount = postponeCount;
     }
 }
