@@ -122,13 +122,6 @@ public class CaptchaServiceImpl implements CaptchaService {
         if (StringUtils.isBlank(redisCaptcha)) {
             return ResCodeEnum.CAPTCHA_IS_INVALID;
         }
-        //TODO 验证码0000 则验证通过，上线须删除
-        if ("0000".equals(captcha)){
-            if(isClearCaptcha){
-                redisServiceApi.remove(key, redisTemplate);
-            }
-            return ResCodeEnum.SUCCESS;
-        }
 
         if (!redisCaptcha.equals(captcha)) {
             return ResCodeEnum.CAPTCHA_CHECK_ERROR;
