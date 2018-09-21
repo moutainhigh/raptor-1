@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 /**
@@ -70,24 +71,25 @@ public abstract class AbstractLoanCalculator implements ILoanCalculator {
             return item;
         }
 
-//        Calendar userDate = Calendar.getInstance();
-//        userDate.setTimeInMillis(date);
-//        Calendar repaymentDate = Calendar.getInstance();
-//        repaymentDate.setTimeInMillis(loanOrder.getRepaymentDate());
+        // 把时间设为当前时间
+        Calendar userDate = Calendar.getInstance();
+        userDate.setTimeInMillis(date);
+        userDate = TimeUtils.extractDateTime(userDate);
+        Calendar repaymentDate = Calendar.getInstance();
+        repaymentDate.setTimeInMillis(loanOrder.getRepaymentDate());
+        repaymentDate = TimeUtils.extractDateTime(repaymentDate);
 
-        Long repaymentDate = loanOrder.getRepaymentDate();
         // 重新设置还款日
-        item.setRepayDate(repaymentDate);
-        date = TimeUtils.extractDateTime(date);
+        item.setRepayDate(loanOrder.getRepaymentDate());
         Field penaltyField = new Field();
         penaltyField.setFieldType(FieldTypeEnum.PENALTY);
-        if (date > repaymentDate) {
+        if (userDate.after(repaymentDate))  {
             // 计算逾期费
-            Long overDueDate = (date - repaymentDate) / EngineStaticValue.DAY_MILLIS;
+            Long overDueDate = (userDate.getTimeInMillis() - repaymentDate.getTimeInMillis()) / EngineStaticValue.DAY_MILLIS;
             BigDecimal penalty = loanOrder.getPenaltyValue().multiply(new BigDecimal(overDueDate));
             penaltyField.setNumber(penalty);
             item.setItemType(ItemTypeEnum.PREVIOUS);
-        } else if (date.equals(repaymentDate)) {
+        } else if (userDate.equals(repaymentDate)) {
             penaltyField.setNumber(BigDecimal.ZERO);
             item.setItemType(ItemTypeEnum.PERIOD);
         } else {
@@ -246,7 +248,11 @@ public abstract class AbstractLoanCalculator implements ILoanCalculator {
                 // 第一次加上罚息
                 unit.put("amount", item.sum().subtract(item.getFieldNumber(FieldTypeEnum.PRINCIPAL)).multiply(new BigDecimal(i)));
             } else {
-                unit.put("amount", item.sum().subtract(item.getFieldNumber(FieldTypeEnum.PRINCIPAL)).subtract(item.getFieldNumber(FieldTypeEnum.PENALTY)).multiply(new BigDecimal(i)));
+                unit.put("amount", item.sum()
+                        .subtract(item.getFieldNumber(FieldTypeEnum.PRINCIPAL))
+                        .subtract(item.getFieldNumber(FieldTypeEnum.PENALTY))
+                        .multiply(new BigDecimal(i))
+                        .add(item.getFieldNumber(FieldTypeEnum.PENALTY)));
             }
             renew.add(unit);
         }

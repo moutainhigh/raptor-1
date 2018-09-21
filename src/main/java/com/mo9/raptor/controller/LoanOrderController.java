@@ -1,6 +1,7 @@
 package com.mo9.raptor.controller;
 
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.mo9.raptor.bean.BaseResponse;
 import com.mo9.raptor.bean.ReqHeaderParams;
 import com.mo9.raptor.bean.req.OrderAddReq;
@@ -14,7 +15,6 @@ import com.mo9.raptor.engine.service.ILendOrderService;
 import com.mo9.raptor.engine.service.ILoanOrderService;
 import com.mo9.raptor.engine.structure.item.Item;
 import com.mo9.raptor.engine.utils.EngineStaticValue;
-import com.mo9.raptor.engine.utils.TimeUtils;
 import com.mo9.raptor.entity.BankEntity;
 import com.mo9.raptor.entity.DictDataEntity;
 import com.mo9.raptor.entity.LoanProductEntity;
@@ -222,6 +222,7 @@ public class LoanOrderController {
             }
             ILoanCalculator calculator = loanCalculatorFactory.load(loanOrderEntity);
             Item realItem = calculator.realItem(System.currentTimeMillis(), loanOrderEntity, PayTypeEnum.REPAY_AS_PLAN.name());
+            // System.out.println(JSONObject.toJSONString(realItem, SerializerFeature.PrettyFormat));
 
             LoanOrderRes res = new LoanOrderRes();
             res.setOrderId(loanOrderEntity.getOrderId());
