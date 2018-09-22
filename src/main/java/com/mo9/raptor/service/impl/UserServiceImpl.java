@@ -90,7 +90,6 @@ public class UserServiceImpl implements UserService {
         userEntity.setReceiveCallHistory(b);
         userEntity.setCallHistory(b);
         this.save(userEntity);
-        checkAuditStatus(userEntity);
     }
 
     @Override
@@ -113,8 +112,7 @@ public class UserServiceImpl implements UserService {
         Boolean mobileContacts = userEntity.getMobileContacts();
         Boolean callHistory = userEntity.getCallHistory();
         Boolean bankCardSet = userEntity.getBankCardSet();
-        Boolean receiveCallHistory = userEntity.getReceiveCallHistory();
-        if (callHistory && certifyInfo && mobileContacts && receiveCallHistory && bankCardSet) {
+        if (callHistory && certifyInfo && mobileContacts && bankCardSet) {
             // 信息采集完成 发起审核
             userEntity.setAuthTime(System.currentTimeMillis());
             AuditLaunchEvent auditLaunchEvent = new AuditLaunchEvent(userEntity.getUserCode(),userEntity.getUserCode());
