@@ -61,18 +61,16 @@ public class CaptchaController {
     public BaseResponse<Boolean> sendMeSmsVerificationCode(@RequestBody @Validated SendSmsVerificationCodeReq sendSmsVerificationCodeReq, HttpServletRequest request) {
         BaseResponse<Boolean> response = new BaseResponse<>();
         String mobile = sendSmsVerificationCodeReq.getMobile();
-
-        /**   逻辑修缮 by James 18/09/16    */
-        //这里就要判断用户是否再名单之列
-        UserEntity user = userService.findByMobileAndDeleted(mobile,false);
-        if(null == user){
-            logger.warn("发送登录验证码-------->>>>>>>>非白名单用户[{}]", mobile);
-            return response.buildFailureResponse(ResCodeEnum.NOT_WHITE_LIST_USER);
-        }
-
         CaptchaBusinessEnum reason = CaptchaBusinessEnum.LOGIN;
-        Boolean sendRes = false;
         try{
+            /**   逻辑修缮 by James 18/09/16    */
+            //这里就要判断用户是否再名单之列
+            UserEntity user = userService.findByMobileAndDeleted(mobile,false);
+            if(null == user){
+                logger.warn("发送登录验证码-------->>>>>>>>非白名单用户[{}]", mobile);
+                return response.buildFailureResponse(ResCodeEnum.NOT_WHITE_LIST_USER);
+            }
+            Boolean sendRes = false;
             //判断ip获取验证码频率是否超出限制（暂定每小时最多获取10次）
             Boolean limitIpRes = captchaService.checkRateLimitIp(request, 3600L, 10);
             if (!limitIpRes) {
@@ -106,20 +104,25 @@ public class CaptchaController {
     @RequestMapping(value = "/send_graph_code")
     public void getGraphicCode(HttpServletResponse request, @RequestParam("userCode") String captchaKey) throws IOException {
 
-        //生成图形验证码
-        validateGraphicCode.createCode();
-        String code = validateGraphicCode.getCode();
-        // 存储到redis
-        redisServiceApi.set(RedisParams.GRAPHIC_CAPTCHA_KEY + captchaKey, code, RedisParams.EXPIRE_5M, raptorRedis);
-        logger.info("图片验证码: [{}]", code);
-        // 禁止图像缓存。
-        request.setHeader("Pragma", "no-cache");
-        request.setHeader("Cache-Control", "no-cache");
-        request.setDateHeader("Expires", 0);
-        //设置响应图片格式
-        request.setContentType("image/png");
-        // 将图像输出到Servlet输出流中。
-        ImageIO.write(validateGraphicCode.getBuffImg(), "png", request.getOutputStream());
+        try{
+            //生成图形验证码
+            validateGraphicCode.createCode();
+            String code = validateGraphicCode.getCode();
+            // 存储到redis
+            redisServiceApi.set(RedisParams.GRAPHIC_CAPTCHA_KEY + captchaKey, code, RedisParams.EXPIRE_5M, raptorRedis);
+            logger.info("图片验证码: [{}]", code);
+            // 禁止图像缓存。
+            request.setHeader("Pragma", "no-cache");
+            request.setHeader("Cache-Control", "no-cache");
+            request.setDateHeader("Expires", 0);
+            //设置响应图片格式
+            request.setContentType("image/png");
+            // 将图像输出到Servlet输出流中。
+            ImageIO.write(validateGraphicCode.getBuffImg(), "png", request.getOutputStream());
+        }catch (Exception e){
+            Log.error(logger, e,"生成图形验证码出现异常");
+        }
+
     }
 
     /**
@@ -137,7 +140,7 @@ public class CaptchaController {
         try {
             response = checkCaptcha(RedisParams.GRAPHIC_CAPTCHA_KEY + graphicKey, captcha, response);
         } catch (Exception e) {
-            Log.error(e,"图形验证发生异常");
+            Log.error(logger, e,"图形验证发生异常");
 
         }
         return response;
