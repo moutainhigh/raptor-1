@@ -33,6 +33,7 @@ import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.PayTypeEnum;
 import com.mo9.raptor.mq.producer.RabbitProducer;
 import com.mo9.raptor.service.*;
+import com.mo9.raptor.utils.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -51,8 +52,8 @@ import java.util.Map;
  */
 @Component
 public class LoanMo9mqListener implements IMqMsgListener{
-	
-	private static final Logger logger = LoggerFactory.getLogger(LoanMo9mqListener.class);
+
+	private static Logger logger = Log.get();
 
 	@Autowired
 	private BankService bankService ;
@@ -149,7 +150,7 @@ public class LoanMo9mqListener implements IMqMsgListener{
 		try {
 			payEventLauncher.launch(event);
 		} catch (Exception e) {
-			logger.error("发送还款订单[{}]还款成功事件异常", orderId, e);
+			Log.error(logger , e , "发送还款订单[{}]还款成功事件异常", orderId);
 		}
 
 		//修改或者存储银行卡信息 TODO
@@ -255,7 +256,7 @@ public class LoanMo9mqListener implements IMqMsgListener{
 
 			lendEventLauncher.launch(lendResponse);
 		} catch (Exception e) {
-			logger.error("订单[{}]放款[{}]事件报错,", orderId, isSucceed, e);
+			Log.error(logger , e ,"订单[{}]放款[{}]事件报错,", orderId, isSucceed);
 		}
 
 		//修改或者存储银行卡信息 TODO

@@ -5,6 +5,7 @@ import com.mo9.raptor.bean.BaseResponse;
 import com.mo9.raptor.bean.res.ProductRes;
 import com.mo9.raptor.entity.LoanProductEntity;
 import com.mo9.raptor.service.LoanProductService;
+import com.mo9.raptor.utils.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,8 +26,7 @@ import java.util.List;
 @RequestMapping("/loan_quota")
 public class LoanQuotaController {
 
-    private static final Logger logger = LoggerFactory.getLogger(LoanQuotaController.class);
-
+    private static Logger logger = Log.get();
     @Autowired
     private LoanProductService productService ;
 
