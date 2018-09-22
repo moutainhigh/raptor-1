@@ -209,6 +209,7 @@ public class AgreementController {
             variables.put("sign", MessageVariable.RAPTOR_SIGN_NAME);
             variables.put("simpleCompany", MessageVariable.SIMPLE_COMPANY);
             variables.put("companyStamp",COMPANY_STAMP);
+            variables.put("serviceMailbox",MessageVariable.SERVICE_MAILBOX);
             String process = ModelUtils.process(readStreamToString(stream), variables);
             model.addAttribute("content",process);
             model.addAttribute("title","用户服务协议");

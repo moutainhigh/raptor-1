@@ -90,6 +90,9 @@ public class UserServiceImpl implements UserService {
         userEntity.setReceiveCallHistory(b);
         userEntity.setCallHistory(b);
         this.save(userEntity);
+        if (b){
+            checkAuditStatus(userEntity);
+        }
     }
 
     @Override
