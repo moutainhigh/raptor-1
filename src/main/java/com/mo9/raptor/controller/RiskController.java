@@ -79,7 +79,7 @@ public class RiskController {
 
     @PostMapping(value = "/save_call_log")
     public String saveCallLogResult(@RequestBody String callLogJson){
-        logger.debug("----收到通话记录post数据-----> " + callLogJson);
+        logger.info("----收到通话记录post数据-----> " );
 
         CallLogReq callLogReq = JSONObject.parseObject(callLogJson, CallLogReq.class);
         
