@@ -84,6 +84,11 @@ public class TestController {
         }
     }
 
+    @RequestMapping("/test")
+    public String test(){
+        return "1";
+    }
+
     private String getRedisKey(String redisKey, String receive, CaptchaBusinessEnum businessCode){
         return redisKey + businessCode + "_" + receive;
     }
