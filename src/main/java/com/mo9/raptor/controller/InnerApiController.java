@@ -9,6 +9,7 @@ import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.engine.service.ILoanOrderService;
 import com.mo9.raptor.engine.service.IPayOrderService;
 import com.mo9.raptor.enums.PayTypeEnum;
+import com.mo9.raptor.utils.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -26,8 +27,7 @@ import java.util.List;
 @RequestMapping("/inner")
 public class InnerApiController {
 
-    private static final Logger logger = LoggerFactory.getLogger(InnerApiController.class);
-
+    private static Logger logger = Log.get();
     @Autowired
     private ILoanOrderService loanOrderService;
 

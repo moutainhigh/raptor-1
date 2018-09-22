@@ -8,6 +8,7 @@ import com.mo9.raptor.service.CaptchaService;
 import com.mo9.raptor.utils.IpUtils;
 import com.mo9.raptor.utils.MessageSend;
 import com.mo9.raptor.utils.RandomUtils;
+import com.mo9.raptor.utils.log.Log;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +35,7 @@ import static com.mo9.raptor.bean.MessageVariable.SIGN;
  */
 @Service(value = "captchaService")
 public class CaptchaServiceImpl implements CaptchaService {
-    private static final Logger logger = LoggerFactory.getLogger(CaptchaServiceImpl.class);
+    private static Logger logger = Log.get();
     @Resource
     private RedisServiceApi redisServiceApi;
 

@@ -9,13 +9,23 @@
   height: 12vw;
   line-height: 12vw;
   border-radius: 6vw;
-  background-color: #5782da;
   text-align: center;
   font-size: 3.73333vw;
   color: #fff;
   -webkit-box-shadow: 0 0.53333vw 1.6vw 0 #bfbfbf;
           box-shadow: 0 0.53333vw 1.6vw 0 #bfbfbf;
   cursor: pointer;
+  background-color: #5782da;
+}
+
+.btn.green {
+  background-color: #00e17f;
+  -webkit-box-shadow: none;
+          box-shadow: none;
+}
+
+.btn.grey {
+  background-color: #cfcfcf;
 }
 
 ul {
