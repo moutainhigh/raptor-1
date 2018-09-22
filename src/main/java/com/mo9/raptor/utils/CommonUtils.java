@@ -1,6 +1,7 @@
 package com.mo9.raptor.utils;
 
 import com.mo9.raptor.redis.RedisServiceApi;
+import com.mo9.raptor.utils.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +16,7 @@ import javax.annotation.Resource;
  */
 @Component
 public class CommonUtils {
-    private static final Logger logger = LoggerFactory.getLogger(CommonUtils.class);
+    private static Logger logger = Log.get();
 
     @Autowired
     private RedisServiceApi redisServiceApi;
@@ -38,7 +39,7 @@ public class CommonUtils {
                 try {
                     redisServiceApi.set(key , key , 5*60L , raptorRedis) ;
                 } catch (Exception e) {
-                    logger.error("银行卡验证 , 缓存次数异常 ! ");
+                    Log.error(logger , e ,"银行卡验证 , 缓存次数异常 ! ");
                 }
                 flag = true ;
                 break;
