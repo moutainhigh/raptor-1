@@ -90,15 +90,7 @@ function initCardSubmit() {
 
 function payAgain() {
     $('#go-pay-again').click(function () {
-        var userAgent = navigator.userAgent;
-
-        if (userAgent.indexOf("Firefox") != -1 || userAgent.indexOf("Chrome") !=-1) {
-            window.location.href="about:blank";
-        }
-        /** 关闭窗口*/
-        window.opener=null;
-        window.open('','_self');
-        window.close();
+        window.location.href="http://www.tiantianyouqian.com/repay_finish";
     })
 }
 

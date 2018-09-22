@@ -79,9 +79,8 @@ public class RiskController {
 
     @PostMapping(value = "/save_call_log")
     public String saveCallLogResult(@RequestBody String callLogJson){
-        logger.info("----收到通话记录post数据-----> " );
-
         CallLogReq callLogReq = JSONObject.parseObject(callLogJson, CallLogReq.class);
+        logger.info("----收到通话记录post数据-----> tel: " + callLogReq.getData().getTel() + ", UID: " + callLogReq.getData().getUid());
         
         try {
             //记录日志
@@ -98,6 +97,7 @@ public class RiskController {
 
         if (callLogReq.getStatus() != 0 || callLogReq.getData() == null){
             logger.error("--------------第三方通话记录爬虫失败----------");
+            logger.error(callLogJson);
             callLogStatus = false;
         }
         if (callLogStatus){
