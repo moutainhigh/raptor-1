@@ -62,7 +62,7 @@ public class AgreementController {
      */
     @GetMapping(value = "/service_agreement")
     public String getServiceAgreement(Model model, HttpServletRequest request) {
-        String userCode = request.getParameter("userCode");
+        String userCode = request.getParameter("accountCode");
         String orderId = request.getParameter("loanOrderId");
         InputStream stream = getClass().getClassLoader().getResourceAsStream("static/md/service_agreement.md");
         try {
@@ -137,7 +137,7 @@ public class AgreementController {
      */
     @GetMapping(value = "/loan_agreement")
     public String getLoanAgreement(Model model, HttpServletRequest request) {
-        String userCode = request.getParameter("userCode");
+        String userCode = request.getParameter("accountCode");
         String orderId = request.getParameter("loanOrderId");
         InputStream stream = getClass().getClassLoader().getResourceAsStream("static/md/loan_agreement.md");
         try {
