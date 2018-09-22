@@ -30,7 +30,6 @@ import java.util.List;
 @Service("riskAuditService")
 public class RiskAuditServiceImpl implements RiskAuditService {
 
-
     @Value("${raptor.sockpuppet}")
     private String sockpuppet;
 
@@ -146,8 +145,10 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         UserEntity user = userService.findByUserCode(userCode);
         try {
             if (user != null && StringUtils.isNotBlank(user.getMobile())) {
-                //String url = readEndpoint + "/" + sockpuppet + "-" + user.getMobile() + "-report.json";
-                String url = ossFileUpload.buildFileURL(sockpuppet + "-" + user.getMobile() + "-report.json");
+                String url = readEndpoint + "/" + sockpuppet + "-" + user.getMobile() + "-report.json";
+
+                //String url = ossFileUpload.buildFileURL(sockpuppet + "-" + user.getMobile() + "-report.json");
+                logger.info("读取报告" + url);
                 OkHttpClient okHttpClient = new OkHttpClient();
                 Response response = okHttpClient.newCall(new Request.Builder().get().url(url).build()).execute();
                 if (response.code() == HTTP_OK) {
