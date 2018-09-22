@@ -30,6 +30,7 @@ import com.mo9.raptor.service.DictService;
 import com.mo9.raptor.service.LoanProductService;
 import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.IDWorker;
+import com.mo9.raptor.utils.log.Log;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,8 +55,7 @@ import java.util.concurrent.TimeUnit;
 @RequestMapping("/order")
 public class LoanOrderController {
 
-    private static final Logger logger = LoggerFactory.getLogger(LoanOrderController.class);
-
+    private static Logger logger = Log.get();
     @Autowired
     private IDWorker idWorker;
 

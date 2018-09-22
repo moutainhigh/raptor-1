@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.bean.BaseResponse;
 import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.utils.CommonValues;
+import com.mo9.raptor.utils.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,8 +22,7 @@ import javax.servlet.http.HttpServletRequest;
 @RequestMapping(value = "/system")
 public class SystemController {
 
-    private static final Logger logger = LoggerFactory.getLogger(SystemController.class);
-
+    private static Logger logger = Log.get();
     @Value("${system.switch}")
     private String systemSwitch ;
 

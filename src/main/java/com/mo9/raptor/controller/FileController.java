@@ -7,6 +7,7 @@ import com.mo9.raptor.bean.req.FileReq;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.service.UserService;
+import com.mo9.raptor.utils.log.Log;
 import com.mo9.raptor.utils.oss.OSSFileUpload;
 import com.mo9.raptor.utils.upload.FileStreamTransformer;
 import com.mo9.raptor.utils.upload.SpringMultipartFileTransformer;
@@ -32,7 +33,7 @@ import java.util.Map;
 @RestController
 @RequestMapping(value = "/file")
 public class FileController {
-    private static Logger logger = LoggerFactory.getLogger(FileController.class);
+    private static Logger logger = Log.get();
 
     @Autowired
     private OSSFileUpload ossFileUpload;
