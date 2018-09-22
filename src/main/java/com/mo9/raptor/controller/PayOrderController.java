@@ -353,6 +353,10 @@ public class PayOrderController {
             return response.buildFailureResponse(ResCodeEnum.NO_REPAY_CHANNEL);
         }
 
+        if (!userName.equals(payInfoCache.getUserName()) && !idCard.equals(payInfoCache.getIdCard())) {
+            return response.buildFailureResponse(ResCodeEnum.INVALID_REPAY_INFO);
+        }
+
         String orderId = sockpuppet + "-" + String.valueOf(idWorker.nextId());
         PayOrderEntity payOrder = new PayOrderEntity();
         payOrder.setOrderId(orderId);
