@@ -27,6 +27,12 @@ public class SystemController {
     private String systemSwitch ;
 
     /**
+     * 临时添加默认值为空，防止线上启动报错
+     */
+    @Value("${contact.information:}")
+    private String contactInformation ;
+
+    /**
      * 查询系统是否开启
      * @return
      */
@@ -41,6 +47,17 @@ public class SystemController {
         }
         response.setData(returnJson);
         return response ;
+    }
+    /**
+     * 获取客服联系方式【新】
+     * @return
+     */
+    @GetMapping("/contact_information")
+    public BaseResponse<JSONObject> getContactInformation(){
+        BaseResponse<JSONObject> response = new BaseResponse<>();
+        JSONObject returnJson = new JSONObject() ;
+        returnJson.put("contactInformation",contactInformation);
+        return response.buildSuccessResponse(returnJson) ;
     }
 
 }
