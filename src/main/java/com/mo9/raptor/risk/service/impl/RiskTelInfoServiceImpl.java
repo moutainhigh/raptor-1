@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -36,7 +37,7 @@ public class RiskTelInfoServiceImpl implements RiskTelInfoService {
     public TRiskTelInfo save(TRiskTelInfo riskTelInfo) {
         TRiskTelInfo exists = riskTelInfoRepository.findByMobile(riskTelInfo.getMobile());
         if(exists != null){
-            return riskTelInfo;
+            return exists;
         }
         return riskTelInfoRepository.save(riskTelInfo);        
     }
