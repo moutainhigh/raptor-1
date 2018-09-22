@@ -198,7 +198,7 @@ public class LoanOrderController {
                 return response.buildFailureResponse(ResCodeEnum.GET_LOCK_FAILED);
             }
         } catch (Exception e) {
-            logger.error("借款订单[{}]审核出错", orderId, e);
+            Log.error(logger , e ,"借款订单[{}]审核出错", orderId);
             return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
         } finally {
             redisService.unlock(lock.getName());
@@ -240,7 +240,7 @@ public class LoanOrderController {
             map.put("entity",res);
             return response.buildSuccessResponse(map);
         } catch (Exception e) {
-            logger.error("用户[{}]获取上一笔未还清订单错误, ", userCode, e);
+            Log.error(logger , e , "用户[{}]获取上一笔未还清订单错误, ", userCode);
             return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
         }
     }
