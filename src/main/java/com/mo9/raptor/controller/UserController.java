@@ -127,36 +127,41 @@ public class UserController {
     public BaseResponse modifyBankCardInfo(@RequestBody @Validated BankReq bankReq, HttpServletRequest request) {
         BaseResponse response = new BaseResponse();
         String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
-        UserEntity userEntity = userService.findByUserCodeAndDeleted(userCode,false);
-        if(userEntity == null ){
-            //用户不存在
-            response.setCode(ResCodeEnum.NOT_WHITE_LIST_USER.getCode());
-            response.setMessage(ResCodeEnum.NOT_WHITE_LIST_USER.getMessage());
-            return response;
-        }
-        if(userEntity.getIdCard() == null){
-            //身份证不存在
-            response.setCode(ResCodeEnum.USER_CARD_ID_NOT_EXIST.getCode());
-            response.setMessage(ResCodeEnum.USER_CARD_ID_NOT_EXIST.getMessage());
-            return response;
-        }
-        Boolean flag = commonUtils.fiveMinutesNumberOk(userCode) ;
-        if(!flag){
-            //存储log
-            banklogService.create(bankReq.getCard() , userEntity.getIdCard() , userEntity.getRealName() , bankReq.getCardMobile() ,
-                     bankReq.getBankName() ,userCode ,
-                    bankReq.getCardStartCount() , bankReq.getCardSuccessCount() , bankReq.getCardFailCount(), CommonValues.FAILED);
-            //验证过于频繁
-            response.setCode(ResCodeEnum.BANK_VERIFY_TOO_FREQUENTLY.getCode());
-            response.setMessage(ResCodeEnum.BANK_VERIFY_TOO_FREQUENTLY.getMessage());
-            return response;
-        }
-        ResCodeEnum resCodeEnum = bankService.verify(bankReq , userEntity);
-        if(ResCodeEnum.SUCCESS != resCodeEnum){
-            response.setCode(resCodeEnum.getCode());
-            response.setMessage(resCodeEnum.getMessage());
-            return response;
-        }
+       try {
+           UserEntity userEntity = userService.findByUserCodeAndDeleted(userCode,false);
+           if(userEntity == null ){
+               //用户不存在
+               response.setCode(ResCodeEnum.NOT_WHITE_LIST_USER.getCode());
+               response.setMessage(ResCodeEnum.NOT_WHITE_LIST_USER.getMessage());
+               return response;
+           }
+           if(userEntity.getIdCard() == null){
+               //身份证不存在
+               response.setCode(ResCodeEnum.USER_CARD_ID_NOT_EXIST.getCode());
+               response.setMessage(ResCodeEnum.USER_CARD_ID_NOT_EXIST.getMessage());
+               return response;
+           }
+           Boolean flag = commonUtils.fiveMinutesNumberOk(userCode) ;
+           if(!flag){
+               //存储log
+               banklogService.create(bankReq.getCard() , userEntity.getIdCard() , userEntity.getRealName() , bankReq.getCardMobile() ,
+                       bankReq.getBankName() ,userCode ,
+                       bankReq.getCardStartCount() , bankReq.getCardSuccessCount() , bankReq.getCardFailCount(), CommonValues.FAILED);
+               //验证过于频繁
+               response.setCode(ResCodeEnum.BANK_VERIFY_TOO_FREQUENTLY.getCode());
+               response.setMessage(ResCodeEnum.BANK_VERIFY_TOO_FREQUENTLY.getMessage());
+               return response;
+           }
+           ResCodeEnum resCodeEnum = bankService.verify(bankReq , userEntity);
+           if(ResCodeEnum.SUCCESS != resCodeEnum){
+               response.setCode(resCodeEnum.getCode());
+               response.setMessage(resCodeEnum.getMessage());
+               return response;
+           }
+       }catch (Exception e){
+           Log.error(logger,e,"修改银行卡信息----->>>>发生异常,userCode={}",userCode);
+           return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
+       }
         return response;
     }
 
@@ -187,7 +192,7 @@ public class UserController {
             userService.updateCertifyInfo(userEntity,true);
             return response.buildSuccessResponse(true);
         }catch (Exception e){
-            Log.error(logger,e,"修改账户身份认证信息-->系统内部异常");
+            Log.error(logger,e,"修改账户身份认证信息-->系统内部异常userCode={}", userCode);
             return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
         }
     }
@@ -212,7 +217,7 @@ public class UserController {
             redisServiceApi.remove(RedisParams.getAccessToken(clientId,userCode), raptorRedis);
             return response.buildSuccessResponse(true);
         }catch (Exception e){
-            Log.error(logger,e,"用户登出-->系统内部异常");
+            Log.error(logger,e,"用户登出-->系统内部异常userCode={}", userCode);
             return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
         }
 
