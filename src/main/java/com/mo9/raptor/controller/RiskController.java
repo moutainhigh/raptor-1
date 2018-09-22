@@ -202,6 +202,7 @@ public class RiskController {
         entity.setMobile(callLogReq.getData().getTel());
         entity.setSid(callLogReq.getData().getSid());
         entity.setUid(callLogReq.getData().getUid());
+        entity.setStatus(Long.parseLong(callLogReq.getStatus() + ""));
         entity.setPlatform(sockpuppet);
         
         return entity;
