@@ -34,19 +34,22 @@
     <div class="verify-part">
       <div class="title">安全验证</div>
       <form action="">
-        <div class="form-item">
+        <div class="form-item sms">
           <div class="text">短信验证码</div>
-          <input type="text" placeholder="请输入">
+          <input type="text" name='sms' placeholder="请输入">
           <div class="btn-send">发送验证码</div>
         </div>
-        <div class="form-item">
+        <div class="form-item trade">
           <div class="text">交易密码</div>
-          <input type="password" placeholder="请输入">
+          <input type="password" name='password' placeholder="请输入">
           <div class="btn-send"></div>
         </div>
       </form>
     </div>
   </div>
+  <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+  <script src="./scripts/config.js"></script>
+  <script src="./scripts/pay_verify.js"></script>
 </body>
 
 </html>

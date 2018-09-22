@@ -51,6 +51,7 @@ public enum ResCodeEnum {
     GET_LOCK_FAILED(11155005, "锁竞争失败", "系统繁忙，请稍后重试"),
     PAY_INFO_EXPIRED(11155006, "支付信息已过期", "支付信息已过期"),
     CHANNEL_REPAY_FAILED(11155007, "渠道下单失败", "渠道下单失败"),
+    INVALID_REPAY_INFO(11155008, "支付信息非法", "支付信息非法"),
 
     /**
      * xx=60, 借款

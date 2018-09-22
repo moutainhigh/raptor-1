@@ -1,5 +1,6 @@
 package com.mo9.raptor.utils;
 
+import com.mo9.raptor.utils.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,7 +15,7 @@ import java.util.regex.Pattern;
  */
 public class ModelUtils {
 
-    private static final Logger logger = LoggerFactory.getLogger(ModelUtils.class);
+    private static Logger logger = Log.get();
 
     private static final String regex = "\\$\\{.*?}";
 

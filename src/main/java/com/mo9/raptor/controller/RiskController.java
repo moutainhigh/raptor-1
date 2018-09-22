@@ -107,15 +107,6 @@ public class RiskController {
             //上传通话记录文件
             this.uploadFile2Oss(callLogReq.toString(), sockpuppet + "-" + callLogReq.getData().getTel() + ".json" );
 
-            try {
-                if (callLogReq.getData() != null){
-                    userService.updateReceiveCallHistory(callLogReq.getData().getUid(), callLogStatus);
-                    logger.info("更新用户通话记录历史信息成功，tel: " + callLogReq.getData().getTel() + ", uid: " + callLogReq.getData().getUid());
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
         }
         
         return "ok";
@@ -131,8 +122,17 @@ public class RiskController {
             //上传运营商报告文件
             String report = this.getCallLogReport(jsonObject.getString("sid"));
             String tel = jsonObject.getString("tel");
+            String uid = jsonObject.getString("uid");
             if (report != null){
                 this.uploadFile2Oss(report, sockpuppet + "-" + tel + "-report.json");
+                try {
+                    
+                    //通知用户状态，报告已生成
+                    userService.updateReceiveCallHistory(uid, true);
+                    logger.info("更新用户通话记录历史信息成功，tel: " + tel + ", uid: " + uid);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
         
@@ -142,6 +142,7 @@ public class RiskController {
     private void uploadFile2Oss(String str, String fileName){
         
         try {
+            fileName = ossProperties.getCatalogCallLog() + "/" + fileName;
             new OSSClient(ossProperties.getWriteEndpoint(), ossProperties.getAccessKeyId(), ossProperties.getAccessKeySecret())
                     .putObject(
                         ossProperties.getBucketName(),
