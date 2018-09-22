@@ -123,10 +123,13 @@ public class BankServiceImpl implements BankService {
     }
 
     @Override
-    public void createOrUpdateBank(String bankNo, String cardId, String userName, String mobile, String channel, String bankName , String userCode) {
+    public void createOrUpdateBank(String bankNo, String cardId, String userName, String mobile, String bankName , String userCode) {
         BankEntity bankEntity = this.findByBankNo(bankNo) ;
         if(bankEntity == null){
             this.create( bankNo , cardId , userName , mobile , bankName,userCode) ;
+            //存储log
+            bankLogService.create(bankNo , cardId , userName , mobile , bankName , userCode ,
+                    0 , 0 ,0 , CommonValues.SUCCESS);
         }else{
             //更新update时间
             bankEntity.setUpdateTime(System.currentTimeMillis());

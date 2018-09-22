@@ -56,10 +56,9 @@ public interface BankService {
      * @param cardId
      * @param userName
      * @param mobile
-     * @param channel
      * @param bankName
      * @param userName
      */
-    public void createOrUpdateBank(String bankNo , String cardId , String userName , String mobile, String channel , String bankName , String userCode);
+    public void createOrUpdateBank(String bankNo , String cardId , String userName , String mobile , String bankName , String userCode);
 
 }
