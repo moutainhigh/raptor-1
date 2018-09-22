@@ -71,7 +71,7 @@ public class FileController {
             logger.info("文件上传-->上传成功userCode={}", userCode);
             return response.buildSuccessResponse(map);
         }catch (Exception e){
-            logger.error("文件上传出现异常-->系统内部异常", e);
+            Log.error(logger, e, "文件上传出现异常-->系统内部异常userCode={}", userCode);
             return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
         }
     }

@@ -60,7 +60,7 @@ public class UserContactsController {
             }
             return response.buildSuccessResponse(true);
         }catch (Exception e){
-            logger.error("提交通讯录-->系统内部异常", e);
+            Log.error(logger, e, "提交通讯录-->系统内部异常");
             return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
         }
     }

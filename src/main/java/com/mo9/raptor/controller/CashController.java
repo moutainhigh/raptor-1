@@ -46,7 +46,7 @@ public class CashController {
             map.put("cardBankName", cardBinInfoEntity.getCardBank());
             return response.buildSuccessResponse(map);
         }catch (Exception e){
-            logger.error("获取银行卡名称出现异常card={}", card ,e);
+            Log.error(logger, e, "获取银行卡名称出现异常card={}", card);
             return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
         }
     }
