@@ -7,6 +7,7 @@ import com.mo9.raptor.bean.req.FileReq;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.service.UserService;
+import com.mo9.raptor.utils.log.Log;
 import com.mo9.raptor.utils.oss.OSSFileUpload;
 import com.mo9.raptor.utils.upload.FileStreamTransformer;
 import com.mo9.raptor.utils.upload.SpringMultipartFileTransformer;
@@ -32,7 +33,7 @@ import java.util.Map;
 @RestController
 @RequestMapping(value = "/file")
 public class FileController {
-    private static Logger logger = LoggerFactory.getLogger(FileController.class);
+    private static Logger logger = Log.get();
 
     @Autowired
     private OSSFileUpload ossFileUpload;
@@ -70,7 +71,7 @@ public class FileController {
             logger.info("文件上传-->上传成功userCode={}", userCode);
             return response.buildSuccessResponse(map);
         }catch (Exception e){
-            logger.error("文件上传出现异常-->系统内部异常", e);
+            Log.error(logger, e, "文件上传出现异常-->系统内部异常userCode={}", userCode);
             return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
         }
     }

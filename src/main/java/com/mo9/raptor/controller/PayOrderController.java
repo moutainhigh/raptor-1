@@ -29,6 +29,7 @@ import com.mo9.raptor.service.ChannelService;
 import com.mo9.raptor.service.PayOrderLogService;
 import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.IDWorker;
+import com.mo9.raptor.utils.log.Log;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,8 +57,7 @@ import java.util.List;
 @RequestMapping("/cash")
 public class PayOrderController {
 
-    private static final Logger logger = LoggerFactory.getLogger(PayOrderController.class);
-
+    private static Logger logger = Log.get();
     @Autowired
     private IDWorker idWorker;
 

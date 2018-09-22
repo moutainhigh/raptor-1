@@ -90,7 +90,7 @@ public class CaptchaController {
             response.setData(sendRes);
             return response;
         }catch (Exception e){
-            Log.error(e,"已登录状态用户发送手机验证码出现异常mobile={},reason={},{}",mobile, reason);
+            Log.error(logger, e,"已登录状态用户发送手机验证码出现异常mobile={},reason={}",mobile, reason);
             return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
         }
     }

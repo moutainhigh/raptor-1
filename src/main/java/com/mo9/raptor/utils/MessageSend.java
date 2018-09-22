@@ -11,6 +11,7 @@ import com.mo9.raptor.enums.MessageNotifyTypeEnum;
 import com.mo9.raptor.repository.MessageNotifyRepository;
 import com.mo9.raptor.utils.httpclient.HttpClientApi;
 import com.mo9.raptor.utils.httpclient.bean.HttpResult;
+import com.mo9.raptor.utils.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +33,7 @@ import java.util.Locale;
 @Component("messageSend")
 public class MessageSend {
 
-    private static final Logger logger = LoggerFactory.getLogger(MessageSend.class);
+    private static Logger logger = Log.get();
 
     @Autowired
     private ResourceBundleMessageSource messageSources;
@@ -160,7 +161,7 @@ public class MessageSend {
             MessageNotifyModelEnum messageNotifyModelEnum = MessageNotifyModelEnum.valueOf(message);
             return messageNotifyModelEnum;
         } catch (IllegalArgumentException e) {
-            logger.error("根据事件获取消息模版失败，[MessageNotifyModelEnum]中没有添加此枚举 message={}", message);
+            Log.error( logger , e , "根据事件获取消息模版失败，[MessageNotifyModelEnum]中没有添加此枚举 message={}", message);
         }
         throw new NoSuchMessageException(event.name());
     }

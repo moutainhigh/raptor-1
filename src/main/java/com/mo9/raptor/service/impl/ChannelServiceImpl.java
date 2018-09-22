@@ -3,6 +3,7 @@ package com.mo9.raptor.service.impl;
 import com.mo9.raptor.entity.ChannelEntity;
 import com.mo9.raptor.repository.ChannelRepository;
 import com.mo9.raptor.service.ChannelService;
+import com.mo9.raptor.utils.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,8 +17,7 @@ import java.util.List;
 @Service("channelServiceImpl")
 public class ChannelServiceImpl implements ChannelService {
 
-    private static final Logger logger = LoggerFactory.getLogger(ChannelServiceImpl.class);
-
+    private static Logger logger = Log.get();
     @Autowired
     private ChannelRepository channelRepository;
 

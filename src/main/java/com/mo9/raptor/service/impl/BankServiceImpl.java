@@ -11,6 +11,7 @@ import com.mo9.raptor.service.BankService;
 import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.CommonValues;
 import com.mo9.raptor.utils.GatewayUtils;
+import com.mo9.raptor.utils.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,8 +25,7 @@ import java.util.List;
  */
 @Service
 public class BankServiceImpl implements BankService {
-    private static final Logger logger = LoggerFactory.getLogger(BankServiceImpl.class);
-
+    private static Logger logger = Log.get();
     @Autowired
     private BankRepository bankRepository ;
 
@@ -89,7 +89,7 @@ public class BankServiceImpl implements BankService {
                 try {
                     userService.updateBankAuthStatus(userEntity,BankAuthStatusEnum.SUCCESS);
                 } catch (Exception e) {
-                    logger.error("更新银行卡状态,系统内部异常",e);
+                    Log.error(logger , e ,"更新银行卡状态,系统内部异常");
                     return ResCodeEnum.EXCEPTION_CODE;
                 }
                 //存储log
@@ -107,7 +107,7 @@ public class BankServiceImpl implements BankService {
             try {
                 userService.updateBankAuthStatus(userEntity,BankAuthStatusEnum.SUCCESS);
             } catch (Exception e) {
-                logger.error("更新银行卡状态,系统内部异常",e);
+                Log.error(logger , e ,"更新银行卡状态,系统内部异常");
                 return ResCodeEnum.EXCEPTION_CODE;
             }
         }else if(ResCodeEnum.BANK_VERIFY_EXCEPTION == resCodeEnum){

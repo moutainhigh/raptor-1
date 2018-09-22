@@ -4,6 +4,7 @@ import com.mo9.raptor.bean.BaseResponse;
 import com.mo9.raptor.entity.CardBinInfoEntity;
 import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.service.CardBinInfoService;
+import com.mo9.raptor.utils.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,7 +24,7 @@ import java.util.Map;
 @RestController
 @RequestMapping(value = "/cash")
 public class CashController {
-    private static Logger logger = LoggerFactory.getLogger(CashController.class);
+    private static Logger logger = Log.get();
     @Resource
     private CardBinInfoService cardBinInfoService;
 
@@ -45,7 +46,7 @@ public class CashController {
             map.put("cardBankName", cardBinInfoEntity.getCardBank());
             return response.buildSuccessResponse(map);
         }catch (Exception e){
-            logger.error("获取银行卡名称出现异常card={}", card ,e);
+            Log.error(logger, e, "获取银行卡名称出现异常card={}", card);
             return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
         }
     }
