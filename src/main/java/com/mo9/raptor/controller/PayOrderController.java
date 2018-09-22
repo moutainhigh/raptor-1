@@ -29,6 +29,7 @@ import com.mo9.raptor.service.ChannelService;
 import com.mo9.raptor.service.PayOrderLogService;
 import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.IDWorker;
+import com.mo9.raptor.utils.log.Log;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +42,9 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,8 +57,7 @@ import java.util.List;
 @RequestMapping("/cash")
 public class PayOrderController {
 
-    private static final Logger logger = LoggerFactory.getLogger(PayOrderController.class);
-
+    private static Logger logger = Log.get();
     @Autowired
     private IDWorker idWorker;
 
@@ -88,6 +90,11 @@ public class PayOrderController {
 
     @Value("${raptor.sockpuppet}")
     private String sockpuppet;
+
+    @GetMapping("/download")
+    public String download () {
+        return "cashier/download_guide";
+    }
 
     /**
      * 发起支付
@@ -214,36 +221,53 @@ public class PayOrderController {
 
         PayInfoCache payInfoCache =  (PayInfoCache) redisServiceApi.get(RedisParams.PAY_CODE + code, raptorRedis);
 
-        if (payInfoCache == null) {
-            model.addAttribute("message", "支付信息已过期！");
-            /** 返回支付过期页面 */
-            return "cashier/message";
-        }
-
         model.addAttribute("code", code);
+        if (payInfoCache == null) {
+            model.addAttribute("message", ResCodeEnum.PAY_INFO_EXPIRED.getCode());
+            /** 返回支付过期页面 */
+            return "cashier/feedback_fail";
+        }
 
         /** 增加支付信息 */
         model.addAttribute("payInfo", payInfoCache);
 
-        /** 增加可用于扣款的银行卡列表 */
-        List<BankEntity> banks = new ArrayList<BankEntity>();
         BankEntity bank = bankService.findByUserCodeLastOne(payInfoCache.getUserCode());
-        banks.add(bank);
+        /** 默认支付银行卡 */
+        model.addAttribute("defaultBank", bank);
+
+        /** 增加可用于扣款的银行卡列表 */
+        List<BankEntity> banks = bankService.findByUserCode(payInfoCache.getUserCode());
         model.addAttribute("banks", banks);
 
         /** 增加代扣渠道列表 */
         List<ChannelEntity> channels = channelService.listByChannelType(ChannelTypeEnum.REPAY.name());
         model.addAttribute("channels", channels);
 
-        return "cashier/index";
+        return "cashier/pay";
+    }
+
+    @GetMapping("/card_cashier")
+    public String cardCashier (Model model, @RequestParam String code, @RequestParam String channel, HttpServletRequest request) {
+
+        PayInfoCache payInfoCache =  (PayInfoCache) redisServiceApi.get(RedisParams.PAY_CODE + code, raptorRedis);
+
+        model.addAttribute("code", code);
+        if (payInfoCache == null) {
+            model.addAttribute("message", ResCodeEnum.PAY_INFO_EXPIRED.getCode());
+            /** 返回支付过期页面 */
+            return "cashier/feedback_fail";
+        }
+
+        model.addAttribute("channel", channel);
+
+        return "cashier/card_adder";
     }
 
     @PostMapping("/cashier/submit")
     @ResponseBody
     public BaseResponse<JSONObject> cashierSubmit (@RequestParam String code,
                                                    @RequestParam String channel,
-                                                   @RequestParam String bankNo,
-                                                   @RequestParam String mobile) {
+                                                   @RequestParam String bankNo) {
 
         PayInfoCache payInfoCache =  (PayInfoCache) redisServiceApi.get(RedisParams.PAY_CODE + code, raptorRedis);
 
@@ -257,6 +281,9 @@ public class PayOrderController {
         if (channelEntity == null) {
             return response.buildFailureResponse(ResCodeEnum.NO_REPAY_CHANNEL);
         }
+
+        //获取手机号
+        BankEntity bank = bankService.findByBankNo(bankNo);
 
         String orderId = sockpuppet + "-" + String.valueOf(idWorker.nextId());
         PayOrderEntity payOrder = new PayOrderEntity();
@@ -287,17 +314,95 @@ public class PayOrderController {
         payOrderLog.setPayOrderId(payOrder.getOrderId());
         payOrderLog.setChannel(channel);
         payOrderLog.setBankCard(bankNo);
-        payOrderLog.setBankMobile(mobile);
+        payOrderLog.setBankMobile(bank.getMobile());
 
         payOrderLog.create();
         payOrderService.savePayOrderAndLog(payOrder, payOrderLog);
 
+        redisServiceApi.remove(RedisParams.PAY_CODE + code, raptorRedis);
+
         PayOderChannelRes res = getRes(orderId, channelEntity.getId());
+
         JSONObject data = new JSONObject();
 
         data.put("entities", res);
 
         return response.buildSuccessResponse(data);
+
+    }
+
+    @PostMapping("/card_cashier/submit")
+    @ResponseBody
+    public BaseResponse<JSONObject> cardCashierSubmit (@RequestParam String code,
+                                   @RequestParam String channel,
+                                   @RequestParam String userName,
+                                   @RequestParam String idCard,
+                                   @RequestParam String bankNo,
+                                   @RequestParam String mobile) {
+
+        PayInfoCache payInfoCache =  (PayInfoCache) redisServiceApi.get(RedisParams.PAY_CODE + code, raptorRedis);
+
+        BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
+        if (payInfoCache == null) {
+            return response.buildFailureResponse(ResCodeEnum.PAY_INFO_EXPIRED);
+        }
+
+        // 检查渠道
+        ChannelEntity channelEntity = channelService.getChannelByType(channel, ChannelTypeEnum.REPAY.name());
+        if (channelEntity == null) {
+            return response.buildFailureResponse(ResCodeEnum.NO_REPAY_CHANNEL);
+        }
+
+        String orderId = sockpuppet + "-" + String.valueOf(idWorker.nextId());
+        PayOrderEntity payOrder = new PayOrderEntity();
+        payOrder.setOrderId(orderId);
+        payOrder.setStatus(StatusEnum.PENDING.name());
+
+        payOrder.setOwnerId(payInfoCache.getUserCode());
+        payOrder.setType(payInfoCache.getPayType());
+        payOrder.setApplyNumber(payInfoCache.getPayNumber());
+        payOrder.setPostponeDays(payInfoCache.getPeriod());
+        payOrder.setLoanOrderId(payInfoCache.getLoanOrderId());
+
+        payOrder.setPayCurrency(CurrencyEnum.getDefaultCurrency().name());
+        payOrder.setChannel(channel);
+        payOrder.create();
+
+        PayOrderLogEntity payOrderLog = new PayOrderLogEntity();
+        payOrderLog.setIdCard(idCard);
+        payOrderLog.setUserName(userName);
+        payOrderLog.setRepayAmount(payInfoCache.getPayNumber());
+        payOrderLog.setUserCode(payInfoCache.getUserCode());
+        payOrderLog.setClientId(payInfoCache.getClientId());
+        payOrderLog.setClientVersion(payInfoCache.getClientVersion());
+        payOrderLog.setOrderId(payInfoCache.getLoanOrderId());
+
+        payOrderLog.setPayOrderId(payOrder.getOrderId());
+        payOrderLog.setChannel(channel);
+        payOrderLog.setBankCard(bankNo);
+        payOrderLog.setBankMobile(mobile);
+
+        payOrderLog.create();
+        payOrderService.savePayOrderAndLog(payOrder, payOrderLog);
+
+        redisServiceApi.remove(RedisParams.PAY_CODE + code, raptorRedis);
+
+        PayOderChannelRes res = getRes(orderId, channelEntity.getId());
+
+        JSONObject data = new JSONObject();
+
+        data.put("entities", res);
+
+        return response.buildSuccessResponse(data);
+    }
+
+    @GetMapping("/failed")
+    public String failed (Model model, @RequestParam String code, @RequestParam String message, HttpServletRequest request) {
+
+        model.addAttribute("code", code);
+        model.addAttribute("message", message);
+
+        return "cashier/feedback_fail";
     }
 
     /**

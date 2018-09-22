@@ -50,6 +50,7 @@ public enum ResCodeEnum {
     ILLEGAL_REPAYMENT(11155004, "非法的还款操作", "非法的还款操作"),
     GET_LOCK_FAILED(11155005, "锁竞争失败", "系统繁忙，请稍后重试"),
     PAY_INFO_EXPIRED(11155006, "支付信息已过期", "支付信息已过期"),
+    CHANNEL_REPAY_FAILED(11155007, "渠道下单失败", "渠道下单失败"),
 
     /**
      * xx=60, 借款

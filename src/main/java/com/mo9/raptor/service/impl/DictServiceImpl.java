@@ -5,6 +5,7 @@ import com.mo9.raptor.repository.DictDataRepository;
 import com.mo9.raptor.repository.DictTypeRepository;
 import com.mo9.raptor.service.DictService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -37,6 +38,13 @@ public class DictServiceImpl implements DictService {
     public String findDictName(String dictTypeNo, String dictDataNo) {
         DictDataEntity dictData = findDictData(dictTypeNo, dictDataNo);
         return dictData.getName();
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public DictDataEntity updateDictData(DictDataEntity dictData) {
+        DictDataEntity entity = dictDataRepository.save(dictData);
+        return entity;
     }
 
 }

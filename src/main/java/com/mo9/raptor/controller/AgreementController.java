@@ -6,8 +6,8 @@ import com.mo9.raptor.engine.service.ILoanOrderService;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.ModelUtils;
+import com.mo9.raptor.utils.log.Log;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -34,9 +34,11 @@ import java.util.Map;
 @RequestMapping("/agreement")
 public class AgreementController {
 
-    private static Logger logger = LoggerFactory.getLogger(AgreementController.class);
+    private static Logger logger = Log.get();
 
-    private static final String DATE_FORMAT = "yyyy年MM月dd";
+    private static final String DATE_FORMAT = "yyyy年MM月dd日";
+
+    private static final String COMPANY_STAMP = "";
 
     @Autowired
     private UserService userService;
@@ -78,11 +80,12 @@ public class AgreementController {
             variables.put("lentAddress", lentAddress);
             variables.put("lendTime",lendTime);
             variables.put("loanOrderId",loanOrderId);
+            variables.put("companyStamp",COMPANY_STAMP);
             String process = ModelUtils.process(readStreamToString(stream), variables);
             model.addAttribute("title","借款服务协议");
             model.addAttribute("content", process);
         } catch (Exception e) {
-            logger.error("获取服务协议发生异常，", e);
+            Log.error(logger,e,"获取服务协议发生异常，userCode={},orderId={}",userCode,orderId);
         }
         return "service/agreement";
     }
@@ -99,11 +102,12 @@ public class AgreementController {
             Map variables = new HashMap<>(16);
             variables.put("company", MessageVariable.COMPANY);
             variables.put("sign", MessageVariable.RAPTOR_SIGN_NAME);
+            variables.put("companyStamp",COMPANY_STAMP);
             String process = ModelUtils.process(readStreamToString(stream), variables);
             model.addAttribute("title","支付协议");
             model.addAttribute("content",process);
         } catch (Exception e) {
-            logger.error("获取支付协议发生异常，", e);
+            Log.error(logger,e,"获取支付协议发生异常");
         }
         return "service/agreement";
     }
@@ -167,7 +171,7 @@ public class AgreementController {
             model.addAttribute("title","借款协议");
             model.addAttribute("content", process);
         } catch (Exception e) {
-            logger.error("获取支付协议发生异常，", e);
+            Log.error(logger,e,"获取借款协议发生异常，userCode={},orderId={}",userCode,orderId);
         }
         return "service/agreement";
     }
@@ -186,11 +190,12 @@ public class AgreementController {
             variables.put("company", MessageVariable.COMPANY);
             variables.put("sign", MessageVariable.RAPTOR_SIGN_NAME);
             variables.put("simpleCompany", MessageVariable.SIMPLE_COMPANY);
+            variables.put("companyStamp",COMPANY_STAMP);
             String process = ModelUtils.process(readStreamToString(stream), variables);
             model.addAttribute("content",process);
             model.addAttribute("title","用户服务协议");
         } catch (Exception e) {
-            logger.error("获取支付协议发生异常，", e);
+            Log.error(logger,e,"获取支付协议发生异常");
         }
         return "service/agreement";
     }

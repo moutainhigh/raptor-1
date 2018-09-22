@@ -13,6 +13,7 @@ import com.mo9.raptor.risk.service.RiskTelInfoService;
 import com.mo9.raptor.service.DianHuaBangApiLogService;
 import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.httpclient.HttpClientApi;
+import com.mo9.raptor.utils.log.Log;
 import com.mo9.raptor.utils.oss.OSSProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,9 +37,8 @@ import java.util.List;
 @RequestMapping("/risk")
 public class RiskController {
     private static final String FILE_PATH = "/data/calllogfile/";
-    
-    private static Logger logger = LoggerFactory.getLogger(RiskController.class);
-    
+
+    private static Logger logger = Log.get();
     @Resource
     private RiskTelInfoService riskTelInfoService;
     

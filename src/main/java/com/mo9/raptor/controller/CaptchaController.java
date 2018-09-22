@@ -10,9 +10,9 @@ import com.mo9.raptor.redis.RedisServiceApi;
 import com.mo9.raptor.service.CaptchaService;
 import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.ValidateGraphicCode;
+import com.mo9.raptor.utils.log.Log;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.validation.annotation.Validated;
@@ -31,7 +31,7 @@ import java.io.IOException;
 @RestController
 @RequestMapping(value = "/auth")
 public class CaptchaController {
-    private static Logger logger = LoggerFactory.getLogger(CaptchaController.class);
+    private static Logger logger = Log.get();
 
     @Autowired
     UserService userService;
@@ -90,7 +90,7 @@ public class CaptchaController {
             response.setData(sendRes);
             return response;
         }catch (Exception e){
-            logger.error("已登录状态用户发送手机验证码出现异常mobile={},reason={},{}",mobile, reason,e);
+            Log.error(logger, e,"已登录状态用户发送手机验证码出现异常mobile={},reason={}",mobile, reason);
             return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
         }
     }
@@ -137,7 +137,7 @@ public class CaptchaController {
         try {
             response = checkCaptcha(RedisParams.GRAPHIC_CAPTCHA_KEY + graphicKey, captcha, response);
         } catch (Exception e) {
-            logger.error("图形验证发生异常{}",e);
+            Log.error(e,"图形验证发生异常");
 
         }
         return response;
