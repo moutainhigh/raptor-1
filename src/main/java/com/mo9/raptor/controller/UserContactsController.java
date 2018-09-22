@@ -7,6 +7,7 @@ import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.service.UserContactsService;
 import com.mo9.raptor.service.UserService;
+import com.mo9.raptor.utils.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.validation.annotation.Validated;
@@ -26,8 +27,7 @@ import javax.servlet.http.HttpServletRequest;
 @RequestMapping("/user")
 public class UserContactsController {
 
-    private static Logger logger = LoggerFactory.getLogger(UserContactsController.class);
-
+    private static Logger logger = Log.get();
     @Resource
     private UserService userService;
 
