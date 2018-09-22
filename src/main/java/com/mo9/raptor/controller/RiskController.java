@@ -79,7 +79,7 @@ public class RiskController {
 
     @PostMapping(value = "/save_call_log")
     public String saveCallLogResult(@RequestBody String callLogJson){
-        logger.info("----收到通话记录post数据-----> " + callLogJson);
+        logger.info("----收到通话记录post数据-----> " );
 
         CallLogReq callLogReq = JSONObject.parseObject(callLogJson, CallLogReq.class);
         
@@ -202,6 +202,7 @@ public class RiskController {
         entity.setMobile(callLogReq.getData().getTel());
         entity.setSid(callLogReq.getData().getSid());
         entity.setUid(callLogReq.getData().getUid());
+        entity.setStatus(Long.parseLong(callLogReq.getStatus() + ""));
         entity.setPlatform(sockpuppet);
         
         return entity;
