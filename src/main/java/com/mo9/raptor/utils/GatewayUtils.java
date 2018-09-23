@@ -266,7 +266,7 @@ public class GatewayUtils {
             String gatewayUrl = this.gatewayUrl + "/pay.shtml";
             httpClientApi.doGet(gatewayUrl, params);
         } catch (Exception e) {
-            Log.error(logger , e , "触发先玩后付mq异常"+ gatewayDealcode);
+            logger.error("触发先玩后付mq异常"+ gatewayDealcode , e);
         }
     }
 
