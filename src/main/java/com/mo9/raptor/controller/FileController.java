@@ -68,7 +68,7 @@ public class FileController {
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("path", url);
             map.put("entity", jsonObject);
-            logger.info("文件上传-->上传成功userCode={}", userCode);
+            logger.info("文件上传-->上传成功url={},userCode={}", url, userCode);
             return response.buildSuccessResponse(map);
         }catch (Exception e){
             Log.error(logger, e, "文件上传出现异常-->系统内部异常userCode={}", userCode);
