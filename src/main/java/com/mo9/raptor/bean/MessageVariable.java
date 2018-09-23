@@ -19,6 +19,11 @@ public interface MessageVariable {
      * 产品名称
      */
     String RAPTOR_SIGN_NAME = "天天有钱";
+
+    /**
+     * 服务邮箱
+     */
+    String SERVICE_MAILBOX = "service@ttyq.com";
     /**
      * 系统码
      */

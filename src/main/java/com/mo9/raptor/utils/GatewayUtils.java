@@ -251,4 +251,24 @@ public class GatewayUtils {
         return null;
     }
 
+
+
+    /**
+     * 触发先玩后付mq
+     * @return
+     */
+    public void gatewayMqPush(String gatewayDealcode){
+        ResCodeEnum resCodeEnum;
+        try {
+            Map<String,String> params = new HashMap<String,String>();
+            params.put("m", "topupRemoteChecking");
+            params.put("dealcode", gatewayDealcode);
+            String gatewayUrl = this.gatewayUrl + "/pay.shtml";
+            httpClientApi.doGet(gatewayUrl, params);
+        } catch (Exception e) {
+            logger.error("触发先玩后付mq异常"+ gatewayDealcode , e);
+        }
+    }
+
+
 }
