@@ -38,7 +38,7 @@ public class PayOrderTask {
     @Scheduled(cron = "0 0/10 * * * ?")
     public void notSuccessOrderTask(){
         logger.info("还款未最终状态定时器开启");
-        List<PayOrderEntity> list = payOrderService.findByStatus(StatusEnum.DEDUCTING) ;
+        List<PayOrderEntity> list = payOrderService.findByStatus(StatusEnum.DEDUCTING.name()) ;
         for(PayOrderEntity payOrderEntity : list){
             PayOrderLogEntity payOrderLogEntity = payOrderLogService.getByPayOrderId(payOrderEntity.getOrderId());
             if(!StringUtils.isBlank(payOrderLogEntity.getDealCode())){
