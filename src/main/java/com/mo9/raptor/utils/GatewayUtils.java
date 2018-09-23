@@ -258,13 +258,14 @@ public class GatewayUtils {
      * @return
      */
     public void gatewayMqPush(String gatewayDealcode){
-        ResCodeEnum resCodeEnum;
         try {
-            Map<String,String> params = new HashMap<String,String>();
+            logger.info(gatewayDealcode + "触发定时器发送") ;
+            Map<String,String> params = new HashMap<String,String>(10);
             params.put("m", "topupRemoteChecking");
             params.put("dealcode", gatewayDealcode);
             String gatewayUrl = this.gatewayUrl + "/pay.shtml";
-            httpClientApi.doGet(gatewayUrl, params);
+            String reeult = httpClientApi.doGet(gatewayUrl, params);
+            logger.info(gatewayDealcode + "查询还款返回数据 " + reeult);
         } catch (Exception e) {
             logger.error("触发先玩后付mq异常"+ gatewayDealcode , e);
         }
