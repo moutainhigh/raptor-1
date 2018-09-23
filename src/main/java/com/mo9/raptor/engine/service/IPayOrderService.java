@@ -81,5 +81,5 @@ public interface IPayOrderService {
      * @param deducting
      * @return
      */
-    List<PayOrderEntity> findByStatus(StatusEnum deducting);
+    List<PayOrderEntity> findByStatus(String deducting);
 }
