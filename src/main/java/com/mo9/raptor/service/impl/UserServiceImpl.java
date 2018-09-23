@@ -6,11 +6,14 @@ import com.mo9.raptor.engine.state.launcher.IEventLauncher;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.BankAuthStatusEnum;
 import com.mo9.raptor.repository.UserRepository;
+import com.mo9.raptor.risk.service.RiskAuditService;
 import com.mo9.raptor.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+
+import javax.annotation.Resource;
 
 /**
  * @author zma
@@ -24,6 +27,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private IEventLauncher userEventLauncher;
+
+    @Resource
+    private RiskAuditService riskAuditService;
     @Override
     public UserEntity findByUserCode(String userCode) {
         return userRepository.findByUserCode(userCode);
@@ -90,7 +96,16 @@ public class UserServiceImpl implements UserService {
         userEntity.setReceiveCallHistory(b);
         userEntity.setCallHistory(b);
         this.save(userEntity);
-        if (b){
+        //如果b非true直接结束方法
+        if(!b){
+            return;
+        }
+        String status = userEntity.getStatus();
+        if(StatusEnum.AUDITING.name().equals(status)){
+            //通知风控
+            riskAuditService.audit(userCode);
+        }else{
+            //调用状态机
             checkAuditStatus(userEntity);
         }
     }
