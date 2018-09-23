@@ -8,6 +8,8 @@ import com.mo9.raptor.enums.BankAuthStatusEnum;
 import com.mo9.raptor.repository.UserRepository;
 import com.mo9.raptor.risk.service.RiskAuditService;
 import com.mo9.raptor.service.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +23,8 @@ import javax.annotation.Resource;
  */
 @Service
 public class UserServiceImpl implements UserService {
+
+    private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
     @Autowired
     private UserRepository userRepository;
@@ -98,14 +102,17 @@ public class UserServiceImpl implements UserService {
         this.save(userEntity);
         //如果b非true直接结束方法
         if(!b){
+            logger.info("当前状态修改不是为true，方法结束userCode={}", userCode);
             return;
         }
         String status = userEntity.getStatus();
         if(StatusEnum.AUDITING.name().equals(status)){
             //通知风控
+            logger.info("当前状态是AUDITING，直接通知风控，无需调用状态机再次修改状态userCode={}", userCode);
             riskAuditService.audit(userCode);
         }else{
             //调用状态机
+            logger.info("当前状态不是AUDITING，需调用状态机修改状态userCode={}", userCode);
             checkAuditStatus(userEntity);
         }
     }
