@@ -173,4 +173,9 @@ public class PayOrderServiceImpl implements IPayOrderService {
             }
         }
     }
+
+    @Override
+    public List<PayOrderEntity> findByStatus(StatusEnum status) {
+        return payOrderRepository.findByStatus(status);
+    }
 }
