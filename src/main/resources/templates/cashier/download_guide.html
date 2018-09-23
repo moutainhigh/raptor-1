@@ -19,46 +19,33 @@
   function main() {
     var mask = document.getElementById('mask');
     var btn = document.getElementById('btn');
-
-      var UA = window.navigator.userAgent,
-          IsAndroid = (/Android|HTC/i.test(UA) || !!(window.navigator['platform']+'').match(/Linux/i)),
-          IsIPad = !IsAndroid && /'iPad/i.test(UA),
-          IsIPhone = !IsAndroid && /iPod|iPhone/i.test(UA),
-          IsIOS = IsIPad || IsIPhone;
-
-
-
+    
     mask.onclick = function () {
       mask.style.display = 'none'
     }
-    btn.onclick = function () {
+      btn.onclick = function () {
+          var UA = window.navigator.userAgent,
+              IsAndroid = (/Android|HTC/i.test(UA) || !!(window.navigator['platform']+'').match(/Linux/i)),
+              IsIPad = !IsAndroid && /'iPad/i.test(UA),
+              IsIPhone = !IsAndroid && /iPod|iPhone/i.test(UA),
+              IsIOS = IsIPad || IsIPhone;
 
-        var ua = window.navigator.userAgent.toLowerCase();
-        if(ua.match(/MicroMessenger/i) == 'micromessenger'){
-            //微信
-            mask.style.display = 'block'
-            //window.location.href="http://a.app.qq.com/o/simple.jsp?pkgname=com.mo9.app.feishudai";
-        }else{
-            //非微信-下载地址
-            window.location.href="https://appdl.mo9.com/feishudai_v2.1.0.apk";
-        }
-        //
-        // if(IsAndroid){
-        //     var ua = window.navigator.userAgent.toLowerCase();
-        //     if(ua.match(/MicroMessenger/i) == 'micromessenger'){
-        //
-        //         //微信
-        //         window.location.href="http://a.app.qq.com/o/simple.jsp?pkgname=com.mo9.app.feishudai";
-        //     }else{
-        //         //非微信-下载地址
-        //         window.location.href="https://appdl.mo9.com/feishudai_v2.1.0.apk";
-        //     }
-        // } else if(IsIOS){
-        //     window.location.href="https://itunes.apple.com/cn/app/%E9%A3%9E%E9%BC%A0%E8%B4%B7-%E6%89%8B%E6%9C%BA%E4%B8%8A%E7%9A%84%E5%BF%AB%E9%80%9F%E5%80%9F%E9%92%B1%E8%B4%B7%E6%AC%BE%E7%A5%9E%E5%99%A8/id1146323671?mt=8";
-        // } else{
-        //     window.location.href="https://www.feishudai.com/";
-        // }
-    }
+          var ua = window.navigator.userAgent.toLowerCase();
+          if(ua.match(/MicroMessenger/i) == 'micromessenger'){
+              //微信
+              mask.style.display = 'block'
+          }else{
+              if(IsAndroid){
+                  //安卓apk下载地址
+                  window.location.href="https://appdl.mo9.com/feishudai_v2.1.0.apk";
+              } else if(IsIOS){
+                  //苹果ios下载地址
+                  window.location.href="https://itunes.apple.com/cn/app/%E9%A3%9E%E9%BC%A0%E8%B4%B7-%E6%89%8B%E6%9C%BA%E4%B8%8A%E7%9A%84%E5%BF%AB%E9%80%9F%E5%80%9F%E9%92%B1%E8%B4%B7%E6%AC%BE%E7%A5%9E%E5%99%A8/id1146323671?mt=8";
+              } else{
+                  window.location.href="https://www.baidu.com/";
+              }
+          }
+      }
     console.log('ready')
   }
   window.onload = main
