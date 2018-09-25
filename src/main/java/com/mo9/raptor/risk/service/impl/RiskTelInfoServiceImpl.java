@@ -66,10 +66,12 @@ public class RiskTelInfoServiceImpl implements RiskTelInfoService {
         riskTelInfo.setMobile(callLogReq.getData().getTel());
         riskTelInfo.setUid(callLogReq.getData().getUid());
 
-        riskTelInfo.setOpenDate(callLogReq.getData().getTel_info().getOpen_date());
-        riskTelInfo.setAddress(callLogReq.getData().getTel_info().getAddress());
-        riskTelInfo.setFullName(callLogReq.getData().getTel_info().getFull_name());
-        riskTelInfo.setIdCard(callLogReq.getData().getTel_info().getId_card());
+        if(callLogReq.getData().getTel_info() != null){
+            riskTelInfo.setOpenDate(callLogReq.getData().getTel_info().getOpen_date());
+            riskTelInfo.setAddress(callLogReq.getData().getTel_info().getAddress());
+            riskTelInfo.setFullName(callLogReq.getData().getTel_info().getFull_name());
+            riskTelInfo.setIdCard(callLogReq.getData().getTel_info().getId_card());
+        }
         
         return riskTelInfo;
     }
