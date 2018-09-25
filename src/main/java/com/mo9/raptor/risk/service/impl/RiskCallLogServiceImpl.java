@@ -24,19 +24,26 @@ public class RiskCallLogServiceImpl implements RiskCallLogService {
     private RiskCallLogRepository riskCallLogRepository;
     
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public TRiskCallLog save(TRiskCallLog riskCallLog) {
         return riskCallLogRepository.save(riskCallLog);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void saveAll(List<TRiskCallLog> callLogList){
+        riskCallLogRepository.saveAll(callLogList);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void batchSave(List<TRiskCallLog> callLogList){
         for (TRiskCallLog callLog : callLogList) {
-            TRiskCallLog exists = riskCallLogRepository.findOneCallLog(callLog.getMobile(), callLog.getCallTo(), callLog.getCallTime());
+            TRiskCallLog exists = riskCallLogRepository.findOneCallLog(callLog.getMobile(), callLog.getCallTel(), callLog.getCallTime());
             if (exists != null){
                 continue;
             }
-            riskCallLogRepository.saveAndFlush(callLog);
+            riskCallLogRepository.save(callLog);
         }
     }
 
@@ -52,15 +59,17 @@ public class RiskCallLogServiceImpl implements RiskCallLogService {
             riskCallLog.setSid(callLogReq.getData().getSid());
             riskCallLog.setMobile(callLogReq.getData().getTel());
             riskCallLog.setUid(callLogReq.getData().getUid());
-            
-            riskCallLog.setCallCost(callLog.getCall_cost());
-            riskCallLog.setCallTime(callLog.getCall_time());
-            riskCallLog.setCallMethod(callLog.getCall_method());
-            riskCallLog.setCallType(callLog.getCall_type());
-            riskCallLog.setCallTo(callLog.getCall_to());
-            riskCallLog.setCallFrom(callLog.getCall_from());
-            riskCallLog.setCallDuration(callLog.getCall_duration());
-            riskCallLog.setCallTel(callLog.getCall_tel());
+
+            if (callLog != null) {
+                riskCallLog.setCallCost(callLog.getCall_cost());
+                riskCallLog.setCallTime(callLog.getCall_time());
+                riskCallLog.setCallMethod(callLog.getCall_method());
+                riskCallLog.setCallType(callLog.getCall_type());
+                riskCallLog.setCallTo(callLog.getCall_to());
+                riskCallLog.setCallFrom(callLog.getCall_from());
+                riskCallLog.setCallDuration(callLog.getCall_duration());
+                riskCallLog.setCallTel(callLog.getCall_tel());
+            }
             
             callLogList.add(riskCallLog);
         }

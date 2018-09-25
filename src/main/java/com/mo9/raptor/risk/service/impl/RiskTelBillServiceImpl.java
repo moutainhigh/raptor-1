@@ -25,8 +25,15 @@ public class RiskTelBillServiceImpl implements RiskTelBillService {
     private RiskTelBillRepository riskTelBillRepository;
     
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public TRiskTelBill save(TRiskTelBill riskTelBill) {
         return riskTelBillRepository.save(riskTelBill);
+    }
+    
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void saveAll(List<TRiskTelBill> riskTelBillList){
+        riskTelBillRepository.saveAll(riskTelBillList);
     }
 
     @Override
@@ -37,8 +44,9 @@ public class RiskTelBillServiceImpl implements RiskTelBillService {
             if (exists != null){
                 continue;
             }
-            riskTelBillRepository.saveAndFlush(riskTelBill);
+            riskTelBillRepository.save(riskTelBill);
         }
+        
     }
 
     @Override
@@ -54,15 +62,17 @@ public class RiskTelBillServiceImpl implements RiskTelBillService {
             riskTelBill.setUid(callLogReq.getData().getUid());
             riskTelBill.setMobile(callLogReq.getData().getTel());
             
-            riskTelBill.setBillAmount(bill.getBill_amount());
-            riskTelBill.setBillZengzhifei(bill.getBill_zengzhifei());
-            riskTelBill.setBillQita(bill.getBill_qita());
-            riskTelBill.setBillPackage(bill.getBill_package());
-            riskTelBill.setBillExtSms(bill.getBill_ext_sms());
-            riskTelBill.setBillDaishoufei(bill.getBill_daishoufei());
-            riskTelBill.setBillMonth(bill.getBill_month());
-            riskTelBill.setBillExtCalls(bill.getBill_ext_calls());
-
+            if (bill != null){
+                riskTelBill.setBillAmount(bill.getBill_amount());
+                riskTelBill.setBillZengzhifei(bill.getBill_zengzhifei());
+                riskTelBill.setBillQita(bill.getBill_qita());
+                riskTelBill.setBillPackage(bill.getBill_package());
+                riskTelBill.setBillExtSms(bill.getBill_ext_sms());
+                riskTelBill.setBillDaishoufei(bill.getBill_daishoufei());
+                riskTelBill.setBillMonth(bill.getBill_month());
+                riskTelBill.setBillExtCalls(bill.getBill_ext_calls());
+            }
+           
             riskTelBillList.add(riskTelBill);
         }
         return riskTelBillList;

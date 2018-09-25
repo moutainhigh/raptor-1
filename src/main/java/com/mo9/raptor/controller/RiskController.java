@@ -79,31 +79,38 @@ public class RiskController {
     @PostMapping(value = "/save_call_log")
     public String saveCallLogResult(@RequestBody String callLogJson){
         CallLogReq callLogReq = JSONObject.parseObject(callLogJson, CallLogReq.class);
-        logger.info("----收到通话记录post数据-----> tel: " + callLogReq.getData().getTel() + ", UID: " + callLogReq.getData().getUid());
+        logger.info("----收到通话记录post数据-----> tel: " + callLogReq.getData().getTel() + 
+                ", uid: " + callLogReq.getData().getUid() + 
+                ", sid: " + callLogReq.getData().getSid());
         
-        try {
-            //记录日志
-            if (callLogReq.getData() != null){
-                DianHuaBangApiLogEntity logEntity = this.createLogEntity(callLogReq);
-                dianHuaBangApiLogService.create(logEntity);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    //记录日志
+                    if (callLogReq.getData() != null){
+                        DianHuaBangApiLogEntity logEntity = createLogEntity(callLogReq);
+                        dianHuaBangApiLogService.create(logEntity);
+                    }
+                }catch (Exception e){
+                    logger.error("保存电话邦调用日志出错", e);
+                }
+
+
+                if (callLogReq.getStatus() != 0 || callLogReq.getData() == null){
+                    logger.error("--------------第三方通话记录爬虫失败----------");
+                    logger.error(callLogJson);
+                }else {
+                    //保存通话记录所有信息
+                    riskTelInfoService.saveAllCallLogData(callLogReq);
+
+                    //上传通话记录文件
+                    String fileName = ossProperties.getCatalogCallLog() + "/callLog/" + sockpuppet + "-" + callLogReq.getData().getTel() + ".json";
+                    uploadFile2Oss(callLogReq.toString(),  fileName);
+                }
             }
-        }catch (Exception e){
-            logger.error("保存电话邦调用日志出错", e);
-        }
-       
-
-        if (callLogReq.getStatus() != 0 || callLogReq.getData() == null){
-            logger.error("--------------第三方通话记录爬虫失败----------");
-            logger.error(callLogJson);
-        }else {
-            //保存通话记录所有信息
-            riskTelInfoService.saveAllCallLogData(callLogReq);
-
-            //上传通话记录文件
-            String fileName = ossProperties.getCatalogCallLog() + "/callLog/" + sockpuppet + "-" + callLogReq.getData().getTel() + ".json";
-            this.uploadFile2Oss(callLogReq.toString(),  fileName);
-
-        }
+        }).run();
+        
         
         return "ok";
     }
@@ -140,12 +147,14 @@ public class RiskController {
     private void uploadFile2Oss(String str, String fileName){
         
         try {
-            new OSSClient(ossProperties.getWriteEndpoint(), ossProperties.getAccessKeyId(), ossProperties.getAccessKeySecret())
+            OSSClient ossClient = new OSSClient(ossProperties.getWriteEndpoint(), ossProperties.getAccessKeyId(), ossProperties.getAccessKeySecret());
+            ossClient
                     .putObject(
                         ossProperties.getBucketName(),
                         fileName,
                         new ByteArrayInputStream(str.getBytes())
             );
+            ossClient.shutdown();
 
             StringBuilder sb = new StringBuilder();
             sb.append(ossProperties.getHttpPrefix())
