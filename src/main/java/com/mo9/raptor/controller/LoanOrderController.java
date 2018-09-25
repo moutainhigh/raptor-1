@@ -159,8 +159,7 @@ public class LoanOrderController {
                 loanOrder.setClientVersion(clientVersion);
 
                 long now = System.currentTimeMillis();
-                long today = TimeUtils.extractDateTime(System.currentTimeMillis());
-                loanOrder.setRepaymentDate(today + (loanTerm - 1) * EngineStaticValue.DAY_MILLIS);
+                loanOrder.setRepaymentDate(now + (loanTerm - 1) * EngineStaticValue.DAY_MILLIS);
                 loanOrder.setCreateTime(now);
                 loanOrder.setUpdateTime(now);
 
