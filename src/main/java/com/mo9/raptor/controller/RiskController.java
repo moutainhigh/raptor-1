@@ -109,7 +109,7 @@ public class RiskController {
                     uploadFile2Oss(callLogReq.toString(),  fileName);
                 }
             }
-        }).run();
+        }).start();
         
         
         return "ok";
