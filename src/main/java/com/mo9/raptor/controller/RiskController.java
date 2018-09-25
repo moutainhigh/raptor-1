@@ -81,7 +81,7 @@ public class RiskController {
         CallLogReq callLogReq = JSONObject.parseObject(callLogJson, CallLogReq.class);
         logger.info("----收到通话记录post数据-----> tel: " + callLogReq.getData().getTel() + 
                 ", uid: " + callLogReq.getData().getUid() + 
-                "sid: " + callLogReq.getData().getSid());
+                ", sid: " + callLogReq.getData().getSid());
         
         try {
             //记录日志

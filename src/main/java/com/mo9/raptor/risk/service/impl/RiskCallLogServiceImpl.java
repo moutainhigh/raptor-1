@@ -24,8 +24,15 @@ public class RiskCallLogServiceImpl implements RiskCallLogService {
     private RiskCallLogRepository riskCallLogRepository;
     
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public TRiskCallLog save(TRiskCallLog riskCallLog) {
         return riskCallLogRepository.save(riskCallLog);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void saveAll(List<TRiskCallLog> callLogList){
+        riskCallLogRepository.saveAll(callLogList);
     }
 
     @Override
