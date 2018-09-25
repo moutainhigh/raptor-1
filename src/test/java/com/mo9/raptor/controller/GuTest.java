@@ -6,8 +6,10 @@ import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.mo9.raptor.RaptorApplicationTest;
 import com.mo9.raptor.bean.req.BankReq;
 import com.mo9.raptor.bean.res.LoanOrderLendRes;
+import com.mo9.raptor.bean.vo.CommonUserInfo;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.service.BankService;
+import com.mo9.raptor.service.CommonService;
 import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.GatewayUtils;
 import com.mo9.raptor.utils.Md5Encrypt;
@@ -18,6 +20,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
@@ -173,6 +176,26 @@ public class GuTest {
         //https://riskclone.mo9.com/raptorApi/loan_quota/list
         //https://riskclone.mo9.com/raptorApi/system/switch
     }
+
+    /**
+     * 查询产品信息
+     */
+    @Autowired
+    private CommonService commonService ;
+
+    @Test
+    public void common(){
+        Map<String , Integer> commonUserInfo = commonService.findUserInfo("ssss") ;
+        Map<String , Integer> loanInfo = commonService.findLoanInfo("ssss") ;
+        Map<String , Integer> repayInfo = commonService.findRepayInfo("ssss");
+
+
+
+
+
+        System.out.println("22222");
+    }
+
 
 
 }
