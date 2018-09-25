@@ -149,6 +149,7 @@ public class RiskController {
                         fileName,
                         new ByteArrayInputStream(str.getBytes())
             );
+            ossClient.shutdown();
 
             StringBuilder sb = new StringBuilder();
             sb.append(ossProperties.getHttpPrefix())
