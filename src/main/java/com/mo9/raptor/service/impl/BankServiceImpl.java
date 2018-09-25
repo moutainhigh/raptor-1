@@ -89,7 +89,7 @@ public class BankServiceImpl implements BankService {
                 try {
                     userService.updateBankAuthStatus(userEntity,BankAuthStatusEnum.SUCCESS);
                 } catch (Exception e) {
-                    Log.error(logger , e ,"更新银行卡状态,系统内部异常"+ mobile);
+                    Log.error(logger , e ,"更新银行卡状态,系统内部异常");
                     return ResCodeEnum.EXCEPTION_CODE;
                 }
                 //存储log
