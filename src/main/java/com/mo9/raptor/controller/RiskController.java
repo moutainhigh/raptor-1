@@ -142,7 +142,8 @@ public class RiskController {
     private void uploadFile2Oss(String str, String fileName){
         
         try {
-            new OSSClient(ossProperties.getWriteEndpoint(), ossProperties.getAccessKeyId(), ossProperties.getAccessKeySecret())
+            OSSClient ossClient = new OSSClient(ossProperties.getWriteEndpoint(), ossProperties.getAccessKeyId(), ossProperties.getAccessKeySecret());
+            ossClient
                     .putObject(
                         ossProperties.getBucketName(),
                         fileName,
