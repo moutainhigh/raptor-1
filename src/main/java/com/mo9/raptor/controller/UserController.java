@@ -189,7 +189,9 @@ public class UserController {
             userCertifyInfoService.modifyCertifyInfo(userEntity, userCertifyInfoEntity, modifyCertifyReq);
             userEntity.setIdCard(modifyCertifyReq.getIdCard());
             userEntity.setRealName(modifyCertifyReq.getRealName());
-            userService.updateCertifyInfo(userEntity,true);
+            if(!userEntity.getCertifyInfo()){
+                userService.updateCertifyInfo(userEntity,true);
+            }
             return response.buildSuccessResponse(true);
         }catch (Exception e){
             Log.error(logger,e,"修改账户身份认证信息-->系统内部异常userCode={}", userCode);
