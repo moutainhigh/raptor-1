@@ -23,7 +23,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.List;
 
 /**
  * @author yngong
@@ -165,21 +164,12 @@ public class RiskAuditServiceImpl implements RiskAuditService {
     private int callLogLimit;
 
     public AuditResponseEvent callLogRule(String userCode) {
-        Long days90ts = 90 * 24 * 60 * 60 * 1000L;
-        int limit = callLogLimit;
-        List<TRiskCallLog> callLogList = riskCallLogRepository.getCallLogByUid(userCode);
-        int count = 0;
+        Long days180ts = 180 * 24 * 60 * 60 * 1000L;
         long currentTimeMillis = System.currentTimeMillis();
-        for (TRiskCallLog tRiskCallLog : callLogList) {
-            try {
-                Long timestamp = Long.valueOf(tRiskCallLog.getCallTime()) * 1000;
-                if (currentTimeMillis - days90ts <= timestamp) {
-                    count++;
-                }
-            } catch (Exception e) {
-            }
-        }
-        return new AuditResponseEvent(userCode, count >= limit, count >= limit ? "" : "用户最近90天通话记录少于" + limit);
+        UserEntity user = userService.findByUserCode(userCode);
+        int count = riskCallLogRepository.getCallLogCountAfterTimestamp(user.getMobile(), currentTimeMillis - days180ts);
+        int limit = callLogLimit;
+        return new AuditResponseEvent(userCode, count >= limit, count >= limit ? "" : "用户最近180天通话记录少于" + limit);
     }
 
     public AuditResponseEvent threeElementCheck(String userCode) {
