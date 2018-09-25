@@ -1,6 +1,7 @@
 package com.mo9.raptor.service;
 
 import com.mo9.raptor.RaptorApplicationTest;
+import com.mo9.raptor.risk.repo.RiskCallLogRepository;
 import com.mo9.raptor.risk.service.RiskAuditService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,12 +24,18 @@ public class AuditServiceTest {
 
     @Resource
     private RuleLogService ruleLogService;
+
+    @Resource
+    private RiskCallLogRepository riskCallLogRepository;
+
     @Test
     public void test() {
         //System.out.println(((RiskAuditServiceImpl)riskAuditService).callLogRule());
         //System.out.println(((RiskAuditServiceImpl)riskAuditService).callLogRule());
         ruleLogService.create("test", "IdPicCompareRule", null, false, "");
-
+        Integer callLogCountAfterTimestamp = riskCallLogRepository.getCallLogCountAfterTimestamp("", 123L);
+        //int count = callLogCountAfterTimestamp
+        System.out.println(callLogCountAfterTimestamp);
     }
 
 }

@@ -33,14 +33,14 @@ public class OSSFileUpload {
         String fileName = generateFileName(fileStreamTransformer.getFileName());
 
         meta.setContentLength(fileStreamTransformer.getSize());
-
-        new OSSClient(ossProperties.getWriteEndpoint(), ossProperties.getAccessKeyId(), ossProperties.getAccessKeySecret()).putObject(
+        OSSClient ossClient = new OSSClient(ossProperties.getWriteEndpoint(), ossProperties.getAccessKeyId(), ossProperties.getAccessKeySecret());
+        ossClient.putObject(
                 ossProperties.getBucketName(),
                 fileName,
                 fileStreamTransformer.getInputStream(),
                 meta
         );
-
+        ossClient.shutdown();
         return buildFileURL(fileName);
     }
 
@@ -52,11 +52,14 @@ public class OSSFileUpload {
      */
     public String upload(ByteArrayInputStream inputStream,String format) {
         String fileName = generateFileNameByFormat(format == null ? "jpg" : format);
-        new OSSClient(ossProperties.getWriteEndpoint(), ossProperties.getAccessKeyId(), ossProperties.getAccessKeySecret()).putObject(
+        OSSClient ossClient = new OSSClient(ossProperties.getWriteEndpoint(), ossProperties.getAccessKeyId(), ossProperties.getAccessKeySecret());
+        ossClient
+                .putObject(
                 ossProperties.getBucketName(),
                 fileName,
                 inputStream
         );
+        ossClient.shutdown();
         return buildFileURL(fileName);
     }
 
