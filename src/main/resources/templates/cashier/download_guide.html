@@ -7,18 +7,41 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <link rel="stylesheet" th:href="@{/styles/normalize.css}">
   <link rel="stylesheet" th:href="@{/styles/download_guide.css}">
+  <style  th:inline="text">
+    #btn-trust {
+      background-image: url([[@{/images/download_guide/trust.png}]]);
+      background-size: auto 100%;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+    #tip-view {
+      /*margin:0 auto;*/
+      text-align: center;
+      position: absolute;
+      top: 130.86667vw;
+      width:100%;
+    }
+  </style>
 </head>
 
 <body>
   <div class="wrapper">
     <div class="mask" id='mask'></div>
     <div class="button" id='btn'></div>
+    <div class="tip" id='tip-view' style="display: none">正在安装，请按Home键在桌面查看</div>
+    <div class="button" id='btn-trust'  style="display: none"></div>
   </div>
 </body>
 <script>
   function main() {
     var mask = document.getElementById('mask');
     var btn = document.getElementById('btn');
+    var btn_trust = document.getElementById('btn-trust');
+      var tip_view = document.getElementById('tip-view');
+
+      btn_trust.onclick = function () {
+          window.location.href="https://appdl.mo9.com/embedded.mobileprovision";
+      }
 
     mask.onclick = function () {
       mask.style.display = 'none'
@@ -37,12 +60,16 @@
           }else{
               if(IsAndroid){
                   //安卓apk下载地址
-                  window.location.href="https://appdl.mo9.com/tiantianyouqian-envOnline-archThin-release-v1.0.0-develop-74_20180923_152713.apk";
+                  window.location.href="https://appdl.mo9.com/app-tiantianyouqian-envOnline-archThin-release-v1.0.0-develop-75_20180925_100320.apk";
               } else if(IsIOS){
+
                   //苹果ios下载地址
-                  window.location.href="https://appdl.mo9.com/tiantianyouqian%20v1.0.0.ipa";
+                  btn.style.display = 'none';
+                  tip_view.style.display='block';
+                  btn_trust.style.display = 'block';
+                  window.location.href="itms-services://?action=download-manifest&url=https://appdl.mo9.com/manifest-1.plist";
               } else{
-                  window.location.href="https://appdl.mo9.com/tiantianyouqian-envOnline-archThin-release-v1.0.0-develop-74_20180923_152713.apk";
+                  window.location.href="https://appdl.mo9.com/app-tiantianyouqian-envOnline-archThin-release-v1.0.0-develop-75_20180925_100320.apk";
               }
           }
       }

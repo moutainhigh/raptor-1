@@ -21,10 +21,14 @@ public class AuditServiceTest {
     @Resource
     private RiskAuditService riskAuditService;
 
+    @Resource
+    private RuleLogService ruleLogService;
     @Test
     public void test() {
         //System.out.println(((RiskAuditServiceImpl)riskAuditService).callLogRule());
         //System.out.println(((RiskAuditServiceImpl)riskAuditService).callLogRule());
+        ruleLogService.create("test", "IdPicCompareRule", null, false, "");
+
     }
 
 }
