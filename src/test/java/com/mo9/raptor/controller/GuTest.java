@@ -175,6 +175,7 @@ public class GuTest {
     public void orderQuotaList(){
         //https://riskclone.mo9.com/raptorApi/loan_quota/list
         //https://riskclone.mo9.com/raptorApi/system/switch
+        //https://riskclone.mo9.com/raptorApi/system/common_task
     }
 
     /**

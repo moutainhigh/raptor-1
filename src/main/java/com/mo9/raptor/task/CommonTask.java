@@ -32,7 +32,7 @@ public class CommonTask {
     private CommonService commonService ;
 
 
-    @Scheduled(cron = "0 0/10 * * * ?")
+    @Scheduled(cron = "0 0 0/1 * * ?")
     public void commonTask(){
 
         if(CommonValues.TRUE.equals(taskOpen)){
