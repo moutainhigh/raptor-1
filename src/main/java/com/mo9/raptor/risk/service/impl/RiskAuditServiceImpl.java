@@ -161,9 +161,12 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         return new AuditResponseEvent(userCode, false, "查询不到用户" + userCode + "数据");
     }
 
+    @Value("${risk.calllog.limit}")
+    private int callLogLimit;
+
     public AuditResponseEvent callLogRule(String userCode) {
         Long days90ts = 90 * 24 * 60 * 60 * 1000L;
-        int limit = 100;
+        int limit = callLogLimit;
         List<TRiskCallLog> callLogList = riskCallLogRepository.getCallLogByUid(userCode);
         int count = 0;
         long currentTimeMillis = System.currentTimeMillis();
