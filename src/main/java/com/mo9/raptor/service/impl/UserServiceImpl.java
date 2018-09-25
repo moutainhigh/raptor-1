@@ -137,11 +137,15 @@ public class UserServiceImpl implements UserService {
         Boolean mobileContacts = userEntity.getMobileContacts();
         Boolean callHistory = userEntity.getCallHistory();
         Boolean bankCardSet = userEntity.getBankCardSet();
-        if (callHistory && certifyInfo && mobileContacts && bankCardSet) {
-            // 信息采集完成 发起审核
-            userEntity.setAuthTime(System.currentTimeMillis());
-            AuditLaunchEvent auditLaunchEvent = new AuditLaunchEvent(userEntity.getUserCode(),userEntity.getUserCode());
-            userEventLauncher.launch(auditLaunchEvent);
+        String status = userEntity.getStatus() ;
+        if(StatusEnum.COLLECTING.name().equals(status)){
+            if (callHistory && certifyInfo && mobileContacts && bankCardSet) {
+                // 信息采集完成 发起审核
+                userEntity.setAuthTime(System.currentTimeMillis());
+                AuditLaunchEvent auditLaunchEvent = new AuditLaunchEvent(userEntity.getUserCode(),userEntity.getUserCode());
+                userEventLauncher.launch(auditLaunchEvent);
+            }
         }
+
     }
 }
