@@ -58,6 +58,6 @@ public interface PayOrderRepository extends JpaRepository<PayOrderEntity,Long>, 
      * @param status
      * @return
      */
-    @Query(value = "select * from t_raptor_pay_order where status = ?1 deleted = false", nativeQuery = true)
-    List<PayOrderEntity> findByStatus(StatusEnum status);
+    @Query(value = "select * from t_raptor_pay_order where status = ?1 and deleted = false", nativeQuery = true)
+    List<PayOrderEntity> findByStatus(String status);
 }

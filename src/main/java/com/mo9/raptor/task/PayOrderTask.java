@@ -37,12 +37,14 @@ public class PayOrderTask {
 
     @Scheduled(cron = "0 0/10 * * * ?")
     public void notSuccessOrderTask(){
-        List<PayOrderEntity> list = payOrderService.findByStatus(StatusEnum.DEDUCTING) ;
+        logger.info("还款未最终状态定时器开启");
+        List<PayOrderEntity> list = payOrderService.findByStatus(StatusEnum.DEDUCTING.name()) ;
         for(PayOrderEntity payOrderEntity : list){
             PayOrderLogEntity payOrderLogEntity = payOrderLogService.getByPayOrderId(payOrderEntity.getOrderId());
             if(!StringUtils.isBlank(payOrderLogEntity.getDealCode())){
                 gatewayUtils.gatewayMqPush(payOrderLogEntity.getDealCode());
             }
         }
+        logger.info("还款未最终状态定时器结束 共处理 " + list.size() + "条数据");
     }
 }
