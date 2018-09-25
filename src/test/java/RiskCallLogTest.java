@@ -3,6 +3,7 @@ import com.mo9.raptor.risk.entity.TRiskCallLog;
 import com.mo9.raptor.risk.entity.TRiskTelBill;
 import com.mo9.raptor.risk.entity.TRiskTelInfo;
 import com.mo9.raptor.risk.repo.RiskCallLogRepository;
+import com.mo9.raptor.risk.repo.RiskTelInfoRepository;
 import com.mo9.raptor.risk.service.RiskCallLogService;
 import com.mo9.raptor.risk.service.RiskTelBillService;
 import com.mo9.raptor.risk.service.RiskTelInfoService;
@@ -36,6 +37,9 @@ public class RiskCallLogTest extends BaseTest{
     private RiskTelInfoService riskTelInfoService;
     @Resource
     private RiskTelBillService riskTelBillService;
+    
+    @Resource
+    private RiskTelInfoRepository riskTelInfoRepository;
 
     @Autowired
     private HttpClientApi httpClientApi;
@@ -83,12 +87,25 @@ public class RiskCallLogTest extends BaseTest{
         
         riskTelBillService.batchSave(riskTelBillList);
     }
+    
+    @Test
+    public void updateTelInfo(){
+        TRiskTelInfo telInfo = riskTelInfoRepository.findByMobile("18501635120");
+
+        System.out.println(telInfo.getFullName());
+        
+        telInfo.setAddress("上海浦东");
+        
+        riskTelInfoRepository.saveAndFlush(telInfo);
+        
+        
+    }
 
 
     @Test
     public void testDianhuaCallback() {
-
-        String saveUrl = "http://127.0.0.1/raptorApi/risk/save_call_log";
+//        String saveUrl = "http://127.0.0.1/raptorApi/risk/save_call_log";
+        String saveUrl = "https://riskclone.mo9.com/raptorApi/risk/save_call_log";
         try {
             String jsonStr = "{ " +
                     "  \"status\": 0, " +
@@ -157,6 +174,7 @@ public class RiskCallLogTest extends BaseTest{
                     "  } " +
                     "}";
 
+            System.out.println(jsonStr);
 
             HttpResult resJson = httpClientApi.doPostJson(saveUrl, jsonStr);
             System.out.println(resJson.getCode());
