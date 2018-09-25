@@ -36,7 +36,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/risk")
 public class RiskController {
-    private static final String FILE_PATH = "/data/calllogfile/";
 
     private static Logger logger = Log.get();
     @Resource
@@ -92,20 +91,17 @@ public class RiskController {
             logger.error("保存电话邦调用日志出错", e);
         }
        
-        
-        boolean callLogStatus = true;
 
         if (callLogReq.getStatus() != 0 || callLogReq.getData() == null){
             logger.error("--------------第三方通话记录爬虫失败----------");
             logger.error(callLogJson);
-            callLogStatus = false;
-        }
-        if (callLogStatus){
+        }else {
             //保存通话记录所有信息
             riskTelInfoService.saveAllCallLogData(callLogReq);
 
             //上传通话记录文件
-            this.uploadFile2Oss(callLogReq.toString(), sockpuppet + "-" + callLogReq.getData().getTel() + ".json" );
+            String fileName = ossProperties.getCatalogCallLog() + "/callLog/" + sockpuppet + "-" + callLogReq.getData().getTel() + ".json";
+            this.uploadFile2Oss(callLogReq.toString(),  fileName);
 
         }
         
@@ -124,7 +120,9 @@ public class RiskController {
             String tel = jsonObject.getString("tel");
             String uid = jsonObject.getString("uid");
             if (report != null){
-                this.uploadFile2Oss(report, sockpuppet + "-" + tel + "-report.json");
+                String fileName = ossProperties.getCatalogCallLog() + "/" + sockpuppet + "-" + tel + "-report.json";
+                
+                this.uploadFile2Oss(report, fileName);
                 try {
                     
                     //通知用户状态，报告已生成
@@ -142,7 +140,6 @@ public class RiskController {
     private void uploadFile2Oss(String str, String fileName){
         
         try {
-            fileName = ossProperties.getCatalogCallLog() + "/" + fileName;
             new OSSClient(ossProperties.getWriteEndpoint(), ossProperties.getAccessKeyId(), ossProperties.getAccessKeySecret())
                     .putObject(
                         ossProperties.getBucketName(),
