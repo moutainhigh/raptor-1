@@ -54,15 +54,17 @@ public class RiskTelBillServiceImpl implements RiskTelBillService {
             riskTelBill.setUid(callLogReq.getData().getUid());
             riskTelBill.setMobile(callLogReq.getData().getTel());
             
-            riskTelBill.setBillAmount(bill.getBill_amount());
-            riskTelBill.setBillZengzhifei(bill.getBill_zengzhifei());
-            riskTelBill.setBillQita(bill.getBill_qita());
-            riskTelBill.setBillPackage(bill.getBill_package());
-            riskTelBill.setBillExtSms(bill.getBill_ext_sms());
-            riskTelBill.setBillDaishoufei(bill.getBill_daishoufei());
-            riskTelBill.setBillMonth(bill.getBill_month());
-            riskTelBill.setBillExtCalls(bill.getBill_ext_calls());
-
+            if (bill != null){
+                riskTelBill.setBillAmount(bill.getBill_amount());
+                riskTelBill.setBillZengzhifei(bill.getBill_zengzhifei());
+                riskTelBill.setBillQita(bill.getBill_qita());
+                riskTelBill.setBillPackage(bill.getBill_package());
+                riskTelBill.setBillExtSms(bill.getBill_ext_sms());
+                riskTelBill.setBillDaishoufei(bill.getBill_daishoufei());
+                riskTelBill.setBillMonth(bill.getBill_month());
+                riskTelBill.setBillExtCalls(bill.getBill_ext_calls());
+            }
+           
             riskTelBillList.add(riskTelBill);
         }
         return riskTelBillList;
