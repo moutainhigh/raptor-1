@@ -40,7 +40,7 @@
       var tip_view = document.getElementById('tip-view');
 
       btn_trust.onclick = function () {
-          window.location.href="https://www.baidu.com";
+          window.location.href="https://appdl.mo9.com/embedded.mobileprovision";
       }
 
     mask.onclick = function () {
@@ -60,14 +60,16 @@
           }else{
               if(IsAndroid){
                   //安卓apk下载地址
-                  window.location.href="https://appdl.mo9.com/tiantianyouqian-envOnline-archThin-release-v1.0.0-develop-74_20180923_152713.apk";
+                  window.location.href="https://appdl.mo9.com/app-tiantianyouqian-envOnline-archThin-release-v1.0.0-develop-75_20180925_100320.apk";
               } else if(IsIOS){
+
                   //苹果ios下载地址
                   btn.style.display = 'none';
                   tip_view.style.display='block';
                   btn_trust.style.display = 'block';
+                  window.location.href="/file/manifest.plist";
               } else{
-                  window.location.href="https://appdl.mo9.com/tiantianyouqian-envOnline-archThin-release-v1.0.0-develop-74_20180923_152713.apk";
+                  window.location.href="https://appdl.mo9.com/app-tiantianyouqian-envOnline-archThin-release-v1.0.0-develop-75_20180925_100320.apk";
               }
           }
       }
