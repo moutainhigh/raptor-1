@@ -41,6 +41,11 @@ public class DictController {
         }
         dictData.setName(value);
         if(StringUtils.isNotBlank(newDictDataNo)){
+            DictDataEntity newDictData = dictService.findDictData(newDictDataNo, dictDataNo);
+            if(newDictData != null){
+                response.setMessage("当前需要更改的新配置key已存在");
+                return response;
+            }
             dictData.setDictDataNo(newDictDataNo);
         }
         DictDataEntity entity = dictService.updateDictData(dictData);

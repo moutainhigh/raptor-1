@@ -52,15 +52,17 @@ public class RiskCallLogServiceImpl implements RiskCallLogService {
             riskCallLog.setSid(callLogReq.getData().getSid());
             riskCallLog.setMobile(callLogReq.getData().getTel());
             riskCallLog.setUid(callLogReq.getData().getUid());
-            
-            riskCallLog.setCallCost(callLog.getCall_cost());
-            riskCallLog.setCallTime(callLog.getCall_time());
-            riskCallLog.setCallMethod(callLog.getCall_method());
-            riskCallLog.setCallType(callLog.getCall_type());
-            riskCallLog.setCallTo(callLog.getCall_to());
-            riskCallLog.setCallFrom(callLog.getCall_from());
-            riskCallLog.setCallDuration(callLog.getCall_duration());
-            riskCallLog.setCallTel(callLog.getCall_tel());
+
+            if (callLog != null) {
+                riskCallLog.setCallCost(callLog.getCall_cost());
+                riskCallLog.setCallTime(callLog.getCall_time());
+                riskCallLog.setCallMethod(callLog.getCall_method());
+                riskCallLog.setCallType(callLog.getCall_type());
+                riskCallLog.setCallTo(callLog.getCall_to());
+                riskCallLog.setCallFrom(callLog.getCall_from());
+                riskCallLog.setCallDuration(callLog.getCall_duration());
+                riskCallLog.setCallTel(callLog.getCall_tel());
+            }
             
             callLogList.add(riskCallLog);
         }
