@@ -4,6 +4,7 @@ import com.mo9.raptor.bean.MessageVariable;
 import com.mo9.raptor.engine.entity.LoanOrderEntity;
 import com.mo9.raptor.engine.service.ILoanOrderService;
 import com.mo9.raptor.entity.UserEntity;
+import com.mo9.raptor.enums.RenewableDaysEnum;
 import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.ModelUtils;
 import com.mo9.raptor.utils.log.Log;
@@ -36,9 +37,17 @@ public class AgreementController {
 
     private static Logger logger = Log.get();
 
-    private static final String DATE_FORMAT = "yyyy年MM月dd";
+    private static final String DATE_FORMAT = "yyyy年MM月dd日";
 
     private static final String COMPANY_STAMP = "";
+    /**
+     *借款服务费占总金额百分比 不需要百分号，暂时固定
+     */
+    private static final String  SERVICE_CHARGE_PERCENT = "25";
+    /**
+     * 乙方支付展期服务费
+     */
+    private static final String  EXTENDED_SERVICE_CHARGE = "%s元/%s天";
 
     @Autowired
     private UserService userService;
@@ -53,7 +62,7 @@ public class AgreementController {
      */
     @GetMapping(value = "/service_agreement")
     public String getServiceAgreement(Model model, HttpServletRequest request) {
-        String userCode = request.getParameter("userCode");
+        String userCode = request.getParameter("accountCode");
         String orderId = request.getParameter("loanOrderId");
         InputStream stream = getClass().getClassLoader().getResourceAsStream("static/md/service_agreement.md");
         try {
@@ -65,11 +74,17 @@ public class AgreementController {
             String lentAddress = "";
             String lendTime = " 年 月 日";
             String loanOrderId = "";
+            String loanServiceCharge = "";
+            String postponeUnitCharge = "";
+            String days = "";
             if (userEntity != null&&OrderEntity!=null) {
                 realName = userEntity.getRealName();
                 idCard = userEntity.getIdCard();
                 lendTime= new SimpleDateFormat(DATE_FORMAT).format(OrderEntity.getLendTime());
                 loanOrderId= OrderEntity.getOrderId();
+                loanServiceCharge = String.valueOf(OrderEntity.getChargeValue().intValue());
+                postponeUnitCharge = String.valueOf(OrderEntity.getPostponeUnitCharge().intValue());
+                days =String.valueOf( RenewableDaysEnum.SEVENT.getDays());
             }
             Map variables = new HashMap<>(16);
             variables.put("sign", MessageVariable.RAPTOR_SIGN_NAME);
@@ -81,6 +96,9 @@ public class AgreementController {
             variables.put("lendTime",lendTime);
             variables.put("loanOrderId",loanOrderId);
             variables.put("companyStamp",COMPANY_STAMP);
+            variables.put("serviceChargePercent",SERVICE_CHARGE_PERCENT);
+            variables.put("loanServiceCharge",loanServiceCharge);
+            variables.put("extendedServiceCharge",String.format(EXTENDED_SERVICE_CHARGE,postponeUnitCharge,days));
             String process = ModelUtils.process(readStreamToString(stream), variables);
             model.addAttribute("title","借款服务协议");
             model.addAttribute("content", process);
@@ -119,7 +137,7 @@ public class AgreementController {
      */
     @GetMapping(value = "/loan_agreement")
     public String getLoanAgreement(Model model, HttpServletRequest request) {
-        String userCode = request.getParameter("userCode");
+        String userCode = request.getParameter("accountCode");
         String orderId = request.getParameter("loanOrderId");
         InputStream stream = getClass().getClassLoader().getResourceAsStream("static/md/loan_agreement.md");
         try {
@@ -191,6 +209,7 @@ public class AgreementController {
             variables.put("sign", MessageVariable.RAPTOR_SIGN_NAME);
             variables.put("simpleCompany", MessageVariable.SIMPLE_COMPANY);
             variables.put("companyStamp",COMPANY_STAMP);
+            variables.put("serviceMailbox",MessageVariable.SERVICE_MAILBOX);
             String process = ModelUtils.process(readStreamToString(stream), variables);
             model.addAttribute("content",process);
             model.addAttribute("title","用户服务协议");

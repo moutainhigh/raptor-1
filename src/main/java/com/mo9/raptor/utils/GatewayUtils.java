@@ -17,6 +17,7 @@ import com.mo9.raptor.service.CardBinInfoService;
 import com.mo9.raptor.service.PayOrderLogService;
 import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.httpclient.HttpClientApi;
+import com.mo9.raptor.utils.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +36,7 @@ import java.util.Map;
 @Component
 public class GatewayUtils {
 
-    private static final Logger logger = LoggerFactory.getLogger(GatewayUtils.class);
+    private static Logger logger = Log.get();
 
     /**
      * 先玩后付地址
@@ -108,7 +109,7 @@ public class GatewayUtils {
             lendOrder.setDealCode(invoice);
             lendOrderService.save(lendOrder);
         } catch (Exception e) {
-            logger.error("订单[{}]放款异常 - ", lendOrder.getOrderId(), e);
+            Log.error(logger , e , "订单[{}]放款异常 - ", lendOrder.getOrderId());
             return ResCodeEnum.EXCEPTION_CODE;
         }
         return ResCodeEnum.SUCCESS ;
@@ -167,7 +168,7 @@ public class GatewayUtils {
             payOrderLog.setDealCode(dealCode);
             payOrderLogService.save(payOrderLog);
         } catch (Exception e) {
-            logger.error("还款订单[{}]还款报错", payOrderLog.getPayOrderId(), e);
+            Log.error(logger , e , "还款订单[{}]还款报错", payOrderLog.getPayOrderId());
             resCodeEnum = ResCodeEnum.EXCEPTION_CODE;
         }
         return resCodeEnum;
@@ -202,7 +203,7 @@ public class GatewayUtils {
                 return ResCodeEnum.BANK_VERIFY_ERROR ;
             }
         } catch (Exception e) {
-            logger.error(bankNo + " - " + cardId + " - " + userName + " - " + mobile + " 银行卡四要素验证 异常" , e);
+            Log.error(logger , e , bankNo + " - " + cardId + " - " + userName + " - " + mobile + " 银行卡四要素验证 异常");
             return ResCodeEnum.BANK_VERIFY_EXCEPTION ;
         }
     }
@@ -249,5 +250,26 @@ public class GatewayUtils {
         }
         return null;
     }
+
+
+
+    /**
+     * 触发先玩后付mq
+     * @return
+     */
+    public void gatewayMqPush(String gatewayDealcode){
+        try {
+            logger.info(gatewayDealcode + "触发定时器发送") ;
+            Map<String,String> params = new HashMap<String,String>(10);
+            params.put("m", "topupRemoteChecking");
+            params.put("dealcode", gatewayDealcode);
+            String gatewayUrl = this.gatewayUrl + "/pay.shtml";
+            String reeult = httpClientApi.doGet(gatewayUrl, params);
+            logger.info(gatewayDealcode + "查询还款返回数据 " + reeult);
+        } catch (Exception e) {
+            logger.error("触发先玩后付mq异常"+ gatewayDealcode , e);
+        }
+    }
+
 
 }

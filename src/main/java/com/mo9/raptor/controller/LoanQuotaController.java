@@ -4,7 +4,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.bean.BaseResponse;
 import com.mo9.raptor.bean.res.ProductRes;
 import com.mo9.raptor.entity.LoanProductEntity;
+import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.service.LoanProductService;
+import com.mo9.raptor.utils.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,8 +27,7 @@ import java.util.List;
 @RequestMapping("/loan_quota")
 public class LoanQuotaController {
 
-    private static final Logger logger = LoggerFactory.getLogger(LoanQuotaController.class);
-
+    private static Logger logger = Log.get();
     @Autowired
     private LoanProductService productService ;
 
@@ -37,12 +38,18 @@ public class LoanQuotaController {
     @GetMapping("/list")
     public BaseResponse<JSONObject> systemSwitch(HttpServletRequest request , HttpServletResponse res){
         BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
-        JSONObject returnJson = new JSONObject();
-        List<LoanProductEntity> productEntityList = productService.findNotDelete();
-        List<ProductRes> productResList = setProductRes(productEntityList);
-        returnJson.put("loan" , productResList);
-        response.setData(returnJson);
-        return response ;
+        try{
+            JSONObject returnJson = new JSONObject();
+            List<LoanProductEntity> productEntityList = productService.findNotDelete();
+            List<ProductRes> productResList = setProductRes(productEntityList);
+            returnJson.put("loan" , productResList);
+            response.setData(returnJson);
+            return response ;
+        }catch (Exception e){
+            Log.error(logger, e,"查询系统是否开启出现异常");
+            return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
+        }
+
     }
 
     /**
@@ -51,18 +58,24 @@ public class LoanQuotaController {
      * @return
      */
     private List<ProductRes> setProductRes(List<LoanProductEntity> productEntityList) {
-        List<ProductRes> list = new ArrayList<ProductRes>();
-        for(LoanProductEntity productEntity : productEntityList){
-            ProductRes productRes = new ProductRes() ;
-            productRes.setLoanable(productEntity.getAmount());
-            productRes.setInterest(productEntity.getInterest());
-            productRes.setActuallyGet(productEntity.getActuallyGetAmount());
-            productRes.setPeriod(productEntity.getPeriod());
-            productRes.setDueFee(productEntity.getPenaltyForDay());
-            productRes.setRenewFee(productEntity.getRenewalBaseAmount()) ;
-            list.add(productRes) ;
+        try{
+            List<ProductRes> list = new ArrayList<ProductRes>();
+            for(LoanProductEntity productEntity : productEntityList){
+                ProductRes productRes = new ProductRes() ;
+                productRes.setLoanable(productEntity.getAmount());
+                productRes.setInterest(productEntity.getInterest());
+                productRes.setActuallyGet(productEntity.getActuallyGetAmount());
+                productRes.setPeriod(productEntity.getPeriod());
+                productRes.setDueFee(productEntity.getPenaltyForDay());
+                productRes.setRenewFee(productEntity.getRenewalBaseAmount()) ;
+                list.add(productRes) ;
+            }
+            return list ;
+        }catch (Exception e){
+            Log.error(logger, e,"封装返回参数出现异常");
+            return null;
         }
-        return list ;
+
     }
 
 }

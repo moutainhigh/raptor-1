@@ -15,6 +15,7 @@ import com.mo9.raptor.engine.service.ILendOrderService;
 import com.mo9.raptor.engine.service.ILoanOrderService;
 import com.mo9.raptor.engine.structure.item.Item;
 import com.mo9.raptor.engine.utils.EngineStaticValue;
+import com.mo9.raptor.engine.utils.TimeUtils;
 import com.mo9.raptor.entity.BankEntity;
 import com.mo9.raptor.entity.DictDataEntity;
 import com.mo9.raptor.entity.LoanProductEntity;
@@ -30,6 +31,7 @@ import com.mo9.raptor.service.DictService;
 import com.mo9.raptor.service.LoanProductService;
 import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.IDWorker;
+import com.mo9.raptor.utils.log.Log;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,8 +56,7 @@ import java.util.concurrent.TimeUnit;
 @RequestMapping("/order")
 public class LoanOrderController {
 
-    private static final Logger logger = LoggerFactory.getLogger(LoanOrderController.class);
-
+    private static Logger logger = Log.get();
     @Autowired
     private IDWorker idWorker;
 
@@ -158,7 +159,8 @@ public class LoanOrderController {
                 loanOrder.setClientVersion(clientVersion);
 
                 long now = System.currentTimeMillis();
-                loanOrder.setRepaymentDate(now + loanTerm * EngineStaticValue.DAY_MILLIS);
+                long today = TimeUtils.extractDateTime(System.currentTimeMillis());
+                loanOrder.setRepaymentDate(today + (loanTerm - 1) * EngineStaticValue.DAY_MILLIS);
                 loanOrder.setCreateTime(now);
                 loanOrder.setUpdateTime(now);
 
@@ -198,7 +200,7 @@ public class LoanOrderController {
                 return response.buildFailureResponse(ResCodeEnum.GET_LOCK_FAILED);
             }
         } catch (Exception e) {
-            logger.error("借款订单[{}]审核出错", orderId, e);
+            Log.error(logger , e ,"借款订单[{}]审核出错", orderId);
             return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
         } finally {
             redisService.unlock(lock.getName());
@@ -240,7 +242,7 @@ public class LoanOrderController {
             map.put("entity",res);
             return response.buildSuccessResponse(map);
         } catch (Exception e) {
-            logger.error("用户[{}]获取上一笔未还清订单错误, ", userCode, e);
+            Log.error(logger , e , "用户[{}]获取上一笔未还清订单错误, ", userCode);
             return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
         }
     }

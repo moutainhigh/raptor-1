@@ -30,9 +30,14 @@ import java.util.List;
 @Service("riskAuditService")
 public class RiskAuditServiceImpl implements RiskAuditService {
 
-
     @Value("${raptor.sockpuppet}")
     private String sockpuppet;
+
+    @Value("${raptor.oss.read-endpoint}")
+    private String readEndpoint;
+
+    @Value("${raptor.oss.catalog.callLogReport}")
+    private String secondDomain;
 
     @Resource
     private OSSFileUpload ossFileUpload;
@@ -51,8 +56,13 @@ public class RiskAuditServiceImpl implements RiskAuditService {
     @Resource
     private UserService userService;
 
+
     @Override
     public AuditResponseEvent audit(String userCode) {
+        UserEntity user = userService.findByUserCodeAndDeleted(userCode, false);
+        if (!user.getReceiveCallHistory()) {
+            return null;
+        }
         AuditResponseEvent res = callLogRule(userCode);
         if (!res.isPass()) {
             return res;
@@ -143,7 +153,10 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         UserEntity user = userService.findByUserCode(userCode);
         try {
             if (user != null && StringUtils.isNotBlank(user.getMobile())) {
-                String url = ossFileUpload.buildFileURL(sockpuppet + "-" + user.getMobile() + "-report.json");
+                String url = readEndpoint + "/" + secondDomain + "/" + sockpuppet + "-" + user.getMobile() + "-report.json";
+
+                //String url = ossFileUpload.buildFileURL(sockpuppet + "-" + user.getMobile() + "-report.json");
+                logger.info("读取报告" + url);
                 OkHttpClient okHttpClient = new OkHttpClient();
                 Response response = okHttpClient.newCall(new Request.Builder().get().url(url).build()).execute();
                 if (response.code() == HTTP_OK) {
@@ -165,13 +178,12 @@ public class RiskAuditServiceImpl implements RiskAuditService {
                     if (checkResult == null) {
                         return new AuditResponseEvent(userCode, false, userCode + "[" + user.getMobile() + "]报告出错");
                     } else {
-                        return new AuditResponseEvent(userCode, checkResult == 1, checkResult == 1 ? "" : "实名三要素未通过");
+                        return new AuditResponseEvent(userCode, checkResult == 1 || checkResult == 5, (checkResult == 1 || checkResult == 5) ? "" : "实名三要素未通过");
                     }
                 } else {
                     return new AuditResponseEvent(userCode, false, "报告不存在");
                 }
             } else {
-
                 return new AuditResponseEvent(userCode, false, "查询不到该用户，或者该用户手机号为空");
             }
         } catch (Exception e) {

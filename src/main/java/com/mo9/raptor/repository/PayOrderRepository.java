@@ -1,6 +1,7 @@
 package com.mo9.raptor.repository;
 
 import com.mo9.raptor.engine.entity.PayOrderEntity;
+import com.mo9.raptor.engine.enums.StatusEnum;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -51,4 +52,12 @@ public interface PayOrderRepository extends JpaRepository<PayOrderEntity,Long>, 
 
     @Query(value = "select * from t_raptor_pay_order where loan_order_id = ?1 AND type = ?2 and deleted = false", nativeQuery = true)
     List<PayOrderEntity> listByLoanOrderIdAndType(String loanOrderId, String payType);
+
+    /**
+     * 根据状态查询
+     * @param status
+     * @return
+     */
+    @Query(value = "select * from t_raptor_pay_order where status = ?1 and deleted = false", nativeQuery = true)
+    List<PayOrderEntity> findByStatus(String status);
 }

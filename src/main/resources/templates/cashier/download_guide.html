@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.thymeleaf.org" xmlns:th="http://www.w3.org/1999/xhtml">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" th:href="@{/styles/normalize.css}">
+  <link rel="stylesheet" th:href="@{/styles/download_guide.css}">
+</head>
+
+<body>
+  <div class="wrapper">
+    <div class="mask" id='mask'></div>
+    <div class="button" id='btn'></div>
+  </div>
+</body>
+<script>
+  function main() {
+    var mask = document.getElementById('mask');
+    var btn = document.getElementById('btn');
+
+    mask.onclick = function () {
+      mask.style.display = 'none'
+    }
+      btn.onclick = function () {
+          var UA = window.navigator.userAgent,
+              IsAndroid = (/Android|HTC/i.test(UA) || !!(window.navigator['platform']+'').match(/Linux/i)),
+              IsIPad = !IsAndroid && /'iPad/i.test(UA),
+              IsIPhone = !IsAndroid && /iPod|iPhone/i.test(UA),
+              IsIOS = IsIPad || IsIPhone;
+
+          var ua = window.navigator.userAgent.toLowerCase();
+          if(ua.match(/MicroMessenger/i) == 'micromessenger'){
+              //微信
+              mask.style.display = 'block'
+          }else{
+              if(IsAndroid){
+                  //安卓apk下载地址
+                  window.location.href="https://appdl.mo9.com/tiantianyouqian-envOnline-archThin-release-v1.0.0-develop-74_20180923_152713.apk";
+              } else if(IsIOS){
+                  //苹果ios下载地址
+                  window.location.href="https://appdl.mo9.com/tiantianyouqian%20v1.0.0.ipa";
+              } else{
+                  window.location.href="https://appdl.mo9.com/tiantianyouqian-envOnline-archThin-release-v1.0.0-develop-74_20180923_152713.apk";
+              }
+          }
+      }
+    console.log('ready')
+  }
+  window.onload = main
+  // main()
+</script>
+
+</html>

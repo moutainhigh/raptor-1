@@ -26,13 +26,11 @@ import com.mo9.raptor.engine.state.launcher.IEventLauncher;
 import com.mo9.raptor.engine.structure.field.Field;
 import com.mo9.raptor.engine.structure.field.FieldTypeEnum;
 import com.mo9.raptor.engine.structure.item.Item;
-import com.mo9.raptor.entity.PayOrderLogEntity;
-import com.mo9.raptor.entity.UserCertifyInfoEntity;
-import com.mo9.raptor.entity.UserContactsEntity;
-import com.mo9.raptor.entity.UserEntity;
+import com.mo9.raptor.entity.*;
 import com.mo9.raptor.enums.PayTypeEnum;
 import com.mo9.raptor.mq.producer.RabbitProducer;
 import com.mo9.raptor.service.*;
+import com.mo9.raptor.utils.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -40,6 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,8 +50,8 @@ import java.util.Map;
  */
 @Component
 public class LoanMo9mqListener implements IMqMsgListener{
-	
-	private static final Logger logger = LoggerFactory.getLogger(LoanMo9mqListener.class);
+
+	private static Logger logger = Log.get();
 
 	@Autowired
 	private BankService bankService ;
@@ -92,6 +91,9 @@ public class LoanMo9mqListener implements IMqMsgListener{
 
 	//@Autowired
 	private RabbitProducer rabbitProducer;
+
+	@Resource
+	private CardBinInfoService cardBinInfoService;
 
 	@Override
 	 public MqAction consume(MqMessage msg, Object consumeContext) {
@@ -147,9 +149,21 @@ public class LoanMo9mqListener implements IMqMsgListener{
 
 		// 发送还款扣款成功事件
 		try {
+			try {
+				CardBinInfoEntity cardBinInfoEntity = cardBinInfoService.findByCardPrefix(payOrderLog.getBankCard());
+				String bankName = "银行卡" ;
+				if(cardBinInfoEntity != null){
+                    bankName = cardBinInfoEntity.getCardBank() ;
+                }
+				bankService.createOrUpdateBank( payOrderLog.getBankCard() ,  payOrderLog.getIdCard() ,  payOrderLog.getUserName() ,
+                        payOrderLog.getBankMobile() ,  bankName ,  payOrderLog.getUserCode());
+			} catch (Exception e) {
+				Log.error(logger , e , "还款成功保存银行卡异常 orderId : " + orderId);
+			}
+
 			payEventLauncher.launch(event);
 		} catch (Exception e) {
-			logger.error("发送还款订单[{}]还款成功事件异常", orderId, e);
+			Log.error(logger , e , "发送还款订单[{}]还款成功事件异常", orderId);
 		}
 
 		//修改或者存储银行卡信息 TODO
@@ -231,6 +245,15 @@ public class LoanMo9mqListener implements IMqMsgListener{
 		Boolean isSucceed = "1".equals(status);
 		LendResponseEvent lendResponse;
 		if (isSucceed) {
+			//获取银行卡信息
+			try {
+				LoanOrderEntity loanOrderEntity = loanOrderService.getByOrderId(orderId);
+				if(loanOrderEntity != null){
+                    bankService.createOrUpdateBank( bankCardNo ,  bankIdcardNo ,  bankUserName ,  bankMobile ,  bankName ,  loanOrderEntity.getOwnerId());
+                }
+			} catch (Exception e) {
+				Log.error(logger , e ,"放款成功保存银行卡信息异常 orderId : " + orderId);
+			}
 			lendResponse = new LendResponseEvent(
 					orderId, true,
 					lendAmount, "先玩后付",
@@ -255,7 +278,7 @@ public class LoanMo9mqListener implements IMqMsgListener{
 
 			lendEventLauncher.launch(lendResponse);
 		} catch (Exception e) {
-			logger.error("订单[{}]放款[{}]事件报错,", orderId, isSucceed, e);
+			Log.error(logger , e ,"订单[{}]放款[{}]事件报错,", orderId, isSucceed);
 		}
 
 		//修改或者存储银行卡信息 TODO

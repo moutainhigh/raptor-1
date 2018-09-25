@@ -2,6 +2,7 @@ package com.mo9.raptor.engine.service;
 
 import com.mo9.raptor.bean.condition.FetchPayOrderCondition;
 import com.mo9.raptor.engine.entity.PayOrderEntity;
+import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.entity.PayOrderLogEntity;
 import com.mo9.raptor.enums.PayTypeEnum;
 import org.springframework.data.domain.Page;
@@ -74,4 +75,11 @@ public interface IPayOrderService {
      * @param payOrderId
      */
     void repayNotice(String payOrderId);
+
+    /**
+     * 根据状态查询
+     * @param deducting
+     * @return
+     */
+    List<PayOrderEntity> findByStatus(String deducting);
 }

@@ -13,6 +13,7 @@ import com.mo9.raptor.risk.service.RiskTelInfoService;
 import com.mo9.raptor.service.DianHuaBangApiLogService;
 import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.httpclient.HttpClientApi;
+import com.mo9.raptor.utils.log.Log;
 import com.mo9.raptor.utils.oss.OSSProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,9 +37,8 @@ import java.util.List;
 @RequestMapping("/risk")
 public class RiskController {
     private static final String FILE_PATH = "/data/calllogfile/";
-    
-    private static Logger logger = LoggerFactory.getLogger(RiskController.class);
-    
+
+    private static Logger logger = Log.get();
     @Resource
     private RiskTelInfoService riskTelInfoService;
     
@@ -79,9 +79,8 @@ public class RiskController {
 
     @PostMapping(value = "/save_call_log")
     public String saveCallLogResult(@RequestBody String callLogJson){
-        logger.info("----收到通话记录post数据-----> " + callLogJson);
-
         CallLogReq callLogReq = JSONObject.parseObject(callLogJson, CallLogReq.class);
+        logger.info("----收到通话记录post数据-----> tel: " + callLogReq.getData().getTel() + ", UID: " + callLogReq.getData().getUid());
         
         try {
             //记录日志
@@ -98,6 +97,7 @@ public class RiskController {
 
         if (callLogReq.getStatus() != 0 || callLogReq.getData() == null){
             logger.error("--------------第三方通话记录爬虫失败----------");
+            logger.error(callLogJson);
             callLogStatus = false;
         }
         if (callLogStatus){
@@ -106,15 +106,6 @@ public class RiskController {
 
             //上传通话记录文件
             this.uploadFile2Oss(callLogReq.toString(), sockpuppet + "-" + callLogReq.getData().getTel() + ".json" );
-
-            try {
-                if (callLogReq.getData() != null){
-                    userService.updateReceiveCallHistory(callLogReq.getData().getUid(), callLogStatus);
-                    logger.info("更新用户通话记录历史信息成功，tel: " + callLogReq.getData().getTel() + ", uid: " + callLogReq.getData().getUid());
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
 
         }
         
@@ -131,8 +122,17 @@ public class RiskController {
             //上传运营商报告文件
             String report = this.getCallLogReport(jsonObject.getString("sid"));
             String tel = jsonObject.getString("tel");
+            String uid = jsonObject.getString("uid");
             if (report != null){
                 this.uploadFile2Oss(report, sockpuppet + "-" + tel + "-report.json");
+                try {
+                    
+                    //通知用户状态，报告已生成
+                    userService.updateReceiveCallHistory(uid, true);
+                    logger.info("更新用户通话记录历史信息成功，tel: " + tel + ", uid: " + uid);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
         
@@ -142,6 +142,7 @@ public class RiskController {
     private void uploadFile2Oss(String str, String fileName){
         
         try {
+            fileName = ossProperties.getCatalogCallLog() + "/" + fileName;
             new OSSClient(ossProperties.getWriteEndpoint(), ossProperties.getAccessKeyId(), ossProperties.getAccessKeySecret())
                     .putObject(
                         ossProperties.getBucketName(),
@@ -201,6 +202,7 @@ public class RiskController {
         entity.setMobile(callLogReq.getData().getTel());
         entity.setSid(callLogReq.getData().getSid());
         entity.setUid(callLogReq.getData().getUid());
+        entity.setStatus(Long.parseLong(callLogReq.getStatus() + ""));
         entity.setPlatform(sockpuppet);
         
         return entity;

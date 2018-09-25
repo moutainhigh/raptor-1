@@ -10,6 +10,7 @@ import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.redis.RedisParams;
 import com.mo9.raptor.redis.RedisServiceApi;
 import com.mo9.raptor.service.UserService;
+import com.mo9.raptor.utils.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,8 +30,7 @@ import javax.servlet.http.HttpServletRequest;
 @RequestMapping(value = "/test")
 public class TestController {
 
-    private static Logger logger = LoggerFactory.getLogger(TestController.class);
-
+    private static Logger logger = Log.get();
     @Resource
     private RedisServiceApi redisServiceApi;
 
@@ -82,6 +82,11 @@ public class TestController {
         }catch (Exception e){
             return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
         }
+    }
+
+    @RequestMapping("/test")
+    public String test(){
+        return "1";
     }
 
     private String getRedisKey(String redisKey, String receive, CaptchaBusinessEnum businessCode){
