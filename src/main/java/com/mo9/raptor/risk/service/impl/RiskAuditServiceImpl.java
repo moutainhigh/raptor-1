@@ -9,6 +9,7 @@ import com.mo9.raptor.risk.entity.TRiskCallLog;
 import com.mo9.raptor.risk.repo.RiskCallLogRepository;
 import com.mo9.raptor.risk.service.LinkFaceService;
 import com.mo9.raptor.risk.service.RiskAuditService;
+import com.mo9.raptor.service.RuleLogService;
 import com.mo9.raptor.service.UserCertifyInfoService;
 import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.oss.OSSFileUpload;
@@ -56,6 +57,8 @@ public class RiskAuditServiceImpl implements RiskAuditService {
     @Resource
     private UserService userService;
 
+    @Resource
+    private RuleLogService ruleLogService;
 
     @Override
     public AuditResponseEvent audit(String userCode) {
@@ -63,24 +66,51 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         if (!user.getReceiveCallHistory()) {
             return null;
         }
+        AuditResponseEvent finalResult = null;
         AuditResponseEvent res = callLogRule(userCode);
+        ruleLogService.create(userCode, "CallLogRule", res.isPass(), true, res.getExplanation());
         if (!res.isPass()) {
-            return res;
+            finalResult = res;
         }
-        res = threeElementCheck(userCode);
-        if (!res.isPass()) {
-            return res;
+
+        if (finalResult == null) {
+            res = threeElementCheck(userCode);
+            ruleLogService.create(userCode, "ThreeElementCheck", res.isPass(), true, res.getExplanation());
+            if (!res.isPass()) {
+                finalResult = res;
+            }
+        } else {
+            ruleLogService.create(userCode, "ThreeElementCheck", null, false, "");
         }
-        res = antiHackRule(userCode);
-        if (!res.isPass()) {
-            return res;
+
+        if (finalResult == null) {
+            res = antiHackRule(userCode);
+            ruleLogService.create(userCode, "AntiHackRule", res.isPass(), true, res.getExplanation());
+            if (!res.isPass()) {
+                finalResult = res;
+            }
+        } else {
+            ruleLogService.create(userCode, "AntiHackRule", null, false, "");
         }
-        res = livePicCompareRule(userCode);
-        if (!res.isPass()) {
-            return res;
+
+        if (finalResult == null) {
+            res = livePicCompareRule(userCode);
+            ruleLogService.create(userCode, "LivePicCompareRule", res.isPass(), true, res.getExplanation());
+            if (!res.isPass()) {
+                finalResult = res;
+            }
+        } else {
+            ruleLogService.create(userCode, "LivePicCompareRule", null, false, "");
         }
-        res = idPicCompareRule(userCode);
-        return res;
+
+        if (finalResult == null) {
+            res = idPicCompareRule(userCode);
+            ruleLogService.create(userCode, "IdPicCompareRule", res.isPass(), true, res.getExplanation());
+            finalResult = res;
+        } else {
+            ruleLogService.create(userCode, "IdPicCompareRule", null, false, "");
+        }
+        return finalResult;
     }
 
     private static final int HTTP_OK = 200;
@@ -178,7 +208,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
                     if (checkResult == null) {
                         return new AuditResponseEvent(userCode, false, userCode + "[" + user.getMobile() + "]报告出错");
                     } else {
-                        return new AuditResponseEvent(userCode, checkResult == 1 || checkResult == 5, (checkResult == 1 || checkResult == 5) ? "" : "实名三要素未通过");
+                        return new AuditResponseEvent(userCode, checkResult == 1 || checkResult == 5 || checkResult == 6, (checkResult == 1 || checkResult == 5 || checkResult == 6) ? "" : "实名三要素未通过");
                     }
                 } else {
                     return new AuditResponseEvent(userCode, false, "报告不存在");
