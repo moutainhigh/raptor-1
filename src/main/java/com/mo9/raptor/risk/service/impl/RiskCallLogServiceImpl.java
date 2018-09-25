@@ -43,7 +43,7 @@ public class RiskCallLogServiceImpl implements RiskCallLogService {
             if (exists != null){
                 continue;
             }
-            riskCallLogRepository.saveAndFlush(callLog);
+            riskCallLogRepository.save(callLog);
         }
     }
 

@@ -44,8 +44,9 @@ public class RiskTelBillServiceImpl implements RiskTelBillService {
             if (exists != null){
                 continue;
             }
-            riskTelBillRepository.saveAndFlush(riskTelBill);
+            riskTelBillRepository.save(riskTelBill);
         }
+        
     }
 
     @Override
