@@ -79,7 +79,9 @@ public class RiskController {
     @PostMapping(value = "/save_call_log")
     public String saveCallLogResult(@RequestBody String callLogJson){
         CallLogReq callLogReq = JSONObject.parseObject(callLogJson, CallLogReq.class);
-        logger.info("----收到通话记录post数据-----> tel: " + callLogReq.getData().getTel() + ", UID: " + callLogReq.getData().getUid());
+        logger.info("----收到通话记录post数据-----> tel: " + callLogReq.getData().getTel() + 
+                ", uid: " + callLogReq.getData().getUid() + 
+                "sid: " + callLogReq.getData().getSid());
         
         try {
             //记录日志
