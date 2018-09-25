@@ -272,7 +272,7 @@ public class LoanMo9mqListener implements IMqMsgListener{
 		try {
 			LendOrderEntity lendOrderEntity = lendOrderService.getByOrderId(orderId);
 			if (lendOrderEntity == null || !StatusEnum.LENDING.name().equals(lendOrderEntity.getStatus())) {
-				logger.info("接收到了订单[{}]放款的MQ, 然而查不到放款订单, 可能由于放款请求未结束而MQ先到, 延后再次发送MQ");
+				logger.info("接收到了订单[{}]放款的MQ, 然而查不到放款订单, 可能由于放款请求未结束而MQ先到, 延后再次发送MQ", orderId);
 				return MqAction.ReconsumeLater;
 			}
 

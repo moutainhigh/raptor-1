@@ -15,6 +15,7 @@ import com.mo9.raptor.engine.service.ILendOrderService;
 import com.mo9.raptor.engine.service.ILoanOrderService;
 import com.mo9.raptor.engine.structure.item.Item;
 import com.mo9.raptor.engine.utils.EngineStaticValue;
+import com.mo9.raptor.engine.utils.TimeUtils;
 import com.mo9.raptor.entity.BankEntity;
 import com.mo9.raptor.entity.DictDataEntity;
 import com.mo9.raptor.entity.LoanProductEntity;
@@ -158,7 +159,7 @@ public class LoanOrderController {
                 loanOrder.setClientVersion(clientVersion);
 
                 long now = System.currentTimeMillis();
-                loanOrder.setRepaymentDate(now + loanTerm * EngineStaticValue.DAY_MILLIS);
+                loanOrder.setRepaymentDate(now + (loanTerm - 1) * EngineStaticValue.DAY_MILLIS);
                 loanOrder.setCreateTime(now);
                 loanOrder.setUpdateTime(now);
 

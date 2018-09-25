@@ -30,12 +30,14 @@ import java.util.List;
 @Service("riskAuditService")
 public class RiskAuditServiceImpl implements RiskAuditService {
 
-
     @Value("${raptor.sockpuppet}")
     private String sockpuppet;
 
     @Value("${raptor.oss.read-endpoint}")
     private String readEndpoint;
+
+    @Value("${raptor.oss.catalog.callLogReport}")
+    private String secondDomain;
 
     @Resource
     private OSSFileUpload ossFileUpload;
@@ -54,8 +56,13 @@ public class RiskAuditServiceImpl implements RiskAuditService {
     @Resource
     private UserService userService;
 
+
     @Override
     public AuditResponseEvent audit(String userCode) {
+        UserEntity user = userService.findByUserCodeAndDeleted(userCode, false);
+        if (!user.getReceiveCallHistory()) {
+            return null;
+        }
         AuditResponseEvent res = callLogRule(userCode);
         if (!res.isPass()) {
             return res;
@@ -146,8 +153,10 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         UserEntity user = userService.findByUserCode(userCode);
         try {
             if (user != null && StringUtils.isNotBlank(user.getMobile())) {
-                //String url = readEndpoint + "/" + sockpuppet + "-" + user.getMobile() + "-report.json";
-                String url = ossFileUpload.buildFileURL(sockpuppet + "-" + user.getMobile() + "-report.json");
+                String url = readEndpoint + "/" + secondDomain + "/" + sockpuppet + "-" + user.getMobile() + "-report.json";
+
+                //String url = ossFileUpload.buildFileURL(sockpuppet + "-" + user.getMobile() + "-report.json");
+                logger.info("读取报告" + url);
                 OkHttpClient okHttpClient = new OkHttpClient();
                 Response response = okHttpClient.newCall(new Request.Builder().get().url(url).build()).execute();
                 if (response.code() == HTTP_OK) {
