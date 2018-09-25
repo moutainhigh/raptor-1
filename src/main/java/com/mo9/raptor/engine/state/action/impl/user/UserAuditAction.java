@@ -29,23 +29,16 @@ public class UserAuditAction implements IAction {
 
     @Override
     public void run() {
-        /** TODO:调用用户审核 */
-
-//        try {
-//            userEventLauncher.launch(new AuditResponseEvent(userCode, true, ""));
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
         /** 发送审核结果 */
         AuditResponseEvent event = riskAuditService.audit(this.userCode);
-        if(event == null){
+        if (event == null) {
             logger.info("发送审核结果返回结果为null，方法结束userCode={}", userCode);
             return;
         }
         try {
             userEventLauncher.launch(event);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("审核失败", e);
         }
     }
 

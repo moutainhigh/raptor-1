@@ -167,7 +167,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         Long days180ts = 180 * 24 * 60 * 60 * 1000L;
         long currentTimeMillis = System.currentTimeMillis();
         UserEntity user = userService.findByUserCode(userCode);
-        int count = riskCallLogRepository.getCallLogCountAfterTimestamp(user.getMobile(), currentTimeMillis - days180ts);
+        int count = riskCallLogRepository.getCallLogCountAfterTimestamp(user.getMobile(), (currentTimeMillis - days180ts)/1000);
         int limit = callLogLimit;
         return new AuditResponseEvent(userCode, count >= limit, count >= limit ? "" : "用户最近180天通话记录少于" + limit);
     }
