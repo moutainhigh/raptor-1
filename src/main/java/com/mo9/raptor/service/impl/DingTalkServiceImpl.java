@@ -66,4 +66,34 @@ public class DingTalkServiceImpl implements DingTalkService {
         }
 
     }
+
+
+    /**
+     * 发送钉钉
+     *
+     * @param message
+     * @return
+     */
+    @Override
+    public void sendText(String message) {
+
+        if (!dingTalkNoticeSend) {
+            return;
+        }
+
+        JSONObject params = new JSONObject();
+
+
+        params.put("mediaType", "text");
+        params.put("hook", "https://oapi.dingtalk.com/robot/send?access_token=a9715f11e0b1f544f8dd5dae788985ccf38a54cec23198a42ab3f1e1b5b31b7c");
+        params.put("message", message);
+        params.put("target", "13564546025");
+
+        try {
+            HttpResult result = httpClientApi.doPostJson(dingTalkNoticeUrl, String.valueOf(params));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
 }
