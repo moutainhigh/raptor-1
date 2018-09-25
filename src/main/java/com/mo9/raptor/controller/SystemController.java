@@ -70,7 +70,7 @@ public class SystemController {
      * 获取系统信息
      * @return
      */
-    @GetMapping("/contact_information")
+    @GetMapping("/common_task")
     public BaseResponse<JSONObject> commonTask(){
         BaseResponse<JSONObject> response = new BaseResponse<>();
         JSONObject returnJson = new JSONObject() ;
