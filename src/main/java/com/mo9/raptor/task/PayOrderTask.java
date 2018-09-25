@@ -6,11 +6,13 @@ import com.mo9.raptor.engine.service.IPayOrderService;
 import com.mo9.raptor.engine.service.impl.PayOrderServiceImpl;
 import com.mo9.raptor.entity.PayOrderLogEntity;
 import com.mo9.raptor.service.PayOrderLogService;
+import com.mo9.raptor.utils.CommonValues;
 import com.mo9.raptor.utils.GatewayUtils;
 import com.mo9.raptor.utils.log.Log;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -35,16 +37,23 @@ public class PayOrderTask {
     @Autowired
     private GatewayUtils gatewayUtils ;
 
+    @Value("${task.open}")
+    private String taskOpen ;
+
     @Scheduled(cron = "0 0/10 * * * ?")
     public void notSuccessOrderTask(){
-        logger.info("还款未最终状态定时器开启");
-        List<PayOrderEntity> list = payOrderService.findByStatus(StatusEnum.DEDUCTING.name()) ;
-        for(PayOrderEntity payOrderEntity : list){
-            PayOrderLogEntity payOrderLogEntity = payOrderLogService.getByPayOrderId(payOrderEntity.getOrderId());
-            if(!StringUtils.isBlank(payOrderLogEntity.getDealCode())){
-                gatewayUtils.gatewayMqPush(payOrderLogEntity.getDealCode());
+
+        if(CommonValues.TRUE.equals(taskOpen)){
+            logger.info("还款未最终状态定时器开启");
+            List<PayOrderEntity> list = payOrderService.findByStatus(StatusEnum.DEDUCTING.name()) ;
+            for(PayOrderEntity payOrderEntity : list){
+                PayOrderLogEntity payOrderLogEntity = payOrderLogService.getByPayOrderId(payOrderEntity.getOrderId());
+                if(!StringUtils.isBlank(payOrderLogEntity.getDealCode())){
+                    gatewayUtils.gatewayMqPush(payOrderLogEntity.getDealCode());
+                }
             }
+            logger.info("还款未最终状态定时器结束 共处理 " + list.size() + "条数据");
         }
-        logger.info("还款未最终状态定时器结束 共处理 " + list.size() + "条数据");
+
     }
 }
