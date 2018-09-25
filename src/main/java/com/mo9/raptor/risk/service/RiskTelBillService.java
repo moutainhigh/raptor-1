@@ -2,6 +2,7 @@ package com.mo9.raptor.risk.service;
 
 import com.mo9.raptor.bean.req.risk.CallLogReq;
 import com.mo9.raptor.risk.entity.TRiskTelBill;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -14,7 +15,10 @@ import java.util.List;
 
 public interface RiskTelBillService {
     TRiskTelBill save(TRiskTelBill riskTelBill);
-    
+
+    @Transactional(rollbackFor = Exception.class)
+    void saveAll(List<TRiskTelBill> riskTelBillList);
+
     void batchSave(List<TRiskTelBill> riskTelBillList);
 
     List<TRiskTelBill> coverReq2Entity(CallLogReq callLogReq);

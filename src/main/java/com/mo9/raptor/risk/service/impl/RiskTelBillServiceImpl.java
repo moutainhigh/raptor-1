@@ -25,8 +25,15 @@ public class RiskTelBillServiceImpl implements RiskTelBillService {
     private RiskTelBillRepository riskTelBillRepository;
     
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public TRiskTelBill save(TRiskTelBill riskTelBill) {
         return riskTelBillRepository.save(riskTelBill);
+    }
+    
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void saveAll(List<TRiskTelBill> riskTelBillList){
+        riskTelBillRepository.saveAll(riskTelBillList);
     }
 
     @Override
@@ -37,8 +44,9 @@ public class RiskTelBillServiceImpl implements RiskTelBillService {
             if (exists != null){
                 continue;
             }
-            riskTelBillRepository.saveAndFlush(riskTelBill);
+            riskTelBillRepository.save(riskTelBill);
         }
+        
     }
 
     @Override
