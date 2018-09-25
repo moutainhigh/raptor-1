@@ -1,6 +1,7 @@
 package com.mo9.raptor.risk.repo;
 
 import com.mo9.raptor.risk.entity.TRiskCallLog;
+import org.springframework.data.domain.Example;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -15,7 +16,6 @@ public interface RiskCallLogRepository extends JpaRepository<TRiskCallLog, Long>
 
     @Query(value = "select * from t_risk_call_log where uid = ?1", nativeQuery = true)
     List<TRiskCallLog> getCallLogByUid(String uid);
-
 
     @Query(value = "select count(*) from t_risk_call_log where mobile = ?1 AND call_time>?2", nativeQuery = true)
     Integer getCallLogCountAfterTimestamp(String mobile, Long timestampAfter);

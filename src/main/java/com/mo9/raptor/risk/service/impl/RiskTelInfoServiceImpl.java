@@ -4,6 +4,8 @@ import com.mo9.raptor.bean.req.risk.CallLogReq;
 import com.mo9.raptor.risk.entity.TRiskCallLog;
 import com.mo9.raptor.risk.entity.TRiskTelBill;
 import com.mo9.raptor.risk.entity.TRiskTelInfo;
+import com.mo9.raptor.risk.repo.RiskCallLogRepository;
+import com.mo9.raptor.risk.repo.RiskTelBillRepository;
 import com.mo9.raptor.risk.repo.RiskTelInfoRepository;
 import com.mo9.raptor.risk.service.RiskCallLogService;
 import com.mo9.raptor.risk.service.RiskTelBillService;
@@ -26,7 +28,7 @@ public class RiskTelInfoServiceImpl implements RiskTelInfoService {
     
     @Resource
     private RiskTelInfoRepository riskTelInfoRepository;
-
+    
     @Resource
     private RiskTelBillService riskTelBillService;
 
@@ -46,16 +48,28 @@ public class RiskTelInfoServiceImpl implements RiskTelInfoService {
     @Transactional(rollbackFor = Exception.class)
     public void saveAllCallLogData(CallLogReq callLogReq){
         //机主信息
+        
         TRiskTelInfo riskTelInfo = this.coverReq2Entity(callLogReq);
-        this.save(riskTelInfo);
-
-        //账单信息
         List<TRiskTelBill> riskTelBillList = riskTelBillService.coverReq2Entity(callLogReq);
-        riskTelBillService.batchSave(riskTelBillList);
-
-        //通话记录
         List<TRiskCallLog> riskCallLogList = riskCallLogService.coverReqToEntity(callLogReq);
-        riskCallLogService.batchSave(riskCallLogList);
+        
+        TRiskTelInfo existsUser = riskTelInfoRepository.findByMobile(riskTelInfo.getMobile());
+        if (existsUser != null){ //已存在的手机号，去重插入
+            this.save(riskTelInfo);
+            //账单信息
+            riskTelBillService.batchSave(riskTelBillList);
+
+            //通话记录
+            riskCallLogService.batchSave(riskCallLogList);
+        }else { //手机号不存在，直接插入
+            riskTelInfoRepository.save(riskTelInfo);
+            //账单信息
+            riskTelBillService.saveAll(riskTelBillList);
+
+            //通话记录
+            riskCallLogService.saveAll(riskCallLogList);
+        }
+        
     }
 
     @Override
