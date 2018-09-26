@@ -214,13 +214,18 @@ public class LoanOrderController {
         String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
         try {
             HashMap<String,LoanOrderRes> map = new HashMap<>(16);
-            LoanOrderEntity loanOrderEntity = loanOrderService.getLastIncompleteOrder(userCode);
+            // 查询订单进行中的状态
+            LoanOrderEntity loanOrderEntity = loanOrderService.getLastIncompleteOrder(userCode, StatusEnum.PROCESSING);
             if (loanOrderEntity == null) {
-                return response;
+                // 如果没有订单进行中的状态, 则查询用户的所有订单
+                loanOrderEntity = loanOrderService.getLastIncompleteOrder(userCode);
+                if (loanOrderEntity == null) {
+                    // 没有订单, 则直接返回
+                    return response;
+                }
             }
             ILoanCalculator calculator = loanCalculatorFactory.load(loanOrderEntity);
             Item realItem = calculator.realItem(System.currentTimeMillis(), loanOrderEntity, PayTypeEnum.REPAY_AS_PLAN.name());
-            // System.out.println(JSONObject.toJSONString(realItem, SerializerFeature.PrettyFormat));
 
             LoanOrderRes res = new LoanOrderRes();
             res.setOrderId(loanOrderEntity.getOrderId());
