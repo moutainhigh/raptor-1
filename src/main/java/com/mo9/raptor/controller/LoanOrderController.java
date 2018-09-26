@@ -133,6 +133,8 @@ public class LoanOrderController {
                 if (new BigDecimal(dictData.getName()).compareTo(dailyLendAmount.add(principal)) <= 0) {
                     logger.warn("今日已放款[{}]元, 不再放款!", dailyLendAmount.toPlainString());
                     return response.buildFailureResponse(ResCodeEnum.NO_LEND_AMOUNT);
+                } else {
+                    logger.info("今日已放款[{}]元", dailyLendAmount.toPlainString());
                 }
 
                 // 锁定后再查询 是否有在接订单

@@ -26,7 +26,7 @@ public interface LendOrderRepository extends JpaRepository<LendOrderEntity,Long>
      * 获取当天已放款金额
      * @return
      */
-    @Query(value = "select sum(apply_number) as 'dailyLendAmount' from t_raptor_lend_order where status in ('LENDING', 'PENDING') AND create_time >= ?1 and deleted = false", nativeQuery = true)
+    @Query(value = "select sum(apply_number) as 'dailyLendAmount' from t_raptor_lend_order where status in ('PENDING', 'AUDITING', 'PASSED', 'LENDING', 'LENT', 'PAYOFF') AND create_time >= ?1 and deleted = false", nativeQuery = true)
     Map<String , BigDecimal> getTotalLendAmount(Long date);
 
     /**
