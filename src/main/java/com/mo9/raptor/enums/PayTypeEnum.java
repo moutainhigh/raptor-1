@@ -9,7 +9,6 @@ public enum PayTypeEnum {
     REPAY_IN_ADVANCE("提前还款"),
     REPAY_AS_PLAN("按期还款"),
     REPAY_OVERDUE("逾期还款"),
-
     REPAY_POSTPONE("延期还款"),
 
     DEDUCT("减免"),

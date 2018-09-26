@@ -2,6 +2,7 @@ package com.mo9.raptor.utils;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.aliyun.openservices.shade.com.alibaba.rocketmq.shade.io.netty.handler.timeout.ReadTimeoutException;
 import com.mo9.raptor.bean.res.LoanOrderLendRes;
 import com.mo9.raptor.engine.entity.LendOrderEntity;
 import com.mo9.raptor.engine.entity.PayOrderEntity;
@@ -25,6 +26,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.net.SocketTimeoutException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -108,7 +110,13 @@ public class GatewayUtils {
             lendOrder.setChannelSyncResponse(resJson);
             lendOrder.setDealCode(invoice);
             lendOrderService.save(lendOrder);
-        } catch (Exception e) {
+        } catch (ReadTimeoutException e) {
+            logger.error( "订单[{}]放款异常 - ", lendOrder.getOrderId() , e);
+            return ResCodeEnum.EXCEPTION_CODE;
+        }catch (SocketTimeoutException e) {
+            logger.error( "订单[{}]放款异常 - ", lendOrder.getOrderId() , e);
+            return ResCodeEnum.EXCEPTION_CODE;
+        }catch (Exception e) {
             Log.error(logger , e , "订单[{}]放款异常 - ", lendOrder.getOrderId());
             return ResCodeEnum.EXCEPTION_CODE;
         }
@@ -130,10 +138,14 @@ public class GatewayUtils {
             UserEntity user = userService.findByUserCode(payOrderLog.getUserCode());
             params.put("mobile", user.getMobile());
             PayOrderEntity payOrderEntity = payOrderService.getByOrderId(payOrderLog.getPayOrderId());
-            CardBinInfoEntity cardBinInfoEntity = cardBinInfoService.findByCardPrefix(payOrderLog.getBankCard());
             String bankName = "银行卡" ;
-            if(cardBinInfoEntity != null){
-                bankName = cardBinInfoEntity.getCardBank() ;
+            String card = payOrderLog.getBankCard() ;
+            if(card.length() >= 6){
+                card = card.substring(0, 6);
+                CardBinInfoEntity cardBinInfoEntity = cardBinInfoService.findByCardPrefix(card);
+                if(cardBinInfoEntity != null){
+                    bankName = cardBinInfoEntity.getCardBank() ;
+                }
             }
             //orderId : 订单号;
             params.put("remark", "FASTRAPTOR_" + payOrderEntity.getOrderId() + "_" + payOrderEntity.getLoanOrderId() + "_" + bankName);

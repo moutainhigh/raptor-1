@@ -24,19 +24,26 @@ public class RiskCallLogServiceImpl implements RiskCallLogService {
     private RiskCallLogRepository riskCallLogRepository;
     
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public TRiskCallLog save(TRiskCallLog riskCallLog) {
         return riskCallLogRepository.save(riskCallLog);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void saveAll(List<TRiskCallLog> callLogList){
+        riskCallLogRepository.saveAll(callLogList);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void batchSave(List<TRiskCallLog> callLogList){
         for (TRiskCallLog callLog : callLogList) {
-            TRiskCallLog exists = riskCallLogRepository.findOneCallLog(callLog.getMobile(), callLog.getCallTo(), callLog.getCallTime());
+            TRiskCallLog exists = riskCallLogRepository.findOneCallLog(callLog.getMobile(), callLog.getCallTel(), callLog.getCallTime());
             if (exists != null){
                 continue;
             }
-            riskCallLogRepository.saveAndFlush(callLog);
+            riskCallLogRepository.save(callLog);
         }
     }
 
