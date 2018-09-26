@@ -104,6 +104,10 @@ public class RepayInfoMqRes {
      */
     private List<RepayDetailRes> shouldPay;
 
+    /**
+     * 还款时间
+     */
+    private Long repaymentDate;
 
 
     public String getOrderId() {
@@ -256,5 +260,13 @@ public class RepayInfoMqRes {
 
     public void setPostponeCount(Integer postponeCount) {
         this.postponeCount = postponeCount;
+    }
+
+    public Long getRepaymentDate() {
+        return repaymentDate;
+    }
+
+    public void setRepaymentDate(Long repaymentDate) {
+        this.repaymentDate = repaymentDate;
     }
 }
