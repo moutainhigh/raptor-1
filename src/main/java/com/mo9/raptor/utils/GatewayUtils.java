@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.net.SocketTimeoutException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -112,7 +113,10 @@ public class GatewayUtils {
         } catch (ReadTimeoutException e) {
             logger.error( "订单[{}]放款异常 - ", lendOrder.getOrderId() , e);
             return ResCodeEnum.EXCEPTION_CODE;
-        } catch (Exception e) {
+        }catch (SocketTimeoutException e) {
+            logger.error( "订单[{}]放款异常 - ", lendOrder.getOrderId() , e);
+            return ResCodeEnum.EXCEPTION_CODE;
+        }catch (Exception e) {
             Log.error(logger , e , "订单[{}]放款异常 - ", lendOrder.getOrderId());
             return ResCodeEnum.EXCEPTION_CODE;
         }
