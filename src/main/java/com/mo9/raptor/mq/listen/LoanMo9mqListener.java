@@ -373,6 +373,7 @@ public class LoanMo9mqListener implements IMqMsgListener{
             }
         }
         repayInfo.setShouldPay(shouldPay);
+		repayInfo.setRepaymentDate(loanOrderEntity.getRepaymentDate());
 
         JSONObject result = new JSONObject();
         result.put("repayInfo", repayInfo);
