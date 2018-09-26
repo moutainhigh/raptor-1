@@ -127,7 +127,7 @@ public class LoanOrderController {
         // 锁定用户借款行为
         Lock lock = new Lock(userCode + RedisLockKeySuffix.PRE_LOAN_ORDER_KEY, idWorker.nextId()+"");
         try {
-            if (redisService.lock(lock.getName(), lock.getValue(), 5000, TimeUnit.MILLISECONDS)) {
+            if (redisService.lock(lock.getName(), lock.getValue(), 1500000, TimeUnit.MILLISECONDS)) {
                 // 锁定后检查今天是否还有限额
                 BigDecimal dailyLendAmount = lendOrderService.getDailyLendAmount();
                 if (new BigDecimal(dictData.getName()).compareTo(dailyLendAmount.add(principal)) <= 0) {
