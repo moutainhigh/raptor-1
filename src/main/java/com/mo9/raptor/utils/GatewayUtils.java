@@ -134,10 +134,14 @@ public class GatewayUtils {
             UserEntity user = userService.findByUserCode(payOrderLog.getUserCode());
             params.put("mobile", user.getMobile());
             PayOrderEntity payOrderEntity = payOrderService.getByOrderId(payOrderLog.getPayOrderId());
-            CardBinInfoEntity cardBinInfoEntity = cardBinInfoService.findByCardPrefix(payOrderLog.getBankCard());
             String bankName = "银行卡" ;
-            if(cardBinInfoEntity != null){
-                bankName = cardBinInfoEntity.getCardBank() ;
+            String card = payOrderLog.getBankCard() ;
+            if(card.length() >= 6){
+                card = card.substring(0, 6);
+                CardBinInfoEntity cardBinInfoEntity = cardBinInfoService.findByCardPrefix(card);
+                if(cardBinInfoEntity != null){
+                    bankName = cardBinInfoEntity.getCardBank() ;
+                }
             }
             //orderId : 订单号;
             params.put("remark", "FASTRAPTOR_" + payOrderEntity.getOrderId() + "_" + payOrderEntity.getLoanOrderId() + "_" + bankName);
