@@ -9,4 +9,6 @@ public interface DingTalkService {
 
     void sendNotice(String title, String message);
 
+    void sendText(String message);
+
 }

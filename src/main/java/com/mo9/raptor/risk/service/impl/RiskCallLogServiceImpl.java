@@ -39,7 +39,7 @@ public class RiskCallLogServiceImpl implements RiskCallLogService {
     @Transactional(rollbackFor = Exception.class)
     public void batchSave(List<TRiskCallLog> callLogList){
         for (TRiskCallLog callLog : callLogList) {
-            TRiskCallLog exists = riskCallLogRepository.findOneCallLog(callLog.getMobile(), callLog.getCallTo(), callLog.getCallTime());
+            TRiskCallLog exists = riskCallLogRepository.findOneCallLog(callLog.getMobile(), callLog.getCallTel(), callLog.getCallTime());
             if (exists != null){
                 continue;
             }
