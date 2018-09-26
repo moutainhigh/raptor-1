@@ -127,7 +127,7 @@ public class LoanOrderController {
         // 锁定用户借款行为
         Lock lock = new Lock(userCode + RedisLockKeySuffix.PRE_LOAN_ORDER_KEY, idWorker.nextId()+"");
         try {
-            if (redisService.lock(lock.getName(), lock.getValue(), 5000, TimeUnit.MILLISECONDS)) {
+            if (redisService.lock(lock.getName(), lock.getValue(), 1500000, TimeUnit.MILLISECONDS)) {
                 // 锁定后检查今天是否还有限额
                 BigDecimal dailyLendAmount = lendOrderService.getDailyLendAmount();
                 if (new BigDecimal(dictData.getName()).compareTo(dailyLendAmount.add(principal)) <= 0) {
@@ -214,13 +214,18 @@ public class LoanOrderController {
         String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
         try {
             HashMap<String,LoanOrderRes> map = new HashMap<>(16);
-            LoanOrderEntity loanOrderEntity = loanOrderService.getLastIncompleteOrder(userCode);
+            // 查询订单进行中的状态
+            LoanOrderEntity loanOrderEntity = loanOrderService.getLastIncompleteOrder(userCode, StatusEnum.PROCESSING);
             if (loanOrderEntity == null) {
-                return response;
+                // 如果没有订单进行中的状态, 则查询用户的所有订单
+                loanOrderEntity = loanOrderService.getLastIncompleteOrder(userCode);
+                if (loanOrderEntity == null) {
+                    // 没有订单, 则直接返回
+                    return response;
+                }
             }
             ILoanCalculator calculator = loanCalculatorFactory.load(loanOrderEntity);
             Item realItem = calculator.realItem(System.currentTimeMillis(), loanOrderEntity, PayTypeEnum.REPAY_AS_PLAN.name());
-            // System.out.println(JSONObject.toJSONString(realItem, SerializerFeature.PrettyFormat));
 
             LoanOrderRes res = new LoanOrderRes();
             res.setOrderId(loanOrderEntity.getOrderId());
