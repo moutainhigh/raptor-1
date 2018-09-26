@@ -10,13 +10,16 @@ import com.mo9.raptor.bean.vo.CommonUserInfo;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.service.BankService;
 import com.mo9.raptor.service.CommonService;
+import com.mo9.raptor.service.DingTalkService;
 import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.GatewayUtils;
 import com.mo9.raptor.utils.Md5Encrypt;
 import com.mo9.raptor.utils.httpclient.HttpClientApi;
 import com.mo9.raptor.utils.httpclient.bean.HttpResult;
+import com.mo9.raptor.utils.log.Log;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
@@ -36,6 +39,8 @@ import java.util.Random;
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {RaptorApplicationTest.class}, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class GuTest {
+
+    private static Logger logger = Log.get();
 
     @Autowired
     private HttpClientApi httpClientApi ;
@@ -184,16 +189,25 @@ public class GuTest {
     @Autowired
     private CommonService commonService ;
 
+    @Autowired
+    private DingTalkService dingTalkService ;
+
     @Test
     public void common(){
         Map<String , Integer> commonUserInfo = commonService.findUserInfo("ssss") ;
         Map<String , Integer> loanInfo = commonService.findLoanInfo("ssss") ;
         Map<String , Integer> repayInfo = commonService.findRepayInfo("ssss");
 
+        /*dingTalkService.sendText(" 用户总数 :  " + commonUserInfo.get("userNumber") + "\n 今日登陆用户数 : " + commonUserInfo.get("userLoginNumber")
+                + "\n身份证认证总数 : " + commonUserInfo.get("userCardNumber") + "\n通话记录认证总数 : " + commonUserInfo.get("userPhoneNumber")
+                + "\n通讯录认证总数 : " + commonUserInfo.get("userCallHistoryNumber") + "\n银行卡认证总数 : " + commonUserInfo.get("userBankNumber")
+                + "\n今日放款限额 : " + loanInfo.get("maxAmount") + "\n今日放款总数 : " + loanInfo.get("loanNumber")
+                + "\n今日放款总金额 : " + loanInfo.get("loanAmount") + "\n今日还款总数 : " + repayInfo.get("repayNumber")
+                + "\n今日还款金额 : " + repayInfo.get("repayAmount") + "\n今日延期总数 : " + repayInfo.get("postponeNumber")
+                + "\n今日延期金额 : " + repayInfo.get("postponeAmount") + "\n逾期单量 : " + repayInfo.get("overdueNumber"));*/
 
 
-
-
+        Log.error(logger , new RuntimeException("xxx") , "测试");
         System.out.println("22222");
     }
 
