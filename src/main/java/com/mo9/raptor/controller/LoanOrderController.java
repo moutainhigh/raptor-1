@@ -1,7 +1,6 @@
 package com.mo9.raptor.controller;
 
 import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.mo9.raptor.bean.BaseResponse;
 import com.mo9.raptor.bean.ReqHeaderParams;
 import com.mo9.raptor.bean.req.OrderAddReq;
@@ -15,7 +14,6 @@ import com.mo9.raptor.engine.service.ILendOrderService;
 import com.mo9.raptor.engine.service.ILoanOrderService;
 import com.mo9.raptor.engine.structure.item.Item;
 import com.mo9.raptor.engine.utils.EngineStaticValue;
-import com.mo9.raptor.engine.utils.TimeUtils;
 import com.mo9.raptor.entity.BankEntity;
 import com.mo9.raptor.entity.DictDataEntity;
 import com.mo9.raptor.entity.LoanProductEntity;
@@ -34,7 +32,6 @@ import com.mo9.raptor.utils.IDWorker;
 import com.mo9.raptor.utils.log.Log;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
@@ -113,12 +110,6 @@ public class LoanOrderController {
             return response.buildFailureResponse(ResCodeEnum.NO_LEND_AMOUNT);
         }
 
-        // 查询是否有在接订单
-        LoanOrderEntity loanOrderEntity = loanOrderService.getLastIncompleteOrder(userCode, StatusEnum.PROCESSING);
-        if (loanOrderEntity != null) {
-            return response.buildFailureResponse(ResCodeEnum.ONLY_ONE_ORDER);
-        }
-
         // 检查借款参数是否合法
         BigDecimal principal = req.getCapital();
         int loanTerm = req.getPeriod();
@@ -142,6 +133,12 @@ public class LoanOrderController {
                 if (new BigDecimal(dictData.getName()).compareTo(dailyLendAmount.add(principal)) <= 0) {
                     logger.warn("今日已放款[{}]元, 不再放款!", dailyLendAmount.toPlainString());
                     return response.buildFailureResponse(ResCodeEnum.NO_LEND_AMOUNT);
+                }
+
+                // 锁定后再查询 是否有在接订单
+                LoanOrderEntity loanOrderEntity = loanOrderService.getLastIncompleteOrder(userCode, StatusEnum.PROCESSING);
+                if (loanOrderEntity != null) {
+                    return response.buildFailureResponse(ResCodeEnum.ONLY_ONE_ORDER);
                 }
 
                 LoanOrderEntity loanOrder = new LoanOrderEntity();
