@@ -32,8 +32,8 @@ public class AuditServiceTest {
     public void test() {
         //System.out.println(((RiskAuditServiceImpl)riskAuditService).callLogRule());
         //System.out.println(((RiskAuditServiceImpl)riskAuditService).callLogRule());
-        ruleLogService.create("test", "IdPicCompareRule", null, false, "");
-        Integer callLogCountAfterTimestamp = riskCallLogRepository.getCallLogCountAfterTimestamp("", 123L);
+        //ruleLogService.create("test", "IdPicCompareRule", null, false, "");
+        Integer callLogCountAfterTimestamp = riskCallLogRepository.getCallLogCountAfterTimestamp("18616297271", 123L);
         //int count = callLogCountAfterTimestamp
         System.out.println(callLogCountAfterTimestamp);
     }
