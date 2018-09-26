@@ -187,8 +187,8 @@ public class UserController {
             }
             UserCertifyInfoEntity userCertifyInfoEntity = userCertifyInfoService.findByUserCode(userCode);
             userCertifyInfoService.modifyCertifyInfo(userEntity, userCertifyInfoEntity, modifyCertifyReq);
-            userEntity.setIdCard(userCertifyInfoEntity.getIdCard());
-            userEntity.setRealName(userCertifyInfoEntity.getRealName());
+            userEntity.setIdCard(modifyCertifyReq.getIdCard());
+            userEntity.setRealName(modifyCertifyReq.getRealName());
             if(!userEntity.getCertifyInfo()){
                 userService.updateCertifyInfo(userEntity,true);
             }
