@@ -2,6 +2,7 @@ package com.mo9.raptor.utils;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.aliyun.openservices.shade.com.alibaba.rocketmq.shade.io.netty.handler.timeout.ReadTimeoutException;
 import com.mo9.raptor.bean.res.LoanOrderLendRes;
 import com.mo9.raptor.engine.entity.LendOrderEntity;
 import com.mo9.raptor.engine.entity.PayOrderEntity;
@@ -108,6 +109,9 @@ public class GatewayUtils {
             lendOrder.setChannelSyncResponse(resJson);
             lendOrder.setDealCode(invoice);
             lendOrderService.save(lendOrder);
+        } catch (ReadTimeoutException e) {
+            logger.error( "订单[{}]放款异常 - ", lendOrder.getOrderId() , e);
+            return ResCodeEnum.EXCEPTION_CODE;
         } catch (Exception e) {
             Log.error(logger , e , "订单[{}]放款异常 - ", lendOrder.getOrderId());
             return ResCodeEnum.EXCEPTION_CODE;
