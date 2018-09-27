@@ -81,12 +81,16 @@ public class CallLogReportTask {
 
                 //通知用户状态，报告已生成
                 try {
-                    userService.updateReceiveCallHistory(noReportRecord.getUid(), true);
+                    
 
                     TRiskTelInfo riskTelInfo =  riskTelInfoService.findByMobile(noReportRecord.getMobile());
-                    riskTelInfo.setReportReceived(true);
-                    riskTelInfoService.update(riskTelInfo);
-                    logger.info("定时任务更新用户运营商报告获取状态成功，tel: " + mobile + ", uid: " + uid + ", sid: " + sid);
+                    if (riskTelInfo != null){
+                        userService.updateReceiveCallHistory(noReportRecord.getUid(), true);
+                        riskTelInfo.setReportReceived(true);
+                        riskTelInfoService.update(riskTelInfo);
+                        logger.info("定时任务更新用户运营商报告获取状态成功，tel: " + mobile + ", uid: " + uid + ", sid: " + sid);
+                    }
+                    
                 } catch (Exception e) {
                     logger.error("定时任务更新用户运营商报告获取状态失敗，tel: " + mobile + ", uid: " + uid+ ", sid: " + sid, e);
                 }
