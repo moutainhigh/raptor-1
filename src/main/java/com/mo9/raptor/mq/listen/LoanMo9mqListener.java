@@ -337,8 +337,9 @@ public class LoanMo9mqListener implements IMqMsgListener{
         userInfo.setLastLoginTime(userEntity.getLastLoginTime());
         userInfo.setOcrIdCardAddress(userCertifyInfoEntity.getOcrIdCardAddress());
         userInfo.setCallHistory(userEntity.getCallHistory());
-        UserContactsEntity userContactsEntity = userContactsService.getByUserCode(ownerId);
-        userInfo.setContactsList(userContactsEntity.getContactsList());
+        // 不传通讯率
+//        UserContactsEntity userContactsEntity = userContactsService.getByUserCode(ownerId);
+//        userInfo.setContactsList(userContactsEntity.getContactsList());
         userInfo.setGender(userCertifyInfoEntity.getOcrGender());
         userInfo.setDeleted(userEntity.getDeleted());
 
