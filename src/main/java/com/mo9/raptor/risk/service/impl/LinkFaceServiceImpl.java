@@ -33,7 +33,7 @@ public class LinkFaceServiceImpl implements com.mo9.raptor.risk.service.LinkFace
     private static final int HTTP_OK = 200;
     private static final double SCORE_ERROR_CODE = -1;
     private static final String FIELD_SCORE = "score";
-    private static final String FIELD_CONFIDENCE= "confidence";
+    private static final String FIELD_CONFIDENCE = "confidence";
 
 
     @Resource
@@ -84,6 +84,12 @@ public class LinkFaceServiceImpl implements com.mo9.raptor.risk.service.LinkFace
                 linkfaceLogService.update(linkfaceLogEntity);
                 //{"request_id":"TID7c205d05fa6b4df099ad9fd1f38d76a2","status":"OK","score":0.5303437113761902,"image_id":"7c6649688d054507b6819f97b9d5d7a4"}
                 JSONObject jsonObject = JSONObject.parseObject(res);
+                if (res.contains("RATE_LIMIT_EXCEEDED")) {
+                    linkfaceLogEntity.setStatus("RATE_LIMIT_EXCEEDED");
+                    linkfaceLogService.update(linkfaceLogEntity);
+                    Thread.sleep((long) (Math.random() * 10000));
+                    return preventHack(userCode, imageUrl);
+                }
                 if (jsonObject.containsKey(FIELD_SCORE)) {
                     linkfaceLogEntity.setStatus("FINISH");
                     linkfaceLogService.update(linkfaceLogEntity);
@@ -153,6 +159,12 @@ public class LinkFaceServiceImpl implements com.mo9.raptor.risk.service.LinkFace
                     linkfaceLogEntity.setCallResult(res);
                     linkfaceLogService.update(linkfaceLogEntity);
                     JSONObject jsonObject = JSONObject.parseObject(res);
+                    if (res.contains("RATE_LIMIT_EXCEEDED")) {
+                        linkfaceLogEntity.setStatus("RATE_LIMIT_EXCEEDED");
+                        linkfaceLogService.update(linkfaceLogEntity);
+                        Thread.sleep((long) (Math.random() * 10000));
+                        return judgeOnePerson(userCode, imageUrl, idNumber, name);
+                    }
                     if (jsonObject.containsKey(FIELD_CONFIDENCE)) {
                         linkfaceLogEntity.setStatus("FINISH");
                         linkfaceLogService.update(linkfaceLogEntity);
@@ -221,6 +233,12 @@ public class LinkFaceServiceImpl implements com.mo9.raptor.risk.service.LinkFace
                     linkfaceLogEntity.setCallResult(res);
                     linkfaceLogService.update(linkfaceLogEntity);
                     JSONObject jsonObject = JSONObject.parseObject(res);
+                    if (res.contains("RATE_LIMIT_EXCEEDED")) {
+                        linkfaceLogEntity.setStatus("RATE_LIMIT_EXCEEDED");
+                        linkfaceLogService.update(linkfaceLogEntity);
+                        Thread.sleep((long) (Math.random() * 10000));
+                        return judgeIdCardPolice(userCode, imageUrl, idNumber, name);
+                    }
                     if (jsonObject.containsKey(FIELD_CONFIDENCE)) {
                         linkfaceLogEntity.setStatus("FINISH");
                         linkfaceLogService.update(linkfaceLogEntity);

@@ -18,6 +18,7 @@ import javax.annotation.Resource;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -28,7 +29,7 @@ import java.util.Map;
  * @date 2018/9/17 .
  * @time 10:15 .
  */
-@EnableAspectJAutoProxy(proxyTargetClass = true)
+@EnableAspectJAutoProxy
 public class RiskCallLogTest extends BaseTest{
     
     @Resource
@@ -48,8 +49,14 @@ public class RiskCallLogTest extends BaseTest{
     public void save(){
         for (int i = 0; i < 1000; i++) {
             TRiskCallLog callLog = new TRiskCallLog();
-            callLog.setMobile("1590000100" + i);
-            callLog.setCallTel("10010");
+            BigInteger prex = new BigInteger("13890800000");
+
+            BigInteger mobile = prex.add( new BigInteger(i+ ""));
+            
+            callLog.setMobile(mobile.toString());
+
+            System.out.println(callLog.getMobile());
+            callLog.setCallTel("990011");
             riskCallLogService.save(callLog);
         }
         
@@ -90,13 +97,13 @@ public class RiskCallLogTest extends BaseTest{
     
     @Test
     public void updateTelInfo(){
-//        TRiskTelInfo telInfo = riskTelInfoRepository.findByMobile("18501635120");
-//
-//        System.out.println(telInfo.getFullName());
-//
-//        telInfo.setAddress("上海浦东");
-//
-//        riskTelInfoRepository.saveAndFlush(telInfo);
+        TRiskTelInfo telInfo = riskTelInfoService.findByMobile("18501635120");
+
+        System.out.println(telInfo.getFullName());
+        
+        telInfo.setAddress("上海浦东");
+        
+        riskTelInfoRepository.saveAndFlush(telInfo);
         
         
     }

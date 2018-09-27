@@ -61,25 +61,38 @@ public class CallLogReportTask {
             logger.info("-----运营报告补偿任务--> 共发现30天内有{}条数据没有成功获取到运营商报告。", noReportRecords.size());
 
             String sid;
+            String uid;
+            String mobile;
             for (TRiskTelInfo noReportRecord : noReportRecords) {
                 sid = noReportRecord.getSid();
+                uid = noReportRecord.getUid();
+                mobile = noReportRecord.getMobile();
 
                 String report = riskController.getCallLogReport(sid, "report");
+                
+                if (report == null){
+                    logger.info("-----运营报告补偿任务-->运营商报告未生成，tel: {}, uid: {}, sid: {}", mobile, uid, sid);
+                    continue;
+                }
 
-                String fileName = ossProperties.getCatalogCallLog() + "/" + sockpuppet + "-" + noReportRecord.getMobile() + "-report.json";
+                String fileName = ossProperties.getCatalogCallLog() + "/" + sockpuppet + "-" + mobile + "-report.json";
                 
                 riskController.uploadFile2Oss(report, fileName);
 
                 //通知用户状态，报告已生成
                 try {
-                    userService.updateReceiveCallHistory(noReportRecord.getUid(), true);
+                    
 
                     TRiskTelInfo riskTelInfo =  riskTelInfoService.findByMobile(noReportRecord.getMobile());
-                    riskTelInfo.setReportReceived(true);
-                    riskTelInfoService.update(riskTelInfo);
-                    logger.info("定时任务更新用户运营商报告获取状态成功，tel: " + noReportRecord.getMobile() + ", uid: " + noReportRecord.getUid() + ", sid: " + noReportRecord.getSid());
+                    if (riskTelInfo != null){
+                        userService.updateReceiveCallHistory(noReportRecord.getUid(), true);
+                        riskTelInfo.setReportReceived(true);
+                        riskTelInfoService.update(riskTelInfo);
+                        logger.info("定时任务更新用户运营商报告获取状态成功，tel: " + mobile + ", uid: " + uid + ", sid: " + sid);
+                    }
+                    
                 } catch (Exception e) {
-                    logger.error("定时任务更新用户运营商报告获取状态失敗，tel: " + noReportRecord.getMobile() + ", uid: " + noReportRecord.getUid()+ ", sid: " + noReportRecord.getSid(), e);
+                    logger.error("定时任务更新用户运营商报告获取状态失敗，tel: " + mobile + ", uid: " + uid+ ", sid: " + sid, e);
                 }
                 
             }
