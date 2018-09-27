@@ -21,7 +21,7 @@ public interface CommonRepository extends JpaRepository<DictDataEntity,Long> {
      */
     @Query(value = "select \n" +
             "(select count(*)  from t_raptor_user) as 'userNumber' ,\n" +
-            "(SELECT count(*)  from t_raptor_user where DATE(FROM_UNIXTIME(update_time/1000)) = CURDATE() )  as 'userLoginNumber',\n" +
+            "(SELECT count(*)  from t_raptor_user where DATE(FROM_UNIXTIME(last_login_time/1000)) = CURDATE() )  as 'userLoginNumber',\n" +
             "(select count(*)  from t_raptor_user where certify_info = 1) as 'userCardNumber' ,  \n" +
             "(select count(*)  from t_raptor_user where mobile_contacts = 1) as 'userPhoneNumber' ,  \n" +
             "(select count(*)  from t_raptor_user where call_history = 1) as 'userCallHistoryNumber',\n" +
