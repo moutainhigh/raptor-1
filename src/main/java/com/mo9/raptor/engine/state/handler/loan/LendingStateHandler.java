@@ -50,7 +50,7 @@ public class LendingStateHandler implements IStateHandler<LoanOrderEntity> {
                 PayOrderDetailEntity entity = new PayOrderDetailEntity();
                 entity.setOwnerId(loanOrder.getOwnerId());
                 entity.setLoanOrderId(loanOrder.getOrderId());
-                entity.setPayOrderId(loanOrder.getOwnerId());
+                entity.setPayOrderId(loanOrder.getOrderId());
                 entity.setPayCurrency(CurrencyEnum.getDefaultCurrency().name());
                 entity.setItemType(ItemTypeEnum.PREPAY.name());
                 entity.setRepayDay(loanOrder.getRepaymentDate());
