@@ -166,29 +166,26 @@ public class RiskController {
             List<UserEntity> noReportUsers = userService.findNoCallLogReports();
             for (UserEntity noReportUser : noReportUsers) {
                 TRiskTelInfo hasCallLogUser = riskTelInfoService.findByMobile(noReportUser.getMobile());
-                if (hasCallLogUser != null){ //有通话记录
-                    if (hasCallLogUser.isReportReceived()){ //重新拉取报告
-                        hasCallLogUser.setReportReceived(false);
-                        riskTelInfoService.update(hasCallLogUser);
-                    }else {
-                        continue;
-                    }
-                }else { //没有通话记录，则先查找sid，然后主动拉取callLog
-                    //找sid
+                if (hasCallLogUser == null){ 
+                    //没有通话记录，则先查找sid，然后主动拉取callLog
                     String sid = callLogUtils.getSidByMobile(sessionId, noReportUser.getMobile(), httpClient);
                     if (StringUtils.isNotBlank(sid)){
                         String callLogJson = this.getCallLogReport(sid, "record");
                         this.saveCallLogResult(callLogJson, null);
                     }
-                    
                 }
                 
+                //不管有没有通话记录，都重新拉取运营商报告
+                if (hasCallLogUser.isReportReceived()){ 
+                    hasCallLogUser.setReportReceived(false);
+                    riskTelInfoService.update(hasCallLogUser);
+                }
             }
             
         } catch (Exception e) {
             e.printStackTrace();
+            return e.getMessage();
         }
-
         return "ok";
     }
     
