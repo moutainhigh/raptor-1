@@ -2,6 +2,7 @@ package com.mo9.raptor.service;
 
 import com.mo9.raptor.bean.req.BankReq;
 import com.mo9.raptor.entity.BankEntity;
+import com.mo9.raptor.entity.UserCertifyInfoEntity;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.ResCodeEnum;
 
@@ -46,9 +47,10 @@ public interface BankService {
      * 验证四要素
      * @param bankReq
      * @param userEntity
+     * @param userCertifyInfoEntity
      * @return
      */
-    public ResCodeEnum verify(BankReq bankReq, UserEntity userEntity);
+    public ResCodeEnum verify(BankReq bankReq, UserEntity userEntity, UserCertifyInfoEntity userCertifyInfoEntity);
 
     /**
      * 创建或者修改银行卡信息
