@@ -186,8 +186,13 @@ public class LoanMo9mqListener implements IMqMsgListener{
 			loanOrderEntity.setPostponeCount(count);
             loanOrderEntity.setUpdateTime(System.currentTimeMillis());
             loanOrderService.save(loanOrderEntity);
-			notifyMisRepay(payOrderLog, count, loanOrderEntity);
-        }
+
+			try {
+				notifyMisRepay(payOrderLog, count, loanOrderEntity);
+			} catch (Exception e) {
+				logger.error("向贷后发送还款信息失败   ", e);
+			}
+		}
 		return MqAction.CommitMessage;
 	}
 
@@ -285,8 +290,12 @@ public class LoanMo9mqListener implements IMqMsgListener{
 
 		// TODO: 发送消息给贷后
         if ("1".equals(status)) {
-            notifyMisLend(orderId);
-        }
+			try {
+				notifyMisLend(orderId);
+			} catch (Exception e) {
+				logger.error("向贷后发送放款信息失败  ", e);
+			}
+		}
 		return MqAction.CommitMessage;
 	}
 
@@ -344,7 +353,6 @@ public class LoanMo9mqListener implements IMqMsgListener{
     /**
      * 通知贷后还款
 	 * @param payOrderLog  还款log
-	 * @param status
 	 */
     private void notifyMisRepay(PayOrderLogEntity payOrderLog, Integer postponeCount, LoanOrderEntity loanOrderEntity) {
         RepayInfoMqRes repayInfo = new RepayInfoMqRes();
