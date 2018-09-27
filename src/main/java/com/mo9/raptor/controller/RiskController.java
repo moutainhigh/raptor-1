@@ -134,6 +134,10 @@ public class RiskController {
                     
                     //通知用户状态，报告已生成
                     userService.updateReceiveCallHistory(uid, true);
+
+                    TRiskTelInfo riskTelInfo =  riskTelInfoService.findByMobile(tel);
+                    riskTelInfo.setReportReceived(true);
+                    riskTelInfoService.update(riskTelInfo);
                     logger.info("更新用户通话记录历史信息成功，tel: " + tel + ", uid: " + uid);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -144,7 +148,7 @@ public class RiskController {
         return "ok";
     }
     
-    private void uploadFile2Oss(String str, String fileName){
+    public void uploadFile2Oss(String str, String fileName){
         
         try {
             OSSClient ossClient = new OSSClient(ossProperties.getWriteEndpoint(), ossProperties.getAccessKeyId(), ossProperties.getAccessKeySecret());
@@ -171,7 +175,7 @@ public class RiskController {
      * @param sid
      * @return
      */
-    private String getCallLogReport(String sid){
+    public String getCallLogReport(String sid){
         String url = dianhuUrl + "report?token=" + dianhuToken + "&sid=" + sid;
 
         logger.info(url);
