@@ -141,6 +141,7 @@ public class UserController {
                response.setMessage(ResCodeEnum.USER_CARD_ID_NOT_EXIST.getMessage());
                return response;
            }
+           UserCertifyInfoEntity userCertifyInfoEntity = userCertifyInfoService.findByUserCode(userEntity.getUserCode()) ;
            Boolean flag = commonUtils.fiveMinutesNumberOk(userCode) ;
            if(!flag){
                //存储log
@@ -152,7 +153,7 @@ public class UserController {
                response.setMessage(ResCodeEnum.BANK_VERIFY_TOO_FREQUENTLY.getMessage());
                return response;
            }
-           ResCodeEnum resCodeEnum = bankService.verify(bankReq , userEntity);
+           ResCodeEnum resCodeEnum = bankService.verify(bankReq , userEntity , userCertifyInfoEntity);
            if(ResCodeEnum.SUCCESS != resCodeEnum){
                response.setCode(resCodeEnum.getCode());
                response.setMessage(resCodeEnum.getMessage());
