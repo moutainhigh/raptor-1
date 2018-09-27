@@ -42,6 +42,6 @@ public class AuditController {
             UserAuditAction userAuditAction = new UserAuditAction(userEntity.getUserCode(), userEventLauncher, riskAuditService);
             userAuditAction.run();
         }
-        return new BaseResponse("ok");
+        return new BaseResponse<String>("ok");
     }
 }
