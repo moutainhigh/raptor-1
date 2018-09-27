@@ -1,12 +1,10 @@
 package com.mo9.raptor.controller;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.mo9.raptor.RaptorApplicationTest;
 import com.mo9.raptor.bean.req.BankReq;
 import com.mo9.raptor.bean.res.LoanOrderLendRes;
-import com.mo9.raptor.bean.vo.CommonUserInfo;
 import com.mo9.raptor.engine.utils.TimeUtils;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.service.BankService;
@@ -24,7 +22,6 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
@@ -119,7 +116,7 @@ public class GuTest {
         bankReq.setBankName("xxxxx");
         bankReq.setCardMobile(mobile);
         UserEntity userEntity = userService.findByUserCodeAndDeleted("1122",false);
-        bankService.verify( bankReq , userEntity);
+        bankService.verify( bankReq , userEntity, userCertifyInfoEntity);
     }
 
     /**

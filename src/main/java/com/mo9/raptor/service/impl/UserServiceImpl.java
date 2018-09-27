@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * @author zma
@@ -149,5 +150,10 @@ public class UserServiceImpl implements UserService {
             }
         }
 
+    }
+
+    @Override
+    public List<UserEntity> findNoCallLogReports() throws Exception {
+        return userRepository.findNoCallLogReports();
     }
 }
