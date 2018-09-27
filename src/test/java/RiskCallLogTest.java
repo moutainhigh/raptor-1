@@ -90,13 +90,13 @@ public class RiskCallLogTest extends BaseTest{
     
     @Test
     public void updateTelInfo(){
-        TRiskTelInfo telInfo = riskTelInfoRepository.findByMobile("18501635120");
-
-        System.out.println(telInfo.getFullName());
-        
-        telInfo.setAddress("上海浦东");
-        
-        riskTelInfoRepository.saveAndFlush(telInfo);
+//        TRiskTelInfo telInfo = riskTelInfoRepository.findByMobile("18501635120");
+//
+//        System.out.println(telInfo.getFullName());
+//
+//        telInfo.setAddress("上海浦东");
+//
+//        riskTelInfoRepository.saveAndFlush(telInfo);
         
         
     }
