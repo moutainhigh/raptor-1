@@ -64,7 +64,7 @@ public class CallLogReportTask {
             for (TRiskTelInfo noReportRecord : noReportRecords) {
                 sid = noReportRecord.getSid();
 
-                String report = riskController.getCallLogReport(sid);
+                String report = riskController.getCallLogReport(sid, "report");
 
                 String fileName = ossProperties.getCatalogCallLog() + "/" + sockpuppet + "-" + noReportRecord.getMobile() + "-report.json";
                 
@@ -87,4 +87,5 @@ public class CallLogReportTask {
             logger.info("-----执行运营商报告补偿任务执行完成-----");
         }
     }
+    
 }
