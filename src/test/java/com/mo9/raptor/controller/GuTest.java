@@ -116,7 +116,7 @@ public class GuTest {
         bankReq.setBankName("xxxxx");
         bankReq.setCardMobile(mobile);
         UserEntity userEntity = userService.findByUserCodeAndDeleted("1122",false);
-        bankService.verify( bankReq , userEntity, userCertifyInfoEntity);
+        // bankService.verify( bankReq , userEntity, userCertifyInfoEntity);
     }
 
     /**
