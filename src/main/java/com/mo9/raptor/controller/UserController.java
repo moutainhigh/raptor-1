@@ -142,6 +142,12 @@ public class UserController {
                return response;
            }
            UserCertifyInfoEntity userCertifyInfoEntity = userCertifyInfoService.findByUserCode(userEntity.getUserCode()) ;
+           if(userCertifyInfoEntity == null){
+               //身份证不存在
+               response.setCode(ResCodeEnum.USER_CARD_ID_NOT_EXIST.getCode());
+               response.setMessage(ResCodeEnum.USER_CARD_ID_NOT_EXIST.getMessage());
+               return response;
+           }
            Boolean flag = commonUtils.fiveMinutesNumberOk(userCode) ;
            if(!flag){
                //存储log
