@@ -84,14 +84,16 @@ public class MqListenerTest {
 
         List<String> statuses = new ArrayList<String>();
         statuses.add(StatusEnum.DEDUCTING.name());
-        PayOrderEntity payOrderEntity = payOrderService.listByUserAndStatus("123", statuses).get(0);
+        PayOrderEntity payOrderEntity = payOrderService.listByUserAndStatus("3", statuses).get(0);
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("status", "success");
         params.put("channel", "yilianh5pay");
         params.put("amount", payOrderEntity.getApplyNumber());
         //params.put("amount", 100);
-        params.put("dealcode", idWorker.nextId());
-        params.put("channelDealcode", idWorker.nextId());
+        params.put("dealcode", "");
+        params.put("channelDealcode", "");
+//        params.put("dealcode", idWorker.nextId());
+//        params.put("channelDealcode", idWorker.nextId());
         params.put("orderId", payOrderEntity.getOrderId());
 
         JSONObject jsonObject = new JSONObject();
@@ -100,6 +102,4 @@ public class MqListenerTest {
         MqMessage message = new MqMessage("TOPIC", "MQ_RAPTOR_PAYOFF_TAG", jsonObject.toJSONString());
         loanMo9mqListener.consume(message, null);
     }
-
-
 }

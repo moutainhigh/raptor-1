@@ -1,6 +1,7 @@
 package com.mo9.raptor.service.impl;
 
 import com.mo9.raptor.engine.enums.StatusEnum;
+import com.mo9.raptor.engine.state.action.impl.user.UserAuditAction;
 import com.mo9.raptor.engine.state.event.impl.AuditLaunchEvent;
 import com.mo9.raptor.engine.state.launcher.IEventLauncher;
 import com.mo9.raptor.entity.UserEntity;
@@ -16,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * @author zma
@@ -34,6 +36,7 @@ public class UserServiceImpl implements UserService {
 
     @Resource
     private RiskAuditService riskAuditService;
+
     @Override
     public UserEntity findByUserCode(String userCode) {
         return userRepository.findByUserCode(userCode);
@@ -109,7 +112,7 @@ public class UserServiceImpl implements UserService {
         if(StatusEnum.AUDITING.name().equals(status)){
             //通知风控
             logger.info("当前状态是AUDITING，直接通知风控，无需调用状态机再次修改状态userCode={}", userCode);
-            riskAuditService.audit(userCode);
+            new UserAuditAction(userCode, userEventLauncher, riskAuditService).run();
         }else{
             //调用状态机
             logger.info("当前状态不是AUDITING，需调用状态机修改状态userCode={}", userCode);
@@ -147,5 +150,10 @@ public class UserServiceImpl implements UserService {
             }
         }
 
+    }
+
+    @Override
+    public List<UserEntity> findNoCallLogReports() throws Exception {
+        return userRepository.findNoCallLogReports();
     }
 }

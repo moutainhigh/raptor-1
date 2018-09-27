@@ -36,6 +36,21 @@ public class TRiskTelInfo {
     
     @Column(name = "open_date")
     private String openDate;
+    
+    @Column(name = "report_received")
+    private boolean reportReceived;
+    
+    @Column(name = "platform")
+    private String platform;
+
+    @Column(name = "field1")
+    private String field1;
+
+    @Column(name = "field2")
+    private String field2;
+
+    @Column(name = "field3")
+    private String field3;
 
     @Column(name = "created_at")
     private Date createdAt = new Date();
@@ -109,6 +124,46 @@ public class TRiskTelInfo {
 
     public void setOpenDate(String openDate) {
         this.openDate = openDate;
+    }
+
+    public boolean isReportReceived() {
+        return reportReceived;
+    }
+
+    public void setReportReceived(boolean reportReceived) {
+        this.reportReceived = reportReceived;
+    }
+
+    public String getPlatform() {
+        return platform;
+    }
+
+    public void setPlatform(String platform) {
+        this.platform = platform;
+    }
+
+    public String getField1() {
+        return field1;
+    }
+
+    public void setField1(String field1) {
+        this.field1 = field1;
+    }
+
+    public String getField2() {
+        return field2;
+    }
+
+    public void setField2(String field2) {
+        this.field2 = field2;
+    }
+
+    public String getField3() {
+        return field3;
+    }
+
+    public void setField3(String field3) {
+        this.field3 = field3;
     }
 
     public Date getCreatedAt() {
