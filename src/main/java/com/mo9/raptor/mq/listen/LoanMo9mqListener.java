@@ -89,7 +89,7 @@ public class LoanMo9mqListener implements IMqMsgListener{
     @Autowired
     private LoanCalculatorFactory loanCalculatorFactory;
 
-	//@Autowired
+	@Autowired
 	private RabbitProducer rabbitProducer;
 
 	@Resource
@@ -186,7 +186,7 @@ public class LoanMo9mqListener implements IMqMsgListener{
 			loanOrderEntity.setPostponeCount(count);
             loanOrderEntity.setUpdateTime(System.currentTimeMillis());
             loanOrderService.save(loanOrderEntity);
-			//notifyMisRepay(payOrderLog, count);
+			notifyMisRepay(payOrderLog, count, loanOrderEntity);
         }
 		return MqAction.CommitMessage;
 	}
@@ -285,7 +285,7 @@ public class LoanMo9mqListener implements IMqMsgListener{
 
 		// TODO: 发送消息给贷后
         if ("1".equals(status)) {
-            //notifyMisLend(orderId);
+            notifyMisLend(orderId);
         }
 		return MqAction.CommitMessage;
 	}
@@ -343,9 +343,10 @@ public class LoanMo9mqListener implements IMqMsgListener{
 
     /**
      * 通知贷后还款
-     * @param payOrderLog  还款log
-     */
-    private void notifyMisRepay(PayOrderLogEntity payOrderLog, Integer postponeCount) {
+	 * @param payOrderLog  还款log
+	 * @param status
+	 */
+    private void notifyMisRepay(PayOrderLogEntity payOrderLog, Integer postponeCount, LoanOrderEntity loanOrderEntity) {
         RepayInfoMqRes repayInfo = new RepayInfoMqRes();
         BeanUtils.copyProperties(payOrderLog, repayInfo);
 
@@ -359,7 +360,6 @@ public class LoanMo9mqListener implements IMqMsgListener{
         List<RepayDetailRes> repayDetail = payOrderDetailService.getRepayDetail(payOrderEntity.getOrderId());
         repayInfo.setRepayDetail(repayDetail);
 
-        LoanOrderEntity loanOrderEntity = loanOrderService.getByOrderId(payOrderEntity.getLoanOrderId());
         ILoanCalculator calculator = loanCalculatorFactory.load(loanOrderEntity);
         Item realItem = calculator.realItem(System.currentTimeMillis(), loanOrderEntity, PayTypeEnum.REPAY_AS_PLAN.name());
         List<RepayDetailRes> shouldPay = new ArrayList<RepayDetailRes>();
@@ -374,6 +374,11 @@ public class LoanMo9mqListener implements IMqMsgListener{
         }
         repayInfo.setShouldPay(shouldPay);
 		repayInfo.setRepaymentDate(loanOrderEntity.getRepaymentDate());
+
+		// TODO:增加还清时间
+		if (StatusEnum.PAYOFF.name().equals(loanOrderEntity.getStatus())) {
+			repayInfo.setPayoffTime(loanOrderEntity.getUpdateTime());
+		}
 
         JSONObject result = new JSONObject();
         result.put("repayInfo", repayInfo);

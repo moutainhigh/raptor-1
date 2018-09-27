@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
  * @author xtgu
  * @date :   2018-07-10 14:38
  */
-//@Component
+@Component
 public class ConfirmCallbackListener implements RabbitTemplate.ConfirmCallback {
 
     private static final Logger logger = LoggerFactory.getLogger(ConfirmCallbackListener.class);
