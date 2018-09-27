@@ -109,6 +109,11 @@ public class RepayInfoMqRes {
      */
     private Long repaymentDate;
 
+    /**
+     * 还清时间
+     */
+    private Long payoffTime;
+
 
     public String getOrderId() {
         return orderId;
@@ -268,5 +273,13 @@ public class RepayInfoMqRes {
 
     public void setRepaymentDate(Long repaymentDate) {
         this.repaymentDate = repaymentDate;
+    }
+
+    public Long getPayoffTime() {
+        return payoffTime;
+    }
+
+    public void setPayoffTime(Long payoffTime) {
+        this.payoffTime = payoffTime;
     }
 }
