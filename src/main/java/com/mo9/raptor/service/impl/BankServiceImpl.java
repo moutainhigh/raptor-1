@@ -2,6 +2,7 @@ package com.mo9.raptor.service.impl;
 
 import com.mo9.raptor.bean.req.BankReq;
 import com.mo9.raptor.entity.BankEntity;
+import com.mo9.raptor.entity.UserCertifyInfoEntity;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.BankAuthStatusEnum;
 import com.mo9.raptor.enums.ResCodeEnum;
@@ -13,7 +14,6 @@ import com.mo9.raptor.utils.CommonValues;
 import com.mo9.raptor.utils.GatewayUtils;
 import com.mo9.raptor.utils.log.Log;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -63,7 +63,7 @@ public class BankServiceImpl implements BankService {
     }
 
     @Override
-    public ResCodeEnum verify(BankReq bankReq, UserEntity userEntity){
+    public ResCodeEnum verify(BankReq bankReq, UserEntity userEntity, UserCertifyInfoEntity userCertifyInfoEntity){
         String bankNo = bankReq.getCard() ;
         String mobile = bankReq.getCardMobile() ;
         String bankName = bankReq.getBankName() ;
@@ -75,7 +75,7 @@ public class BankServiceImpl implements BankService {
         Integer cardFailCount = bankReq.getCardFailCount() ;
         BankEntity bankEntity = this.findByBankNo(bankNo) ;
         String cardId = userEntity.getIdCard();
-        String userName = userEntity.getRealName();
+        String userName = userCertifyInfoEntity.getRealName();
         String userCode = userEntity.getUserCode();
         if(bankEntity != null){
             //判断本地数据四要素正确情况

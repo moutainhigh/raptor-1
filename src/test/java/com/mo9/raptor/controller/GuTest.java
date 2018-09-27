@@ -1,32 +1,32 @@
 package com.mo9.raptor.controller;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.mo9.raptor.RaptorApplicationTest;
 import com.mo9.raptor.bean.req.BankReq;
 import com.mo9.raptor.bean.res.LoanOrderLendRes;
-import com.mo9.raptor.bean.vo.CommonUserInfo;
+import com.mo9.raptor.engine.utils.TimeUtils;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.service.BankService;
 import com.mo9.raptor.service.CommonService;
+import com.mo9.raptor.service.DingTalkService;
 import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.GatewayUtils;
 import com.mo9.raptor.utils.Md5Encrypt;
 import com.mo9.raptor.utils.httpclient.HttpClientApi;
 import com.mo9.raptor.utils.httpclient.bean.HttpResult;
+import com.mo9.raptor.utils.log.Log;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * Created by xtgu on 2018/9/13.
@@ -36,6 +36,8 @@ import java.util.Random;
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {RaptorApplicationTest.class}, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class GuTest {
+
+    private static Logger logger = Log.get();
 
     @Autowired
     private HttpClientApi httpClientApi ;
@@ -114,7 +116,7 @@ public class GuTest {
         bankReq.setBankName("xxxxx");
         bankReq.setCardMobile(mobile);
         UserEntity userEntity = userService.findByUserCodeAndDeleted("1122",false);
-        bankService.verify( bankReq , userEntity);
+        bankService.verify( bankReq , userEntity, userCertifyInfoEntity);
     }
 
     /**
@@ -184,17 +186,49 @@ public class GuTest {
     @Autowired
     private CommonService commonService ;
 
+    @Autowired
+    private DingTalkService dingTalkService ;
+
     @Test
     public void common(){
-        Map<String , Integer> commonUserInfo = commonService.findUserInfo("ssss") ;
+        /*Map<String , Integer> commonUserInfo = commonService.findUserInfo("ssss") ;
         Map<String , Integer> loanInfo = commonService.findLoanInfo("ssss") ;
         Map<String , Integer> repayInfo = commonService.findRepayInfo("ssss");
 
+        *//*dingTalkService.sendText(" 用户总数 :  " + commonUserInfo.get("userNumber") + "\n 今日登陆用户数 : " + commonUserInfo.get("userLoginNumber")
+                + "\n身份证认证总数 : " + commonUserInfo.get("userCardNumber") + "\n通话记录认证总数 : " + commonUserInfo.get("userPhoneNumber")
+                + "\n通讯录认证总数 : " + commonUserInfo.get("userCallHistoryNumber") + "\n银行卡认证总数 : " + commonUserInfo.get("userBankNumber")
+                + "\n今日放款限额 : " + loanInfo.get("maxAmount") + "\n今日放款总数 : " + loanInfo.get("loanNumber")
+                + "\n今日放款总金额 : " + loanInfo.get("loanAmount") + "\n今日还款总数 : " + repayInfo.get("repayNumber")
+                + "\n今日还款金额 : " + repayInfo.get("repayAmount") + "\n今日延期总数 : " + repayInfo.get("postponeNumber")
+                + "\n今日延期金额 : " + repayInfo.get("postponeAmount") + "\n逾期单量 : " + repayInfo.get("overdueNumber"));*//*
 
 
+        Log.error(logger , new RuntimeException("xxx") , "测试");*/
 
+        Long date = TimeUtils.extractDateTime(System.currentTimeMillis());
 
-        System.out.println("22222");
+        long t1 = System.currentTimeMillis();
+        long t2 = new Date().getTime();
+        long t3 = Calendar.getInstance().getTimeInMillis();
+        SimpleDateFormat sdf= new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+        /*Calendar calendar = Calendar.getInstance();
+        System.out.println("顾晓桐" + calendar.getTime());
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        System.out.println("顾晓桐" + calendar.getTimeInMillis());
+        System.out.println("顾晓桐" + sdf.format(calendar.getTime()));
+        System*/
+
+        System.out.println("顾晓桐" + date);
+        System.out.println("顾晓桐" + System.currentTimeMillis());
+        System.out.println("顾晓桐" + t1);
+        System.out.println("顾晓桐" + t2);
+        System.out.println("顾晓桐" + t3);
+        System.out.println(sdf.format(new Date()));
     }
 
 

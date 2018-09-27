@@ -26,4 +26,12 @@ public class AuditResponseEvent extends AbstractStateEvent implements IStateEven
     public String getExplanation() {
         return explanation;
     }
+
+    @Override
+    public String toString() {
+        return "AuditResponseEvent{" +
+                "isPass=" + isPass +
+                ", explanation='" + explanation + '\'' +
+                '}';
+    }
 }
