@@ -11,8 +11,8 @@ import org.springframework.context.annotation.Configuration;
  * @author : xjding
  * @date :   2018-07-10 13:51
  */
-//@Configuration
-//@ConfigurationProperties(value = "spring.rabbitmq")
+@Configuration
+@ConfigurationProperties(value = "spring.rabbitmq")
 public class RabbitConfig {
 
     /**
@@ -28,7 +28,7 @@ public class RabbitConfig {
         this.mqExchange = mqExchange;
     }
 
-    /*@Bean*/
+    @Bean
     public RabbitTemplate rabbitTemplate(ConfirmCallbackListener confirmCallbackListener, ConnectionFactory connectionFactory) {
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
         rabbitTemplate.setConfirmCallback(confirmCallbackListener);

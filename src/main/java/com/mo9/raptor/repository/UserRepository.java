@@ -58,4 +58,12 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
      */
     @Query(value = "select t from UserEntity t where t.userCode = ?1 and t.status = ?2 and t.deleted = 0")
     UserEntity findByUserCodeAndStatus(String userCode, String status);
+
+
+    /**
+     * 查询没有通话记录报告的用户
+     * @return
+     */
+    @Query(value = "select t from UserEntity t where t.receiveCallHistory = false and t.deleted = 0")
+    List<UserEntity> findNoCallLogReports();
 }
