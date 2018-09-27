@@ -17,12 +17,12 @@ import java.util.List;
  * Created by xtgu on 2018/3/2.
  * @author xtgu
  */
-//@Component
+@Component
 public class RabbitProducerMqTask {
 
 	private static final Logger logger = LoggerFactory.getLogger(RabbitProducerMqTask.class);
 
-//	@Autowired
+	@Autowired
 	private RabbitProducer rabbitProducer ;
 
 	@Autowired
@@ -34,7 +34,7 @@ public class RabbitProducerMqTask {
 	/**
 	 * 发送失败的信息再次发送
 	 */
-//	@Scheduled(cron = "0 0/10 * * * ?")
+	@Scheduled(cron = "0 0/10 * * * ?")
 	public void sendFailedMessageAgain(){
 		if(CommonValues.TRUE.equals(taskOpen)){
 			logger.info("mq补救接口开始 -- " );
@@ -49,6 +49,5 @@ public class RabbitProducerMqTask {
 			}
 			logger.info("mq补救接口结束 , 总计处理 "+rabbitProducerMqEntities.size()+" 条数据");
 		}
-
 	}
 }
