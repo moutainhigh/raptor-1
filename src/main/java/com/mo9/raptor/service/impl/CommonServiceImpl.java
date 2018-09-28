@@ -32,7 +32,7 @@ public class CommonServiceImpl  implements CommonService {
     }
 
     @Override
-    public Map<String, Integer> findRepayInfo(String nowStr) {
+    public Map<String, Integer> findRepayInfo(Long nowStr) {
         return commonRepository.findRepayInfo(nowStr);
     }
 }
