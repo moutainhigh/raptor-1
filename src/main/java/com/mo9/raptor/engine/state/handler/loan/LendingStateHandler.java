@@ -47,20 +47,20 @@ public class LendingStateHandler implements IStateHandler<LoanOrderEntity> {
                 loanOrder.setLendSignature(lendResponseEvent.getLendSignature());
                 loanOrder.setLendTime(lendResponseEvent.getSuccessTime());
 
-                PayOrderDetailEntity entity = new PayOrderDetailEntity();
-                entity.setOwnerId(loanOrder.getOwnerId());
-                entity.setLoanOrderId(loanOrder.getOrderId());
-                entity.setPayOrderId(loanOrder.getOrderId());
-                entity.setPayCurrency(CurrencyEnum.getDefaultCurrency().name());
-                entity.setItemType(ItemTypeEnum.PREPAY.name());
-                entity.setRepayDay(loanOrder.getRepaymentDate());
-                entity.setField(FieldTypeEnum.CUT_CHARGE.name());
-                entity.setShouldPay(loanOrder.getLoanNumber().subtract(lentNumber));
-                entity.setPaid(loanOrder.getLoanNumber().subtract(lentNumber));
-                entity.create();
-
-                // 入账砍头息
-                payOrderDetailService.saveItem(Arrays.asList(entity));
+//                PayOrderDetailEntity entity = new PayOrderDetailEntity();
+//                entity.setOwnerId(loanOrder.getOwnerId());
+//                entity.setLoanOrderId(loanOrder.getOrderId());
+//                entity.setPayOrderId(loanOrder.getOrderId());
+//                entity.setPayCurrency(CurrencyEnum.getDefaultCurrency().name());
+//                entity.setItemType(ItemTypeEnum.PREPAY.name());
+//                entity.setRepayDay(loanOrder.getRepaymentDate());
+//                entity.setField(FieldTypeEnum.CUT_CHARGE.name());
+//                entity.setShouldPay(loanOrder.getLoanNumber().subtract(lentNumber));
+//                entity.setPaid(loanOrder.getLoanNumber().subtract(lentNumber));
+//                entity.create();
+//
+//                // 入账砍头息
+//                payOrderDetailService.saveItem(Arrays.asList(entity));
             } else {
                 loanOrder.setStatus(StatusEnum.FAILED.name());
             }
