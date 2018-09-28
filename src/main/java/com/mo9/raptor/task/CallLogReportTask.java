@@ -50,7 +50,7 @@ public class CallLogReportTask {
     @Resource
     private UserService userService;
 
-    @Scheduled(cron = "0 0/1 * * * ?")
+    @Scheduled(cron = "0 0/15 * * * ?")
     public void run(){
         if(CommonValues.TRUE.equals(taskOpen)){
             logger.info("-----开始执行运营商报告补偿任务-----");
