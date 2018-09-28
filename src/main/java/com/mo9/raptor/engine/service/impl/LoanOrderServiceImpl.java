@@ -124,6 +124,10 @@ public class LoanOrderServiceImpl implements ILoanOrderService {
 
     @Override
     public List<LoanOrderEntity> listByStatus(List<StatusEnum> statusEnums) {
-        return loanOrderRepository.listByStatus(statusEnums);
+        List<String> status = new ArrayList<String>();
+        for (StatusEnum statusEnum : statusEnums) {
+            status.add(statusEnum.name());
+        }
+        return loanOrderRepository.listByStatus(status);
     }
 }

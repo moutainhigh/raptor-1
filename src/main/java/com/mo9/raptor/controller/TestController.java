@@ -134,7 +134,7 @@ public class TestController {
             }
             loanMo9mqListener.notifyMisLend(loanOrderEntity.getOrderId());
         }
-        response.setMessage("");
+        response.setMessage("ok");
         return response;
     }
 }
