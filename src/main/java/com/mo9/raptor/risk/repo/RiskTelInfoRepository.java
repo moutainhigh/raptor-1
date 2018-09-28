@@ -22,8 +22,8 @@ public interface RiskTelInfoRepository extends JpaRepository<TRiskTelInfo, Long>
     
     @Transactional
     @Modifying(clearAutomatically = true)
-    @Query(value = "update TRiskTelInfo set sid=?1, uid=?2, full_name=?3, address=?4, id_card=?5, open_date=?6, updated_at=?7, report_received=?8 where mobile = ?9")
-    void update(String sid, String uid, String fullName, String address, String idCard, String openDate, Date updatedAt,boolean reportReceived, String mobile);
+    @Query(value = "update TRiskTelInfo set sid=?1, uid=?2, full_name=?3, address=?4, id_card=?5, open_date=?6, updated_at=?7, report_received=?8 where mobile = ?9 and platform = ?10")
+    void update(String sid, String uid, String fullName, String address, String idCard, String openDate, Date updatedAt,boolean reportReceived, String mobile, String platform);
 
     
     @Query(value = "select * from t_risk_tel_info where created_at > ?1 and platform = ?2 deleted = 0 and report_received = 0 ", nativeQuery = true)
