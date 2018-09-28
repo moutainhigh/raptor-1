@@ -29,5 +29,5 @@ public interface CommonService {
      * @param nowStr
      * @return
      */
-    Map<String , Integer> findRepayInfo(String nowStr);
+    Map<String , Integer> findRepayInfo(Long nowStr);
 }

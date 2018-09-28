@@ -89,7 +89,7 @@ public class LoanMo9mqListener implements IMqMsgListener{
     @Autowired
     private LoanCalculatorFactory loanCalculatorFactory;
 
-	//@Autowired
+	@Autowired
 	private RabbitProducer rabbitProducer;
 
 	@Resource
@@ -186,8 +186,13 @@ public class LoanMo9mqListener implements IMqMsgListener{
 			loanOrderEntity.setPostponeCount(count);
             loanOrderEntity.setUpdateTime(System.currentTimeMillis());
             loanOrderService.save(loanOrderEntity);
-			//notifyMisRepay(payOrderLog, count);
-        }
+
+			try {
+				notifyMisRepay(payOrderLog, count, loanOrderEntity);
+			} catch (Exception e) {
+				logger.error("向贷后发送还款信息失败   ", e);
+			}
+		}
 		return MqAction.CommitMessage;
 	}
 
@@ -285,8 +290,12 @@ public class LoanMo9mqListener implements IMqMsgListener{
 
 		// TODO: 发送消息给贷后
         if ("1".equals(status)) {
-            //notifyMisLend(orderId);
-        }
+			try {
+				notifyMisLend(orderId);
+			} catch (Exception e) {
+				logger.error("向贷后发送放款信息失败  ", e);
+			}
+		}
 		return MqAction.CommitMessage;
 	}
 
@@ -328,8 +337,9 @@ public class LoanMo9mqListener implements IMqMsgListener{
         userInfo.setLastLoginTime(userEntity.getLastLoginTime());
         userInfo.setOcrIdCardAddress(userCertifyInfoEntity.getOcrIdCardAddress());
         userInfo.setCallHistory(userEntity.getCallHistory());
-        UserContactsEntity userContactsEntity = userContactsService.getByUserCode(ownerId);
-        userInfo.setContactsList(userContactsEntity.getContactsList());
+        // 不传通讯率
+//        UserContactsEntity userContactsEntity = userContactsService.getByUserCode(ownerId);
+//        userInfo.setContactsList(userContactsEntity.getContactsList());
         userInfo.setGender(userCertifyInfoEntity.getOcrGender());
         userInfo.setDeleted(userEntity.getDeleted());
 
@@ -343,9 +353,9 @@ public class LoanMo9mqListener implements IMqMsgListener{
 
     /**
      * 通知贷后还款
-     * @param payOrderLog  还款log
-     */
-    private void notifyMisRepay(PayOrderLogEntity payOrderLog, Integer postponeCount) {
+	 * @param payOrderLog  还款log
+	 */
+    private void notifyMisRepay(PayOrderLogEntity payOrderLog, Integer postponeCount, LoanOrderEntity loanOrderEntity) {
         RepayInfoMqRes repayInfo = new RepayInfoMqRes();
         BeanUtils.copyProperties(payOrderLog, repayInfo);
 
@@ -359,7 +369,6 @@ public class LoanMo9mqListener implements IMqMsgListener{
         List<RepayDetailRes> repayDetail = payOrderDetailService.getRepayDetail(payOrderEntity.getOrderId());
         repayInfo.setRepayDetail(repayDetail);
 
-        LoanOrderEntity loanOrderEntity = loanOrderService.getByOrderId(payOrderEntity.getLoanOrderId());
         ILoanCalculator calculator = loanCalculatorFactory.load(loanOrderEntity);
         Item realItem = calculator.realItem(System.currentTimeMillis(), loanOrderEntity, PayTypeEnum.REPAY_AS_PLAN.name());
         List<RepayDetailRes> shouldPay = new ArrayList<RepayDetailRes>();
@@ -374,6 +383,11 @@ public class LoanMo9mqListener implements IMqMsgListener{
         }
         repayInfo.setShouldPay(shouldPay);
 		repayInfo.setRepaymentDate(loanOrderEntity.getRepaymentDate());
+
+		// TODO:增加还清时间
+		if (StatusEnum.PAYOFF.name().equals(loanOrderEntity.getStatus())) {
+			repayInfo.setPayoffTime(loanOrderEntity.getUpdateTime());
+		}
 
         JSONObject result = new JSONObject();
         result.put("repayInfo", repayInfo);

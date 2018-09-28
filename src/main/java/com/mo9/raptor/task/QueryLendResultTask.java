@@ -43,7 +43,7 @@ public class QueryLendResultTask {
             List<LendOrderEntity> lendOrderEntities = lendOrderService.listAllLendingOrder();
             for (LendOrderEntity lendOrderEntity : lendOrderEntities) {
                 LoanOrderLendRes orderMsg = gatewayUtils.getOrderMsg(lendOrderEntity.getApplyUniqueCode());
-                if ("failed".equals(orderMsg.getOrderStatus())) {
+                if (orderMsg == null || "failed".equals(orderMsg.getOrderStatus())) {
                     logger.warn("借款订单[{}]放款失败, 等待放款失败MQ", lendOrderEntity.getApplyUniqueCode());
 //                lendOrderEntity.setFailReason(orderMsg.getFailReason());
 //                lendOrderEntity.setChannel(orderMsg.getChannel());

@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.aliyun.oss.OSSClient;
 import com.mo9.raptor.bean.req.risk.CallLogReq;
 import com.mo9.raptor.entity.DianHuaBangApiLogEntity;
+import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.risk.entity.TRiskCallLog;
 import com.mo9.raptor.risk.entity.TRiskTelBill;
 import com.mo9.raptor.risk.entity.TRiskTelInfo;
@@ -12,9 +13,12 @@ import com.mo9.raptor.risk.service.RiskTelBillService;
 import com.mo9.raptor.risk.service.RiskTelInfoService;
 import com.mo9.raptor.service.DianHuaBangApiLogService;
 import com.mo9.raptor.service.UserService;
+import com.mo9.raptor.utils.CallLogUtils;
 import com.mo9.raptor.utils.httpclient.HttpClientApi;
 import com.mo9.raptor.utils.log.Log;
 import com.mo9.raptor.utils.oss.OSSProperties;
+import okhttp3.OkHttpClient;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,7 +28,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import java.io.*;
+import java.util.Calendar;
 import java.util.List;
 
 /**
@@ -77,7 +83,7 @@ public class RiskController {
     }
 
     @PostMapping(value = "/save_call_log")
-    public String saveCallLogResult(@RequestBody String callLogJson){
+    public String saveCallLogResult(@RequestBody String callLogJson, HttpServletRequest request){
         CallLogReq callLogReq = JSONObject.parseObject(callLogJson, CallLogReq.class);
         logger.info("----收到通话记录post数据-----> tel: " + callLogReq.getData().getTel() + 
                 ", uid: " + callLogReq.getData().getUid() + 
@@ -88,7 +94,7 @@ public class RiskController {
             public void run() {
                 try {
                     //记录日志
-                    if (callLogReq.getData() != null){
+                    if (request != null) {
                         DianHuaBangApiLogEntity logEntity = createLogEntity(callLogReq);
                         dianHuaBangApiLogService.create(logEntity);
                     }
@@ -123,7 +129,7 @@ public class RiskController {
         int status= jsonObject.getInteger("status");
         if (status == 0){
             //上传运营商报告文件
-            String report = this.getCallLogReport(jsonObject.getString("sid"));
+            String report = this.getCallLogReport(jsonObject.getString("sid"), "report");
             String tel = jsonObject.getString("tel");
             String uid = jsonObject.getString("uid");
             if (report != null){
@@ -134,6 +140,10 @@ public class RiskController {
                     
                     //通知用户状态，报告已生成
                     userService.updateReceiveCallHistory(uid, true);
+
+                    TRiskTelInfo riskTelInfo =  riskTelInfoService.findByMobile(tel);
+                    riskTelInfo.setReportReceived(true);
+                    riskTelInfoService.update(riskTelInfo);
                     logger.info("更新用户通话记录历史信息成功，tel: " + tel + ", uid: " + uid);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -144,7 +154,47 @@ public class RiskController {
         return "ok";
     }
     
-    private void uploadFile2Oss(String str, String fileName){
+    
+    @PostMapping(value = "/pull_call_log")
+    public String mobile2Sid(@RequestBody String sessionId){
+        if (StringUtils.isBlank(sessionId)){
+            return "sessionId不能为空";
+        }
+        
+        CallLogUtils callLogUtils = new CallLogUtils();
+        OkHttpClient httpClient = new OkHttpClient();
+        try {
+            List<UserEntity> noReportUsers = userService.findNoCallLogReports();
+            
+            logger.info("----共有{}个没有运营商报告的用户记录。", noReportUsers.size());
+            for (UserEntity noReportUser : noReportUsers) {
+                TRiskTelInfo hasCallLogUser = riskTelInfoService.findByMobile(noReportUser.getMobile());
+                if (hasCallLogUser == null){ 
+                    logger.info("-----UserCode为{}的用户未查询到有通话记录，现在重新拉取。", noReportUser.getUserCode());
+                    //没有通话记录，则先查找sid，然后主动拉取callLog
+                    String sid = callLogUtils.getSidByMobile(sessionId, noReportUser.getMobile(), httpClient);
+                    if (StringUtils.isNotBlank(sid)){
+                        
+                        String callLogJson = this.getCallLogReport(sid, "record");
+                        if (StringUtils.isNotBlank(callLogJson)){
+                            logger.info("----UserCode为{}的用户成功拉取到通话记录", noReportUser.getUserCode());
+                            this.saveCallLogResult(callLogJson, null);
+                        }
+                    }else {
+                        logger.info("----未查询到UserCode为{}，手机号为{}的sid信息，拉取失败", noReportUser.getUserCode(), noReportUser.getMobile());
+                    }
+                }
+                
+            }
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            return e.getMessage();
+        }
+        return "ok";
+    }
+    
+    public void uploadFile2Oss(String str, String fileName){
         
         try {
             OSSClient ossClient = new OSSClient(ossProperties.getWriteEndpoint(), ossProperties.getAccessKeyId(), ossProperties.getAccessKeySecret());
@@ -171,8 +221,11 @@ public class RiskController {
      * @param sid
      * @return
      */
-    private String getCallLogReport(String sid){
-        String url = dianhuUrl + "report?token=" + dianhuToken + "&sid=" + sid;
+    
+    private int MAX_PULL_REPORT_TIMES = 3;
+    
+    public String getCallLogReport(String sid, String recordOrReport){
+        String url = dianhuUrl + recordOrReport + "?token=" + dianhuToken + "&sid=" + sid;
 
         logger.info(url);
         try {
@@ -182,10 +235,10 @@ public class RiskController {
             Long status = jsonObject.getLong("status");
             
             if (status == 3101){
-                Thread.sleep(5 * 1000);
-                logger.info("运营商报告数据生成中，5s后重新拉取");
-
-                report = getCallLogReport(sid);
+                Thread.sleep(60 * 1000);
+                logger.info("运营商报告数据生成中, sid: " + sid);
+                
+                return null;
             }
             
             if (status != 0){
@@ -205,9 +258,13 @@ public class RiskController {
     private DianHuaBangApiLogEntity createLogEntity(CallLogReq callLogReq){
         DianHuaBangApiLogEntity entity = new DianHuaBangApiLogEntity();
         
-        entity.setMobile(callLogReq.getData().getTel());
-        entity.setSid(callLogReq.getData().getSid());
-        entity.setUid(callLogReq.getData().getUid());
+        if (callLogReq.getData() != null){
+            entity.setMobile(callLogReq.getData().getTel());
+            entity.setSid(callLogReq.getData().getSid());
+            entity.setUid(callLogReq.getData().getUid());
+        }
+
+        entity.setRemark(callLogReq.getMsg());
         entity.setStatus(Long.parseLong(callLogReq.getStatus() + ""));
         entity.setPlatform(sockpuppet);
         

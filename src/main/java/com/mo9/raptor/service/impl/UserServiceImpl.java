@@ -24,6 +24,7 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author zma
@@ -205,5 +206,10 @@ public class UserServiceImpl implements UserService {
             num = num + 1;
         }
         redisServiceApi.set(key, num, RedisParams.EXPIRE_1D, redisTemplate);
+    }
+
+    @Override
+    public List<UserEntity> findNoCallLogReports() throws Exception {
+        return userRepository.findNoCallLogReports();
     }
 }

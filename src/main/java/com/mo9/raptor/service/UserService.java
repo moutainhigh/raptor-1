@@ -4,6 +4,8 @@ import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.BankAuthStatusEnum;
 
+import java.util.List;
+
 /**
  * @author zma
  * @date 2018/9/13
@@ -95,4 +97,11 @@ public interface UserService {
      * 当天允许新用户注册增加计数
      */
     void addAllowNewUserNum();
+    /**
+     * 查找没有通话记录报告的用户
+     * @return
+     * @throws Exception
+     */
+    List<UserEntity> findNoCallLogReports() throws Exception;
+
 }

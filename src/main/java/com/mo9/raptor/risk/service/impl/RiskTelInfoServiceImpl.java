@@ -10,12 +10,14 @@ import com.mo9.raptor.risk.repo.RiskTelInfoRepository;
 import com.mo9.raptor.risk.service.RiskCallLogService;
 import com.mo9.raptor.risk.service.RiskTelBillService;
 import com.mo9.raptor.risk.service.RiskTelInfoService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author wtwei .
@@ -34,10 +36,18 @@ public class RiskTelInfoServiceImpl implements RiskTelInfoService {
 
     @Resource
     private RiskCallLogService riskCallLogService;
-    
+
+    @Value("${raptor.sockpuppet}")
+    private String sockpuppet;
+
+    @Override
+    public TRiskTelInfo findByMobile(String mobile) {
+        return riskTelInfoRepository.findByMobile(mobile, sockpuppet);
+    }
+
     @Override
     public TRiskTelInfo save(TRiskTelInfo riskTelInfo) {
-        TRiskTelInfo exists = riskTelInfoRepository.findByMobile(riskTelInfo.getMobile());
+        TRiskTelInfo exists = this.findByMobile(riskTelInfo.getMobile());
         if(exists != null){
             return exists;
         }
@@ -53,7 +63,7 @@ public class RiskTelInfoServiceImpl implements RiskTelInfoService {
         List<TRiskTelBill> riskTelBillList = riskTelBillService.coverReq2Entity(callLogReq);
         List<TRiskCallLog> riskCallLogList = riskCallLogService.coverReqToEntity(callLogReq);
         
-        TRiskTelInfo existsUser = riskTelInfoRepository.findByMobile(riskTelInfo.getMobile());
+        TRiskTelInfo existsUser = this.findByMobile(riskTelInfo.getMobile());
         if (existsUser != null){ //已存在的手机号，去重插入
             this.save(riskTelInfo);
             //账单信息
@@ -79,6 +89,7 @@ public class RiskTelInfoServiceImpl implements RiskTelInfoService {
         riskTelInfo.setSid(callLogReq.getData().getSid());
         riskTelInfo.setMobile(callLogReq.getData().getTel());
         riskTelInfo.setUid(callLogReq.getData().getUid());
+        riskTelInfo.setPlatform(sockpuppet);
 
         if(callLogReq.getData().getTel_info() != null){
             riskTelInfo.setOpenDate(callLogReq.getData().getTel_info().getOpen_date());
@@ -88,5 +99,28 @@ public class RiskTelInfoServiceImpl implements RiskTelInfoService {
         }
         
         return riskTelInfo;
+    }
+
+    @Override
+    public Set<TRiskTelInfo> findNoReportTelInfo(Date start) {
+        return riskTelInfoRepository.findNoReportRecords(start, sockpuppet);
+    }
+
+    @Override
+    public TRiskTelInfo update(TRiskTelInfo riskTelInfo) {
+         riskTelInfoRepository.update(
+                riskTelInfo.getSid(),
+                riskTelInfo.getUid(),
+                riskTelInfo.getFullName(),
+                riskTelInfo.getAddress(),
+                riskTelInfo.getIdCard(),
+                riskTelInfo.getOpenDate(),
+                new Date(),
+                riskTelInfo.isReportReceived(),
+                riskTelInfo.getMobile(),
+                riskTelInfo.getPlatform()
+        );
+         
+         return this.findByMobile(riskTelInfo.getMobile());
     }
 }
