@@ -90,12 +90,10 @@ public class CallLogReportTask {
                 //通知用户状态，报告已生成
                 try {
                     
-
-                    TRiskTelInfo riskTelInfo =  riskTelInfoService.findByMobile(noReportRecord.getMobile());
-                    if (riskTelInfo != null){
+                    if (noReportRecord != null){
                         userService.updateReceiveCallHistory(noReportRecord.getUid(), true);
-                        riskTelInfo.setReportReceived(true);
-                        riskTelInfoService.update(riskTelInfo);
+                        noReportRecord.setReportReceived(true);
+                        riskTelInfoService.update(noReportRecord);
                         logger.info("定时任务更新用户运营商报告获取状态成功，tel: " + mobile + ", uid: " + uid + ", sid: " + sid);
                     }
                     
