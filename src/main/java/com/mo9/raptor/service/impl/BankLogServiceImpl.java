@@ -7,6 +7,8 @@ import com.mo9.raptor.service.BankLogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * Created by xtgu on 2018/9/20.
  * @author xtgu
@@ -33,5 +35,10 @@ public class BankLogServiceImpl implements BankLogService {
         bankLogEntity.setCardFailCount( cardFailCount);
         bankLogEntity.setStatus(status);
         bankLogRepository.save(bankLogEntity) ;
+    }
+
+    @Override
+    public List<BankLogEntity> findByMobileAndBankNoAndIdCardAndUserNameAndStatus(String mobile, String bankNo, String cardId, String userName , String status) {
+        return bankLogRepository.findByMobileAndBankNoAndIdCardAndUserNameAndStatus(  mobile,   bankNo,   cardId,   userName , status);
     }
 }
