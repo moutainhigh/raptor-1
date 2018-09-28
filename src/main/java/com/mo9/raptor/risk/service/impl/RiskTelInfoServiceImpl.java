@@ -117,7 +117,8 @@ public class RiskTelInfoServiceImpl implements RiskTelInfoService {
                 riskTelInfo.getOpenDate(),
                 new Date(),
                 riskTelInfo.isReportReceived(),
-                riskTelInfo.getMobile()
+                riskTelInfo.getMobile(),
+                riskTelInfo.getPlatform()
         );
          
          return this.findByMobile(riskTelInfo.getMobile());
