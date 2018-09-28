@@ -17,17 +17,17 @@ import java.util.GregorianCalendar;
  * @time 15:40 .
  */
 public class CallLogUtils {
-//    private static OkHttpClient okHttpClient;
-//
+    private static OkHttpClient okHttpClient;
+
 //    public static void main(String[] args) {
 //        okHttpClient = new OkHttpClient();
 //        String sessId = "5jomophlia5k1l22fcj781b225";
-//        String phoneNumber = "13536816222";
+//        String phoneNumber = "18357534013";
 //        String url = "http://bmp.dianhua.cn/report/list?cid=317&begin=2018-09-25&end=2018-09-27&status=&status_report=&reportNo=&telNo=" + phoneNumber;
-//        String str = doGetHttp(url, sessId);
-//        Document doc = Jsoup.parse(str);
-//        String value = doc.select("table.table").select("tbody").select("input.item-checkbox").attr("value");
-//        System.out.println(value);
+//        String value = getSidByMobile(sessId, phoneNumber, okHttpClient);
+////        Document doc = Jsoup.parse(str);
+////        String value = doc.select("table.table").select("tbody").select("input.item-checkbox").attr("value");
+//        System.out.println("---------> "+value);
 //    }
 
     public String getSidByMobile(String sessId, String phoneNumber, OkHttpClient okHttpClient) {
@@ -41,9 +41,12 @@ public class CallLogUtils {
 
         String url = "http://bmp.dianhua.cn/report/list?cid=317&begin=" + begin + "&end=" + end + "&status=&status_report=&reportNo=&telNo=" + phoneNumber;
 
-        String str = this.doGetHttp(url, sessId, okHttpClient);
+        String str = doGetHttp(url, sessId, okHttpClient);
+//        System.out.println(str);
         Document doc = Jsoup.parse(str);
-        String value = doc.select("table.table").select("tbody").select("input.item-checkbox").attr("value");
+        String value = doc.select("table.table > tbody")
+                .select("tr > td").first().select("span")
+                .text();
         return value;
     }
 
