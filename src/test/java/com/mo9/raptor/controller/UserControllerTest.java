@@ -39,7 +39,7 @@ public class UserControllerTest {
 
     private static final String localUrl = "http://192.168.14.114:8010/raptorApi/";
 
-    private static final String localHostUrl = "http://localhost:8081/raptorApi/";
+    private static final String localHostUrl = "http://localhost/raptorApi/";
 
     private static final String cloneHostUrl = "https://riskclone.mo9.com/raptorApi/";
 
@@ -59,11 +59,11 @@ public class UserControllerTest {
     public void sendCode() {
 
         try {
-            String mobile = "13564546025";
+            String mobile = "13213173513";
             JSONObject json = new JSONObject();
             json.put("mobile", mobile);
             String url = "auth/send_login_code";
-            HttpResult resJson = httpClientApi.doPostJson(cloneHostUrl + url, json.toJSONString());
+            HttpResult resJson = httpClientApi.doPostJson(localHostUrl + url, json.toJSONString());
             System.out.println(resJson.getCode());
             System.out.println(resJson.getData());
         } catch (IOException e) {
@@ -78,12 +78,12 @@ public class UserControllerTest {
     public void signIn() {
 
         try {
-            String mobile = "13564546025";
+            String mobile = "13213173513";
             JSONObject json = new JSONObject();
             json.put("mobile", mobile);
-            json.put("code", "001353");
+            json.put("code", "019350");
             String url = "user/login_by_code";
-            HttpResult resJson = httpClientApi.doPostJson(cloneHostUrl + url, json.toJSONString());
+            HttpResult resJson = httpClientApi.doPostJson(localHostUrl + url, json.toJSONString());
             System.out.println(resJson.getCode());
             System.out.println(resJson.getData());
         } catch (IOException e) {

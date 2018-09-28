@@ -67,8 +67,12 @@ public class CaptchaController {
             //这里就要判断用户是否再名单之列
             UserEntity user = userService.findByMobileAndDeleted(mobile,false);
             if(null == user){
-                logger.warn("发送登录验证码-------->>>>>>>>非白名单用户[{}]", mobile);
-                return response.buildFailureResponse(ResCodeEnum.NOT_WHITE_LIST_USER);
+                //校验今天是否允许新用户注册，如果允许，则发送验证码
+                boolean b = userService.isaAllowNewUser();
+                if(!b){
+                    logger.warn("发送登录验证码-------->>>>>>>>非白名单用户[{}]", mobile);
+                    return response.buildFailureResponse(ResCodeEnum.NOT_WHITE_LIST_USER);
+                }
             }
             Boolean sendRes = false;
             //判断ip获取验证码频率是否超出限制（暂定每小时最多获取10次）

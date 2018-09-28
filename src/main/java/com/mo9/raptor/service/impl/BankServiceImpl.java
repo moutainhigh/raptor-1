@@ -2,6 +2,7 @@ package com.mo9.raptor.service.impl;
 
 import com.mo9.raptor.bean.req.BankReq;
 import com.mo9.raptor.entity.BankEntity;
+import com.mo9.raptor.entity.BankLogEntity;
 import com.mo9.raptor.entity.UserCertifyInfoEntity;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.BankAuthStatusEnum;
@@ -98,6 +99,25 @@ public class BankServiceImpl implements BankService {
                 return ResCodeEnum.SUCCESS ;
             }
         }
+
+        //判断失败此时
+        List<BankLogEntity> bankLogEntities = bankLogService.findByMobileAndBankNoAndIdCardAndUserNameAndStatus(mobile , bankNo , cardId , userName,CommonValues.FAILED);
+
+        if(bankLogEntities != null && bankLogEntities.size() >= 2){
+            //强制成功
+            this.create( bankNo , cardId , userName , mobile , bankName,userCode) ;
+            //存储log
+            bankLogService.create(bankNo , cardId , userName , mobile , bankName , userCode ,
+                    cardStartCount , cardSuccessCount ,cardFailCount , CommonValues.FAILED);
+            try {
+                userService.updateBankAuthStatus(userEntity,BankAuthStatusEnum.SUCCESS);
+            } catch (Exception e) {
+                Log.error(logger , e ,"更新银行卡状态,系统内部异常"+ mobile);
+                return ResCodeEnum.EXCEPTION_CODE;
+            }
+            return ResCodeEnum.SUCCESS ;
+        }
+
         ResCodeEnum resCodeEnum = gatewayUtils.verifyBank( bankNo ,  cardId ,  userName ,  mobile) ;
         if(ResCodeEnum.SUCCESS == resCodeEnum){
             this.create( bankNo , cardId , userName , mobile , bankName , userCode ) ;

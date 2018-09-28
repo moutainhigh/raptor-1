@@ -12,6 +12,7 @@ import com.mo9.raptor.entity.BankEntity;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.BankAuthStatusEnum;
 import com.mo9.raptor.enums.ResCodeEnum;
+import com.mo9.raptor.enums.SourceEnum;
 import com.mo9.raptor.redis.RedisParams;
 import com.mo9.raptor.redis.RedisServiceApi;
 import com.mo9.raptor.service.*;
@@ -75,6 +76,7 @@ public class UserController {
         Map<String, Object> entity = new HashMap<>(16);
         String clientId = request.getHeader(ReqHeaderParams.CLIENT_ID);
         String mobile = loginByCodeReq.getMobile();
+        boolean isNewUser = false;
         //校验手机号是否合法，不合法登录失败
         boolean check = RegexUtils.checkChinaMobileNumber(mobile);
         if (!check) {
@@ -82,17 +84,25 @@ public class UserController {
             return response.buildFailureResponse(ResCodeEnum.MOBILE_NOT_MEET_THE_REQUIRE);
         }
         try {
-            //检查用户是否在白名单，并可用
-            UserEntity userEntity = userService.findByMobileAndDeleted(mobile,false);
-            if (userEntity == null) {
-                logger.warn("用户登录----->>>>手机号=[{}]非白名单用户",mobile);
-                return response.buildFailureResponse(ResCodeEnum.NOT_WHITE_LIST_USER);
-            }
             //校验验证码是否正确
             String code = loginByCodeReq.getCode();
             ResCodeEnum resCodeEnum = captchaService.checkLoginMobileCaptcha(mobile, code);
             if (ResCodeEnum.SUCCESS != resCodeEnum) {
                 return response.buildFailureResponse(resCodeEnum);
+            }
+
+            //检查用户是否在白名单，并可用
+            UserEntity userEntity = userService.findByMobileAndDeleted(mobile,false);
+            if (userEntity == null) {
+                //校验今天是否允许新用户注册
+                boolean b = userService.isaAllowNewUser();
+                if(!b){
+                    logger.warn("用户登录----->>>>手机号=[{}]非白名单用户",mobile);
+                    return response.buildFailureResponse(ResCodeEnum.NOT_WHITE_LIST_USER);
+                }
+                //新用户注册
+                userEntity = UserEntity.buildNewUser(mobile, SourceEnum.NEW);
+                isNewUser = true;
             }
             //返回token
             String token = UUID.randomUUID().toString().replaceAll("-", StringUtils.EMPTY);
@@ -104,7 +114,11 @@ public class UserController {
             resMap.put("entity",entity);
             userEntity.setLastLoginTime(System.currentTimeMillis());
             userEntity.setUserIp(IpUtils.getRemoteHost(request));
+            userEntity.setUpdateTime(System.currentTimeMillis());
             userService.save(userEntity);
+            if(isNewUser){
+                userService.addAllowNewUserNum();
+            }
             logger.info("用户登录成功----->>>>手机号=[{}]",mobile);
         } catch (IOException e) {
             Log.error(logger,e,"用户登录----->>>>验证码发送发生异常,手机号={}",mobile);

@@ -6,11 +6,10 @@ import com.mo9.raptor.RaptorApplicationTest;
 import com.mo9.raptor.bean.req.BankReq;
 import com.mo9.raptor.bean.res.LoanOrderLendRes;
 import com.mo9.raptor.engine.utils.TimeUtils;
+import com.mo9.raptor.entity.BankLogEntity;
 import com.mo9.raptor.entity.UserEntity;
-import com.mo9.raptor.service.BankService;
-import com.mo9.raptor.service.CommonService;
-import com.mo9.raptor.service.DingTalkService;
-import com.mo9.raptor.service.UserService;
+import com.mo9.raptor.service.*;
+import com.mo9.raptor.utils.CommonValues;
 import com.mo9.raptor.utils.GatewayUtils;
 import com.mo9.raptor.utils.Md5Encrypt;
 import com.mo9.raptor.utils.httpclient.HttpClientApi;
@@ -170,6 +169,8 @@ public class GuTest {
         }
     }
 
+    @Autowired
+    private BankLogService bankLogService ;
     /**
      * 查询产品信息
      */
@@ -178,6 +179,9 @@ public class GuTest {
         //https://riskclone.mo9.com/raptorApi/loan_quota/list
         //https://riskclone.mo9.com/raptorApi/system/switch
         //https://riskclone.mo9.com/raptorApi/system/common_task
+
+        List<BankLogEntity > list = bankLogService.findByMobileAndBankNoAndIdCardAndUserNameAndStatus("18616297271" , "6217003810026896707", "430101198501010011" ,"曾磊文" , CommonValues.FAILED);
+        System.out.println("sssss");
     }
 
     /**
@@ -208,11 +212,13 @@ public class GuTest {
 
         Long date = TimeUtils.extractDateTime(System.currentTimeMillis());
 
-        long t1 = System.currentTimeMillis();
-        long t2 = new Date().getTime();
-        long t3 = Calendar.getInstance().getTimeInMillis();
-        SimpleDateFormat sdf= new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Long time = TimeUtils.extractDateTime(System.currentTimeMillis())/1000 ;
+        logger.info("系统定时器开启");
+        Map<String , Integer> commonUserInfo = commonService.findUserInfo("ssss") ;
+        Map<String , Integer> loanInfo = commonService.findLoanInfo("ssss") ;
+        Map<String , Integer> repayInfo = commonService.findRepayInfo(time);
 
+        System.out.println("22222");
         /*Calendar calendar = Calendar.getInstance();
         System.out.println("顾晓桐" + calendar.getTime());
         calendar.set(Calendar.HOUR_OF_DAY, 0);
@@ -223,12 +229,12 @@ public class GuTest {
         System.out.println("顾晓桐" + sdf.format(calendar.getTime()));
         System*/
 
-        System.out.println("顾晓桐" + date);
+        /*System.out.println("顾晓桐" + date);
         System.out.println("顾晓桐" + System.currentTimeMillis());
         System.out.println("顾晓桐" + t1);
         System.out.println("顾晓桐" + t2);
         System.out.println("顾晓桐" + t3);
-        System.out.println(sdf.format(new Date()));
+        System.out.println(sdf.format(new Date()));*/
     }
 
 

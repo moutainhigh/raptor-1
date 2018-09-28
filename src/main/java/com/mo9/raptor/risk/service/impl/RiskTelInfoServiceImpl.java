@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author wtwei .
@@ -101,8 +102,8 @@ public class RiskTelInfoServiceImpl implements RiskTelInfoService {
     }
 
     @Override
-    public List<TRiskTelInfo> findNoReportTelInfo(Date start) {
-        return riskTelInfoRepository.findNoReportRecords(start);
+    public Set<TRiskTelInfo> findNoReportTelInfo(Date start) {
+        return riskTelInfoRepository.findNoReportRecords(start, sockpuppet);
     }
 
     @Override
@@ -116,7 +117,8 @@ public class RiskTelInfoServiceImpl implements RiskTelInfoService {
                 riskTelInfo.getOpenDate(),
                 new Date(),
                 riskTelInfo.isReportReceived(),
-                riskTelInfo.getMobile()
+                riskTelInfo.getMobile(),
+                riskTelInfo.getPlatform()
         );
          
          return this.findByMobile(riskTelInfo.getMobile());
