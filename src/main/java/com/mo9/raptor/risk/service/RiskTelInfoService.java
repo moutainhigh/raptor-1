@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author wtwei .
@@ -23,7 +24,7 @@ public interface RiskTelInfoService {
 
     TRiskTelInfo coverReq2Entity(CallLogReq callLogReq);
     
-    List<TRiskTelInfo> findNoReportTelInfo(Date start);
+    Set<TRiskTelInfo> findNoReportTelInfo(Date start);
     
     TRiskTelInfo update(TRiskTelInfo riskTelInfo);
 }
