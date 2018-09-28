@@ -72,10 +72,17 @@ public class CallLogReportTask {
                 sid = noReportRecord.getSid();
                 uid = noReportRecord.getUid();
                 mobile = noReportRecord.getMobile();
+                if (userEntity.getReceiveCallHistory()){
+                    noReportRecord.setReportReceived(true);
+                    riskTelInfoService.update(noReportRecord);
+
+                    logger.info("-----运营商报告补偿任务-->用户表已更新报告状态，跳过。mobile: {}, userCode: {}", mobile, uid);
+                    continue;
+                }
+                
                 //入库不到一小时的跳过
-                if (nowTime - noReportRecord.getUpdatedAt().getTime() < 60 * 60 * 1000
-                        || userEntity.getReceiveCallHistory()){
-                    logger.info("-----运营商报告补偿任务-->用户表已更新报告状态，或者入库时间小于一小时，跳过。mobile: {}, userCode: {}", mobile, uid);
+                if (nowTime - noReportRecord.getUpdatedAt().getTime() < 60 * 60 * 1000){
+                    logger.info("-----运营商报告补偿任务-->入库时间小于一小时，跳过。mobile: {}, userCode: {}", mobile, uid);
                     continue;
                 }
 
