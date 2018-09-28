@@ -26,6 +26,6 @@ public interface RiskTelInfoRepository extends JpaRepository<TRiskTelInfo, Long>
     void update(String sid, String uid, String fullName, String address, String idCard, String openDate, Date updatedAt,boolean reportReceived, String mobile);
 
     
-    @Query(value = "select * from t_risk_tel_info where created_at > ?1 deleted = 0 and report_received = 0 ", nativeQuery = true)
-    Set<TRiskTelInfo> findNoReportRecords(Date start);
+    @Query(value = "select * from t_risk_tel_info where created_at > ?1 and platform = ?2 deleted = 0 and report_received = 0 ", nativeQuery = true)
+    Set<TRiskTelInfo> findNoReportRecords(Date start, String platform);
 }
