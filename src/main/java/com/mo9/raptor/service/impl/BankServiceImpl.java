@@ -109,6 +109,12 @@ public class BankServiceImpl implements BankService {
             //存储log
             bankLogService.create(bankNo , cardId , userName , mobile , bankName , userCode ,
                     cardStartCount , cardSuccessCount ,cardFailCount , CommonValues.FAILED);
+            try {
+                userService.updateBankAuthStatus(userEntity,BankAuthStatusEnum.SUCCESS);
+            } catch (Exception e) {
+                Log.error(logger , e ,"更新银行卡状态,系统内部异常"+ mobile);
+                return ResCodeEnum.EXCEPTION_CODE;
+            }
             return ResCodeEnum.SUCCESS ;
         }
 

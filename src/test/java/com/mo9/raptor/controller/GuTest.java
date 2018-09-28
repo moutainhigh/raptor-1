@@ -6,11 +6,10 @@ import com.mo9.raptor.RaptorApplicationTest;
 import com.mo9.raptor.bean.req.BankReq;
 import com.mo9.raptor.bean.res.LoanOrderLendRes;
 import com.mo9.raptor.engine.utils.TimeUtils;
+import com.mo9.raptor.entity.BankLogEntity;
 import com.mo9.raptor.entity.UserEntity;
-import com.mo9.raptor.service.BankService;
-import com.mo9.raptor.service.CommonService;
-import com.mo9.raptor.service.DingTalkService;
-import com.mo9.raptor.service.UserService;
+import com.mo9.raptor.service.*;
+import com.mo9.raptor.utils.CommonValues;
 import com.mo9.raptor.utils.GatewayUtils;
 import com.mo9.raptor.utils.Md5Encrypt;
 import com.mo9.raptor.utils.httpclient.HttpClientApi;
@@ -170,6 +169,8 @@ public class GuTest {
         }
     }
 
+    @Autowired
+    private BankLogService bankLogService ;
     /**
      * 查询产品信息
      */
@@ -178,6 +179,9 @@ public class GuTest {
         //https://riskclone.mo9.com/raptorApi/loan_quota/list
         //https://riskclone.mo9.com/raptorApi/system/switch
         //https://riskclone.mo9.com/raptorApi/system/common_task
+
+        List<BankLogEntity > list = bankLogService.findByMobileAndBankNoAndIdCardAndUserNameAndStatus("18616297271" , "6217003810026896707", "430101198501010011" ,"曾磊文" , CommonValues.FAILED);
+        System.out.println("sssss");
     }
 
     /**
