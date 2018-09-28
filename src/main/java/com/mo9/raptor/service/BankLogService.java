@@ -6,8 +6,6 @@ import com.mo9.raptor.entity.BankLogEntity;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.ResCodeEnum;
 
-import java.util.List;
-
 /**
  * Created by xtgu on 2018/9/12.
  * @author xtgu
@@ -29,14 +27,4 @@ public interface BankLogService {
      */
     void create(String bankNo , String cardId , String userName , String mobile , String bankName , String userCode ,
                 Integer cardStartCount , Integer cardSuccessCount , Integer cardFailCount , String status);
-
-    /**
-     * 查询银行卡错误日志
-     * @param mobile
-     * @param bankNo
-     * @param cardId
-     * @param userName
-     * @return
-     */
-    List<BankLogEntity> findByMobileAndBankNoAndIdCardAndUserNameAndStatus(String mobile, String bankNo, String cardId, String userName , String status);
 }
