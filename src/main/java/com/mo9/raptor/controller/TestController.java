@@ -128,7 +128,7 @@ public class TestController {
 
         for (LoanOrderEntity loanOrderEntity : loanOrderEntities) {
             RabbitProducerMqEntity producerMqEntity = rabbitProducerMqService.findByMessageKey(loanOrderEntity.getOrderId());
-            if (producerMqEntity == null) {
+            if (producerMqEntity != null) {
                 logger.info("订单[{}]已发送过mq, 跳过", loanOrderEntity.getOrderId());
                 continue;
             }
