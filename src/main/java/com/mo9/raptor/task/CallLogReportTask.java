@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author wtwei .
@@ -48,7 +49,7 @@ public class CallLogReportTask {
     @Resource
     private UserService userService;
 
-    @Scheduled(cron = "0 0/15 * * * ?")
+    @Scheduled(cron = "0 0/2 * * * ?")
     public void run(){
         if(CommonValues.TRUE.equals(taskOpen)){
             logger.info("-----开始执行运营商报告补偿任务-----");
@@ -56,14 +57,21 @@ public class CallLogReportTask {
             Calendar calendar = Calendar.getInstance();
             calendar.add(Calendar.DATE, -30);
             
-            List<TRiskTelInfo> noReportRecords = riskTelInfoService.findNoReportTelInfo(calendar.getTime());
+            Set<TRiskTelInfo> noReportRecords = riskTelInfoService.findNoReportTelInfo(calendar.getTime());
             
             logger.info("-----运营报告补偿任务--> 共发现30天内有{}条数据没有成功获取到运营商报告。", noReportRecords.size());
 
             String sid;
             String uid;
             String mobile;
+            Long nowTime = Calendar.getInstance().getTimeInMillis();
             for (TRiskTelInfo noReportRecord : noReportRecords) {
+                
+                //入库不到一小时的跳过
+                if (nowTime - noReportRecord.getUpdatedAt().getTime() < 60 * 60 * 1000){
+                    continue;
+                }
+                
                 sid = noReportRecord.getSid();
                 uid = noReportRecord.getUid();
                 mobile = noReportRecord.getMobile();

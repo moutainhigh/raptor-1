@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author wtwei .
@@ -25,6 +26,6 @@ public interface RiskTelInfoRepository extends JpaRepository<TRiskTelInfo, Long>
     void update(String sid, String uid, String fullName, String address, String idCard, String openDate, Date updatedAt,boolean reportReceived, String mobile);
 
     
-    @Query(value = "select * from t_risk_tel_info where deleted = false and report_received = false and created_at >= ?1", nativeQuery = true)
-    List<TRiskTelInfo> findNoReportRecords(Date start);
+    @Query(value = "select * from t_risk_tel_info where deleted = 0 and report_received = 0 ", nativeQuery = true)
+    Set<TRiskTelInfo> findNoReportRecords(Date start);
 }
