@@ -53,5 +53,5 @@ public interface LoanOrderRepository extends JpaRepository<LoanOrderEntity,Long>
      * @return
      */
     @Query(value = "select * from t_raptor_loan_order where status in (?1) and deleted = false", nativeQuery = true)
-    List<LoanOrderEntity> listByStatus(List<StatusEnum> statusEnums);
+    List<LoanOrderEntity> listByStatus(List<String> statusEnums);
 }
