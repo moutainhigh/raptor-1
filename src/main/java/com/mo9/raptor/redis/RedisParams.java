@@ -124,6 +124,11 @@ public class RedisParams {
      */
     public static final String LIMIT_LOAN_LBA_RATES = "limit_loan_lba_rates_";
 
+    /**
+     * 允许新用户注册key
+     */
+    public static final String ALLOW_NEW_USER_REGISTER_KEY = "allow_new_user_register_key_";
+
     public static String getActionToken(String actionToken){
         return ACTION_TOKEN_LONG + actionToken;
     }

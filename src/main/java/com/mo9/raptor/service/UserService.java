@@ -85,4 +85,14 @@ public interface UserService {
      */
     void checkAuditStatus(UserEntity userEntity) throws Exception;
 
+    /**
+     * 当天是否允许新用户进入
+     * @return
+     */
+    boolean isaAllowNewUser();
+
+    /**
+     * 当天允许新用户注册增加计数
+     */
+    void addAllowNewUserNum();
 }
