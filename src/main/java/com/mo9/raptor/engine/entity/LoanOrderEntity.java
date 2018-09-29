@@ -24,6 +24,10 @@ public class LoanOrderEntity extends AbstractOrderEntity {
         return true;
     }
 
+    public BigDecimal canCoupon () {
+        return BigDecimal.ZERO;
+    }
+
     /** 借贷数目 */
     @Column(name = "loan_number")
     private BigDecimal loanNumber;

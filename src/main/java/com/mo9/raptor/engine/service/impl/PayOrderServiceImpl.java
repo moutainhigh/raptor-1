@@ -54,6 +54,11 @@ public class PayOrderServiceImpl implements IPayOrderService {
     private GatewayUtils gatewayUtils;
 
     @Override
+    public List<PayOrderEntity> listEntryDonePayLoan(String loanOrderId, List<String> types) {
+        return payOrderRepository.listEntryDonePayLoan(loanOrderId, types);
+    }
+
+    @Override
     public PayOrderEntity getByOrderId(String payOrderId) {
         return payOrderRepository.getByOrderId(payOrderId);
     }

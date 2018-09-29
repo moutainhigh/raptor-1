@@ -13,6 +13,9 @@ import java.util.List;
 
 public interface ILoanCalculator {
 
+    /** 最少应还 */
+    BigDecimal minRepay (LoanOrderEntity loanOrder);
+
     /**
      * 计算订单原始分期明细
      * @param loanOrder
