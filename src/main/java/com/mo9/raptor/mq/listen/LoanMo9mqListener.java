@@ -16,6 +16,7 @@ import com.mo9.raptor.engine.entity.PayOrderEntity;
 import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.engine.service.*;
 import com.mo9.raptor.engine.state.event.impl.lend.LendResponseEvent;
+import com.mo9.raptor.engine.state.event.impl.loan.LoanResponseEvent;
 import com.mo9.raptor.engine.state.event.impl.pay.DeductResponseEvent;
 import com.mo9.raptor.engine.state.launcher.IEventLauncher;
 import com.mo9.raptor.engine.structure.Unit;
@@ -76,6 +77,9 @@ public class LoanMo9mqListener implements IMqMsgListener{
 
 	@Autowired
 	private IEventLauncher lendEventLauncher;
+
+    @Autowired
+    private IEventLauncher loanEventLauncher;
 
     @Autowired
     private BillService billService;
@@ -267,10 +271,25 @@ public class LoanMo9mqListener implements IMqMsgListener{
 		}
 		try {
 			LendOrderEntity lendOrderEntity = lendOrderService.getByOrderId(orderId);
-			if (lendOrderEntity == null || !StatusEnum.LENDING.name().equals(lendOrderEntity.getStatus())) {
+			if (lendOrderEntity == null) {
 				logger.info("接收到了订单[{}]放款的MQ, 然而查不到放款订单, 可能由于放款请求未结束而MQ先到, 延后再次发送MQ", orderId);
 				return MqAction.ReconsumeLater;
 			}
+			if (StatusEnum.SUCCESS.name().equals(lendOrderEntity.getStatus()) || StatusEnum.FAILED.name().equals(lendOrderEntity.getStatus())) {
+                logger.warn("接收到了订单[{}]放款的MQ, 然而查到的放款订单状态为[{}], 可能由于状态机报错而未更新借款订单状态", orderId, lendOrderEntity.getStatus());
+                LoanOrderEntity loanOrderEntity = loanOrderService.getByOrderId(orderId);
+                if (StatusEnum.LENDING.name().equals(loanOrderEntity.getStatus())) {
+                    LoanResponseEvent event = null;
+                    if (isSucceed) {
+                        event =  new LoanResponseEvent(loanOrderEntity.getOrderId(), lendAmount, isSucceed, lendSettleTime, "放款成功", "lendorder[" + lendOrderEntity.getStatus() + "], 再次接到MQ后改为成功");
+                    } else {
+                        event =  new LoanResponseEvent(loanOrderEntity.getOrderId(), BigDecimal.ZERO, isSucceed, lendSettleTime, "放款失败", "lendorder[" + lendOrderEntity.getStatus() + "], 再次接到MQ后改为失败");
+                    }
+                    loanEventLauncher.launch(event);
+                    logger.warn("lendOrder状态[{}], 原loanOrder[{}]状态[{}], 是否成功[{}]", lendOrderEntity.getStatus(), loanOrderEntity.getOrderId(), loanOrderEntity.getStatus(), isSucceed);
+                    return MqAction.CommitMessage;
+                }
+            }
 
 			lendEventLauncher.launch(lendResponse);
 		} catch (Exception e) {
