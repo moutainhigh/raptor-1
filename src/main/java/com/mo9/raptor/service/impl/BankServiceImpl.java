@@ -99,7 +99,6 @@ public class BankServiceImpl implements BankService {
                 return ResCodeEnum.SUCCESS ;
             }
         }
-
         //判断失败此时
         List<BankLogEntity> bankLogEntities = bankLogService.findByMobileAndBankNoAndIdCardAndUserNameAndStatus(mobile , bankNo , cardId , userName,CommonValues.FAILED);
 

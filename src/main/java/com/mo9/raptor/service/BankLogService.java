@@ -31,12 +31,13 @@ public interface BankLogService {
                 Integer cardStartCount , Integer cardSuccessCount , Integer cardFailCount , String status);
 
     /**
-     * 查询银行卡错误日志
+     *查询银行卡错误日志
      * @param mobile
      * @param bankNo
      * @param cardId
      * @param userName
+     * @param failed
      * @return
      */
-    List<BankLogEntity> findByMobileAndBankNoAndIdCardAndUserNameAndStatus(String mobile, String bankNo, String cardId, String userName , String status);
+    List<BankLogEntity> findByMobileAndBankNoAndIdCardAndUserNameAndStatus(String mobile, String bankNo, String cardId, String userName, String failed);
 }

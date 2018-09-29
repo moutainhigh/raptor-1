@@ -38,7 +38,7 @@ public class BankLogServiceImpl implements BankLogService {
     }
 
     @Override
-    public List<BankLogEntity> findByMobileAndBankNoAndIdCardAndUserNameAndStatus(String mobile, String bankNo, String cardId, String userName , String status) {
+    public List<BankLogEntity> findByMobileAndBankNoAndIdCardAndUserNameAndStatus(String mobile, String bankNo, String cardId, String userName, String status) {
         return bankLogRepository.findByMobileAndBankNoAndIdCardAndUserNameAndStatus(  mobile,   bankNo,   cardId,   userName , status);
     }
 }
