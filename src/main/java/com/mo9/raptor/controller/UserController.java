@@ -212,6 +212,8 @@ public class UserController {
             userEntity.setRealName(modifyCertifyReq.getRealName());
             if(!userEntity.getCertifyInfo()){
                 userService.updateCertifyInfo(userEntity,true);
+            }else {
+                userService.save(userEntity);
             }
             return response.buildSuccessResponse(true);
         }catch (Exception e){
