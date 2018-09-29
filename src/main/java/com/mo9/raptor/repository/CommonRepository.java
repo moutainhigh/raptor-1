@@ -34,7 +34,7 @@ public interface CommonRepository extends JpaRepository<DictDataEntity,Long> {
      * @return
      */
     @Query(value = "select \n" +
-            "(select name  from t_raptor_dict_data where dict_data_no = date(CURDATE()) ) as 'maxAmount' ,\n" +
+            "(select name  from t_raptor_dict_data where dict_type_no = 'DAILY_LEND_AMOUNT' and dict_data_no = date(CURDATE()) ) as 'maxAmount' ,\n" +
             "(select count(*)  from t_raptor_loan_order where `status` in ('LENT' , 'PAYOFF')  and DATE(FROM_UNIXTIME(create_time/1000)) = CURDATE() ) as 'loanNumber' ,\n" +
             "(select SUM(lent_number)  from t_raptor_loan_order where `status` in ('LENT' , 'PAYOFF') and DATE(FROM_UNIXTIME(create_time/1000)) = CURDATE() ) as 'loanAmount' ;", nativeQuery = true)
     Map<String,Integer> findLoanInfo(String nowStr);
