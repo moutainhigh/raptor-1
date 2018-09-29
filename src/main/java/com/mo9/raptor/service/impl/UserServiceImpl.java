@@ -188,7 +188,7 @@ public class UserServiceImpl implements UserService {
             return false;
         }
         int num = Integer.valueOf(dictName);
-        String key = RedisParams.ALLOW_NEW_USER_REGISTER_KEY + DateUtils.formartDate(new Date());
+        String key = RedisParams.ALLOW_NEW_USER_REGISTER_KEY + DictEnums.REGISTER_NUM.getDictDataNo();
         Integer redisNum = (Integer) redisServiceApi.get(key, redisTemplate);
         if(redisNum == null || redisNum < num){
             return true;
@@ -198,14 +198,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void addAllowNewUserNum(){
-        String key = RedisParams.ALLOW_NEW_USER_REGISTER_KEY + DateUtils.formartDate(new Date());
+        String key = RedisParams.ALLOW_NEW_USER_REGISTER_KEY + DictEnums.REGISTER_NUM.getDictDataNo();
         Integer num = (Integer) redisServiceApi.get(key, redisTemplate);
         if(num == null){
             num = 1;
-        }else{
-            num = num + 1;
+            redisServiceApi.set(key, num, RedisParams.EXPIRE_1D, redisTemplate);
+            return;
         }
-        redisServiceApi.set(key, num, RedisParams.EXPIRE_1D, redisTemplate);
+        redisServiceApi.increment(key, 1L, redisTemplate);
     }
 
     @Override
