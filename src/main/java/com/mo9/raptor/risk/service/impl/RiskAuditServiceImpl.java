@@ -7,6 +7,7 @@ import com.mo9.raptor.engine.state.event.impl.AuditResponseEvent;
 import com.mo9.raptor.entity.UserCertifyInfoEntity;
 import com.mo9.raptor.entity.UserContactsEntity;
 import com.mo9.raptor.entity.UserEntity;
+import com.mo9.raptor.enums.SourceEnum;
 import com.mo9.raptor.risk.entity.TRiskCallLog;
 import com.mo9.raptor.risk.repo.RiskCallLogRepository;
 import com.mo9.raptor.risk.service.LinkFaceService;
@@ -80,7 +81,8 @@ public class RiskAuditServiceImpl implements RiskAuditService {
 
         AuditResponseEvent finalResult = null;
         AuditResponseEvent res;
-        if (!WHITE_LIST.equals(user.getSource())) {
+
+        if (!SourceEnum.WHITE.equals(user.getSource())) {
             res = contactsRule(userCode);
             ruleLogService.create(userCode, "ContactsRule", res.isPass(), true, res.getExplanation());
             if (!res.isPass()) {
