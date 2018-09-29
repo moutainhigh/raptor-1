@@ -69,6 +69,9 @@ public class UserEntity extends AbstractStateEntity implements IStateEntity {
     @Column(name = "user_ip")
     private String userIp;
 
+    @Column(name = "source")
+    private String source;
+
     @Column(name = "last_login_time")
     private Long lastLoginTime;
     /**
@@ -205,5 +208,13 @@ public class UserEntity extends AbstractStateEntity implements IStateEntity {
 
     public void setUserCode(String userCode) {
         this.userCode = userCode;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
     }
 }

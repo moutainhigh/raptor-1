@@ -1,9 +1,11 @@
 package com.mo9.raptor.risk.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.engine.state.event.impl.AuditResponseEvent;
 import com.mo9.raptor.entity.UserCertifyInfoEntity;
+import com.mo9.raptor.entity.UserContactsEntity;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.risk.entity.TRiskCallLog;
 import com.mo9.raptor.risk.repo.RiskCallLogRepository;
@@ -11,8 +13,9 @@ import com.mo9.raptor.risk.service.LinkFaceService;
 import com.mo9.raptor.risk.service.RiskAuditService;
 import com.mo9.raptor.service.RuleLogService;
 import com.mo9.raptor.service.UserCertifyInfoService;
+import com.mo9.raptor.service.UserContactsService;
 import com.mo9.raptor.service.UserService;
-import com.mo9.raptor.utils.oss.OSSFileUpload;
+import com.mo9.raptor.utils.MobileUtil;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -23,6 +26,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.HashSet;
+import java.util.List;
 
 /**
  * @author yngong
@@ -39,8 +44,11 @@ public class RiskAuditServiceImpl implements RiskAuditService {
     @Value("${raptor.oss.catalog.callLogReport}")
     private String secondDomain;
 
+    @Value("${risk.calllog.limit}")
+    private int callLogLimit;
+
     @Resource
-    private OSSFileUpload ossFileUpload;
+    private UserContactsService userContactsService;
 
     private static final Logger logger = LoggerFactory.getLogger(RiskAuditServiceImpl.class);
 
@@ -59,17 +67,35 @@ public class RiskAuditServiceImpl implements RiskAuditService {
     @Resource
     private RuleLogService ruleLogService;
 
+    private static final String WHITE_LIST = "WHITE";
+
+    private static final String ORIGN_CALL = "主叫";
+
     @Override
     public AuditResponseEvent audit(String userCode) {
         UserEntity user = userService.findByUserCodeAndDeleted(userCode, false);
         if (!user.getReceiveCallHistory()) {
             return null;
         }
+
         AuditResponseEvent finalResult = null;
-        AuditResponseEvent res = callLogRule(userCode);
-        ruleLogService.create(userCode, "CallLogRule", res.isPass(), true, res.getExplanation());
-        if (!res.isPass()) {
-            finalResult = res;
+        AuditResponseEvent res;
+        if (!WHITE_LIST.equals(user.getSource())) {
+            res = contactsRule(userCode);
+            ruleLogService.create(userCode, "ContactsRule", res.isPass(), true, res.getExplanation());
+            if (!res.isPass()) {
+                finalResult = res;
+            }
+        }
+
+        if (finalResult == null) {
+            res = callLogRule(userCode);
+            ruleLogService.create(userCode, "CallLogRule", res.isPass(), true, res.getExplanation());
+            if (!res.isPass()) {
+                finalResult = res;
+            }
+        } else {
+            ruleLogService.create(userCode, "CallLogRule", null, false, "");
         }
 
         if (finalResult == null) {
@@ -115,7 +141,42 @@ public class RiskAuditServiceImpl implements RiskAuditService {
     private static final int HTTP_OK = 200;
     private static final int ERROR_SCORE_CODE = -1;
 
-    public AuditResponseEvent idPicCompareRule(String userCode) {
+    AuditResponseEvent contactsRule(String userCode) {
+        int contactsLimit = 30;
+        int orignCallLimit = 10;
+        Long days180ts = 180 * 24 * 60 * 60 * 1000L;
+        long currentTimeMillis = System.currentTimeMillis();
+        UserEntity user = userService.findByUserCode(userCode);
+        UserContactsEntity userContacts = userContactsService.getByUserCode(userCode);
+        String json = userContacts.getContactsList();
+        try {
+            JSONArray jsonArray = JSON.parseArray(json);
+            HashSet<String> allMobileSet = new HashSet<>();
+            for (int i = 0; i < jsonArray.size(); i++) {
+                String mobile = MobileUtil.processMobile(jsonArray.getJSONObject(i).getString("contact_mobile"));
+                if (StringUtils.isNotBlank(mobile)) {
+                    allMobileSet.add(mobile);
+                }
+            }
+            if (allMobileSet.size() < contactsLimit) {
+                return new AuditResponseEvent(userCode, false, "通讯录数量小于30个");
+            }
+            int count = 0;
+            List<TRiskCallLog> allCallLog = riskCallLogRepository.getCallLogByMobileAfterTimestamp(user.getMobile(), (currentTimeMillis - days180ts) / 1000);
+            for (TRiskCallLog tRiskCallLog : allCallLog) {
+                if (ORIGN_CALL.equals(tRiskCallLog.getCallMethod()) && allMobileSet.contains(tRiskCallLog.getCallTel())) {
+                    count++;
+                }
+            }
+            return new AuditResponseEvent(userCode, count >= orignCallLimit, count >= orignCallLimit ? "" : "180天主动拨打通讯录号码小于10次(共" + count + "次)");
+        } catch (Exception e) {
+            logger.error(userCode + "解析联系人出错", e);
+            logger.info(userCode + json);
+            return new AuditResponseEvent(userCode, false, "解析联系人出错！");
+        }
+    }
+
+    AuditResponseEvent idPicCompareRule(String userCode) {
         UserCertifyInfoEntity userCertifyInfo = userCertifyInfoService.findByUserCode(userCode);
         double limit = 0.7;
         if (userCertifyInfo != null) {
@@ -130,7 +191,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         return new AuditResponseEvent(userCode, false, "查询不到用户" + userCode + "数据");
     }
 
-    public AuditResponseEvent livePicCompareRule(String userCode) {
+    AuditResponseEvent livePicCompareRule(String userCode) {
         UserCertifyInfoEntity userCertifyInfo = userCertifyInfoService.findByUserCode(userCode);
         double limit = 0.7;
         if (userCertifyInfo != null) {
@@ -145,7 +206,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         return new AuditResponseEvent(userCode, false, "查询不到用户" + userCode + "数据");
     }
 
-    public AuditResponseEvent antiHackRule(String userCode) {
+    AuditResponseEvent antiHackRule(String userCode) {
         UserCertifyInfoEntity userCertifyInfo = userCertifyInfoService.findByUserCode(userCode);
         double limit = 0.98;
         if (userCertifyInfo != null) {
@@ -160,19 +221,16 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         return new AuditResponseEvent(userCode, false, "查询不到用户" + userCode + "数据");
     }
 
-    @Value("${risk.calllog.limit}")
-    private int callLogLimit;
-
-    public AuditResponseEvent callLogRule(String userCode) {
+    AuditResponseEvent callLogRule(String userCode) {
         Long days180ts = 180 * 24 * 60 * 60 * 1000L;
         long currentTimeMillis = System.currentTimeMillis();
         UserEntity user = userService.findByUserCode(userCode);
-        int count = riskCallLogRepository.getCallLogCountAfterTimestamp(user.getMobile(), (currentTimeMillis - days180ts)/1000);
+        int count = riskCallLogRepository.getCallLogCountAfterTimestamp(user.getMobile(), (currentTimeMillis - days180ts) / 1000);
         int limit = callLogLimit;
         return new AuditResponseEvent(userCode, count >= limit, count >= limit ? "" : "用户最近180天通话记录少于" + limit);
     }
 
-    public AuditResponseEvent threeElementCheck(String userCode) {
+    AuditResponseEvent threeElementCheck(String userCode) {
         UserEntity user = userService.findByUserCode(userCode);
         try {
             if (user != null && StringUtils.isNotBlank(user.getMobile())) {
