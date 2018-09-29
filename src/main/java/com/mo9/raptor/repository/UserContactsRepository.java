@@ -13,6 +13,6 @@ public interface UserContactsRepository extends JpaRepository<UserContactsEntity
     @Query("select count(*) from UserContactsEntity t where t.userCode = ?1")
     long findMobileContactsCount(String userCode);
 
-    @Query("select t from UserContactsEntity t where t.userCode = ?1")
+    @Query(value = "select * from t_raptor_user_contacts t where t.user_code = ?1 order by t.id desc limit 1",nativeQuery = true)
     UserContactsEntity getByUserCode(String userCode);
 }
