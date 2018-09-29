@@ -24,7 +24,7 @@ public interface RiskCallLogRepository extends JpaRepository<TRiskCallLog, Long>
     List<TRiskCallLog> getCallLogByMobile(String mobile);
 
 
-    @Query(value = "select count* from t_risk_call_log where mobile = ?1 AND call_time>?2", nativeQuery = true)
+    @Query(value = "select * from t_risk_call_log where mobile = ?1 AND call_time>?2", nativeQuery = true)
     List<TRiskCallLog> getCallLogByMobileAfterTimestamp(String mobile, Long timestampAfter);
 
     @Query(value = "select * from t_risk_call_log where mobile = ?1 and call_tel = ?2 and call_time = ?3 and deleted = false limit 1", nativeQuery = true)
