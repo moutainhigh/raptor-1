@@ -1,10 +1,13 @@
 package com.mo9.raptor.service;
 
+import com.mo9.raptor.bean.req.PageReq;
 import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.BankAuthStatusEnum;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author zma
@@ -104,4 +107,12 @@ public interface UserService {
      */
     List<UserEntity> findNoCallLogReports() throws Exception;
 
+    /**
+     * 获取用户注册数量
+     * @param source
+     * @param subSource
+     * @param pageReq
+     * @return
+     */
+    Page<Map<String,Object>> getRegisterUserNumber(String source, String subSource, PageReq pageReq);
 }
