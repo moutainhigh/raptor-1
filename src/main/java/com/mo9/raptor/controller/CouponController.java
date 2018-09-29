@@ -13,6 +13,7 @@ import com.mo9.raptor.engine.service.CouponService;
 import com.mo9.raptor.engine.service.ILoanOrderService;
 import com.mo9.raptor.engine.service.IPayOrderService;
 import com.mo9.raptor.engine.structure.item.Item;
+import com.mo9.raptor.engine.utils.EngineStaticValue;
 import com.mo9.raptor.engine.utils.TimeUtils;
 import com.mo9.raptor.enums.PayTypeEnum;
 import com.mo9.raptor.enums.ResCodeEnum;
@@ -71,9 +72,10 @@ public class CouponController {
 
         /** 验证优惠是否超额 ：优惠金额 <= 当前应还 - （最小应还 - 已入账实际还款） */
         LoanOrderEntity loanOrder = loanOrderService.getByOrderId(req.getBundleId());
-        if (loanOrder == null) {
+        if (loanOrder == null || loanOrder.getStatus().equals(StatusEnum.LENDING.name())) {
             return response.buildFailureResponse(ResCodeEnum.LOAN_ORDER_NOT_EXISTED);
         }
+
         ILoanCalculator loanCalculator = loanCalculatorFactory.load(loanOrder);
         BigDecimal minRepay = loanCalculator.minRepay(loanOrder);
         Item realItem = loanCalculator.realItem(System.currentTimeMillis(), loanOrder, PayTypeEnum.REPAY_AS_PLAN.name(), 0);
@@ -110,7 +112,7 @@ public class CouponController {
                 coupon.setBoundOrderId(req.getBundleId());
                 Long today = TimeUtils.extractDateTime(System.currentTimeMillis());
                 coupon.setEffectiveDate(today);
-                coupon.setExpireDate(today);
+                coupon.setExpireDate(today + EngineStaticValue.DAY_MILLIS);
                 coupon.setCreator(req.getCreator());
                 coupon.setReason(req.getReason());
                 coupon.setStatus(StatusEnum.BUNDLED.name());

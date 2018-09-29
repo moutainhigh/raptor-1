@@ -225,7 +225,7 @@ public class LoanOrderController {
                     return response;
                 }
             }
-            Item shouldPayItem = billService.orderShouldPayItem(loanOrderEntity, PayTypeEnum.REPAY_AS_PLAN, 0);
+            Item shouldPayItem = billService.payoffShouldPayItem(loanOrderEntity);
 
             LoanOrderRes res = new LoanOrderRes();
             res.setOrderId(loanOrderEntity.getOrderId());

@@ -26,7 +26,7 @@ public class CouponEntity extends AbstractStateEntity {
     /**
      * 绑定订单号
      */
-    @Column(name = "bundle_order_id")
+    @Column(name = "bound_order_id")
     private String boundOrderId;
 
     /**

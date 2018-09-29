@@ -360,7 +360,7 @@ public class LoanMo9mqListener implements IMqMsgListener{
         List<RepayDetailRes> repayDetail = payOrderDetailService.getRepayDetail(payOrderEntity.getOrderId());
         repayInfo.setRepayDetail(repayDetail);
 
-        Item realItem = billService.loanOrderRealItem(loanOrderEntity, PayTypeEnum.REPAY_AS_PLAN, 0);
+        Item realItem = billService.payoffRealItem(loanOrderEntity);
         List<RepayDetailRes> shouldPay = new ArrayList<RepayDetailRes>();
 
         for (Map.Entry<FieldTypeEnum, Unit> entry : realItem.entrySet()) {

@@ -69,6 +69,51 @@ public abstract class AbstractLoanCalculator implements ILoanCalculator {
         return originalItem;
     }
 
+    @Override
+    public Item entryItem (Long date, String payType, BigDecimal paid, Item entryItem, Item realItem) {
+        entryItem.setRepayDate(realItem.getRepayDate());
+        entryItem.setItemType(realItem.getItemType());
+        for (FieldTypeEnum fieldType: FieldTypeEnum.values()) {
+            if (paid.compareTo(BigDecimal.ZERO) <= 0) {
+                break;
+            }
+            if (fieldType.getSequence() < 0 || fieldType.getSequence() >= FieldTypeEnum.ALL.getSequence()) {
+                continue;
+            }
+
+            Unit realUnit = realItem.get(fieldType);
+            if (realUnit == null || realUnit.size() == 0) {
+                continue;
+            }
+            Field realField = realUnit.get(0);
+            if (BigDecimal.ZERO.compareTo(realField.getNumber()) >= 0) {
+                continue;
+            }
+            Field cloneField = realField.clone();
+            Unit entryUnit = entryItem.get(fieldType);
+            if (entryUnit == null) {
+                entryUnit = new Unit(fieldType);
+                entryItem.put(fieldType, entryUnit);
+            }
+            entryUnit.add(cloneField);
+            BigDecimal number = realField.getNumber();
+            if (number.compareTo(paid) >= 0) {
+                // 还款金额分配结束
+                cloneField.setNumber(paid);
+                entryItem.put(fieldType, entryUnit);
+                realField.setNumber(realField.getNumber().subtract(paid));
+                paid = BigDecimal.ZERO;
+            } else {
+                // 继续分配
+                cloneField.setNumber(number);
+                entryItem.put(fieldType, entryUnit);
+                realField.setNumber(BigDecimal.ZERO);
+                paid = paid.subtract(number);
+            }
+        }
+        return entryItem;
+    }
+
     /**
      * 实时账单
      */
@@ -129,151 +174,6 @@ public abstract class AbstractLoanCalculator implements ILoanCalculator {
             interestField.setNumber(interestField.getNumber().multiply(new BigDecimal(multiplyPower)));
         }
         return item;
-    }
-
-    @Override
-    public Item entryItem (Long date, String payType, BigDecimal paid, Item entryItem, Item realItem) {
-        entryItem.setRepayDate(realItem.getRepayDate());
-        entryItem.setItemType(realItem.getItemType());
-        for (FieldTypeEnum fieldType: FieldTypeEnum.values()) {
-            if (paid.compareTo(BigDecimal.ZERO) <= 0) {
-                break;
-            }
-            if (fieldType.getSequence() < 0 || fieldType.getSequence() >= FieldTypeEnum.ALL.getSequence()) {
-                continue;
-            }
-
-            Unit realUnit = realItem.get(fieldType);
-            if (realUnit == null || realUnit.size() == 0) {
-                continue;
-            }
-            Field realField = realUnit.get(0);
-            if (BigDecimal.ZERO.compareTo(realField.getNumber()) >= 0) {
-                continue;
-            }
-            Field cloneField = realField.clone();
-            Unit entryUnit = entryItem.get(fieldType);
-            if (entryUnit == null) {
-                entryUnit = new Unit(fieldType);
-                entryItem.put(fieldType, entryUnit);
-            }
-            entryUnit.add(cloneField);
-            BigDecimal number = realField.getNumber();
-            if (number.compareTo(paid) >= 0) {
-                // 还款金额分配结束
-                cloneField.setNumber(paid);
-                entryItem.put(fieldType, entryUnit);
-                paid = BigDecimal.ZERO;
-            } else {
-                // 继续分配
-                cloneField.setNumber(number);
-                entryItem.put(fieldType, entryUnit);
-                paid = paid.subtract(number);
-            }
-        }
-
-        // TODO: 可简化
-//        if (payType.equals(PayTypeEnum.REPAY_POSTPONE.name())) {
-//            // 先把罚息处理掉
-//            Unit penaltyUnit = realItem.get(FieldTypeEnum.PENALTY);
-//            if (penaltyUnit != null && penaltyUnit.sum().compareTo(BigDecimal.ZERO) > 0) {
-//                Field loanOrderPenalty = penaltyUnit.get(0);
-//                Unit penaltyEntryUnit = new Unit(FieldTypeEnum.PENALTY);
-//                Field field = loanOrderPenalty.clone();
-//                penaltyEntryUnit.add(field);
-//                entryItem.put(FieldTypeEnum.PENALTY, penaltyEntryUnit);
-//                if (loanOrderPenalty.getNumber().compareTo(paid) >= 0) {
-//                    // 只能还罚息, 直接返回
-//                    field.setNumber(paid);
-//                    entryItem.put(FieldTypeEnum.PENALTY, penaltyEntryUnit);
-//                    loanOrderPenalty.setNumber(loanOrderPenalty.getNumber().subtract(paid));
-//                    return entryItem;
-//                } else {
-//                    // 够还
-//                    field.setNumber(loanOrderPenalty.getNumber());
-//                    loanOrderPenalty.setNumber(BigDecimal.ZERO);
-//                    paid = paid.subtract(loanOrderPenalty.getNumber());
-//                }
-//            }
-//
-//            BigDecimal unitInterest = realItem.getFieldNumber(FieldTypeEnum.INTEREST);
-//
-//            if (unitInterest.compareTo(BigDecimal.ZERO) > 0) {
-//                Field interestField = new Field();
-//                if (unitInterest.compareTo(paid) > 0) {
-//                    // 比已还的大, 直接return
-//                    interestField.setNumber(paid);
-//                    Unit entryInterestUnit = entryItem.get(FieldTypeEnum.INTEREST);
-//                    entryInterestUnit.add(interestField);
-//                    entryItem.put(FieldTypeEnum.INTEREST, entryInterestUnit);
-//                    return entryItem;
-//                } else {
-//                    interestField.setNumber(unitInterest);
-//                    Unit entryInterestUnit = entryItem.get(FieldTypeEnum.INTEREST);
-//                    entryInterestUnit.add(interestField);
-//                    entryItem.put(FieldTypeEnum.INTEREST, entryInterestUnit);
-//                    paid = paid.subtract(unitInterest);
-//                }
-//            }
-//
-//            BigDecimal unitCharge = realItem.getFieldNumber(FieldTypeEnum.ALL_CHARGE);
-//
-//            if (unitCharge.compareTo(BigDecimal.ZERO) > 0) {
-//                Field chargeField = new Field();
-//                if (unitCharge.compareTo(paid) > 0) {
-//                    // 比已还的大, 直接return
-//                    chargeField.setNumber(paid);
-//                    Unit entryChargeUnit = entryItem.get(FieldTypeEnum.ALL_CHARGE);
-//                    entryChargeUnit.add(chargeField);
-//                    entryItem.put(FieldTypeEnum.ALL_CHARGE, entryChargeUnit);
-//                    return entryItem;
-//                } else {
-//                    chargeField.setNumber(unitCharge);
-//                    Unit entryInterestUnit = entryItem.get(FieldTypeEnum.ALL_CHARGE);
-//                    entryInterestUnit.add(chargeField);
-//                    entryItem.put(FieldTypeEnum.ALL_CHARGE, entryInterestUnit);
-//                    paid = paid.subtract(unitCharge);
-//                }
-//            }
-//        } else {
-//            for (FieldTypeEnum fieldType: FieldTypeEnum.values()) {
-//                if (paid.compareTo(BigDecimal.ZERO) <= 0) {
-//                    break;
-//                }
-//                if (fieldType.getSequence() < 0 || fieldType.getSequence() >= FieldTypeEnum.ALL.getSequence()) {
-//                    continue;
-//                }
-//
-//                Unit realUnit = realItem.get(fieldType);
-//                if (realUnit == null || realUnit.size() == 0) {
-//                    continue;
-//                }
-//                Field realField = realUnit.get(0);
-//                if (BigDecimal.ZERO.compareTo(realField.getNumber()) >= 0) {
-//                    continue;
-//                }
-//                Field cloneField = realField.clone();
-//                Unit entryUnit = entryItem.get(fieldType);
-//                if (entryUnit == null) {
-//                    entryUnit = new Unit(fieldType);
-//                    entryItem.put(fieldType, entryUnit);
-//                }
-//                entryUnit.add(cloneField);
-//                BigDecimal number = realField.getNumber();
-//                if (number.compareTo(paid) >= 0) {
-//                    // 还款金额分配结束
-//                    cloneField.setNumber(paid);
-//                    entryItem.put(fieldType, entryUnit);
-//                    paid = BigDecimal.ZERO;
-//                } else {
-//                    // 继续分配
-//                    cloneField.setNumber(number);
-//                    entryItem.put(fieldType, entryUnit);
-//                    paid = paid.subtract(number);
-//                }
-//            }
-//        }
-        return entryItem;
     }
 
     /**

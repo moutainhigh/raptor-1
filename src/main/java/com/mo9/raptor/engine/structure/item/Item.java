@@ -1,7 +1,9 @@
 package com.mo9.raptor.engine.structure.item;
 
 import com.mo9.raptor.engine.structure.Unit;
+import com.mo9.raptor.engine.structure.field.Field;
 import com.mo9.raptor.engine.structure.field.FieldTypeEnum;
+import com.mo9.raptor.engine.structure.field.SourceTypeEnum;
 import com.mo9.raptor.enums.PayTypeEnum;
 
 import java.math.BigDecimal;
@@ -72,6 +74,18 @@ public class Item extends HashMap<FieldTypeEnum, Unit> {
         BigDecimal sum = BigDecimal.ZERO;
         for (Unit unit: this.values()) {
             sum = sum.add(unit.sum());
+        }
+        return sum;
+    }
+
+    public BigDecimal sum (SourceTypeEnum sourceType) {
+        BigDecimal sum = BigDecimal.ZERO;
+        for (Unit unit: this.values()) {
+            for (Field field : unit) {
+                if (field.getSourceType().equals(sourceType)) {
+                    sum = sum.add(field.getNumber());
+                }
+            }
         }
         return sum;
     }

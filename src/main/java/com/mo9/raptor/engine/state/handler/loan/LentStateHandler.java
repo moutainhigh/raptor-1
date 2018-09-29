@@ -34,6 +34,9 @@ public class LentStateHandler implements IStateHandler<LoanOrderEntity> {
     private IEventLauncher payEventLauncher;
 
     @Autowired
+    private IEventLauncher couponEventLauncher;
+
+    @Autowired
     private IPayOrderService payOrderService;
 
     @Autowired
@@ -49,13 +52,13 @@ public class LentStateHandler implements IStateHandler<LoanOrderEntity> {
             String payType = loanEntryEvent.getPayType();
             String payOrderId = loanEntryEvent.getPayOrderId();
             PayOrderEntity payOrderEntity = payOrderService.getByOrderId(payOrderId);
-            Item realItem = billService.loanOrderRealItem(loanOrder, PayTypeEnum.valueOf(payType), payOrderEntity.getPostponeDays());
+            Item realItem = billService.realItem(loanOrder, PayTypeEnum.valueOf(payType), payOrderEntity.getPostponeDays());
             loanOrder = billService.itemEntry(loanOrder, PayTypeEnum.valueOf(payType), payOrderEntity.getPostponeDays(), realItem, entryItem);
 
             // 还款合法, 则向还款订单发送入账反馈
             actionExecutor.append(new EntryResponseAction(
                     loanEntryEvent.getPayOrderId(), loanOrder.getOrderId(), realItem, entryItem,
-                    loanOrder.getOwnerId(), payOrderEntity.getPayCurrency(), payEventLauncher, payOrderDetailService));
+                    loanOrder.getOwnerId(), payOrderEntity.getPayCurrency(), payEventLauncher, payOrderDetailService, couponEventLauncher));
         } else {
             throw new InvalidEventException("贷款订单状态与事件类型不匹配，状态：" + loanOrder.getStatus() + "，事件：" + event);
         }

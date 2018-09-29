@@ -11,7 +11,7 @@ import java.util.List;
  */
 public interface CouponRespository extends JpaRepository<CouponEntity,Long> {
 
-    @Query(value = "select * from t_raptor_coupon where bound_order_id = ?1 and status = 'BUNDLED' and effective_date < ?2 AND expire_date > ?2 and deleted = false ", nativeQuery = true)
+    @Query(value = "select * from t_raptor_coupon where bound_order_id = ?1 and status = 'BUNDLED' and effective_date <= ?2 AND expire_date > ?2 and deleted = false ", nativeQuery = true)
     CouponEntity getBundledCoupon(String loanOrderId, Long now);
 
 

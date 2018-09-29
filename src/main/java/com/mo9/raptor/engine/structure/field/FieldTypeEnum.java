@@ -6,10 +6,10 @@ package com.mo9.raptor.engine.structure.field;
 public enum FieldTypeEnum {
 
     PENALTY(0, "罚息"),
-    ALL_CHARGE(1, "延期服务费"),
-    INTEREST(2, "利息"),
-    PRINCIPAL(3, "本金"),
-    CUT_CHARGE(4, "砍头息"),
+    INTEREST(1, "利息"),
+    CUT_CHARGE(2, "砍头息"),
+    ALL_CHARGE(3, "延期服务费"),
+    PRINCIPAL(4, "本金"),
     ALL(5, "所有"),
 
     /** 以下为服务费的细分枚举类型 */

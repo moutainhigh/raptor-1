@@ -36,13 +36,18 @@ public class BillServiceImpl implements BillService {
 
 
     @Override
-    public Item loanOrderRealItem(LoanOrderEntity loanOrder, PayTypeEnum payType, Integer postponeDays) {
+    public Item realItem(LoanOrderEntity loanOrder, PayTypeEnum payType, Integer postponeDays) {
         return loanCalculator.realItem(System.currentTimeMillis(), loanOrder, payType.name(), postponeDays);
     }
 
     @Override
-    public Item orderShouldPayItem(LoanOrderEntity loanOrder, PayTypeEnum payType, Integer postponeDays) {
-        Item realItem = this.loanOrderRealItem(loanOrder, payType, postponeDays);
+    public Item payoffRealItem(LoanOrderEntity loanOrder) {
+        return loanCalculator.realItem(System.currentTimeMillis(), loanOrder, PayTypeEnum.REPAY_AS_PLAN.name(), 0);
+    }
+
+    @Override
+    public Item shouldPayItem(LoanOrderEntity loanOrder, PayTypeEnum payType, Integer postponeDays) {
+        Item realItem = this.realItem(loanOrder, payType, postponeDays);
         CouponEntity couponEntity = couponService.getEffectiveBundledCoupon(loanOrder.getOrderId());
         BigDecimal applyAmount = BigDecimal.ZERO;
         if (couponEntity != null && couponEntity.getApplyAmount() != null) {
@@ -54,12 +59,16 @@ public class BillServiceImpl implements BillService {
     }
 
     @Override
+    public Item payoffShouldPayItem(LoanOrderEntity loanOrder) {
+        return shouldPayItem(loanOrder, PayTypeEnum.REPAY_AS_PLAN, 0);
+    }
+
+    @Override
     public Item entryItem(PayTypeEnum payType, PayOrderEntity payOrder, LoanOrderEntity loanOrder) throws LoanEntryException {
         // 入账的Item
         Item entryItem = new Item();
-        String ownerId = loanOrder.getOwnerId();
 
-        Item orderRealItem = this.loanOrderRealItem(loanOrder, payType, payOrder.getPostponeDays());
+        Item orderRealItem = this.realItem(loanOrder, payType, payOrder.getPostponeDays());
         BigDecimal shouldPay = orderRealItem.sum();
 
         CouponEntity couponEntity = couponService.getEffectiveBundledCoupon(loanOrder.getOrderId());
@@ -91,8 +100,8 @@ public class BillServiceImpl implements BillService {
                 }
             }
         }
-        if (applyAmount.add(payOrder.getPayNumber()).compareTo(shouldPay) != 0) {
-            throw new LoanEntryException("订单" + payType.getExplanation() + payOrder.getPayNumber() + ", 优惠" + couponEntity.getApplyAmount() + ", 与应还: " + shouldPay + "不匹配!");
+        if (entryItem.sum().compareTo(shouldPay) != 0) {
+            throw new LoanEntryException("订单" + payType.getExplanation() + payOrder.getPayNumber() + ", 优惠" + applyAmount + ", 与应还: " + shouldPay + "不匹配!");
         }
         return entryItem;
     }

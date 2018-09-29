@@ -44,13 +44,10 @@ public class EntryExecuteAction implements IAction {
         LoanOrderEntity loanOrderEntity = loanOrderService.getByOrderId(loanOrderId);
         String payType = payOrderEntity.getType();
         Item entryItem = null;
+        LoanEntryEvent event = null;
         try {
             entryItem = billService.entryItem(PayTypeEnum.valueOf(payType), payOrderEntity, loanOrderEntity);
-        } catch (LoanEntryException e) {
-            logger.error("计算entryItem异常 ", e);
-        }
-        LoanEntryEvent event = new LoanEntryEvent(loanOrderId, payOrderId, payType, entryItem);
-        try {
+            event = new LoanEntryEvent(loanOrderId, payOrderId, payType, entryItem);
             this.loanEventLauncher.launch(event);
         } catch (Exception e) {
             logger.error("用户入账事件处理异常，事件：[{}]", event, e);

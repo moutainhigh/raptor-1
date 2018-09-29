@@ -120,7 +120,7 @@ public class PayOrderController {
                 return response.buildFailureResponse(ResCodeEnum.ILLEGAL_REPAYMENT);
             }
 
-            Item shouldPayItem = billService.orderShouldPayItem(loanOrder, PayTypeEnum.REPAY_AS_PLAN, 0);
+            Item shouldPayItem = billService.payoffShouldPayItem(loanOrder);
 
             JSONObject data = new JSONObject();
 
@@ -186,7 +186,7 @@ public class PayOrderController {
                 return response.buildFailureResponse(ResCodeEnum.ILLEGAL_REPAYMENT);
             }
 
-            Item shouldPayItem = billService.orderShouldPayItem(loanOrder, PayTypeEnum.REPAY_POSTPONE, period);
+            Item shouldPayItem = billService.shouldPayItem(loanOrder, PayTypeEnum.REPAY_POSTPONE, period);
             BigDecimal applyAmount = shouldPayItem.sum();
 
             JSONObject data = new JSONObject();

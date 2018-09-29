@@ -17,18 +17,32 @@ import java.util.List;
 public interface BillService {
 
     /**
-     * 订单的实际应还
+     * 延期订单的应还
      * @param loanOrder
      * @return
      */
-    Item loanOrderRealItem (LoanOrderEntity loanOrder, PayTypeEnum payType, Integer postponeDays);
+    Item realItem(LoanOrderEntity loanOrder, PayTypeEnum payType, Integer postponeDays);
 
     /**
-     * 订单的实际应还 - 减免
+     * 还清订单的应还
      * @param loanOrder
      * @return
      */
-    Item orderShouldPayItem (LoanOrderEntity loanOrder, PayTypeEnum payType, Integer postponeDays);
+    Item payoffRealItem(LoanOrderEntity loanOrder);
+
+    /**
+     * 延期订单的实际应还 - 减免
+     * @param loanOrder
+     * @return
+     */
+    Item shouldPayItem(LoanOrderEntity loanOrder, PayTypeEnum payType, Integer postponeDays);
+
+    /**
+     * 还清订单的实际应还 - 减免
+     * @param loanOrder
+     * @return
+     */
+    Item payoffShouldPayItem(LoanOrderEntity loanOrder);
 
     /**
      * 获得入账Item
