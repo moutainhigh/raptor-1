@@ -47,8 +47,8 @@ public class UserControllerTest {
 
     @Before
     public void before() {
-        headers.put("Account-Code", "AA20A480E526D644D13D9AC559392926");
-        headers.put("Access-Token", "42f26facf5df4424b33f10fc34f1f290");
+        headers.put("Account-Code", "123");
+        headers.put("Access-Token", "123");
         headers.put("Client-Id", "503");
     }
 
@@ -59,7 +59,7 @@ public class UserControllerTest {
     public void sendCode() {
 
         try {
-            String mobile = "13213173513";
+            String mobile = "13213173514";
             JSONObject json = new JSONObject();
             json.put("mobile", mobile);
             String url = "auth/send_login_code";
@@ -81,7 +81,7 @@ public class UserControllerTest {
             String mobile = "13213173513";
             JSONObject json = new JSONObject();
             json.put("mobile", mobile);
-            json.put("code", "019350");
+            json.put("code", "154714");
             String url = "user/login_by_code";
             HttpResult resJson = httpClientApi.doPostJson(localHostUrl + url, json.toJSONString());
             System.out.println(resJson.getCode());
@@ -183,7 +183,7 @@ public class UserControllerTest {
         json.put("livenessSuccessCount", 1);  //活体扫描成功计数【新】
         json.put("livenessFailCount", 1);//活体扫描失败计数【新】
 
-        HttpResult httpResult = httpClientApi.doPostJson(cloneHostUrl + "/user/modify_certify_info", json.toJSONString(), headers);
+        HttpResult httpResult = httpClientApi.doPostJson(localHostUrl + "/user/modify_certify_info", json.toJSONString(), headers);
         System.out.println(httpResult.getCode());
         System.out.println(httpResult.getData());
     }
