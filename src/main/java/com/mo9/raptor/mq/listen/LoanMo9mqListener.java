@@ -303,7 +303,7 @@ public class LoanMo9mqListener implements IMqMsgListener{
      * 通知贷后放款
      * @param orderId
      */
-    private void notifyMisLend(String orderId) {
+    public void notifyMisLend(String orderId) {
         LendOrderEntity lendOrderEntity = lendOrderService.getByOrderId(orderId);
 		LoanOrderEntity loanOrderEntity = loanOrderService.getByOrderId(orderId);
 		LendInfoMqRes lendInfo = new LendInfoMqRes();
@@ -337,8 +337,9 @@ public class LoanMo9mqListener implements IMqMsgListener{
         userInfo.setLastLoginTime(userEntity.getLastLoginTime());
         userInfo.setOcrIdCardAddress(userCertifyInfoEntity.getOcrIdCardAddress());
         userInfo.setCallHistory(userEntity.getCallHistory());
-        UserContactsEntity userContactsEntity = userContactsService.getByUserCode(ownerId);
-        userInfo.setContactsList(userContactsEntity.getContactsList());
+        // 不传通讯率
+//        UserContactsEntity userContactsEntity = userContactsService.getByUserCode(ownerId);
+//        userInfo.setContactsList(userContactsEntity.getContactsList());
         userInfo.setGender(userCertifyInfoEntity.getOcrGender());
         userInfo.setDeleted(userEntity.getDeleted());
 
@@ -354,7 +355,7 @@ public class LoanMo9mqListener implements IMqMsgListener{
      * 通知贷后还款
 	 * @param payOrderLog  还款log
 	 */
-    private void notifyMisRepay(PayOrderLogEntity payOrderLog, Integer postponeCount, LoanOrderEntity loanOrderEntity) {
+    public void notifyMisRepay(PayOrderLogEntity payOrderLog, Integer postponeCount, LoanOrderEntity loanOrderEntity) {
         RepayInfoMqRes repayInfo = new RepayInfoMqRes();
         BeanUtils.copyProperties(payOrderLog, repayInfo);
 

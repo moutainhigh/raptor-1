@@ -1,6 +1,7 @@
 package com.mo9.raptor.task;
 
 import com.mo9.raptor.controller.RiskController;
+import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.risk.entity.TRiskTelInfo;
 import com.mo9.raptor.risk.service.RiskTelInfoService;
 import com.mo9.raptor.service.CommonService;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author wtwei .
@@ -56,30 +58,57 @@ public class CallLogReportTask {
             Calendar calendar = Calendar.getInstance();
             calendar.add(Calendar.DATE, -30);
             
-            List<TRiskTelInfo> noReportRecords = riskTelInfoService.findNoReportTelInfo(calendar.getTime());
+            Set<TRiskTelInfo> noReportRecords = riskTelInfoService.findNoReportTelInfo(calendar.getTime());
             
-            logger.info("-----运营报告补偿任务--> 共发现30天内有{}条数据没有成功获取到运营商报告。", noReportRecords.size());
+            logger.info("-----运营商报告补偿任务--> 共发现30天内有{}条数据没有成功获取到运营商报告。", noReportRecords.size());
 
             String sid;
+            String uid;
+            String mobile;
+            Long nowTime = Calendar.getInstance().getTimeInMillis();
             for (TRiskTelInfo noReportRecord : noReportRecords) {
+                UserEntity userEntity = userService.findByUserCode(noReportRecord.getUid());
+                
                 sid = noReportRecord.getSid();
+                uid = noReportRecord.getUid();
+                mobile = noReportRecord.getMobile();
+                if (userEntity.getReceiveCallHistory()){
+                    noReportRecord.setReportReceived(true);
+                    riskTelInfoService.update(noReportRecord);
+
+                    logger.info("-----运营商报告补偿任务-->用户表已更新报告状态，跳过。mobile: {}, userCode: {}", mobile, uid);
+                    continue;
+                }
+                
+                //入库不到一小时的跳过
+                if (nowTime - noReportRecord.getUpdatedAt().getTime() < 60 * 60 * 1000){
+                    logger.info("-----运营商报告补偿任务-->入库时间小于一小时，跳过。mobile: {}, userCode: {}", mobile, uid);
+                    continue;
+                }
 
                 String report = riskController.getCallLogReport(sid, "report");
+                
+                if (report == null){
+                    logger.info("-----运营商报告补偿任务-->运营商报告未生成，tel: {}, uid: {}, sid: {}", mobile, uid, sid);
+                    continue;
+                }
 
-                String fileName = ossProperties.getCatalogCallLog() + "/" + sockpuppet + "-" + noReportRecord.getMobile() + "-report.json";
+                String fileName = ossProperties.getCatalogCallLog() + "/" + sockpuppet + "-" + mobile + "-report.json";
                 
                 riskController.uploadFile2Oss(report, fileName);
 
                 //通知用户状态，报告已生成
                 try {
-                    userService.updateReceiveCallHistory(noReportRecord.getUid(), true);
-
-                    TRiskTelInfo riskTelInfo =  riskTelInfoService.findByMobile(noReportRecord.getMobile());
-                    riskTelInfo.setReportReceived(true);
-                    riskTelInfoService.update(riskTelInfo);
-                    logger.info("定时任务更新用户运营商报告获取状态成功，tel: " + noReportRecord.getMobile() + ", uid: " + noReportRecord.getUid() + ", sid: " + noReportRecord.getSid());
+                    
+                    if (noReportRecord != null){
+                        userService.updateReceiveCallHistory(noReportRecord.getUid(), true);
+                        noReportRecord.setReportReceived(true);
+                        riskTelInfoService.update(noReportRecord);
+                        logger.info("-----运营商报告补偿任务-->定时任务更新用户运营商报告获取状态成功，tel: " + mobile + ", uid: " + uid + ", sid: " + sid);
+                    }
+                    
                 } catch (Exception e) {
-                    logger.error("定时任务更新用户运营商报告获取状态失敗，tel: " + noReportRecord.getMobile() + ", uid: " + noReportRecord.getUid()+ ", sid: " + noReportRecord.getSid(), e);
+                    logger.error("-----运营商报告补偿任务-->定时任务更新用户运营商报告获取状态失敗，tel: " + mobile + ", uid: " + uid+ ", sid: " + sid, e);
                 }
                 
             }

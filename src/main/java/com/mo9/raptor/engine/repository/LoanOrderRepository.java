@@ -1,6 +1,7 @@
 package com.mo9.raptor.engine.repository;
 
 import com.mo9.raptor.engine.entity.LoanOrderEntity;
+import com.mo9.raptor.engine.enums.StatusEnum;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -45,4 +46,12 @@ public interface LoanOrderRepository extends JpaRepository<LoanOrderEntity,Long>
      */
     @Query(value = "select * from t_raptor_loan_order where repayment_date > ?1 AND repayment_date < ?2 and status = 'LENT' and deleted = false", nativeQuery = true)
     List<LoanOrderEntity> listByRepaymentDate(Long begin, Long end);
+
+    /**
+     * 根据状态查询订单
+     * @param statusEnums
+     * @return
+     */
+    @Query(value = "select * from t_raptor_loan_order where status in (?1) and deleted = false", nativeQuery = true)
+    List<LoanOrderEntity> listByStatus(List<String> statusEnums);
 }

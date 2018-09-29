@@ -208,11 +208,13 @@ public class GuTest {
 
         Long date = TimeUtils.extractDateTime(System.currentTimeMillis());
 
-        long t1 = System.currentTimeMillis();
-        long t2 = new Date().getTime();
-        long t3 = Calendar.getInstance().getTimeInMillis();
-        SimpleDateFormat sdf= new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Long time = TimeUtils.extractDateTime(System.currentTimeMillis())/1000 ;
+        logger.info("系统定时器开启");
+        Map<String , Integer> commonUserInfo = commonService.findUserInfo("ssss") ;
+        Map<String , Integer> loanInfo = commonService.findLoanInfo("ssss") ;
+        Map<String , Integer> repayInfo = commonService.findRepayInfo(time);
 
+        System.out.println("22222");
         /*Calendar calendar = Calendar.getInstance();
         System.out.println("顾晓桐" + calendar.getTime());
         calendar.set(Calendar.HOUR_OF_DAY, 0);
@@ -223,12 +225,12 @@ public class GuTest {
         System.out.println("顾晓桐" + sdf.format(calendar.getTime()));
         System*/
 
-        System.out.println("顾晓桐" + date);
+        /*System.out.println("顾晓桐" + date);
         System.out.println("顾晓桐" + System.currentTimeMillis());
         System.out.println("顾晓桐" + t1);
         System.out.println("顾晓桐" + t2);
         System.out.println("顾晓桐" + t3);
-        System.out.println(sdf.format(new Date()));
+        System.out.println(sdf.format(new Date()));*/
     }
 
 

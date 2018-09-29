@@ -1,6 +1,7 @@
 package com.mo9.raptor.task;
 
 import com.mo9.raptor.bean.vo.CommonUserInfo;
+import com.mo9.raptor.engine.utils.TimeUtils;
 import com.mo9.raptor.service.CommonService;
 import com.mo9.raptor.service.DingTalkService;
 import com.mo9.raptor.utils.CommonValues;
@@ -40,12 +41,11 @@ public class CommonTask {
     public void commonTask(){
 
         if(CommonValues.TRUE.equals(taskOpen)){
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-            String nowStr = sdf.format(new Date()) ;
+            Long time = TimeUtils.extractDateTime(System.currentTimeMillis())/1000 ;
             logger.info("系统定时器开启");
             Map<String , Integer> commonUserInfo = commonService.findUserInfo("ssss") ;
             Map<String , Integer> loanInfo = commonService.findLoanInfo("ssss") ;
-            Map<String , Integer> repayInfo = commonService.findRepayInfo("ssss");
+            Map<String , Integer> repayInfo = commonService.findRepayInfo(time);
 
             dingTalkService.sendText(" 用户总数 :  " + commonUserInfo.get("userNumber") + "\n 今日登陆用户数 : " + commonUserInfo.get("userLoginNumber")
                     + "\n身份证认证总数 : " + commonUserInfo.get("userCardNumber") + "\n通话记录认证总数 : " + commonUserInfo.get("userPhoneNumber")

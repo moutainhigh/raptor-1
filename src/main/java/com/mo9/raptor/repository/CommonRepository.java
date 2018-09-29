@@ -34,7 +34,7 @@ public interface CommonRepository extends JpaRepository<DictDataEntity,Long> {
      * @return
      */
     @Query(value = "select \n" +
-            "(select name  from t_raptor_dict_data where dict_data_no = date(CURDATE()) ) as 'maxAmount' ,\n" +
+            "(select name  from t_raptor_dict_data where dict_type_no = 'DAILY_LEND_AMOUNT' and dict_data_no = date(CURDATE()) ) as 'maxAmount' ,\n" +
             "(select count(*)  from t_raptor_loan_order where `status` in ('LENT' , 'PAYOFF')  and DATE(FROM_UNIXTIME(create_time/1000)) = CURDATE() ) as 'loanNumber' ,\n" +
             "(select SUM(lent_number)  from t_raptor_loan_order where `status` in ('LENT' , 'PAYOFF') and DATE(FROM_UNIXTIME(create_time/1000)) = CURDATE() ) as 'loanAmount' ;", nativeQuery = true)
     Map<String,Integer> findLoanInfo(String nowStr);
@@ -49,6 +49,6 @@ public interface CommonRepository extends JpaRepository<DictDataEntity,Long> {
             "(select SUM(apply_number) from t_raptor_pay_order where `status` = 'ENTRY_DONE' and type in ( 'REPAY_AS_PLAN' , 'REPAY_IN_ADVANCE' , 'REPAY_OVERDUE' ) and DATE(FROM_UNIXTIME(create_time/1000)) = CURDATE() ) as 'repayAmount',\n" +
             "(select COUNT(*)  from t_raptor_pay_order where `status` = 'ENTRY_DONE' and type = 'REPAY_POSTPONE' and DATE(FROM_UNIXTIME(create_time/1000)) = CURDATE() ) as 'postponeNumber',\n" +
             "(select  SUM(apply_number) from t_raptor_pay_order where `status` = 'ENTRY_DONE' and type = 'REPAY_POSTPONE' and DATE(FROM_UNIXTIME(create_time/1000)) = CURDATE() ) as 'postponeAmount',\n" +
-            "(select count(*)  from t_raptor_loan_order where `status` = 'LENT' and DATE(FROM_UNIXTIME(repayment_date/1000))  > date(date_add(now(), interval 6 day)) ) as 'overdueNumber'", nativeQuery = true)
-    Map<String,Integer> findRepayInfo(String nowStr);
+            "(select count(*)  from t_raptor_loan_order where `status` = 'LENT' and DATE(FROM_UNIXTIME(repayment_date/1000)) < CURDATE()  ) as 'overdueNumber'", nativeQuery = true)
+    Map<String,Integer> findRepayInfo(Long nowStr);
 }
