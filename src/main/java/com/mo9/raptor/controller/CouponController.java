@@ -8,6 +8,7 @@ import com.mo9.raptor.engine.calculator.LoanCalculatorFactory;
 import com.mo9.raptor.engine.entity.CouponEntity;
 import com.mo9.raptor.engine.entity.LoanOrderEntity;
 import com.mo9.raptor.engine.entity.PayOrderEntity;
+import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.engine.service.CouponService;
 import com.mo9.raptor.engine.service.ILoanOrderService;
 import com.mo9.raptor.engine.service.IPayOrderService;
@@ -112,6 +113,7 @@ public class CouponController {
                 coupon.setExpireDate(today);
                 coupon.setCreator(req.getCreator());
                 coupon.setReason(req.getReason());
+                coupon.setStatus(StatusEnum.BUNDLED.name());
                 couponService.save(coupon);
 
                 response.setCode(0);
