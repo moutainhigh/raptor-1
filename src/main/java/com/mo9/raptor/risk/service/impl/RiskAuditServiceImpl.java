@@ -177,12 +177,21 @@ public class RiskAuditServiceImpl implements RiskAuditService {
                 return new AuditResponseEvent(userCode, false, "通讯录数量小于30个");
             }
             int count = 0;
-            List<TRiskCallLog> allCallLog = riskCallLogRepository.getCallLogByMobileAfterTimestamp(user.getMobile(), (currentTimeMillis - days180ts) / 1000);
+            HashSet<String> inListMobiles = new HashSet<>();
+            //MYCAI限制1000条
+            List<TRiskCallLog> allCallLog = riskCallLogRepository.getCallLogByMobileAfterTimestamp(user.getMobile(), (currentTimeMillis - days180ts) / 1000, ORIGN_CALL);
             for (TRiskCallLog tRiskCallLog : allCallLog) {
                 if (ORIGN_CALL.equals(tRiskCallLog.getCallMethod()) && allMobileSet.contains(tRiskCallLog.getCallTel())) {
                     count++;
+                    inListMobiles.add(tRiskCallLog.getCallTel());
                 }
             }
+            StringBuilder stringBuilder = new StringBuilder(userCode + "," + user.getMobile() + "在主叫列表里[");
+            for (String inListMobile : inListMobiles) {
+                stringBuilder.append(inListMobile + ",");
+            }
+            stringBuilder.append("]");
+            logger.info(stringBuilder.toString());
             return new AuditResponseEvent(userCode, count >= orignCallLimit, count >= orignCallLimit ? "" : "180天主动拨打通讯录号码小于10次(共" + count + "次)");
         } catch (Exception e) {
             logger.error(userCode + "解析联系人出错", e);
