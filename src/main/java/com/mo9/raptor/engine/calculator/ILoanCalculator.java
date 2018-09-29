@@ -29,27 +29,17 @@ public interface ILoanCalculator {
      * @param loanOrder
      * @return
      */
-    Item realItem(Long date, LoanOrderEntity loanOrder, String payType);
+    Item realItem(Long date, LoanOrderEntity loanOrder, String payType, Integer postponeDays);
 
     /**
      * 获得入账item
-     * @param date       日期
-     * @param paid       还款金额
-     * @param loanOrder  借款订单
+     * @param date          日期
+     * @param paid          还款金额
      * @return
      * @throws UnSupportTimeDiffException
      * @throws MergeException
      */
-    Item entryItem(Long date, String payType, BigDecimal paid, LoanOrderEntity loanOrder) throws LoanEntryException;
-
-    /**
-     * 检查是否是合法的还款金额
-     * @param date
-     * @param paid
-     * @param loanOrder
-     * @return
-     */
-    Boolean checkValidRepayAmount(Long date, String payType, BigDecimal paid, LoanOrderEntity loanOrder) throws LoanEntryException;
+    Item entryItem(Long date, String payType, BigDecimal paid, Item entryItem, Item orderRealItem);
 
     /**
      * 根据入账明细，完成入账处理，返回处理后的订单

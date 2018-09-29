@@ -20,7 +20,7 @@ public class CouponServiceImpl implements CouponService {
 
     @Override
     public CouponEntity getUserUnboundCoupon(String userCode) {
-        return couponRespository.getUserUnboundCoupon(userCode);
+        return couponRespository.getUserUnboundCoupon(userCode, System.currentTimeMillis());
     }
 
     @Override

@@ -5,6 +5,7 @@ import com.mo9.raptor.engine.service.IPayOrderDetailService;
 import com.mo9.raptor.engine.state.action.IAction;
 import com.mo9.raptor.engine.state.event.impl.pay.EntryResponseEvent;
 import com.mo9.raptor.engine.state.launcher.IEventLauncher;
+import com.mo9.raptor.engine.structure.Unit;
 import com.mo9.raptor.engine.structure.field.Field;
 import com.mo9.raptor.engine.structure.field.FieldTypeEnum;
 import com.mo9.raptor.engine.structure.item.Item;
@@ -58,24 +59,30 @@ public class EntryResponseAction implements IAction {
 
         // 创建明细
         List<PayOrderDetailEntity> entityList = new ArrayList<PayOrderDetailEntity>();
-        for (Map.Entry<FieldTypeEnum, Field> entry : entryItem.entrySet()) {
+        for (Map.Entry<FieldTypeEnum, Unit> entry : entryItem.entrySet()) {
             FieldTypeEnum fieldTypeEnum = entry.getKey();
-            BigDecimal fieldNumber = realItem.getFieldNumber(fieldTypeEnum);
-            if (BigDecimal.ZERO.compareTo(fieldNumber) >= 0) {
-                continue;
+            Unit unit = entry.getValue();
+            for (Field field : unit) {
+                BigDecimal fieldNumber = field.getNumber();
+                if (BigDecimal.ZERO.compareTo(fieldNumber) >= 0) {
+                    continue;
+                }
+                Field realField = realItem.get(fieldTypeEnum).get(0);
+                PayOrderDetailEntity entity = new PayOrderDetailEntity();
+                entity.setOwnerId(userCode);
+                entity.setDestType(field.getDestinationId());
+                entity.setLoanOrderId(orderId);
+                entity.setSourceType(field.getSourceId());
+                entity.setPayOrderId(payOrderId);
+                entity.setPayCurrency(payCurrency);
+                entity.setItemType(entryItem.getItemType().name());
+                entity.setRepayDay(entryItem.getRepayDate());
+                entity.setField(fieldTypeEnum.name());
+                entity.setShouldPay(realField.getNumber());
+                entity.setPaid(field.getNumber());
+                entity.create();
+                entityList.add(entity);
             }
-            PayOrderDetailEntity entity = new PayOrderDetailEntity();
-            entity.setOwnerId(userCode);
-            entity.setLoanOrderId(orderId);
-            entity.setPayOrderId(payOrderId);
-            entity.setPayCurrency(payCurrency);
-            entity.setItemType(entryItem.getItemType().name());
-            entity.setRepayDay(entryItem.getRepayDate());
-            entity.setField(fieldTypeEnum.name());
-            entity.setShouldPay(fieldNumber);
-            entity.setPaid(entryItem.getFieldNumber(fieldTypeEnum));
-            entity.create();
-            entityList.add(entity);
         }
         payOrderDetailService.saveItem(entityList);
         EntryResponseEvent event = new EntryResponseEvent(payOrderId, entryItem.sum());
