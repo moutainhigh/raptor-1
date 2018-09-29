@@ -17,17 +17,11 @@ import com.mo9.raptor.engine.service.ILoanOrderService;
 import com.mo9.raptor.engine.service.IPayOrderService;
 import com.mo9.raptor.engine.structure.field.FieldTypeEnum;
 import com.mo9.raptor.engine.structure.item.Item;
-import com.mo9.raptor.entity.BankEntity;
-import com.mo9.raptor.entity.ChannelEntity;
-import com.mo9.raptor.entity.PayOrderLogEntity;
-import com.mo9.raptor.entity.UserEntity;
+import com.mo9.raptor.entity.*;
 import com.mo9.raptor.enums.*;
 import com.mo9.raptor.redis.RedisParams;
 import com.mo9.raptor.redis.RedisServiceApi;
-import com.mo9.raptor.service.BankService;
-import com.mo9.raptor.service.ChannelService;
-import com.mo9.raptor.service.PayOrderLogService;
-import com.mo9.raptor.service.UserService;
+import com.mo9.raptor.service.*;
 import com.mo9.raptor.utils.IDWorker;
 import com.mo9.raptor.utils.log.Log;
 import org.apache.commons.lang.StringUtils;
@@ -63,6 +57,9 @@ public class PayOrderController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private UserCertifyInfoService userCertifyInfoService;
 
     @Autowired
     private IPayOrderService payOrderService;
@@ -111,8 +108,10 @@ public class PayOrderController {
 
         try{
             // 用户没删就行, 拉黑也能还
-            UserEntity user = userService.findByUserCodeAndDeleted(userCode, false);
-            if (user == null) {
+            //UserEntity user = userService.findByUserCodeAndDeleted(userCode, false);
+            UserCertifyInfoEntity userCertifyInfoEntity = userCertifyInfoService.findByUserCode(userCode);
+
+            if (userCertifyInfoEntity == null) {
                 return response.buildFailureResponse(ResCodeEnum.USER_NOT_EXIST);
             }
 
@@ -139,8 +138,8 @@ public class PayOrderController {
             payInfoCache.setPayType(realItem.getRepaymentType().name());
             payInfoCache.setPayNumber(realItem.sum());
             payInfoCache.setPeriod(0);
-            payInfoCache.setUserName(user.getRealName());
-            payInfoCache.setIdCard(user.getIdCard());
+            payInfoCache.setUserName(userCertifyInfoEntity.getRealName());
+            payInfoCache.setIdCard(userCertifyInfoEntity.getIdCard());
             payInfoCache.setClientId(clientId);
             payInfoCache.setClientVersion(clientVersion);
 
@@ -172,8 +171,9 @@ public class PayOrderController {
         String clientVersion = request.getHeader(ReqHeaderParams.CLIENT_VERSION);
         try{
             // 用户没删就行, 拉黑也能还
-            UserEntity user = userService.findByUserCodeAndDeleted(userCode, false);
-            if (user == null) {
+            //UserEntity user = userService.findByUserCodeAndDeleted(userCode, false);
+            UserCertifyInfoEntity userCertifyInfoEntity = userCertifyInfoService.findByUserCode(userCode);
+            if (userCertifyInfoEntity == null) {
                 return response.buildFailureResponse(ResCodeEnum.USER_NOT_EXIST);
             }
 
@@ -210,8 +210,8 @@ public class PayOrderController {
             payInfoCache.setPayType(PayTypeEnum.REPAY_POSTPONE.name());
             payInfoCache.setPayNumber(applyAmount);
             payInfoCache.setPeriod(period);
-            payInfoCache.setUserName(user.getRealName());
-            payInfoCache.setIdCard(user.getIdCard());
+            payInfoCache.setUserName(userCertifyInfoEntity.getRealName());
+            payInfoCache.setIdCard(userCertifyInfoEntity.getIdCard());
             payInfoCache.setClientId(clientId);
             payInfoCache.setClientVersion(clientVersion);
 
@@ -381,7 +381,7 @@ public class PayOrderController {
                 return response.buildFailureResponse(ResCodeEnum.NO_REPAY_CHANNEL);
             }
 
-            if (!userName.equals(payInfoCache.getUserName()) && !idCard.equals(payInfoCache.getIdCard())) {
+            if (!userName.equals(payInfoCache.getUserName()) || !idCard.equals(payInfoCache.getIdCard())) {
                 return response.buildFailureResponse(ResCodeEnum.INVALID_REPAY_INFO);
             }
 

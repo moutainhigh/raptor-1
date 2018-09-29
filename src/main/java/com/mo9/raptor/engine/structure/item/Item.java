@@ -23,32 +23,6 @@ public class Item extends HashMap<FieldTypeEnum, Field> {
     /** 还款日 */
     private Long repayDate;
 
-    /** 根据给定条件，计算该分期罚息，并返回罚息溢缴款余额 */
-    public BigDecimal calculatePenalty (long date, long penaltyBoundaryDate, int graceRepayDays, BigDecimal penaltyOverpay, BigDecimal dailyPenaltyRate) {
-
-        long graceRepayDate = repayDate + EngineStaticValue.DAY_MILLIS * graceRepayDays;
-
-        penaltyBoundaryDate = penaltyBoundaryDate > graceRepayDate ? penaltyBoundaryDate : graceRepayDate;
-        int overdueDays = TimeUtils.dateDiff(penaltyBoundaryDate, date);
-        BigDecimal dailyPenalty = this.getFieldNumber(FieldTypeEnum.PRINCIPAL).multiply(dailyPenaltyRate)
-                .setScale(EngineStaticValue.RESULT_SCALE, BigDecimal.ROUND_UP);
-        BigDecimal penalty;
-        if (penaltyOverpay.compareTo(BigDecimal.ZERO) > 0) {
-            if (penaltyOverpay.compareTo(dailyPenalty) < 0) {
-                penalty = dailyPenalty.multiply(new BigDecimal(overdueDays)).subtract(penaltyOverpay);
-                penaltyOverpay = BigDecimal.ZERO;
-            } else  {
-                penalty = dailyPenalty.multiply(new BigDecimal(overdueDays - 1));
-                penaltyOverpay = penaltyOverpay.subtract(dailyPenalty);
-            }
-        } else {
-            penalty = dailyPenalty.multiply(new BigDecimal(overdueDays));
-        }
-
-        this.setFieldNumber(FieldTypeEnum.PENALTY, penalty);
-
-        return penaltyOverpay;
-    }
 
     @Override
     public Item clone () {
