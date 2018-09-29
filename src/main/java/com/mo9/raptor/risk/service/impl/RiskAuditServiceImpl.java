@@ -83,14 +83,18 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         AuditResponseEvent res;
 
         if (!SourceEnum.WHITE.equals(user.getSource())) {
+            logger.info(userCode + "开始运行规则[ContactsRule]");
             res = contactsRule(userCode);
             ruleLogService.create(userCode, "ContactsRule", res.isPass(), true, res.getExplanation());
             if (!res.isPass()) {
                 finalResult = res;
             }
+        } else {
+            ruleLogService.create(userCode, "ContactsRule", null, false, "");
         }
 
         if (finalResult == null) {
+            logger.info(userCode + "开始运行规则[CallLogRule]");
             res = callLogRule(userCode);
             ruleLogService.create(userCode, "CallLogRule", res.isPass(), true, res.getExplanation());
             if (!res.isPass()) {
@@ -101,6 +105,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         }
 
         if (finalResult == null) {
+            logger.info(userCode + "开始运行规则[ThreeElementCheck]");
             res = threeElementCheck(userCode);
             ruleLogService.create(userCode, "ThreeElementCheck", res.isPass(), true, res.getExplanation());
             if (!res.isPass()) {
@@ -111,6 +116,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         }
 
         if (finalResult == null) {
+            logger.info(userCode + "开始运行规则[AntiHackRule]");
             res = antiHackRule(userCode);
             ruleLogService.create(userCode, "AntiHackRule", res.isPass(), true, res.getExplanation());
             if (!res.isPass()) {
@@ -121,6 +127,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         }
 
         if (finalResult == null) {
+            logger.info(userCode + "开始运行规则[LivePicCompareRule]");
             res = livePicCompareRule(userCode);
             ruleLogService.create(userCode, "LivePicCompareRule", res.isPass(), true, res.getExplanation());
             if (!res.isPass()) {
@@ -131,6 +138,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         }
 
         if (finalResult == null) {
+            logger.info(userCode + "开始运行规则[IdPicCompareRule]");
             res = idPicCompareRule(userCode);
             ruleLogService.create(userCode, "IdPicCompareRule", res.isPass(), true, res.getExplanation());
             finalResult = res;
