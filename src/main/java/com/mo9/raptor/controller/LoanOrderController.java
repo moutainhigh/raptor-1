@@ -5,11 +5,10 @@ import com.mo9.raptor.bean.BaseResponse;
 import com.mo9.raptor.bean.ReqHeaderParams;
 import com.mo9.raptor.bean.req.OrderAddReq;
 import com.mo9.raptor.bean.res.LoanOrderRes;
-import com.mo9.raptor.engine.calculator.ILoanCalculator;
-import com.mo9.raptor.engine.calculator.LoanCalculatorFactory;
 import com.mo9.raptor.engine.entity.LendOrderEntity;
 import com.mo9.raptor.engine.entity.LoanOrderEntity;
 import com.mo9.raptor.engine.enums.StatusEnum;
+import com.mo9.raptor.engine.service.BillService;
 import com.mo9.raptor.engine.service.ILendOrderService;
 import com.mo9.raptor.engine.service.ILoanOrderService;
 import com.mo9.raptor.engine.structure.item.Item;
@@ -76,7 +75,7 @@ public class LoanOrderController {
     private RedisService redisService;
 
     @Autowired
-    private LoanCalculatorFactory loanCalculatorFactory;
+    private BillService billService;
 
     @Value("${raptor.sockpuppet}")
     private String sockpuppet;
@@ -226,21 +225,20 @@ public class LoanOrderController {
                     return response;
                 }
             }
-            ILoanCalculator calculator = loanCalculatorFactory.load(loanOrderEntity);
-            Item realItem = calculator.realItem(System.currentTimeMillis(), loanOrderEntity, PayTypeEnum.REPAY_AS_PLAN.name());
+            Item shouldPayItem = billService.payoffShouldPayItem(loanOrderEntity);
 
             LoanOrderRes res = new LoanOrderRes();
             res.setOrderId(loanOrderEntity.getOrderId());
             res.setActuallyGet(loanOrderEntity.getLoanNumber().subtract(loanOrderEntity.getChargeValue()).toPlainString());
-            res.setRepayAmount(realItem.sum().toPlainString());
-            res.setRepayTime(realItem.getRepayDate());
+            res.setRepayAmount(shouldPayItem.sum().toPlainString());
+            res.setRepayTime(shouldPayItem.getRepayDate());
             res.setState(String.valueOf(LoanOrderRes.StateEnum.getCode(loanOrderEntity.getStatus())));
             res.setAbateAmount("0");
             LendOrderEntity lendOrderEntity = lendOrderService.getByOrderId(loanOrderEntity.getOrderId());
             if (lendOrderEntity != null) {
                 res.setReceiveBankCard(lendOrderEntity.getBankCard());
             }
-            res.setRenew(calculator.getRenew(loanOrderEntity));
+            res.setRenew(billService.getRenewInfo(loanOrderEntity));
             res.setAgreementUrl("https://www.baidu.com");
             map.put("entity",res);
             return response.buildSuccessResponse(map);

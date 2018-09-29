@@ -10,21 +10,16 @@ import com.mo9.raptor.bean.res.LendInfoMqRes;
 import com.mo9.raptor.bean.res.RepayDetailRes;
 import com.mo9.raptor.bean.res.RepayInfoMqRes;
 import com.mo9.raptor.bean.res.UserInfoMqRes;
-import com.mo9.raptor.engine.calculator.ILoanCalculator;
-import com.mo9.raptor.engine.calculator.LoanCalculatorFactory;
 import com.mo9.raptor.engine.entity.LendOrderEntity;
 import com.mo9.raptor.engine.entity.LoanOrderEntity;
 import com.mo9.raptor.engine.entity.PayOrderEntity;
 import com.mo9.raptor.engine.enums.StatusEnum;
-import com.mo9.raptor.engine.service.ILendOrderService;
-import com.mo9.raptor.engine.service.ILoanOrderService;
-import com.mo9.raptor.engine.service.IPayOrderDetailService;
-import com.mo9.raptor.engine.service.IPayOrderService;
+import com.mo9.raptor.engine.service.*;
 import com.mo9.raptor.engine.state.event.impl.lend.LendResponseEvent;
 import com.mo9.raptor.engine.state.event.impl.loan.LoanResponseEvent;
 import com.mo9.raptor.engine.state.event.impl.pay.DeductResponseEvent;
 import com.mo9.raptor.engine.state.launcher.IEventLauncher;
-import com.mo9.raptor.engine.structure.field.Field;
+import com.mo9.raptor.engine.structure.Unit;
 import com.mo9.raptor.engine.structure.field.FieldTypeEnum;
 import com.mo9.raptor.engine.structure.item.Item;
 import com.mo9.raptor.entity.*;
@@ -33,7 +28,6 @@ import com.mo9.raptor.mq.producer.RabbitProducer;
 import com.mo9.raptor.service.*;
 import com.mo9.raptor.utils.log.Log;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -79,9 +73,6 @@ public class LoanMo9mqListener implements IMqMsgListener{
 	private UserCertifyInfoService userCertifyInfoService;
 
 	@Autowired
-	private UserContactsService userContactsService;
-
-	@Autowired
 	private IEventLauncher payEventLauncher;
 
 	@Autowired
@@ -91,7 +82,7 @@ public class LoanMo9mqListener implements IMqMsgListener{
     private IEventLauncher loanEventLauncher;
 
     @Autowired
-    private LoanCalculatorFactory loanCalculatorFactory;
+    private BillService billService;
 
 	@Autowired
 	private RabbitProducer rabbitProducer;
@@ -388,11 +379,11 @@ public class LoanMo9mqListener implements IMqMsgListener{
         List<RepayDetailRes> repayDetail = payOrderDetailService.getRepayDetail(payOrderEntity.getOrderId());
         repayInfo.setRepayDetail(repayDetail);
 
-        ILoanCalculator calculator = loanCalculatorFactory.load(loanOrderEntity);
-        Item realItem = calculator.realItem(System.currentTimeMillis(), loanOrderEntity, PayTypeEnum.REPAY_AS_PLAN.name());
+        Item realItem = billService.payoffRealItem(loanOrderEntity);
         List<RepayDetailRes> shouldPay = new ArrayList<RepayDetailRes>();
-        for (Map.Entry<FieldTypeEnum, Field> entry : realItem.entrySet()) {
-            BigDecimal number = entry.getValue().getNumber();
+
+        for (Map.Entry<FieldTypeEnum, Unit> entry : realItem.entrySet()) {
+            BigDecimal number = entry.getValue().sum();
             if (BigDecimal.ZERO.compareTo(number) < 0) {
                 RepayDetailRes res = new RepayDetailRes();
                 res.setFieldType(entry.getKey().name());
