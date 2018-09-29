@@ -24,6 +24,10 @@ public class LoanOrderEntity extends AbstractOrderEntity {
         return true;
     }
 
+    public BigDecimal canCoupon () {
+        return BigDecimal.ZERO;
+    }
+
     /** 借贷数目 */
     @Column(name = "loan_number")
     private BigDecimal loanNumber;
@@ -99,6 +103,12 @@ public class LoanOrderEntity extends AbstractOrderEntity {
      */
     @Column(name = "postpone_count")
     private Integer postponeCount;
+
+    /**
+     * 还清时间
+     */
+    @Column(name = "payoff_time")
+    private Long payoffTime;
 
     public BigDecimal getLoanNumber() {
         return loanNumber;
@@ -250,5 +260,13 @@ public class LoanOrderEntity extends AbstractOrderEntity {
 
     public void setPostponeCount(Integer postponeCount) {
         this.postponeCount = postponeCount;
+    }
+
+    public Long getPayoffTime() {
+        return payoffTime;
+    }
+
+    public void setPayoffTime(Long payoffTime) {
+        this.payoffTime = payoffTime;
     }
 }

@@ -112,16 +112,22 @@ public class PayOrderLogEntity extends BaseEntity {
     private String channelSyncResponse;
 
     /**
-     * 延期次数
-     */
-    @Column(name = "postpone_count")
-    private Integer postponeCount;
-
-    /**
      * 失败原因
      */
     @Column(name = "fail_reason")
     private String failReason;
+
+    /**
+     * 延期前的还款日
+     */
+    @Column(name = "former_repayment_date")
+    private Long formerRepaymentDate;
+
+    /**
+     * 本次延期起始时间
+     */
+    @Column(name = "postpone_begin_date")
+    private Long postponeBeginDate;
 
     public String getOrderId() {
         return orderId;
@@ -259,12 +265,20 @@ public class PayOrderLogEntity extends BaseEntity {
         this.failReason = failReason;
     }
 
-    public Integer getPostponeCount() {
-        return postponeCount;
+    public Long getFormerRepaymentDate() {
+        return formerRepaymentDate;
     }
 
-    public void setPostponeCount(Integer postponeCount) {
-        this.postponeCount = postponeCount;
+    public void setFormerRepaymentDate(Long formerRepaymentDate) {
+        this.formerRepaymentDate = formerRepaymentDate;
+    }
+
+    public Long getPostponeBeginDate() {
+        return postponeBeginDate;
+    }
+
+    public void setPostponeBeginDate(Long postponeBeginDate) {
+        this.postponeBeginDate = postponeBeginDate;
     }
 
     public void create() {
