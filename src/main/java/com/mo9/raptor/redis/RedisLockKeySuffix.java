@@ -7,6 +7,11 @@ package com.mo9.raptor.redis;
 public interface RedisLockKeySuffix {
 
     /**
+     * 订单创建/绑定优惠券行为锁
+     */
+    String LOAN_COUPON_CREATE_KEY = "LOAN_COUPON_CREATE_KEY";
+
+    /**
      * 订单预下单锁
      */
     String PRE_LOAN_ORDER_KEY = "PRE_LOAN_ORDER_KEY";

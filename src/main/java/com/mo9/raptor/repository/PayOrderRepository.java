@@ -13,6 +13,15 @@ import java.util.List;
  */
 public interface PayOrderRepository extends JpaRepository<PayOrderEntity,Long>, JpaSpecificationExecutor<PayOrderEntity> {
 
+
+    /**
+     * 获取已入账的借贷还款订单
+     * @param loanOrderId
+     * @return
+     */
+    @Query(value = "select * from t_raptor_pay_order where loan_order_id = ?1 and type in ?2 and status = 'ENTRY_DONE' and deleted = false", nativeQuery = true)
+    List<PayOrderEntity> listEntryDonePayLoan(String loanOrderId, List<String> types);
+
     /**
      * 根据订单号获取订单
      * @param orderId  还款订单号

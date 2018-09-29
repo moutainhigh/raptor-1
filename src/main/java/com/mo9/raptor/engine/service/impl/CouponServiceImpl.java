@@ -17,12 +17,17 @@ public class CouponServiceImpl implements CouponService {
     private CouponRespository couponRespository;
 
     @Override
-    public CouponEntity getUserUnboundCoupon(String userCode) {
-        return couponRespository.getUserUnboundCoupon(userCode, System.currentTimeMillis());
+    public CouponEntity getByCouponId(String couponId) {
+        return couponRespository.getByCouponId(couponId);
     }
 
     @Override
-    public CouponEntity getByCouponId(String couponId) {
-        return couponRespository.getByCouponId(couponId);
+    public CouponEntity getEffectiveBundledCoupon(String loanOrderId) {
+        return couponRespository.getBundledCoupon(loanOrderId, System.currentTimeMillis());
+    }
+
+    @Override
+    public CouponEntity save(CouponEntity couponEntity) {
+        return couponRespository.save(couponEntity);
     }
 }
