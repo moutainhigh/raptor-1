@@ -101,7 +101,7 @@ public class UserController {
                     return response.buildFailureResponse(ResCodeEnum.NOT_WHITE_LIST_USER);
                 }
                 //新用户注册
-                userEntity = UserEntity.buildNewUser(mobile, SourceEnum.NEW);
+                userEntity = UserEntity.buildNewUser(mobile, SourceEnum.NEW.name(), null);
                 isNewUser = true;
             }
             //返回token

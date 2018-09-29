@@ -331,12 +331,13 @@ public class UserEntity extends AbstractStateEntity implements IStateEntity {
      * @param source
      * @return
      */
-    public static UserEntity buildNewUser(String mobile, SourceEnum source){
+    public static UserEntity buildNewUser(String mobile, String source, String subSource){
         UserEntity userEntity = new UserEntity();
         userEntity.setMobile(mobile);
         userEntity.setUserCode(Md5Util.getMD5(mobile).toUpperCase());
         userEntity.setStatus(StatusEnum.COLLECTING.name());
-        userEntity.setSource(source.name());
+        userEntity.setSource(source);
+        userEntity.setSubSource(subSource);
         long now = System.currentTimeMillis();
         userEntity.setCreateTime(now);
         userEntity.setUpdateTime(now);
