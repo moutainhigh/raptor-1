@@ -17,6 +17,6 @@ public class SingleLoanCalculator extends AbstractLoanCalculator implements ILoa
     @Override
     public BigDecimal minRepay(LoanOrderEntity loanOrder) {
 
-        return loanOrder.getLentNumber();
+        return loanOrder.getLoanNumber();
     }
 }
