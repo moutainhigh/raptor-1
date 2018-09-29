@@ -3,16 +3,23 @@ package com.mo9.raptor.controller;
 import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.bean.BaseResponse;
 import com.mo9.raptor.bean.ReqHeaderParams;
+import com.mo9.raptor.engine.entity.LoanOrderEntity;
 import com.mo9.raptor.engine.enums.StatusEnum;
+import com.mo9.raptor.engine.service.ILoanOrderService;
+import com.mo9.raptor.entity.RabbitProducerMqEntity;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.CaptchaBusinessEnum;
 import com.mo9.raptor.enums.ResCodeEnum;
+import com.mo9.raptor.mq.listen.LoanMo9mqListener;
+import com.mo9.raptor.mq.producer.RabbitProducer;
 import com.mo9.raptor.redis.RedisParams;
 import com.mo9.raptor.redis.RedisServiceApi;
+import com.mo9.raptor.service.RabbitProducerMqService;
 import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,6 +28,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author zma
@@ -36,6 +45,18 @@ public class TestController {
 
     @Resource
     private UserService userService;
+
+    @Autowired
+    private ILoanOrderService loanOrderService;
+
+    @Autowired
+    private RabbitProducerMqService rabbitProducerMqService;
+
+    @Autowired
+    private RabbitProducer rabbitProducer;
+
+    @Autowired
+    private LoanMo9mqListener loanMo9mqListener;
 
     @Resource(name = "raptorRedis")
     private RedisTemplate raptorRedis;
@@ -91,5 +112,29 @@ public class TestController {
 
     private String getRedisKey(String redisKey, String receive, CaptchaBusinessEnum businessCode){
         return redisKey + businessCode + "_" + receive;
+    }
+
+    /**
+     * 修改用户状态
+     */
+    @RequestMapping("/mq")
+    public BaseResponse<JSONObject> updateUserStatus(HttpServletRequest request){
+        BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
+        List<LoanOrderEntity> loanOrderEntities = loanOrderService.listByStatus(Arrays.asList(StatusEnum.LENT));
+        if (loanOrderEntities == null || loanOrderEntities.size() == 0) {
+            response.setMessage("无订单");
+            return response;
+        }
+
+        for (LoanOrderEntity loanOrderEntity : loanOrderEntities) {
+            RabbitProducerMqEntity producerMqEntity = rabbitProducerMqService.findByMessageKey(loanOrderEntity.getOrderId());
+            if (producerMqEntity != null) {
+                logger.info("订单[{}]已发送过mq, 跳过", loanOrderEntity.getOrderId());
+                continue;
+            }
+            loanMo9mqListener.notifyMisLend(loanOrderEntity.getOrderId());
+        }
+        response.setMessage("ok");
+        return response;
     }
 }

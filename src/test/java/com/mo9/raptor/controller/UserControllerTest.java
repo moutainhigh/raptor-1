@@ -39,7 +39,7 @@ public class UserControllerTest {
 
     private static final String localUrl = "http://192.168.14.114:8010/raptorApi/";
 
-    private static final String localHostUrl = "http://localhost:8081/raptorApi/";
+    private static final String localHostUrl = "http://localhost/raptorApi/";
 
     private static final String cloneHostUrl = "https://riskclone.mo9.com/raptorApi/";
 
@@ -47,8 +47,8 @@ public class UserControllerTest {
 
     @Before
     public void before() {
-        headers.put("Account-Code", "AA20A480E526D644D13D9AC559392926");
-        headers.put("Access-Token", "42f26facf5df4424b33f10fc34f1f290");
+        headers.put("Account-Code", "123");
+        headers.put("Access-Token", "123");
         headers.put("Client-Id", "503");
     }
 
@@ -59,11 +59,11 @@ public class UserControllerTest {
     public void sendCode() {
 
         try {
-            String mobile = "13564546025";
+            String mobile = "13213173514";
             JSONObject json = new JSONObject();
             json.put("mobile", mobile);
             String url = "auth/send_login_code";
-            HttpResult resJson = httpClientApi.doPostJson(cloneHostUrl + url, json.toJSONString());
+            HttpResult resJson = httpClientApi.doPostJson(localHostUrl + url, json.toJSONString());
             System.out.println(resJson.getCode());
             System.out.println(resJson.getData());
         } catch (IOException e) {
@@ -78,12 +78,12 @@ public class UserControllerTest {
     public void signIn() {
 
         try {
-            String mobile = "13564546025";
+            String mobile = "13213173513";
             JSONObject json = new JSONObject();
             json.put("mobile", mobile);
-            json.put("code", "001353");
+            json.put("code", "154714");
             String url = "user/login_by_code";
-            HttpResult resJson = httpClientApi.doPostJson(cloneHostUrl + url, json.toJSONString());
+            HttpResult resJson = httpClientApi.doPostJson(localHostUrl + url, json.toJSONString());
             System.out.println(resJson.getCode());
             System.out.println(resJson.getData());
         } catch (IOException e) {
@@ -183,7 +183,7 @@ public class UserControllerTest {
         json.put("livenessSuccessCount", 1);  //活体扫描成功计数【新】
         json.put("livenessFailCount", 1);//活体扫描失败计数【新】
 
-        HttpResult httpResult = httpClientApi.doPostJson(cloneHostUrl + "/user/modify_certify_info", json.toJSONString(), headers);
+        HttpResult httpResult = httpClientApi.doPostJson(localHostUrl + "/user/modify_certify_info", json.toJSONString(), headers);
         System.out.println(httpResult.getCode());
         System.out.println(httpResult.getData());
     }

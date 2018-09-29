@@ -3,6 +3,7 @@ package com.mo9.raptor.engine.service;
 import com.mo9.raptor.bean.condition.FetchLoanOrderCondition;
 import com.mo9.raptor.engine.entity.LendOrderEntity;
 import com.mo9.raptor.engine.entity.LoanOrderEntity;
+import com.mo9.raptor.engine.enums.StatusEnum;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
@@ -63,4 +64,11 @@ public interface ILoanOrderService {
      * @param lendOrder
      */
     void saveLendOrder(LoanOrderEntity loanOrder, LendOrderEntity lendOrder) throws Exception;
+
+    /**
+     * 根据状态查询订单
+     * @param statusEnums
+     * @return
+     */
+    List<LoanOrderEntity> listByStatus(List<StatusEnum> statusEnums);
 }
