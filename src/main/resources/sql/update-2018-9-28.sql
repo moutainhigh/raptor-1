@@ -42,3 +42,20 @@ ALTER TABLE `t_raptor_pay_order_detail`
 
 ALTER TABLE `t_raptor_pay_order_detail`
   ADD COLUMN `source_type` VARCHAR(64) not null COMMENT '入账源类型' AFTER `owner_id`;
+
+ALTER TABLE `t_raptor_pay_order_detail`
+  CHANGE COLUMN `loan_order_id` `destination_id` VARCHAR(64) COMMENT '目标id' AFTER `dest_type`;
+
+ALTER TABLE `t_raptor_pay_order_detail`
+  CHANGE COLUMN `pay_order_id` `source_id` VARCHAR(64) COMMENT '入账源id' AFTER `source_type`;
+
+ALTER TABLE `t_raptor_pay_order_log`
+  ADD COLUMN `former_repayment_date` bigint(20) COMMENT '延期前的还款日' AFTER `fail_reason`;
+
+ALTER TABLE `t_raptor_pay_order_log`
+  ADD COLUMN `postpone_begin_date` bigint(20) COMMENT '本次延期起始时间' AFTER `former_repayment_date`;
+
+ALTER TABLE `t_raptor_pay_order_log` DROP COLUMN `postpone_count`;
+
+ALTER TABLE `t_raptor_loan_order`
+  ADD COLUMN `payoff_time` bigint(20) COMMENT '还清时间' AFTER `postpone_count`;

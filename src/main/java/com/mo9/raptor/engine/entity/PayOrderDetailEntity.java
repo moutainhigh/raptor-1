@@ -33,8 +33,8 @@ public class PayOrderDetailEntity extends BaseEntity {
     /**
      * 还的借款订单
      */
-    @Column(name = "loan_order_id")
-    private String loanOrderId;
+    @Column(name = "destination_id")
+    private String destinationId;
 
     /**
      * 入账源类型  BillSourceTypeEnum
@@ -45,8 +45,8 @@ public class PayOrderDetailEntity extends BaseEntity {
     /**
      * 还款订单
      */
-    @Column(name = "pay_order_id")
-    private String payOrderId;
+    @Column(name = "source_id")
+    private String sourceId;
 
     /**
      * 支付币种
@@ -92,20 +92,20 @@ public class PayOrderDetailEntity extends BaseEntity {
         this.ownerId = ownerId;
     }
 
-    public String getLoanOrderId() {
-        return loanOrderId;
+    public String getDestinationId() {
+        return destinationId;
     }
 
-    public void setLoanOrderId(String loanOrderId) {
-        this.loanOrderId = loanOrderId;
+    public void setDestinationId(String destinationId) {
+        this.destinationId = destinationId;
     }
 
-    public String getPayOrderId() {
-        return payOrderId;
+    public String getSourceId() {
+        return sourceId;
     }
 
-    public void setPayOrderId(String payOrderId) {
-        this.payOrderId = payOrderId;
+    public void setSourceId(String sourceId) {
+        this.sourceId = sourceId;
     }
 
     public String getPayCurrency() {

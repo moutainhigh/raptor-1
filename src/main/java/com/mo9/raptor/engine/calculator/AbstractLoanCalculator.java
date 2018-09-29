@@ -203,6 +203,7 @@ public abstract class AbstractLoanCalculator implements ILoanCalculator {
         } else {
             if (realItemSum.compareTo(entryItemSum) == 0) {
                 // 直接还清
+                loanOrder.setPayoffTime(System.currentTimeMillis());
                 loanOrder.setStatus(StatusEnum.PAYOFF.name());
             } else {
                 logger.error("订单[{}]应还[{}], 实际还款[{}], 无法入账!", loanOrder.getOrderId(), realItemSum, entryItemSum);

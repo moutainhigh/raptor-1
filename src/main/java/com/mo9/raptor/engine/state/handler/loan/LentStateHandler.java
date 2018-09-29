@@ -15,8 +15,11 @@ import com.mo9.raptor.engine.state.handler.IStateHandler;
 import com.mo9.raptor.engine.state.handler.StateHandler;
 import com.mo9.raptor.engine.state.launcher.IEventLauncher;
 import com.mo9.raptor.engine.structure.item.Item;
+import com.mo9.raptor.engine.utils.EngineStaticValue;
+import com.mo9.raptor.entity.PayOrderLogEntity;
 import com.mo9.raptor.enums.PayTypeEnum;
 import com.mo9.raptor.exception.LoanEntryException;
+import com.mo9.raptor.service.PayOrderLogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -42,6 +45,9 @@ public class LentStateHandler implements IStateHandler<LoanOrderEntity> {
     @Autowired
     private IPayOrderDetailService payOrderDetailService;
 
+    @Autowired
+    private PayOrderLogService payOrderLogService;
+
     @Override
     public LoanOrderEntity handle (LoanOrderEntity loanOrder, IEvent event, IActionExecutor actionExecutor)
             throws InvalidEventException, LoanEntryException {
@@ -54,6 +60,17 @@ public class LentStateHandler implements IStateHandler<LoanOrderEntity> {
             PayOrderEntity payOrderEntity = payOrderService.getByOrderId(payOrderId);
             Item realItem = billService.realItem(loanOrder, PayTypeEnum.valueOf(payType), payOrderEntity.getPostponeDays());
             loanOrder = billService.itemEntry(loanOrder, PayTypeEnum.valueOf(payType), payOrderEntity.getPostponeDays(), realItem, entryItem);
+
+
+            // TODO: 另找地方写下面的逻辑
+            if (PayTypeEnum.REPAY_POSTPONE.name().equals(payType)) {
+                PayOrderLogEntity payOrderLogEntity = payOrderLogService.getByPayOrderId(payOrderId);
+                // 延期起始日 , 需要减1
+                Long postponeBeginDate = loanOrder.getRepaymentDate() - (payOrderEntity.getPostponeDays() - 1) * EngineStaticValue.DAY_MILLIS;
+                payOrderLogEntity.setPostponeBeginDate(postponeBeginDate);
+                payOrderEntity.setUpdateTime(System.currentTimeMillis());
+                payOrderLogService.save(payOrderLogEntity);
+            }
 
             // 还款合法, 则向还款订单发送入账反馈
             actionExecutor.append(new EntryResponseAction(

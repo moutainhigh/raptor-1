@@ -79,9 +79,9 @@ public class EntryResponseAction implements IAction {
                 PayOrderDetailEntity entity = new PayOrderDetailEntity();
                 entity.setOwnerId(userCode);
                 entity.setDestType(field.getDestinationType().name());
-                entity.setLoanOrderId(field.getDestinationId());
+                entity.setDestinationId(field.getDestinationId());
                 entity.setSourceType(field.getSourceType().name());
-                entity.setPayOrderId(field.getSourceId());
+                entity.setSourceId(field.getSourceId());
                 if (field.getSourceType().equals(SourceTypeEnum.COUPON)) {
                     couponId = field.getSourceId();
                 }

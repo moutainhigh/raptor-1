@@ -302,8 +302,9 @@ public class PayOrderController {
             payOrder.setOrderId(orderId);
             payOrder.setStatus(StatusEnum.PENDING.name());
 
+            String payType = payInfoCache.getPayType();
             payOrder.setOwnerId(payInfoCache.getUserCode());
-            payOrder.setType(payInfoCache.getPayType());
+            payOrder.setType(payType);
             payOrder.setApplyNumber(payInfoCache.getPayNumber());
             payOrder.setPostponeDays(payInfoCache.getPeriod());
             payOrder.setLoanOrderId(payInfoCache.getLoanOrderId());
@@ -312,7 +313,6 @@ public class PayOrderController {
             payOrder.setChannel(channel);
             payOrder.create();
 
-            List<PayOrderEntity> payOrderEntities = payOrderService.listByLoanOrderIdAndType(payInfoCache.getLoanOrderId(), PayTypeEnum.REPAY_POSTPONE);
             PayOrderLogEntity payOrderLog = new PayOrderLogEntity();
             payOrderLog.setIdCard(payInfoCache.getIdCard());
             payOrderLog.setUserName(payInfoCache.getUserName());
@@ -321,8 +321,10 @@ public class PayOrderController {
             payOrderLog.setClientId(payInfoCache.getClientId());
             payOrderLog.setClientVersion(payInfoCache.getClientVersion());
             payOrderLog.setOrderId(payInfoCache.getLoanOrderId());
-            payOrderLog.setPostponeCount(payOrderEntities.size() + 1);
-
+            if (PayTypeEnum.REPAY_POSTPONE.name().equals(payType)) {
+                LoanOrderEntity loanOrder = loanOrderService.getByOrderId(payInfoCache.getLoanOrderId());
+                payOrderLog.setFormerRepaymentDate(loanOrder.getRepaymentDate());
+            }
             payOrderLog.setPayOrderId(payOrder.getOrderId());
             payOrderLog.setChannel(channel);
             payOrderLog.setBankCard(bankNo);
@@ -379,8 +381,9 @@ public class PayOrderController {
             payOrder.setOrderId(orderId);
             payOrder.setStatus(StatusEnum.PENDING.name());
 
+            String payType = payInfoCache.getPayType();
             payOrder.setOwnerId(payInfoCache.getUserCode());
-            payOrder.setType(payInfoCache.getPayType());
+            payOrder.setType(payType);
             payOrder.setApplyNumber(payInfoCache.getPayNumber());
             payOrder.setPostponeDays(payInfoCache.getPeriod());
             payOrder.setLoanOrderId(payInfoCache.getLoanOrderId());
@@ -397,6 +400,10 @@ public class PayOrderController {
             payOrderLog.setClientId(payInfoCache.getClientId());
             payOrderLog.setClientVersion(payInfoCache.getClientVersion());
             payOrderLog.setOrderId(payInfoCache.getLoanOrderId());
+            if (PayTypeEnum.REPAY_POSTPONE.name().equals(payType)) {
+                LoanOrderEntity loanOrder = loanOrderService.getByOrderId(payInfoCache.getLoanOrderId());
+                payOrderLog.setFormerRepaymentDate(loanOrder.getRepaymentDate());
+            }
 
             payOrderLog.setPayOrderId(payOrder.getOrderId());
             payOrderLog.setChannel(channel);
