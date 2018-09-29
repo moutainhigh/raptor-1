@@ -44,7 +44,7 @@ public class UserControllerTest {
     private static final String cloneHostUrl = "https://riskclone.mo9.com/raptorApi/";
 
     Map<String, String> headers = new HashMap<>();
-
+    String mobile = "13213173515";
     @Before
     public void before() {
         headers.put("Account-Code", "123");
@@ -59,7 +59,6 @@ public class UserControllerTest {
     public void sendCode() {
 
         try {
-            String mobile = "13213173514";
             JSONObject json = new JSONObject();
             json.put("mobile", mobile);
             String url = "auth/send_login_code";
@@ -72,16 +71,32 @@ public class UserControllerTest {
     }
 
     /**
+     * 发送图形验证码
+     */
+    @Test
+    public void sendGraphCode() {
+
+        try {
+            String url = "auth/send_graph_code?mobile=" + mobile;
+            String s = httpClientApi.doGet(localHostUrl + url);
+            System.out.println(s);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
      * 用户验证码登录
      */
     @Test
     public void signIn() {
-
         try {
-            String mobile = "13213173513";
             JSONObject json = new JSONObject();
             json.put("mobile", mobile);
-            json.put("code", "154714");
+            json.put("code", "363193");
+            json.put("captcha", "F5YJS");
+            json.put("source", "TEST");
+            json.put("subSource", "TEST_SUB");
             String url = "user/login_by_code";
             HttpResult resJson = httpClientApi.doPostJson(localHostUrl + url, json.toJSONString());
             System.out.println(resJson.getCode());

@@ -76,6 +76,8 @@ public class UserController {
         Map<String, Object> entity = new HashMap<>(16);
         String clientId = request.getHeader(ReqHeaderParams.CLIENT_ID);
         String mobile = loginByCodeReq.getMobile();
+        String source = loginByCodeReq.getSource();
+        String subSource = loginByCodeReq.getSubSource();
         boolean isNewUser = false;
         //校验手机号是否合法，不合法登录失败
         boolean check = RegexUtils.checkChinaMobileNumber(mobile);
@@ -84,6 +86,16 @@ public class UserController {
             return response.buildFailureResponse(ResCodeEnum.MOBILE_NOT_MEET_THE_REQUIRE);
         }
         try {
+            //判断是否需要校验图形验证码
+            ResCodeEnum checkGraphic = null;
+            if(StringUtils.isNotBlank(source)){
+                checkGraphic = checkGraphic(loginByCodeReq.getCaptcha(), RedisParams.GRAPHIC_CAPTCHA_KEY + mobile);
+            }
+            if(checkGraphic != null && ResCodeEnum.SUCCESS != checkGraphic){
+                logger.warn("用户登录----->>>>图形验证码校验失败mobile={}", mobile);
+                return response.buildFailureResponse(checkGraphic);
+            }
+
             //校验验证码是否正确
             String code = loginByCodeReq.getCode();
             ResCodeEnum resCodeEnum = captchaService.checkLoginMobileCaptcha(mobile, code);
@@ -101,7 +113,7 @@ public class UserController {
                     return response.buildFailureResponse(ResCodeEnum.NOT_WHITE_LIST_USER);
                 }
                 //新用户注册
-                userEntity = UserEntity.buildNewUser(mobile, SourceEnum.NEW.name(), null);
+                userEntity = UserEntity.buildNewUser(mobile, source, subSource);
                 isNewUser = true;
             }
             //返回token
@@ -328,5 +340,25 @@ public class UserController {
             return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
         }
         return response.buildSuccessResponse("ok");
+    }
+
+    /**
+     * 校验图形验证码是否正确
+     * @param captcha
+     * @return
+     */
+    private ResCodeEnum checkGraphic(String captcha, String redisCaptchaKey) {
+
+        String pinCode = (String) redisServiceApi.get(redisCaptchaKey, raptorRedis);
+        if (StringUtils.isBlank(pinCode) || StringUtils.isBlank(captcha)) {
+            return ResCodeEnum.CAPTCHA_IS_INVALID;
+        }
+
+        if (!captcha.equals(pinCode)) {
+            return ResCodeEnum.CAPTCHA_CHECK_ERROR;
+        }
+        redisServiceApi.remove(redisCaptchaKey, raptorRedis);
+       return ResCodeEnum.SUCCESS;
+
     }
 }

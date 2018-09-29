@@ -104,4 +104,10 @@ public interface UserService {
      */
     List<UserEntity> findNoCallLogReports() throws Exception;
 
+    /**
+     * 拉黑用户
+     * @param userEntity
+     * @param desc
+     */
+    void toBlackUser(UserEntity userEntity, String desc) throws Exception;
 }

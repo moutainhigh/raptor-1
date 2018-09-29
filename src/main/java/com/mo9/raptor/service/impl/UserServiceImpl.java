@@ -3,6 +3,7 @@ package com.mo9.raptor.service.impl;
 import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.engine.state.action.impl.user.UserAuditAction;
 import com.mo9.raptor.engine.state.event.impl.AuditLaunchEvent;
+import com.mo9.raptor.engine.state.event.impl.user.BlackEvent;
 import com.mo9.raptor.engine.state.launcher.IEventLauncher;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.BankAuthStatusEnum;
@@ -211,5 +212,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<UserEntity> findNoCallLogReports() throws Exception {
         return userRepository.findNoCallLogReports();
+    }
+
+    @Override
+    public void toBlackUser(UserEntity userEntity, String desc) throws Exception {
+        BlackEvent event = new BlackEvent(userEntity.getUserCode(), desc);
+        userEventLauncher.launch(event);
     }
 }

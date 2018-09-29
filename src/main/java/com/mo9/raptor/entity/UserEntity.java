@@ -5,6 +5,7 @@ import com.mo9.raptor.engine.entity.IStateEntity;
 import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.enums.SourceEnum;
 import com.mo9.raptor.utils.Md5Util;
+import org.apache.commons.lang.StringUtils;
 
 import javax.persistence.*;
 
@@ -333,6 +334,10 @@ public class UserEntity extends AbstractStateEntity implements IStateEntity {
      */
     public static UserEntity buildNewUser(String mobile, String source, String subSource){
         UserEntity userEntity = new UserEntity();
+        if(StringUtils.isBlank(source)){
+            source = SourceEnum.NEW.name();
+            subSource = null;
+        }
         userEntity.setMobile(mobile);
         userEntity.setUserCode(Md5Util.getMD5(mobile).toUpperCase());
         userEntity.setStatus(StatusEnum.COLLECTING.name());
