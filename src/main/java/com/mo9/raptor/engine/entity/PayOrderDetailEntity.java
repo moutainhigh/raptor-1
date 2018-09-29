@@ -25,10 +25,22 @@ public class PayOrderDetailEntity extends BaseEntity {
     private String ownerId;
 
     /**
+     * 销帐类型  BillDestinationTypeEnum
+     */
+    @Column(name = "dest_type")
+    private String destType;
+
+    /**
      * 还的借款订单
      */
     @Column(name = "loan_order_id")
     private String loanOrderId;
+
+    /**
+     * 入账源类型  BillSourceTypeEnum
+     */
+    @Column(name = "source_type")
+    private String sourceType;
 
     /**
      * 还款订单
@@ -142,6 +154,22 @@ public class PayOrderDetailEntity extends BaseEntity {
 
     public void setPaid(BigDecimal paid) {
         this.paid = paid;
+    }
+
+    public String getDestType() {
+        return destType;
+    }
+
+    public void setDestType(String destType) {
+        this.destType = destType;
+    }
+
+    public String getSourceType() {
+        return sourceType;
+    }
+
+    public void setSourceType(String sourceType) {
+        this.sourceType = sourceType;
     }
 
     public void create() {

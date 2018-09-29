@@ -19,6 +19,11 @@ public class Item extends HashMap<FieldTypeEnum, Unit> {
     /** 还款日 */
     private Long repayDate;
 
+    /**
+     * 延期天数
+     */
+    private Integer postponeDays;
+
 
     @Override
     public Item clone () {
@@ -118,5 +123,13 @@ public class Item extends HashMap<FieldTypeEnum, Unit> {
 
     public void setRepayDate(Long repayDate) {
         this.repayDate = repayDate;
+    }
+
+    public Integer getPostponeDays() {
+        return postponeDays;
+    }
+
+    public void setPostponeDays(Integer postponeDays) {
+        this.postponeDays = postponeDays;
     }
 }

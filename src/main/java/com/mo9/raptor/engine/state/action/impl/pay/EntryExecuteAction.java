@@ -1,16 +1,15 @@
 package com.mo9.raptor.engine.state.action.impl.pay;
 
-import com.mo9.raptor.engine.calculator.ILoanCalculator;
-import com.mo9.raptor.engine.calculator.LoanCalculatorFactory;
 import com.mo9.raptor.engine.entity.LoanOrderEntity;
 import com.mo9.raptor.engine.entity.PayOrderEntity;
+import com.mo9.raptor.engine.service.BillService;
 import com.mo9.raptor.engine.service.ILoanOrderService;
 import com.mo9.raptor.engine.service.IPayOrderService;
 import com.mo9.raptor.engine.state.action.IAction;
 import com.mo9.raptor.engine.state.event.impl.loan.LoanEntryEvent;
 import com.mo9.raptor.engine.state.launcher.IEventLauncher;
-import com.mo9.raptor.engine.structure.Scheme;
 import com.mo9.raptor.engine.structure.item.Item;
+import com.mo9.raptor.enums.PayTypeEnum;
 import com.mo9.raptor.exception.LoanEntryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,14 +26,14 @@ public class EntryExecuteAction implements IAction {
 
     private ILoanOrderService loanOrderService;
 
-    private LoanCalculatorFactory calculatorFactory;
+    private BillService billService;
 
-    public EntryExecuteAction(String payOrderId, IPayOrderService payOrderService, ILoanOrderService loanOrderService, IEventLauncher loanEventLauncher, LoanCalculatorFactory calculatorFactory) {
+    public EntryExecuteAction(String payOrderId, IPayOrderService payOrderService, ILoanOrderService loanOrderService, IEventLauncher loanEventLauncher, BillService billService) {
         this.payOrderId = payOrderId;
         this.payOrderService = payOrderService;
         this.loanOrderService = loanOrderService;
         this.loanEventLauncher = loanEventLauncher;
-        this.calculatorFactory = calculatorFactory;
+        this.billService = billService;
     }
 
     @Override
@@ -43,11 +42,10 @@ public class EntryExecuteAction implements IAction {
         PayOrderEntity payOrderEntity = payOrderService.getByOrderId(payOrderId);
         String loanOrderId = payOrderEntity.getLoanOrderId();
         LoanOrderEntity loanOrderEntity = loanOrderService.getByOrderId(loanOrderId);
-        ILoanCalculator calculator = calculatorFactory.load(loanOrderEntity);
         String payType = payOrderEntity.getType();
         Item entryItem = null;
         try {
-            entryItem = calculator.entryItem(System.currentTimeMillis(), payType, payOrderEntity.getPayNumber(), loanOrderEntity);
+            entryItem = billService.entryItem(PayTypeEnum.valueOf(payType), payOrderEntity, loanOrderEntity);
         } catch (LoanEntryException e) {
             logger.error("计算entryItem异常 ", e);
         }

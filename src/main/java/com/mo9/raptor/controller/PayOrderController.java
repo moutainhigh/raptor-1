@@ -8,14 +8,12 @@ import com.mo9.raptor.bean.req.LoanOrderRepay;
 import com.mo9.raptor.bean.req.PayInfoCache;
 import com.mo9.raptor.bean.res.ChannelDetailRes;
 import com.mo9.raptor.bean.res.PayOderChannelRes;
-import com.mo9.raptor.engine.calculator.ILoanCalculator;
-import com.mo9.raptor.engine.calculator.LoanCalculatorFactory;
 import com.mo9.raptor.engine.entity.LoanOrderEntity;
 import com.mo9.raptor.engine.entity.PayOrderEntity;
 import com.mo9.raptor.engine.enums.StatusEnum;
+import com.mo9.raptor.engine.service.BillService;
 import com.mo9.raptor.engine.service.ILoanOrderService;
 import com.mo9.raptor.engine.service.IPayOrderService;
-import com.mo9.raptor.engine.structure.field.FieldTypeEnum;
 import com.mo9.raptor.engine.structure.item.Item;
 import com.mo9.raptor.entity.BankEntity;
 import com.mo9.raptor.entity.ChannelEntity;
@@ -32,7 +30,6 @@ import com.mo9.raptor.utils.IDWorker;
 import com.mo9.raptor.utils.log.Log;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -42,9 +39,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -80,7 +75,7 @@ public class PayOrderController {
     private BankService bankService;
 
     @Autowired
-    private LoanCalculatorFactory loanCalculatorFactory;
+    private BillService billService;
 
     @Resource
     private RedisServiceApi redisServiceApi;
@@ -126,8 +121,7 @@ public class PayOrderController {
                 return response.buildFailureResponse(ResCodeEnum.ILLEGAL_REPAYMENT);
             }
 
-            ILoanCalculator calculator = loanCalculatorFactory.load(loanOrder);
-            Item realItem = calculator.realItem(System.currentTimeMillis(), loanOrder, PayTypeEnum.REPAY_AS_PLAN.name());
+            Item shouldPayItem = billService.orderShouldPayItem(loanOrder, PayTypeEnum.REPAY_AS_PLAN, 0);
 
             JSONObject data = new JSONObject();
 
@@ -136,8 +130,8 @@ public class PayOrderController {
             PayInfoCache payInfoCache = new PayInfoCache();
             payInfoCache.setUserCode(userCode);
             payInfoCache.setLoanOrderId(loanOrderId);
-            payInfoCache.setPayType(realItem.getRepaymentType().name());
-            payInfoCache.setPayNumber(realItem.sum());
+            payInfoCache.setPayType(shouldPayItem.getRepaymentType().name());
+            payInfoCache.setPayNumber(shouldPayItem.sum());
             payInfoCache.setPeriod(0);
             payInfoCache.setUserName(user.getRealName());
             payInfoCache.setIdCard(user.getIdCard());
@@ -182,7 +176,6 @@ public class PayOrderController {
             if (!checkRenewableDays) {
                 return response.buildFailureResponse(ResCodeEnum.INVALID_RENEWAL_DAYS);
             }
-            Integer basicRenewableDaysTimes = RenewableDaysEnum.getBasicRenewableDaysTimes(period);
 
             LoanOrderEntity loanOrder = loanOrderService.getByOrderId(req.getLoanOrderId());
             if (loanOrder == null || !StatusEnum.LENT.name().equals(loanOrder.getStatus())) {
@@ -193,12 +186,8 @@ public class PayOrderController {
                 return response.buildFailureResponse(ResCodeEnum.ILLEGAL_REPAYMENT);
             }
 
-            ILoanCalculator calculator = loanCalculatorFactory.load(loanOrder);
-            Item realItem = calculator.realItem(System.currentTimeMillis(), loanOrder, PayTypeEnum.REPAY_POSTPONE.name());
-            BigDecimal applyAmount = realItem.sum()
-                    .subtract(realItem.getFieldNumber(FieldTypeEnum.PENALTY))
-                    .multiply(new BigDecimal(basicRenewableDaysTimes))
-                    .add(realItem.getFieldNumber(FieldTypeEnum.PENALTY));
+            Item shouldPayItem = billService.orderShouldPayItem(loanOrder, PayTypeEnum.REPAY_POSTPONE, period);
+            BigDecimal applyAmount = shouldPayItem.sum();
 
             JSONObject data = new JSONObject();
 
