@@ -37,9 +37,6 @@ public enum StatusEnum {
     EXECUTING("执行中"),
     BUNDLED("已绑定"),
 
-    /** 优惠券状态 */
-    USED("已使用"),
-
     /**
      * 放款订单状态
      */

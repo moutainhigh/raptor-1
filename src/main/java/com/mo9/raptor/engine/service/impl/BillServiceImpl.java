@@ -43,7 +43,7 @@ public class BillServiceImpl implements BillService {
     @Override
     public Item orderShouldPayItem(LoanOrderEntity loanOrder, PayTypeEnum payType, Integer postponeDays) {
         Item realItem = this.loanOrderRealItem(loanOrder, payType, postponeDays);
-        CouponEntity couponEntity = couponService.getUserUnboundCoupon(loanOrder.getOwnerId());
+        CouponEntity couponEntity = couponService.getEffectiveBundledCoupon(loanOrder.getOrderId());
         BigDecimal applyAmount = BigDecimal.ZERO;
         if (couponEntity != null && couponEntity.getApplyAmount() != null) {
             applyAmount = couponEntity.getApplyAmount();
@@ -62,7 +62,7 @@ public class BillServiceImpl implements BillService {
         Item orderRealItem = this.loanOrderRealItem(loanOrder, payType, payOrder.getPostponeDays());
         BigDecimal shouldPay = orderRealItem.sum();
 
-        CouponEntity couponEntity = couponService.getUserUnboundCoupon(ownerId);
+        CouponEntity couponEntity = couponService.getEffectiveBundledCoupon(loanOrder.getOrderId());
         BigDecimal applyAmount = BigDecimal.ZERO;
         if (couponEntity != null && couponEntity.getApplyAmount() != null) {
             applyAmount = couponEntity.getApplyAmount();
