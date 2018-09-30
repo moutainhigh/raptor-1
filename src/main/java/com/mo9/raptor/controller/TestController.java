@@ -128,10 +128,9 @@ public class TestController {
      * 修改用户状态
      */
     @RequestMapping("/mq")
-    public BaseResponse<JSONObject> updateUserStatus(HttpServletRequest request){
+    public BaseResponse<JSONObject> updateUserStatus(@RequestParam("sign") String sign, HttpServletRequest request){
         BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
-        String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
-        if (userCode == null || !"28B21099FBDD85467CC01E7B80146FF0".equals(userCode)) {
+        if (!"28B21099FBDD85467CC01E7B80146FF0".equals(sign)) {
             response.setMessage("验签错误");
             return response;
         }
