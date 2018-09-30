@@ -47,9 +47,6 @@ public class SystemController {
     @Autowired
     private DingTalkService dingTalkService ;
 
-    @Autowired
-    private UserService userService;
-
     /**
      * 查询系统是否开启
      * @return
@@ -102,6 +99,5 @@ public class SystemController {
 
         return response.buildSuccessResponse(returnJson) ;
     }
-
 
 }
