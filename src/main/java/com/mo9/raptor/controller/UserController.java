@@ -355,7 +355,7 @@ public class UserController {
             return ResCodeEnum.CAPTCHA_IS_INVALID_GRAPHIC;
         }
 
-        if (!captcha.equals(pinCode)) {
+        if (!captcha.equalsIgnoreCase(pinCode)) {
             return ResCodeEnum.CAPTCHA_CHECK_ERROR_GRAPHIC;
         }
         redisServiceApi.remove(redisCaptchaKey, raptorRedis);
