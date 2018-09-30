@@ -1,12 +1,11 @@
 package com.mo9.raptor.entity;
 
-import com.mo9.raptor.bean.condition.FetchPayOrderCondition;
 import com.mo9.raptor.engine.entity.AbstractStateEntity;
 import com.mo9.raptor.engine.entity.IStateEntity;
 import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.enums.SourceEnum;
 import com.mo9.raptor.utils.Md5Util;
-import com.sun.org.apache.xpath.internal.operations.Bool;
+import org.apache.commons.lang.StringUtils;
 
 import javax.persistence.*;
 
@@ -81,8 +80,13 @@ public class UserEntity extends AbstractStateEntity implements IStateEntity {
      * 注册来源
      */
     @Column(name = "source")
-    @Enumerated(EnumType.STRING)
-    private SourceEnum source;
+    private String source = SourceEnum.WHITE.name();
+
+    /**
+     * 子来源
+     */
+    @Column(name = "sub_source")
+    private String subSource;
 
     /**
      * 手机通讯录完成时间
@@ -250,11 +254,11 @@ public class UserEntity extends AbstractStateEntity implements IStateEntity {
         this.authTime = authTime;
     }
 
-    public SourceEnum getSource() {
+    public String getSource() {
         return source;
     }
 
-    public void setSource(SourceEnum source) {
+    public void setSource(String source) {
         this.source = source;
     }
 
@@ -314,18 +318,31 @@ public class UserEntity extends AbstractStateEntity implements IStateEntity {
         this.loginEnable = loginEnable;
     }
 
+    public String getSubSource() {
+        return subSource;
+    }
+
+    public void setSubSource(String subSource) {
+        this.subSource = subSource;
+    }
+
     /**
      * 构建一个新用户
      * @param mobile
      * @param source
      * @return
      */
-    public static UserEntity buildNewUser(String mobile, SourceEnum source){
+    public static UserEntity buildNewUser(String mobile, String source, String subSource){
         UserEntity userEntity = new UserEntity();
+        if(StringUtils.isBlank(source)){
+            source = SourceEnum.NEW.name();
+            subSource = null;
+        }
         userEntity.setMobile(mobile);
         userEntity.setUserCode(Md5Util.getMD5(mobile).toUpperCase());
         userEntity.setStatus(StatusEnum.COLLECTING.name());
         userEntity.setSource(source);
+        userEntity.setSubSource(subSource);
         long now = System.currentTimeMillis();
         userEntity.setCreateTime(now);
         userEntity.setUpdateTime(now);

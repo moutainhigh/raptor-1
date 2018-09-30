@@ -40,6 +40,8 @@ public enum ResCodeEnum {
     IDCARD_IS_EXIST(11154002,"身份证已存在", "身份证已存在"),
     OCR_IDCARD_IS_EXIST(11154003,"ocr身份证已存在", "ocr身份证已存在"),
     CARD_CREDIT_IS_EXIST(11154004,"身份证信息已存在", "身份证信息已存在"),
+    NOT_SUPPORT_TO_BLACK(11154005, "当前用户不支持拉黑", "当前用户不支持拉黑"),
+    SIGN_CHECK_ERROR(11154006, "签名校验失败", "签名校验失败"),
 
     /**
      * xx=50, 还款
