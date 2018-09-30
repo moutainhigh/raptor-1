@@ -84,7 +84,7 @@ public class MqListenerTest {
 
         List<String> statuses = new ArrayList<String>();
         statuses.add(StatusEnum.DEDUCTING.name());
-        PayOrderEntity payOrderEntity = payOrderService.listByUserAndStatus("3", statuses).get(0);
+        PayOrderEntity payOrderEntity = payOrderService.listByUserAndStatus("123", statuses).get(0);
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("status", "success");
         params.put("channel", "yilianh5pay");

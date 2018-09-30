@@ -5,7 +5,8 @@ public enum ItemTypeEnum {
     PREVIOUS(0, "往期"),
     PERIOD(1, "当期"),
     PREPAY(2, "提前还款项"),
-    ALL(3, "所有"),
+    POSTPONE(3, "延期"),
+    ALL(4, "所有"),
 
     FUTURE(-1, "未到期分期"),
     ;
