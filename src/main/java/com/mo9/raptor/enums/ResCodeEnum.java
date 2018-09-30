@@ -54,6 +54,7 @@ public enum ResCodeEnum {
     PAY_INFO_EXPIRED(11155006, "支付信息已过期", "支付信息已过期"),
     CHANNEL_REPAY_FAILED(11155007, "渠道下单失败", "渠道下单失败"),
     INVALID_REPAY_INFO(11155008, "支付信息非法", "支付信息非法"),
+    ERROR_BANK_CARD(11155009, "非法银行卡", "支付银行卡"),
 
     /**
      * xx=60, 借款

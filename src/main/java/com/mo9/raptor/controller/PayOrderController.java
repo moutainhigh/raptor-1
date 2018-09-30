@@ -234,6 +234,10 @@ public class PayOrderController {
             model.addAttribute("payInfo", payInfoCache);
 
             BankEntity bank = bankService.findByUserCodeLastOne(payInfoCache.getUserCode());
+            if (bank == null) {
+                model.addAttribute("message", ResCodeEnum.ERROR_BANK_CARD.getCode());
+                return "cashier/feedback_fail";
+            }
             /** 默认支付银行卡 */
             model.addAttribute("defaultBank", bank);
 

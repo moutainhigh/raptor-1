@@ -7,7 +7,7 @@ import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
 /**
- * 优惠券创建请求
+ * 优惠券更新请求
  * Created by gqwu on 2018/9/29.
  */
 public class CouponUpdateReq {
