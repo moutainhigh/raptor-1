@@ -1,10 +1,9 @@
 package com.mo9.raptor.engine.calculator;
 
-import com.alibaba.fastjson.JSONObject;
+import com.mo9.raptor.bean.vo.RenewVo;
 import com.mo9.raptor.engine.entity.LoanOrderEntity;
 import com.mo9.raptor.engine.exception.MergeException;
 import com.mo9.raptor.engine.exception.UnSupportTimeDiffException;
-import com.mo9.raptor.engine.structure.Scheme;
 import com.mo9.raptor.engine.structure.item.Item;
 import com.mo9.raptor.exception.LoanEntryException;
 
@@ -56,5 +55,5 @@ public interface ILoanCalculator {
      * @param loanOrder
      * @return
      */
-    List<JSONObject> getRenew (LoanOrderEntity loanOrder);
+    List<RenewVo> getRenew (LoanOrderEntity loanOrder);
 }

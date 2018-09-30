@@ -131,8 +131,8 @@ public class LoanMo9mqListener implements IMqMsgListener{
 		}
 		PayOrderLogEntity payOrderLog = payOrderLogService.getByPayOrderId(orderId);
 		if (payOrderLog == null) {
-			logger.error("还款订单号[{}], 查不到对应的还款log", orderId);
-			return MqAction.CommitMessage;
+			logger.error("还款订单号[{}], 查不到对应的还款log, 可能由于放款请求未结束而MQ先到, 延后再次发送MQ", orderId);
+			return MqAction.ReconsumeLater;
 		}
 		payOrderLog.setChannel(channel);
 		payOrderLog.setThirdChannelNo(channelDealcode);

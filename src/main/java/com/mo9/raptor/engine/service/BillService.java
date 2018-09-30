@@ -1,6 +1,6 @@
 package com.mo9.raptor.engine.service;
 
-import com.alibaba.fastjson.JSONObject;
+import com.mo9.raptor.bean.vo.RenewVo;
 import com.mo9.raptor.engine.entity.LoanOrderEntity;
 import com.mo9.raptor.engine.entity.PayOrderEntity;
 import com.mo9.raptor.engine.structure.item.Item;
@@ -68,5 +68,5 @@ public interface BillService {
      * @param loanOrderEntity
      * @return
      */
-    List<JSONObject> getRenewInfo(LoanOrderEntity loanOrderEntity);
+    List<RenewVo> getRenewInfo(LoanOrderEntity loanOrderEntity);
 }

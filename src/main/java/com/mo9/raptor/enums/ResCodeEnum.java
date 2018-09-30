@@ -40,6 +40,8 @@ public enum ResCodeEnum {
     IDCARD_IS_EXIST(11154002,"身份证已存在", "身份证已存在"),
     OCR_IDCARD_IS_EXIST(11154003,"ocr身份证已存在", "ocr身份证已存在"),
     CARD_CREDIT_IS_EXIST(11154004,"身份证信息已存在", "身份证信息已存在"),
+    NOT_SUPPORT_TO_BLACK(11154005, "当前用户不支持拉黑", "当前用户不支持拉黑"),
+    SIGN_CHECK_ERROR(11154006, "签名校验失败", "签名校验失败"),
 
     /**
      * xx=50, 还款
@@ -52,6 +54,7 @@ public enum ResCodeEnum {
     PAY_INFO_EXPIRED(11155006, "支付信息已过期", "支付信息已过期"),
     CHANNEL_REPAY_FAILED(11155007, "渠道下单失败", "渠道下单失败"),
     INVALID_REPAY_INFO(11155008, "支付信息非法", "支付信息非法"),
+    ERROR_BANK_CARD(11155009, "非法银行卡", "支付银行卡"),
 
     /**
      * xx=60, 借款
@@ -73,7 +76,8 @@ public enum ResCodeEnum {
      */
     EFFECTIVE_COUPON_EXISTED(11158000, "已存在可用优惠券", "已存在可用优惠券"),
     INVALID_COUPON_NUMBER(11158001, "优惠额度不合法", "优惠额度不合法"),
-
+    INVALID_SIGN(11158002, "签名非法", "签名非法"),
+    SIGN_PARAMS_EXTRACT_ERROR(11158003, "签名参数获取", "签名参数获取"),
     ;
 
 
