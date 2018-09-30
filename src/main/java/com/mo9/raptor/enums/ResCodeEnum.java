@@ -73,7 +73,8 @@ public enum ResCodeEnum {
      */
     EFFECTIVE_COUPON_EXISTED(11158000, "已存在可用优惠券", "已存在可用优惠券"),
     INVALID_COUPON_NUMBER(11158001, "优惠额度不合法", "优惠额度不合法"),
-
+    INVALID_SIGN(11158002, "签名非法", "签名非法"),
+    SIGN_PARAMS_EXTRACT_ERROR(11158003, "签名参数获取", "签名参数获取"),
     ;
 
 

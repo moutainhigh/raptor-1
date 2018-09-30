@@ -21,15 +21,21 @@ import com.mo9.raptor.lock.Lock;
 import com.mo9.raptor.lock.RedisService;
 import com.mo9.raptor.redis.RedisLockKeySuffix;
 import com.mo9.raptor.utils.IDWorker;
+import com.mo9.raptor.utils.Md5Encrypt;
 import com.mo9.raptor.utils.log.Log;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
+import org.thymeleaf.spring5.expression.Fields;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -59,6 +65,9 @@ public class CouponController {
     @Autowired
     private IPayOrderService payOrderService;
 
+    @Value("${raptor.sign.key.coupon}")
+    private String signKey ;
+
     /**
      * 创建
      * @param req
@@ -69,6 +78,22 @@ public class CouponController {
         BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
 
         /** 验证签名 */
+        Map<String, String> couponParams = new  HashMap<String, String> ();
+        Field[] fields = req.getClass().getDeclaredFields();
+        try {
+            for (Field field: fields) {
+                field.setAccessible(true);
+                couponParams.put(field.getName(), field.get(req).toString());
+            }
+        } catch (IllegalAccessException e) {
+            return response.buildFailureResponse(ResCodeEnum.SIGN_PARAMS_EXTRACT_ERROR);
+        }
+        String originSign = couponParams.remove("sign");
+        String sign = Md5Encrypt.sign(couponParams, signKey);
+
+        if (!originSign.equalsIgnoreCase(sign)) {
+            return response.buildFailureResponse(ResCodeEnum.INVALID_SIGN);
+        }
 
         /** 验证优惠是否超额 ：优惠金额 <= 当前应还 - （最小应还 - 已入账实际还款） */
         LoanOrderEntity loanOrder = loanOrderService.getByOrderId(req.getBundleId());
