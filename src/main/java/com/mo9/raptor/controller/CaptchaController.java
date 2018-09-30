@@ -126,10 +126,11 @@ public class CaptchaController {
             // 将图像输出到Servlet输出流中。
 
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
             ImageIO.write(validateGraphicCode.getBuffImg(), "png", baos);
             byte[] bytes = baos.toByteArray();
-            String  base64 =  new BASE64Encoder().encodeBuffer(bytes).trim();
-            return "data:image/png;base64,"+base64;
+            String result  = baos.toString("UTF-8").trim();
+            return "data:image/png;base64,"+result;
         }catch (Exception e){
             Log.error(logger, e,"生成图形验证码出现异常");
         }
