@@ -38,10 +38,10 @@ CREATE TABLE t_raptor_coupon (
 
 
 ALTER TABLE `t_raptor_pay_order_detail`
-  ADD COLUMN `dest_type` VARCHAR(64) not null COMMENT '目标' AFTER `owner_id`;
+  ADD COLUMN `dest_type` VARCHAR(64) not null DEFAULT 'LOAN_ORDER' COMMENT '目标' AFTER `owner_id`;
 
 ALTER TABLE `t_raptor_pay_order_detail`
-  ADD COLUMN `source_type` VARCHAR(64) not null COMMENT '入账源类型' AFTER `owner_id`;
+  ADD COLUMN `source_type` VARCHAR(64) not null DEFAULT 'PAY_ORDER' COMMENT '入账源类型' AFTER `owner_id`;
 
 ALTER TABLE `t_raptor_pay_order_detail`
   CHANGE COLUMN `loan_order_id` `destination_id` VARCHAR(64) COMMENT '目标id' AFTER `dest_type`;
@@ -59,3 +59,11 @@ ALTER TABLE `t_raptor_pay_order_log` DROP COLUMN `postpone_count`;
 
 ALTER TABLE `t_raptor_loan_order`
   ADD COLUMN `payoff_time` bigint(20) COMMENT '还清时间' AFTER `postpone_count`;
+
+# 删除之前多插入的CUT_CHARGE数据
+update `t_raptor_pay_order_detail` SET `deleted` = 1 where `field` = 'CUT_CHARGE';
+
+# 修复不正确的数据, 使对账正确
+update t_raptor_pay_order SET owner_id = '1471274AF6B1824CFC1E2BD409605739', channel = 'manual_pay', apply_number = 750, pay_number = 750, entry_number = 750 where id = 87 and loan_order_id = 'TTYQ-229644861098307584';
+update t_raptor_pay_order_detail SET should_pay = 750, paid = 750, owner_id = '1471274AF6B1824CFC1E2BD409605739' where id = 45;
+update  t_raptor_pay_order_detail SET deleted = 1, owner_id = '1471274AF6B1824CFC1E2BD409605739' where id = 46;

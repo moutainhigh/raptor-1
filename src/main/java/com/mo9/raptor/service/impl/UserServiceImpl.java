@@ -184,12 +184,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean isaAllowNewUser() {
-        String dictName = dictService.findDictName(DictEnums.REGISTER_NUM.getDictTypeNo(), DictEnums.REGISTER_NUM.getDictDataNo());
+        String dictName = dictService.findDictName(DictEnums.REGISTER_NUM.getDictTypeNo(), DateUtils.formartDate(new Date()));
         if(org.apache.commons.lang.StringUtils.isBlank(dictName)){
             return false;
         }
         int num = Integer.valueOf(dictName);
-        String key = RedisParams.ALLOW_NEW_USER_REGISTER_KEY + DictEnums.REGISTER_NUM.getDictDataNo();
+        String key = RedisParams.ALLOW_NEW_USER_REGISTER_KEY + DateUtils.formartDate(new Date());
         Integer redisNum = (Integer) redisServiceApi.get(key, redisTemplate);
         if(redisNum == null || redisNum < num){
             return true;
@@ -199,7 +199,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void addAllowNewUserNum(){
-        String key = RedisParams.ALLOW_NEW_USER_REGISTER_KEY + DictEnums.REGISTER_NUM.getDictDataNo();
+        String key = RedisParams.ALLOW_NEW_USER_REGISTER_KEY + DateUtils.formartDate(new Date());
         Integer num = (Integer) redisServiceApi.get(key, redisTemplate);
         if(num == null){
             num = 1;

@@ -1,8 +1,5 @@
 package com.mo9.raptor.enums;
 
-import com.mo9.raptor.utils.DateUtils;
-
-import java.util.Date;
 
 /**
  * Created by jyou on 2018/9/28.
@@ -12,7 +9,7 @@ import java.util.Date;
  * 数据字典服务key
  */
 public enum  DictEnums {
-    REGISTER_NUM("NEW_REGISTER_USER", DateUtils.formartDate(new Date()), "每天限制注册新用户数量"),
+    REGISTER_NUM("NEW_REGISTER_USER", null, "每天限制注册新用户数量"),
             ;
     private String dictTypeNo;
 
