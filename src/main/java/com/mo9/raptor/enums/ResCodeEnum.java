@@ -29,8 +29,10 @@ public enum ResCodeEnum {
     CAPTCHA_TOKEN_INVALID(11152006, "验证码token已失效", "验证码token已失效"),
     CAPTCHA_SEND_FAILED(11152007, "验证码发送失败", "验证码发送失败"),
     CAPTCHA_CHECK_TOO_OFTEN(11152008, "验证码校验过于频繁", "验证码校验过于频繁"),
+    CAPTCHA_IS_INVALID_GRAPHIC(11152009,"图形验证码已失效,请重试" ,"图形验证码已失效,请重试" ),
+    CAPTCHA_CHECK_ERROR_GRAPHIC(11152010, "图形验证码错误","图形验证码错误"),
 
-    // xx=30 登录相关
+            // xx=30 登录相关
     MOBILE_NOT_MEET_THE_REQUIRE(11153001, "手机号不符合要求", "手机号不符合要求"),
     NOT_WHITE_LIST_USER(11153002, "非白名单用户", "非白名单用户"),
 
@@ -77,8 +79,8 @@ public enum ResCodeEnum {
     EFFECTIVE_COUPON_EXISTED(11158000, "已存在可用优惠券", "已存在可用优惠券"),
     INVALID_COUPON_NUMBER(11158001, "优惠额度不合法", "优惠额度不合法"),
     INVALID_SIGN(11158002, "签名非法", "签名非法"),
-    SIGN_PARAMS_EXTRACT_ERROR(11158003, "签名参数获取", "签名参数获取"),
-    ;
+    SIGN_PARAMS_EXTRACT_ERROR(11158003, "签名参数获取", "签名参数获取")
+  ;
 
 
     /**

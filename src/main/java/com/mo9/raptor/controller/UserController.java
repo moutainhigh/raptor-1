@@ -352,11 +352,11 @@ public class UserController {
 
         String pinCode = (String) redisServiceApi.get(redisCaptchaKey, raptorRedis);
         if (StringUtils.isBlank(pinCode) || StringUtils.isBlank(captcha)) {
-            return ResCodeEnum.CAPTCHA_IS_INVALID;
+            return ResCodeEnum.CAPTCHA_IS_INVALID_GRAPHIC;
         }
 
-        if (!captcha.equals(pinCode)) {
-            return ResCodeEnum.CAPTCHA_CHECK_ERROR;
+        if (!captcha.equalsIgnoreCase(pinCode)) {
+            return ResCodeEnum.CAPTCHA_CHECK_ERROR_GRAPHIC;
         }
         redisServiceApi.remove(redisCaptchaKey, raptorRedis);
        return ResCodeEnum.SUCCESS;
