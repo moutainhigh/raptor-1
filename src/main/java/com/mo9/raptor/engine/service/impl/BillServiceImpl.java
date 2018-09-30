@@ -114,15 +114,17 @@ public class BillServiceImpl implements BillService {
     @Override
     public List<RenewVo> getRenewInfo(LoanOrderEntity loanOrderEntity) {
         List<RenewVo> renews = loanCalculator.getRenew(loanOrderEntity);
-        CouponEntity couponEntity = couponService.getEffectiveBundledCoupon(loanOrderEntity.getOrderId());
-        BigDecimal applyAmount = BigDecimal.ZERO;
-        if (couponEntity != null && couponEntity.getApplyAmount() != null) {
-            applyAmount = couponEntity.getApplyAmount();
-        }
+        if (renews != null && renews.size() > 0) {
+            CouponEntity couponEntity = couponService.getEffectiveBundledCoupon(loanOrderEntity.getOrderId());
+            BigDecimal applyAmount = BigDecimal.ZERO;
+            if (couponEntity != null && couponEntity.getApplyAmount() != null) {
+                applyAmount = couponEntity.getApplyAmount();
+            }
 
-        // 减去减免金额
-        for (RenewVo renew : renews) {
-            renew.setAmount(renew.getAmount().subtract(applyAmount));
+            // 减去减免金额
+            for (RenewVo renew : renews) {
+                renew.setAmount(renew.getAmount().subtract(applyAmount));
+            }
         }
         return renews;
     }
