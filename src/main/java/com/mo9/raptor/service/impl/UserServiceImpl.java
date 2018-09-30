@@ -220,9 +220,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Page<Map<String,Object>> getRegisterUserNumber(String source, String subSource, PageReq pageReq) {
+    public Page<Map<String,Object>> getRegisterUserNumber(String source, PageReq pageReq) {
         Pageable pageable = new PageRequest(pageReq.getPage() -1, pageReq.getSize(), pageReq.getDirection(), pageReq.getProperty());
-        Page<Map<String,Object>> registerUserNumber = userRepository.findRegisterUserNumber(source, subSource, pageReq.getStartTime(), pageReq.getEndTime(), pageable);
+        Page<Map<String,Object>> registerUserNumber = userRepository.findRegisterUserNumber(source, pageReq.getStartTime(), pageReq.getEndTime(), pageable);
         return registerUserNumber;
     }
     @Override

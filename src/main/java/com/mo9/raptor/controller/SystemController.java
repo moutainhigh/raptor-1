@@ -2,16 +2,20 @@ package com.mo9.raptor.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.bean.BaseResponse;
+import com.mo9.raptor.bean.req.PageReq;
 import com.mo9.raptor.engine.utils.TimeUtils;
+import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.service.CommonService;
 import com.mo9.raptor.service.DingTalkService;
+import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.CommonValues;
 import com.mo9.raptor.utils.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -42,6 +46,9 @@ public class SystemController {
 
     @Autowired
     private DingTalkService dingTalkService ;
+
+    @Autowired
+    private UserService userService;
 
     /**
      * 查询系统是否开启
@@ -95,5 +102,6 @@ public class SystemController {
 
         return response.buildSuccessResponse(returnJson) ;
     }
+
 
 }

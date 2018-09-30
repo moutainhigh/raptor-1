@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<html lang="en" xmlns="http://www.thymeleaf.org" xmlns:th="http://www.w3.org/1999/xhtml">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 	<title>Login</title>
 	<style type="text/css">
@@ -63,28 +64,11 @@
 
 <div class="login">
 	<h1>渠道商后台系统</h1>
-	<form method="post">
-		<input id="user-name" type="text" name="username" placeholder="用户名" required="required">
-		<input id="password" type="password" name="password" placeholder="密码" required="required">
-		<button id="login" type="submit" class="btn btn-primary btn-block btn-large">登录</button>
+	<form method="post" th:action="@{/outside/to_login}"  >
+		<input type="text" name="userName" placeholder="用户名" required="required">
+		<input type="password" name="password" placeholder="密码" required="required">
+		<span th:text="${message}" style="font-family:verdana;color:red"></span>
+		<button type="submit" class="btn btn-primary btn-block btn-large">登录</button>
 	</form>
 </div>
-
-<div style="text-align:center;">
-
-</div>
-<script type="text/javascript">
-    $('#login').click(function () {
-  var params={"password":$('#password').val(),"userName":$('#user-name').val()}
-        $.post("/outside/to_login	",params,function(response){
-            var code = response.code;
-            var message = response.message;
-            if (code != 0) {
-                window.location.href = 'failed?code='+code + "&message=" + message;
-            } else {
-              window.location.href = 'outside/get_register_number?source='+source;
-            }
-        },"json");
-    });
-</script>
 </body></html>

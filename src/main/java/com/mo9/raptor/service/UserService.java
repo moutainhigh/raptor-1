@@ -110,11 +110,10 @@ public interface UserService {
     /**
      * 获取用户注册数量
      * @param source
-     * @param subSource
      * @param pageReq
      * @return
      */
-    Page<Map<String,Object>> getRegisterUserNumber(String source, String subSource, PageReq pageReq);
+    Page<Map<String,Object>> getRegisterUserNumber(String source,PageReq pageReq);
     /**
      * 拉黑用户
      * @param userEntity
