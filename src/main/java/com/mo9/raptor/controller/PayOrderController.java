@@ -335,7 +335,7 @@ public class PayOrderController {
             payOrderLog.setBankMobile(bank.getMobile());
 
             payOrderLog.create();
-            payOrderService.savePayOrderAndLog(payOrder, payOrderLog);
+            payOrderService.savePayOrderAndLogAndNotice(payOrder, payOrderLog);
 
             redisServiceApi.remove(RedisParams.PAY_CODE + code, raptorRedis);
 
@@ -415,7 +415,7 @@ public class PayOrderController {
             payOrderLog.setBankMobile(mobile);
 
             payOrderLog.create();
-            payOrderService.savePayOrderAndLog(payOrder, payOrderLog);
+            payOrderService.savePayOrderAndLogAndNotice(payOrder, payOrderLog);
 
             redisServiceApi.remove(RedisParams.PAY_CODE + code, raptorRedis);
 
