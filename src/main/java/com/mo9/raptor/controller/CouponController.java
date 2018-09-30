@@ -175,29 +175,4 @@ public class CouponController {
 
         return response;
     }
-
-    public static void main(String[] args){
-        CouponCreateReq req = new CouponCreateReq();
-        req.setNumber(new BigDecimal("6.9"));
-        req.setCreator("张轩");
-        req.setReason("测试优惠券");
-        req.setBundleId("TTYQ-231079448303251456");
-        req.setSign("");
-
-        Map<String, String> couponParams = new  HashMap<String, String> ();
-        Field[] fields = req.getClass().getDeclaredFields();
-        try {
-            for (Field field: fields) {
-                field.setAccessible(true);
-                couponParams.put(field.getName(), field.get(req).toString());
-            }
-        } catch (IllegalAccessException e) {
-            logger.info("报错");
-
-        }
-        String originSign = couponParams.remove("sign");
-        String sign = Md5Encrypt.sign(couponParams, "0123456789");
-        System.out.println(sign);
-    }
-
 }
