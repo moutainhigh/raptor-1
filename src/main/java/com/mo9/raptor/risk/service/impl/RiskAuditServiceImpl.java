@@ -76,6 +76,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
     @Override
     public AuditResponseEvent audit(String userCode) {
         UserEntity user = userService.findByUserCodeAndDeleted(userCode, false);
+        //没收到通话记录则先跳过
         if (!user.getReceiveCallHistory()) {
             return null;
         }
@@ -83,6 +84,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         AuditResponseEvent finalResult = null;
         AuditResponseEvent res;
 
+        //不在白名单内需要多运行一个通话记录规则
         if (!SourceEnum.WHITE.equals(user.getSource())) {
             logger.info(userCode + "开始运行规则[ContactsRule]");
             res = contactsRule(userCode);
@@ -152,6 +154,12 @@ public class RiskAuditServiceImpl implements RiskAuditService {
     private static final int HTTP_OK = 200;
     private static final int ERROR_SCORE_CODE = -1;
 
+    /**
+     * 通讯录规则【通讯录数量大于30条，180天内主动拨打通讯录中电话10次及以上】
+     *
+     * @param userCode
+     * @return
+     */
     AuditResponseEvent contactsRule(String userCode) {
         int contactsLimit = 30;
         int orignCallLimit = 10;
@@ -162,11 +170,13 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         String json = userContacts.getContactsList();
         try {
             JSONArray jsonArray;
+            //有2种JSON格式...
             if (json.startsWith("{")) {
                 jsonArray = JSON.parseObject(json).getJSONArray("contact");
             } else {
                 jsonArray = JSON.parseArray(json);
             }
+            //通讯录电话HASHSET
             HashSet<String> allMobileSet = new HashSet<>();
             for (int i = 0; i < jsonArray.size(); i++) {
                 String mobile = MobileUtil.processMobile(jsonArray.getJSONObject(i).getString("contact_mobile"));
@@ -179,7 +189,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
             }
             int count = 0;
             HashSet<String> inListMobiles = new HashSet<>();
-            //MYCAI限制1000条
+            //MYCAI限制1000条 所以这边有个分页
             List<TRiskCallLog> allCallLog = new ArrayList<>();
             Long lastId = 0L;
             while (true) {
@@ -192,6 +202,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
                 }
             }
             for (TRiskCallLog tRiskCallLog : allCallLog) {
+                //主叫 && 在通讯录内
                 if (ORIGN_CALL.equals(tRiskCallLog.getCallMethod()) && allMobileSet.contains(tRiskCallLog.getCallTel())) {
                     count++;
                     inListMobiles.add(tRiskCallLog.getCallTel());
@@ -211,6 +222,12 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         }
     }
 
+    /**
+     * 身份证照片与公安照比对
+     *
+     * @param userCode
+     * @return
+     */
     AuditResponseEvent idPicCompareRule(String userCode) {
         UserCertifyInfoEntity userCertifyInfo = userCertifyInfoService.findByUserCode(userCode);
         double limit = 0.7;
@@ -226,6 +243,11 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         return new AuditResponseEvent(userCode, false, "查询不到用户" + userCode + "数据");
     }
 
+    /**
+     * 活体照与公安照片对比
+     * @param userCode
+     * @return
+     */
     AuditResponseEvent livePicCompareRule(String userCode) {
         UserCertifyInfoEntity userCertifyInfo = userCertifyInfoService.findByUserCode(userCode);
         double limit = 0.7;
@@ -241,6 +263,12 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         return new AuditResponseEvent(userCode, false, "查询不到用户" + userCode + "数据");
     }
 
+    /**
+     * 照片防HACK
+     *
+     * @param userCode
+     * @return
+     */
     AuditResponseEvent antiHackRule(String userCode) {
         UserCertifyInfoEntity userCertifyInfo = userCertifyInfoService.findByUserCode(userCode);
         double limit = 0.98;
@@ -256,6 +284,12 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         return new AuditResponseEvent(userCode, false, "查询不到用户" + userCode + "数据");
     }
 
+    /**
+     * 通话记录规则 【用户最近180天通话记录大于100条】
+     *
+     * @param userCode
+     * @return
+     */
     AuditResponseEvent callLogRule(String userCode) {
         Long days180ts = 180 * 24 * 60 * 60 * 1000L;
         long currentTimeMillis = System.currentTimeMillis();

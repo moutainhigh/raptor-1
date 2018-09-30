@@ -78,6 +78,7 @@ public class UserController {
         String mobile = loginByCodeReq.getMobile();
         String source = loginByCodeReq.getSource();
         String subSource = loginByCodeReq.getSubSource();
+        String captchaKey = loginByCodeReq.getCaptchaKey();
         boolean isNewUser = false;
         //校验手机号是否合法，不合法登录失败
         boolean check = RegexUtils.checkChinaMobileNumber(mobile);
@@ -89,7 +90,7 @@ public class UserController {
             //判断是否需要校验图形验证码
             ResCodeEnum checkGraphic = null;
             if(StringUtils.isNotBlank(source)){
-                checkGraphic = checkGraphic(loginByCodeReq.getCaptcha(), RedisParams.GRAPHIC_CAPTCHA_KEY + mobile);
+                checkGraphic = checkGraphic(loginByCodeReq.getCaptcha(), RedisParams.GRAPHIC_CAPTCHA_KEY + captchaKey);
             }
             if(checkGraphic != null && ResCodeEnum.SUCCESS != checkGraphic){
                 logger.warn("用户登录----->>>>图形验证码校验失败mobile={}", mobile);

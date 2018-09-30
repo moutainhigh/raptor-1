@@ -106,7 +106,7 @@ public class CaptchaController {
      * @throws IOException
      */
     @RequestMapping(value = "/send_graph_code")
-    public void getGraphicCode(HttpServletResponse request, @RequestParam("mobile") String captchaKey) throws IOException {
+    public void getGraphicCode(HttpServletResponse request, @RequestParam("captchaKey") String captchaKey) throws IOException {
 
         try{
             //生成图形验证码
