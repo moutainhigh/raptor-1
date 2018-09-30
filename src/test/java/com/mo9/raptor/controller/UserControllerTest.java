@@ -44,7 +44,7 @@ public class UserControllerTest {
     private static final String cloneHostUrl = "https://riskclone.mo9.com/raptorApi/";
 
     Map<String, String> headers = new HashMap<>();
-    String mobile = "13213173515";
+    String mobile = "13213173516";
     @Before
     public void before() {
         headers.put("Account-Code", "123");
@@ -93,10 +93,10 @@ public class UserControllerTest {
         try {
             JSONObject json = new JSONObject();
             json.put("mobile", mobile);
-            json.put("code", "363193");
-            json.put("captcha", "F5YJS");
-            json.put("source", "TEST");
-            json.put("subSource", "TEST_SUB");
+            json.put("code", "820566");
+//            json.put("captcha", "F5YJS");
+//            json.put("source", "TEST");
+//            json.put("subSource", "TEST_SUB");
             String url = "user/login_by_code";
             HttpResult resJson = httpClientApi.doPostJson(localHostUrl + url, json.toJSONString());
             System.out.println(resJson.getCode());

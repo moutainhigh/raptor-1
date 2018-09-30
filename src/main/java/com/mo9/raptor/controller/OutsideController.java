@@ -8,12 +8,14 @@ import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.Md5Util;
 import com.mo9.raptor.utils.log.Log;
 import org.slf4j.Logger;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * Created by jyou on 2018/9/29.
@@ -54,5 +56,13 @@ public class OutsideController {
             Log.error(logger,e,"拉黑用户----->>>>发生异常,userCode={}", userCode);
             return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
         }
+    }
+
+    @GetMapping(value = "/to_source_login")
+    public String toSourceLogin(Model model, String source, String subSource) {
+        model.addAttribute("source",source);
+        model.addAttribute("subSource", subSource);
+        model.addAttribute("uri","");
+        return "/test";
     }
 }
