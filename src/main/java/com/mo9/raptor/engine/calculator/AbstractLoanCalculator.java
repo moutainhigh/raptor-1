@@ -1,6 +1,6 @@
 package com.mo9.raptor.engine.calculator;
 
-import com.alibaba.fastjson.JSONObject;
+import com.mo9.raptor.bean.vo.RenewVo;
 import com.mo9.raptor.engine.entity.LoanOrderEntity;
 import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.engine.structure.Unit;
@@ -214,17 +214,17 @@ public abstract class AbstractLoanCalculator implements ILoanCalculator {
     }
 
     @Override
-    public List<JSONObject> getRenew (LoanOrderEntity loanOrder) {
+    public List<RenewVo> getRenew (LoanOrderEntity loanOrder) {
         if (!StatusEnum.LENT.name().equals(loanOrder.getStatus())) {
             return null;
         }
-        List<JSONObject> renew = new ArrayList<JSONObject>();
+        List<RenewVo> renew = new ArrayList<RenewVo>();
         for (int i = 1; i <= 2; i++) {
             Item item = this.realItem(System.currentTimeMillis(), loanOrder, PayTypeEnum.REPAY_POSTPONE.name(), loanOrder.getLoanTerm() * i);
-            JSONObject unit = new JSONObject();
-            unit.put("period", loanOrder.getLoanTerm() * i);
-            unit.put("amount", item.sum());
-            renew.add(unit);
+            RenewVo vo = new RenewVo();
+            vo.setPeriod(loanOrder.getLoanTerm() * i);
+            vo.setAmount(item.sum());
+            renew.add(vo);
         }
         return renew;
     }
