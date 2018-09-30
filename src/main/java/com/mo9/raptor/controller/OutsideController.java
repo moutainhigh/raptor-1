@@ -112,9 +112,9 @@ public class OutsideController {
                 model.addAttribute("message","帐号或密码错误");
                 return "channel/login";
             }
-            //设置登录成功
-            redisServiceApi.set(RedisParams.ACTION_TOKEN_LONG+userName,spreadChannelUser,RedisParams.EXPIRE_30M,raptorRedis);
         }
+        //设置登录成功
+        redisServiceApi.set(RedisParams.ACTION_TOKEN_LONG+userName,spreadChannelUser,RedisParams.EXPIRE_1D,raptorRedis);
         Page<Map<String, Object>> registerUser = userService.getRegisterUserNumber(spreadChannelUser.getSource(),  new PageReq());
         List<Map<String, Object>> content = registerUser.getContent();
         model.addAttribute("resultList",content);
