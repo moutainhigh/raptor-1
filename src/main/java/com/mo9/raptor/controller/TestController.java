@@ -4,9 +4,11 @@ import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.bean.BaseResponse;
 import com.mo9.raptor.bean.ReqHeaderParams;
 import com.mo9.raptor.engine.entity.LoanOrderEntity;
+import com.mo9.raptor.engine.entity.PayOrderEntity;
 import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.engine.service.ILoanOrderService;
-import com.mo9.raptor.entity.RabbitProducerMqEntity;
+import com.mo9.raptor.engine.service.IPayOrderService;
+import com.mo9.raptor.entity.PayOrderLogEntity;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.CaptchaBusinessEnum;
 import com.mo9.raptor.enums.ResCodeEnum;
@@ -14,6 +16,7 @@ import com.mo9.raptor.mq.listen.LoanMo9mqListener;
 import com.mo9.raptor.mq.producer.RabbitProducer;
 import com.mo9.raptor.redis.RedisParams;
 import com.mo9.raptor.redis.RedisServiceApi;
+import com.mo9.raptor.service.PayOrderLogService;
 import com.mo9.raptor.service.RabbitProducerMqService;
 import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.log.Log;
@@ -21,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -56,7 +60,13 @@ public class TestController {
     private RabbitProducer rabbitProducer;
 
     @Autowired
+    private PayOrderLogService payOrderLogService;
+
+    @Autowired
     private LoanMo9mqListener loanMo9mqListener;
+
+    @Autowired
+    private IPayOrderService payOrderService;
 
     @Resource(name = "raptorRedis")
     private RedisTemplate raptorRedis;
@@ -120,20 +130,35 @@ public class TestController {
     @RequestMapping("/mq")
     public BaseResponse<JSONObject> updateUserStatus(HttpServletRequest request){
         BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
-        List<LoanOrderEntity> loanOrderEntities = loanOrderService.listByStatus(Arrays.asList(StatusEnum.LENT));
-        if (loanOrderEntities == null || loanOrderEntities.size() == 0) {
-            response.setMessage("无订单");
+        String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
+        if (userCode == null || !"28B21099FBDD85467CC01E7B80146FF0".equals(userCode)) {
+            response.setMessage("验签错误");
             return response;
         }
 
-        for (LoanOrderEntity loanOrderEntity : loanOrderEntities) {
-            RabbitProducerMqEntity producerMqEntity = rabbitProducerMqService.findByMessageKey(loanOrderEntity.getOrderId());
-            if (producerMqEntity != null) {
-                logger.info("订单[{}]已发送过mq, 跳过", loanOrderEntity.getOrderId());
-                continue;
-            }
-            loanMo9mqListener.notifyMisLend(loanOrderEntity.getOrderId());
+        List<PayOrderEntity> payOrderEntities = payOrderService.findByStatus(StatusEnum.ENTRY_DONE.name());
+        for (PayOrderEntity payOrderEntity : payOrderEntities) {
+            LoanOrderEntity loanOrderEntity = loanOrderService.getByOrderId(payOrderEntity.getLoanOrderId());
+
+            PayOrderLogEntity payOrderLogEntity = payOrderLogService.getByPayOrderId(payOrderEntity.getOrderId());
+
+            loanMo9mqListener.notifyMisRepay(payOrderLogEntity, loanOrderEntity.getPostponeCount(), loanOrderEntity);
         }
+
+//        List<LoanOrderEntity> loanOrderEntities = loanOrderService.listByStatus(Arrays.asList(StatusEnum.LENT));
+//        if (loanOrderEntities == null || loanOrderEntities.size() == 0) {
+//            response.setMessage("无订单");
+//            return response;
+//        }
+//
+//        for (LoanOrderEntity loanOrderEntity : loanOrderEntities) {
+//            RabbitProducerMqEntity producerMqEntity = rabbitProducerMqService.findByMessageKey(loanOrderEntity.getOrderId());
+//            if (producerMqEntity != null) {
+//                logger.info("订单[{}]已发送过mq, 跳过", loanOrderEntity.getOrderId());
+//                continue;
+//            }
+//            loanMo9mqListener.notifyMisLend(loanOrderEntity.getOrderId());
+//        }
         response.setMessage("ok");
         return response;
     }
