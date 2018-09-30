@@ -1,5 +1,6 @@
 package com.mo9.raptor.service.impl;
 
+import com.mo9.raptor.bean.req.PageReq;
 import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.engine.state.action.impl.user.UserAuditAction;
 import com.mo9.raptor.engine.state.event.impl.AuditLaunchEvent;
@@ -18,6 +19,9 @@ import com.mo9.raptor.utils.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +30,7 @@ import org.springframework.util.StringUtils;
 import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author zma
@@ -214,6 +219,12 @@ public class UserServiceImpl implements UserService {
         return userRepository.findNoCallLogReports();
     }
 
+    @Override
+    public Page<Map<String,Object>> getRegisterUserNumber(String source, PageReq pageReq) {
+        Pageable pageable = new PageRequest(pageReq.getPage() -1, pageReq.getSize(), pageReq.getDirection(), pageReq.getProperty());
+        Page<Map<String,Object>> registerUserNumber = userRepository.findRegisterUserNumber(source, pageReq.getStartTime(), pageReq.getEndTime(), pageable);
+        return registerUserNumber;
+    }
     @Override
     public void toBlackUser(UserEntity userEntity, String desc) throws Exception {
         BlackEvent event = new BlackEvent(userEntity.getUserCode(), desc);

@@ -1,6 +1,6 @@
 package com.mo9.raptor.bean.res;
 
-import com.alibaba.fastjson.JSONObject;
+import com.mo9.raptor.bean.vo.RenewVo;
 import com.mo9.raptor.exception.BaseException;
 
 import java.util.List;
@@ -21,7 +21,7 @@ public class LoanOrderRes {
 
     private String receiveBankCard;
 
-    private List<JSONObject> renew;
+    private List<RenewVo> renew;
 
     private String agreementUrl;
 
@@ -73,11 +73,11 @@ public class LoanOrderRes {
         this.receiveBankCard = receiveBankCard;
     }
 
-    public List<JSONObject> getRenew() {
+    public List<RenewVo> getRenew() {
         return renew;
     }
 
-    public void setRenew(List<JSONObject> renew) {
+    public void setRenew(List<RenewVo> renew) {
         this.renew = renew;
     }
 

@@ -1,6 +1,6 @@
 package com.mo9.raptor.engine.service.impl;
 
-import com.alibaba.fastjson.JSONObject;
+import com.mo9.raptor.bean.vo.RenewVo;
 import com.mo9.raptor.engine.calculator.ILoanCalculator;
 import com.mo9.raptor.engine.entity.CouponEntity;
 import com.mo9.raptor.engine.entity.LoanOrderEntity;
@@ -112,7 +112,20 @@ public class BillServiceImpl implements BillService {
     }
 
     @Override
-    public List<JSONObject> getRenewInfo(LoanOrderEntity loanOrderEntity) {
-        return loanCalculator.getRenew(loanOrderEntity);
+    public List<RenewVo> getRenewInfo(LoanOrderEntity loanOrderEntity) {
+        List<RenewVo> renews = loanCalculator.getRenew(loanOrderEntity);
+        if (renews != null && renews.size() > 0) {
+            CouponEntity couponEntity = couponService.getEffectiveBundledCoupon(loanOrderEntity.getOrderId());
+            BigDecimal applyAmount = BigDecimal.ZERO;
+            if (couponEntity != null && couponEntity.getApplyAmount() != null) {
+                applyAmount = couponEntity.getApplyAmount();
+            }
+
+            // 减去减免金额
+            for (RenewVo renew : renews) {
+                renew.setAmount(renew.getAmount().subtract(applyAmount));
+            }
+        }
+        return renews;
     }
 }
