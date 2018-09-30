@@ -160,7 +160,12 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         UserContactsEntity userContacts = userContactsService.getByUserCode(userCode);
         String json = userContacts.getContactsList();
         try {
-            JSONArray jsonArray = JSON.parseArray(json);
+            JSONArray jsonArray;
+            if (json.startsWith("{")) {
+                jsonArray = JSON.parseObject(json).getJSONArray("contact");
+            } else {
+                jsonArray = JSON.parseArray(json);
+            }
             HashSet<String> allMobileSet = new HashSet<>();
             for (int i = 0; i < jsonArray.size(); i++) {
                 String mobile = MobileUtil.processMobile(jsonArray.getJSONObject(i).getString("contact_mobile"));

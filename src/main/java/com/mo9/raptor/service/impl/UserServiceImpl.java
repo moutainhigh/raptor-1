@@ -4,6 +4,7 @@ import com.mo9.raptor.bean.req.PageReq;
 import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.engine.state.action.impl.user.UserAuditAction;
 import com.mo9.raptor.engine.state.event.impl.AuditLaunchEvent;
+import com.mo9.raptor.engine.state.event.impl.user.BlackEvent;
 import com.mo9.raptor.engine.state.launcher.IEventLauncher;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.BankAuthStatusEnum;
@@ -223,5 +224,10 @@ public class UserServiceImpl implements UserService {
         Pageable pageable = new PageRequest(pageReq.getPage() -1, pageReq.getSize(), pageReq.getDirection(), pageReq.getProperty());
         Page<Map<String,Object>> registerUserNumber = userRepository.findRegisterUserNumber(source, subSource, pageReq.getStartTime(), pageReq.getEndTime(), pageable);
         return registerUserNumber;
+    }
+    @Override
+    public void toBlackUser(UserEntity userEntity, String desc) throws Exception {
+        BlackEvent event = new BlackEvent(userEntity.getUserCode(), desc);
+        userEventLauncher.launch(event);
     }
 }

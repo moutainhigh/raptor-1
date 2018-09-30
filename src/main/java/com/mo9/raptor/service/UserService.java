@@ -115,4 +115,10 @@ public interface UserService {
      * @return
      */
     Page<Map<String,Object>> getRegisterUserNumber(String source, String subSource, PageReq pageReq);
+    /**
+     * 拉黑用户
+     * @param userEntity
+     * @param desc
+     */
+    void toBlackUser(UserEntity userEntity, String desc) throws Exception;
 }

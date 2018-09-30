@@ -16,6 +16,22 @@ public class LoginByCodeReq {
 
     @NotBlank(message = "验证码不能为空")
     private String code;
+
+    /**
+     * 图形验证码
+     */
+    private String captcha;
+
+    /**
+     * 来源
+     */
+    private String source;
+
+    /**
+     * 子来源
+     */
+    private String subSource;
+
     public String getMobile() {
         return mobile;
     }
@@ -30,5 +46,29 @@ public class LoginByCodeReq {
 
     public void setCode(String code) {
         this.code = code;
+    }
+
+    public String getCaptcha() {
+        return captcha;
+    }
+
+    public void setCaptcha(String captcha) {
+        this.captcha = captcha;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+
+    public String getSubSource() {
+        return subSource;
+    }
+
+    public void setSubSource(String subSource) {
+        this.subSource = subSource;
     }
 }
