@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
@@ -179,7 +180,17 @@ public class RiskAuditServiceImpl implements RiskAuditService {
             int count = 0;
             HashSet<String> inListMobiles = new HashSet<>();
             //MYCAI限制1000条
-            List<TRiskCallLog> allCallLog = riskCallLogRepository.getCallLogByMobileAfterTimestamp(user.getMobile(), (currentTimeMillis - days180ts) / 1000, ORIGN_CALL);
+            List<TRiskCallLog> allCallLog = new ArrayList<>();
+            Long lastId = 0L;
+            while (true) {
+                List<TRiskCallLog> list = riskCallLogRepository.getCallLogByMobileAfterTimestamp(user.getMobile(), (currentTimeMillis - days180ts) / 1000, ORIGN_CALL, lastId);
+                allCallLog.addAll(list);
+                if (list.size() == 0) {
+                    break;
+                } else {
+                    lastId = list.get(list.size() - 1).getId();
+                }
+            }
             for (TRiskCallLog tRiskCallLog : allCallLog) {
                 if (ORIGN_CALL.equals(tRiskCallLog.getCallMethod()) && allMobileSet.contains(tRiskCallLog.getCallTel())) {
                     count++;
