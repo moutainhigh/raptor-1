@@ -153,7 +153,7 @@ public class PayOrderServiceImpl implements IPayOrderService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void savePayOrderAndLog(PayOrderEntity payOrder, PayOrderLogEntity payOrderLog) {
+    public void savePayOrderAndLogAndNotice(PayOrderEntity payOrder, PayOrderLogEntity payOrderLog) {
         this.save(payOrder);
         payOrderLogService.save(payOrderLog);
 
@@ -163,6 +163,12 @@ public class PayOrderServiceImpl implements IPayOrderService {
         } catch (Exception e) {
             logger.error("还款订单[{}]审核事件错误", payOrder.getOrderId(), e);
         }
+    }
+
+    @Override
+    public void savePayOrderAndLog(PayOrderEntity payOrder, PayOrderLogEntity payOrderLog) {
+        this.save(payOrder);
+        payOrderLogService.save(payOrderLog);
     }
 
     @Override

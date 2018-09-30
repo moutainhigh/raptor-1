@@ -145,13 +145,16 @@ public class LoanMo9mqListener implements IMqMsgListener{
 		// 发送还款扣款成功事件
 		try {
 			try {
-				CardBinInfoEntity cardBinInfoEntity = cardBinInfoService.findByCardPrefix(payOrderLog.getBankCard());
-				String bankName = "银行卡" ;
-				if(cardBinInfoEntity != null){
-                    bankName = cardBinInfoEntity.getCardBank() ;
+                Boolean offline = bodyJson.getBoolean("offline");
+			    if (offline == null || !offline) {
+                    CardBinInfoEntity cardBinInfoEntity = cardBinInfoService.findByCardPrefix(payOrderLog.getBankCard());
+                    String bankName = "银行卡" ;
+                    if(cardBinInfoEntity != null){
+                        bankName = cardBinInfoEntity.getCardBank() ;
+                    }
+                    bankService.createOrUpdateBank( payOrderLog.getBankCard() ,  payOrderLog.getIdCard() ,  payOrderLog.getUserName() ,
+                            payOrderLog.getBankMobile() ,  bankName ,  payOrderLog.getUserCode());
                 }
-				bankService.createOrUpdateBank( payOrderLog.getBankCard() ,  payOrderLog.getIdCard() ,  payOrderLog.getUserName() ,
-                        payOrderLog.getBankMobile() ,  bankName ,  payOrderLog.getUserCode());
 			} catch (Exception e) {
 				Log.error(logger , e , "还款成功保存银行卡异常 orderId : " + orderId);
 			}
