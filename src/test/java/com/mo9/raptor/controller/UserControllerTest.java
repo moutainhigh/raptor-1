@@ -2,6 +2,7 @@ package com.mo9.raptor.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.RaptorApplicationTest;
+import com.mo9.raptor.enums.DictEnums;
 import com.mo9.raptor.service.BankService;
 import com.mo9.raptor.utils.GatewayUtils;
 import com.mo9.raptor.utils.httpclient.HttpClientApi;

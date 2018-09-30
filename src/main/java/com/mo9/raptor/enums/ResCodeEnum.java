@@ -63,12 +63,18 @@ public enum ResCodeEnum {
     NO_LEND_AMOUNT(11156002, "今日额度已发放完毕，请明天尽早申请！", "今日无放款限额，请明天再来!"),
     PRODUCT_ERROR(11156003, "产品配置表错误", "系统繁忙，请稍后重试"),
     NO_LEND_INFO(11156004, "放款银行信息不存在", "放款失败"),
+    LOAN_ORDER_NOT_EXISTED(11156005, "借款订单不存在", "借款订单不存在"),
 
     /**
      * xx=70,文件
      */
     FILE_SIZE_TOO_MAX(11157000, "文件超过大小限制", "文件超过大小限制"),
 
+    /**
+     * xx=80, 优惠券
+     */
+    EFFECTIVE_COUPON_EXISTED(11158000, "已存在可用优惠券", "已存在可用优惠券"),
+    INVALID_COUPON_NUMBER(11158001, "优惠额度不合法", "优惠额度不合法"),
 
     ;
 

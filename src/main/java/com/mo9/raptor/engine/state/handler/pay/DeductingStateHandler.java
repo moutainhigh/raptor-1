@@ -1,6 +1,7 @@
 package com.mo9.raptor.engine.state.handler.pay;
 
 import com.mo9.raptor.engine.calculator.LoanCalculatorFactory;
+import com.mo9.raptor.engine.service.BillService;
 import com.mo9.raptor.engine.service.ILoanOrderService;
 import com.mo9.raptor.engine.service.IPayOrderService;
 import com.mo9.raptor.engine.state.action.IActionExecutor;
@@ -37,7 +38,7 @@ public class DeductingStateHandler implements IStateHandler<PayOrderEntity> {
     private ILoanOrderService loanOrderService;
 
     @Autowired
-    private LoanCalculatorFactory calculatorFactory;
+    private BillService billService;
 
     @Override
     public PayOrderEntity handle(PayOrderEntity payOrder, IEvent event, IActionExecutor actionExecutor) throws InvalidEventException {
@@ -49,7 +50,7 @@ public class DeductingStateHandler implements IStateHandler<PayOrderEntity> {
                 payOrder.setPayNumber(deductResponseEvent.getActualDeducted());
                 payOrder.setPayTime(deductResponseEvent.getEventTime());
                 /** 此处相当于在扣款成功后，自动发起入账 */
-                actionExecutor.append(new EntryExecuteAction(payOrder.getOrderId(), payOrderService, loanOrderService, loanEventLauncher, calculatorFactory));
+                actionExecutor.append(new EntryExecuteAction(payOrder.getOrderId(), payOrderService, loanOrderService, loanEventLauncher, billService));
             } else {
                 payOrder.setStatus(StatusEnum.DEDUCT_FAILED.name());
             }

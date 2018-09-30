@@ -1,6 +1,7 @@
 package com.mo9.raptor.engine.state.handler.pay;
 
 import com.mo9.raptor.engine.calculator.LoanCalculatorFactory;
+import com.mo9.raptor.engine.service.BillService;
 import com.mo9.raptor.engine.service.ILoanOrderService;
 import com.mo9.raptor.engine.service.IPayOrderService;
 import com.mo9.raptor.engine.state.action.IActionExecutor;
@@ -33,14 +34,14 @@ public class EntryFailedStateHandler implements IStateHandler<PayOrderEntity> {
     private ILoanOrderService loanOrderService;
 
     @Autowired
-    private LoanCalculatorFactory calculatorFactory;
+    private BillService billService;
 
     @Override
     public PayOrderEntity handle(PayOrderEntity payOrder, IEvent event, IActionExecutor actionExecutor) throws InvalidEventException {
 
         if (event instanceof EntryLaunchEvent) {
             payOrder.setStatus(StatusEnum.ENTRY_DOING.name());
-            actionExecutor.append(new EntryExecuteAction(payOrder.getOrderId(), payOrderService, loanOrderService, loanEventLauncher, calculatorFactory));
+            actionExecutor.append(new EntryExecuteAction(payOrder.getOrderId(), payOrderService, loanOrderService, loanEventLauncher, billService));
         } else {
             throw new InvalidEventException("还款订单状态与事件类型不匹配，状态：" + payOrder.getStatus() + "，事件：" + event);
         }
