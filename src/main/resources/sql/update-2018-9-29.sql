@@ -19,5 +19,6 @@ CREATE TABLE `t_raptor_spread_channel` (
   KEY `login_name` (`login_name`) USING BTREE,
   KEY `password` (`password`)
 ) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT;
+INSERT INTO `t_raptor_spread_channel` (`id`, `channel_code`, `login_name`, `password`, `email`, `source`, `mobile`, `sub_source`, `create_time`, `update_time`) VALUES ('1', 'testCode', 'admin', 'mo9@2018', NULL, 'NEW', NULL, NULL, '1514736000000', '1514736000000');
 
 
