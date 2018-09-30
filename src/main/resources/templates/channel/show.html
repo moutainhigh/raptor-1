@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.thymeleaf.org" xmlns:th="http://www.w3.org/1999/xhtml">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+  <style type="text/css">
+    table {
+      border: 1px solid black;
+      text-align: center;
+      border-collapse: collapse;
+    }
+    table thead th {
+      border: 1px solid black;
+    }
+    table tbody td {
+      border: 1px solid black;
+    }
+    body {
+      width: 100%;
+      height:100%;
+      font-family: 'Open Sans', sans-serif;
+      background: #3e7492;
+      filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#3E1D6D', endColorstr='#3e7492',GradientType=1 );
+    }
+  </style>
+</head>
+
+<body>
+<div align="right"><a href="./login">退出登录 </a></div>
+<div align="center">
+  <h2>渠道推广新用户统计表</h2>
+<table cellpadding="0" cellspacing="0" style="margin-top: 20px;"  >
+  <thead>
+  <th>序号</th>
+  <th>渠道名称</th>
+  <th>子渠道</th>
+  <th>注册用户数</th>
+  <th>日期</th>
+  </thead>
+  <tbody>
+  <tr th:each="entries,stat:${resultList}" th:style="'background-color:'+@{${stat.odd}?'#F2F2F2'}">
+    <td th:text="${stat.count}" width=100px></td>
+    <td th:text="${entries['source']}" width=100px></td>
+    <td th:text="${entries['subtd trce']}" width=100px></td>
+    <td th:text="${entries['num']}" width=100px></td>
+    <td th:text="${entries['date']}" width=100px></td>
+  </tr>
+  </tbody>
+</table>
+</div>
+</body>
+
+</html>
