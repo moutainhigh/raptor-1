@@ -272,7 +272,7 @@ public class TestController {
             return response.buildFailureResponse(ResCodeEnum.USER_NOT_EXIST);
         }
 
-        LoanOrderEntity loanOrder = loanOrderService.getLastIncompleteOrder(userEntity.getUserCode());
+        LoanOrderEntity loanOrder = loanOrderService.getLastIncompleteOrder(userEntity.getUserCode(), Arrays.asList(StatusEnum.LENT.name()));
         if (loanOrder == null) {
             return response.buildFailureResponse(ResCodeEnum.LOAN_ORDER_NOT_EXISTED);
         }
@@ -394,14 +394,4 @@ public class TestController {
         loanMo9mqListener.consume(message, null);
         return response;
     }
-
-//    public static void main(String[] args){
-//        Map<String, String> signParams = new  HashMap<String, String> ();
-//        signParams.put("userCode", "123");
-//        signParams.put("type", "REPAY");
-//        signParams.put("amount", "750");
-//        signParams.put("accessUserCode", "0E85007DC2B3852AD5EF198763049E83");
-//        String resultSign = Md5Encrypt.sign(signParams, "mo9123456");
-//        System.out.println(resultSign);
-//    }
 }
