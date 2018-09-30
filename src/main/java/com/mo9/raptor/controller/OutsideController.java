@@ -1,6 +1,7 @@
 package com.mo9.raptor.controller;
 
 import com.mo9.raptor.bean.BaseResponse;
+import com.mo9.raptor.bean.req.PageReq;
 import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.entity.SpreadChannelEntity;
 import com.mo9.raptor.entity.UserEntity;
