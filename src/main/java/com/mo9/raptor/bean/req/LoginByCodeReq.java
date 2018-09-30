@@ -32,6 +32,11 @@ public class LoginByCodeReq {
      */
     private String subSource;
 
+    /**
+     * 图形验证码标识
+     */
+    private String captchaKey;
+
     public String getMobile() {
         return mobile;
     }
@@ -70,5 +75,13 @@ public class LoginByCodeReq {
 
     public void setSubSource(String subSource) {
         this.subSource = subSource;
+    }
+
+    public String getCaptchaKey() {
+        return captchaKey;
+    }
+
+    public void setCaptchaKey(String captchaKey) {
+        this.captchaKey = captchaKey;
     }
 }

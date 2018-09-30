@@ -8,11 +8,10 @@ import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.Md5Util;
 import com.mo9.raptor.utils.log.Log;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -23,7 +22,7 @@ import javax.servlet.http.HttpServletRequest;
  * @author jyou
  * 对外暴露接口
  */
-@RestController
+@Controller
 @RequestMapping(value = "/outside")
 public class OutsideController {
 
@@ -31,10 +30,14 @@ public class OutsideController {
 
     private static Logger logger = Log.get();
 
+//    @Value("${raptor.url}")
+    private String raptorUrl;
+
     @Resource
     private UserService userService;
 
     @GetMapping(value = "/to_black_user")
+    @ResponseBody
     public BaseResponse<Boolean> toBlackUser(@RequestParam("userCode") String userCode, @RequestParam("desc")String desc, @RequestParam("sign")String sign){
         BaseResponse<Boolean> response = new BaseResponse<Boolean>();
         try{
@@ -58,11 +61,19 @@ public class OutsideController {
         }
     }
 
+    /**
+     * 暂时无用 TODO
+     * @param model
+     * @param source
+     * @param subSource
+     * @return
+     */
     @GetMapping(value = "/to_source_login")
-    public String toSourceLogin(Model model, String source, String subSource) {
+    public String toSourceLogin(Model model, @RequestParam("source") String source, @RequestParam("subSource") String subSource) {
         model.addAttribute("source",source);
         model.addAttribute("subSource", subSource);
-        model.addAttribute("uri","");
+        model.addAttribute("host",raptorUrl);
+        //返回地址 todo ukar
         return "/test";
     }
 }
