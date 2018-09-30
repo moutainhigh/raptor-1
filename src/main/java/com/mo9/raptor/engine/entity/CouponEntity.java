@@ -24,58 +24,47 @@ public class CouponEntity extends AbstractStateEntity {
     private String couponId;
 
     /**
-     * 优惠券类型
-     */
-    @Column(name = "coupon_type")
-    private String couponType;
-
-    /**
-     * 绑定用户唯一标识
-     */
-    @Column(name = "owner_id")
-    private String ownerId;
-
-    /**
-     * 绑定订单号, 绑定订单后有值
+     * 绑定订单号
      */
     @Column(name = "bound_order_id")
     private String boundOrderId;
 
     /**
-     * 使用特别限制
-     */
-    @Column(name = "condition")
-    private String condition;
-
-    /**
-     * 可优惠金额, 绑定订单后有值
+     * 优惠券面值
      */
     @Column(name = "apply_amount")
-    private String applyAmount;
+    private BigDecimal applyAmount;
 
     /**
      * 已入账金额, 绑定订单后有值
      */
     @Column(name = "entry_amount")
-    private String entryAmount;
+    private BigDecimal entryAmount;
 
     /**
      * 生效起始日期
      */
     @Column(name = "effective_date")
-    private String effectiveDate;
+    private Long effectiveDate;
 
     /**
      * 失效日期
      */
     @Column(name = "expire_date")
-    private String expireDate;
+    private Long expireDate;
 
     /**
      * 入账结束时间
      */
     @Column(name = "end_time")
-    private String endTime;
+    private Long endTime = -1L;
+
+    @Column(name = "creator")
+    private String creator;
+
+    @Column(name = "reason")
+    private String reason;
+
 
     public String getCouponId() {
         return couponId;
@@ -83,22 +72,6 @@ public class CouponEntity extends AbstractStateEntity {
 
     public void setCouponId(String couponId) {
         this.couponId = couponId;
-    }
-
-    public String getCouponType() {
-        return couponType;
-    }
-
-    public void setCouponType(String couponType) {
-        this.couponType = couponType;
-    }
-
-    public String getOwnerId() {
-        return ownerId;
-    }
-
-    public void setOwnerId(String ownerId) {
-        this.ownerId = ownerId;
     }
 
     public String getBoundOrderId() {
@@ -109,51 +82,59 @@ public class CouponEntity extends AbstractStateEntity {
         this.boundOrderId = boundOrderId;
     }
 
-    public String getCondition() {
-        return condition;
-    }
-
-    public void setCondition(String condition) {
-        this.condition = condition;
-    }
-
-    public String getApplyAmount() {
+    public BigDecimal getApplyAmount() {
         return applyAmount;
     }
 
-    public void setApplyAmount(String applyAmount) {
+    public void setApplyAmount(BigDecimal applyAmount) {
         this.applyAmount = applyAmount;
     }
 
-    public String getEntryAmount() {
+    public BigDecimal getEntryAmount() {
         return entryAmount;
     }
 
-    public void setEntryAmount(String entryAmount) {
+    public void setEntryAmount(BigDecimal entryAmount) {
         this.entryAmount = entryAmount;
     }
 
-    public String getEffectiveDate() {
+    public Long getEffectiveDate() {
         return effectiveDate;
     }
 
-    public void setEffectiveDate(String effectiveDate) {
+    public void setEffectiveDate(Long effectiveDate) {
         this.effectiveDate = effectiveDate;
     }
 
-    public String getExpireDate() {
+    public Long getExpireDate() {
         return expireDate;
     }
 
-    public void setExpireDate(String expireDate) {
+    public void setExpireDate(Long expireDate) {
         this.expireDate = expireDate;
     }
 
-    public String getEndTime() {
+    public Long getEndTime() {
         return endTime;
     }
 
-    public void setEndTime(String endTime) {
+    public void setEndTime(Long endTime) {
         this.endTime = endTime;
+    }
+
+    public String getCreator() {
+        return creator;
+    }
+
+    public void setCreator(String creator) {
+        this.creator = creator;
+    }
+
+    public String getReason() {
+        return reason;
+    }
+
+    public void setReason(String reason) {
+        this.reason = reason;
     }
 }

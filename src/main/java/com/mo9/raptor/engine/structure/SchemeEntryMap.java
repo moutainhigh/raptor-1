@@ -20,31 +20,4 @@ public class SchemeEntryMap extends HashMap<EntryEnum, Scheme> {
         this.put(EntryEnum.PAY_STRATEGY, payStrategyScheme);
         this.put(EntryEnum.COUPON_STRATEGY, couponStrategyScheme);
     }
-
-    public BigDecimal fromPay () {
-        return this.get(EntryEnum.PAY_LOAN).sum()
-                .add(this.get(EntryEnum.PAY_STRATEGY).sum());
-    }
-
-    public SchemeEntryMap merge (SchemeEntryMap schemeEntryMap) throws MergeException {
-
-
-        if (schemeEntryMap == null || schemeEntryMap.size() == 0) {
-            return this;
-        }
-//        if (this.size() == 0) {
-//            return schemeEntryMap;
-//        }
-
-        for (Entry<EntryEnum, Scheme> entry: schemeEntryMap.entrySet()) {
-            Scheme scheme = this.get(entry.getKey());
-            if (scheme == null) {
-                this.put(entry.getKey(), entry.getValue());
-            } else {
-                this.put(entry.getKey(), scheme.merge(entry.getValue()));
-            }
-        }
-
-        return this;
-    }
 }

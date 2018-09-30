@@ -25,16 +25,28 @@ public class PayOrderDetailEntity extends BaseEntity {
     private String ownerId;
 
     /**
+     * 销帐类型  BillDestinationTypeEnum
+     */
+    @Column(name = "dest_type")
+    private String destType;
+
+    /**
      * 还的借款订单
      */
-    @Column(name = "loan_order_id")
-    private String loanOrderId;
+    @Column(name = "destination_id")
+    private String destinationId;
+
+    /**
+     * 入账源类型  BillSourceTypeEnum
+     */
+    @Column(name = "source_type")
+    private String sourceType;
 
     /**
      * 还款订单
      */
-    @Column(name = "pay_order_id")
-    private String payOrderId;
+    @Column(name = "source_id")
+    private String sourceId;
 
     /**
      * 支付币种
@@ -80,20 +92,20 @@ public class PayOrderDetailEntity extends BaseEntity {
         this.ownerId = ownerId;
     }
 
-    public String getLoanOrderId() {
-        return loanOrderId;
+    public String getDestinationId() {
+        return destinationId;
     }
 
-    public void setLoanOrderId(String loanOrderId) {
-        this.loanOrderId = loanOrderId;
+    public void setDestinationId(String destinationId) {
+        this.destinationId = destinationId;
     }
 
-    public String getPayOrderId() {
-        return payOrderId;
+    public String getSourceId() {
+        return sourceId;
     }
 
-    public void setPayOrderId(String payOrderId) {
-        this.payOrderId = payOrderId;
+    public void setSourceId(String sourceId) {
+        this.sourceId = sourceId;
     }
 
     public String getPayCurrency() {
@@ -142,6 +154,22 @@ public class PayOrderDetailEntity extends BaseEntity {
 
     public void setPaid(BigDecimal paid) {
         this.paid = paid;
+    }
+
+    public String getDestType() {
+        return destType;
+    }
+
+    public void setDestType(String destType) {
+        this.destType = destType;
+    }
+
+    public String getSourceType() {
+        return sourceType;
+    }
+
+    public void setSourceType(String sourceType) {
+        this.sourceType = sourceType;
     }
 
     public void create() {

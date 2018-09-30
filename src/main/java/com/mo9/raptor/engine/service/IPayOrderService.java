@@ -2,7 +2,6 @@ package com.mo9.raptor.engine.service;
 
 import com.mo9.raptor.bean.condition.FetchPayOrderCondition;
 import com.mo9.raptor.engine.entity.PayOrderEntity;
-import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.entity.PayOrderLogEntity;
 import com.mo9.raptor.enums.PayTypeEnum;
 import org.springframework.data.domain.Page;
@@ -14,6 +13,9 @@ import java.util.List;
  * Created by xzhang on 2018/7/6.
  */
 public interface IPayOrderService {
+
+    /** 获取已入账的借贷还款 */
+    List<PayOrderEntity> listEntryDonePayLoan(String loanOrderId, List<String> types) ;
 
 
     /**

@@ -23,4 +23,9 @@ public enum PayTypeEnum {
     PayTypeEnum(String explanation){
         this.explanation = explanation;
     }
+
+    /**
+     * 订单进行中的状态
+     */
+    public static final List<String> PAY_LOAN = Arrays.asList(REPAY_IN_ADVANCE.name(), REPAY_AS_PLAN.name(), REPAY_OVERDUE.name());
 }
