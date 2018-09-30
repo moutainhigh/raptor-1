@@ -3,6 +3,7 @@ package com.mo9.raptor.controller;
 import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.bean.BaseResponse;
 import com.mo9.raptor.bean.req.CouponCreateReq;
+import com.mo9.raptor.bean.req.CouponUpdateReq;
 import com.mo9.raptor.engine.calculator.ILoanCalculator;
 import com.mo9.raptor.engine.calculator.LoanCalculatorFactory;
 import com.mo9.raptor.engine.entity.CouponEntity;
@@ -126,22 +127,26 @@ public class CouponController {
 
                 /** 验证是否已存在有效优惠券 */
                 CouponEntity effectiveCoupon = couponService.getEffectiveBundledCoupon(req.getBundleId());
-                if (effectiveCoupon != null) {
-                    return response.buildFailureResponse(ResCodeEnum.EFFECTIVE_COUPON_EXISTED);
+                if (effectiveCoupon == null) {
+                    /** 创建优惠券 */
+                    effectiveCoupon = new CouponEntity();
+                    effectiveCoupon.setCouponId(String.valueOf(idWorker.nextId()));
+                    Long today = TimeUtils.extractDateTime(System.currentTimeMillis());
+                    effectiveCoupon.setEffectiveDate(today);
+                    effectiveCoupon.setExpireDate(today + EngineStaticValue.DAY_MILLIS);
+                    effectiveCoupon.setStatus(StatusEnum.BUNDLED.name());
+                    effectiveCoupon.setCreator(req.getCreator());
+                    effectiveCoupon.setReason(req.getReason());
+                    effectiveCoupon.setBoundOrderId(req.getBundleId());
+                } else {
+                    logger.info("操作者[{}]将优惠券[{}]由于[{}]原因将金额由[{}]更改为[{}]", req.getCreator(), effectiveCoupon.getCouponId(), req.getReason(), effectiveCoupon.getApplyAmount(), req.getNumber());
                 }
 
-                /** 创建优惠券 */
-                CouponEntity coupon = new CouponEntity();
-                coupon.setCouponId(String.valueOf(idWorker.nextId()));
-                coupon.setApplyAmount(req.getNumber());
-                coupon.setBoundOrderId(req.getBundleId());
-                Long today = TimeUtils.extractDateTime(System.currentTimeMillis());
-                coupon.setEffectiveDate(today);
-                coupon.setExpireDate(today + EngineStaticValue.DAY_MILLIS);
-                coupon.setCreator(req.getCreator());
-                coupon.setReason(req.getReason());
-                coupon.setStatus(StatusEnum.BUNDLED.name());
-                couponService.save(coupon);
+                /**
+                 * 仅仅可以更新金额
+                 */
+                effectiveCoupon.setApplyAmount(req.getNumber());
+                couponService.save(effectiveCoupon);
 
                 response.setCode(0);
                 response.setMessage("成功");
@@ -157,6 +162,18 @@ public class CouponController {
         } finally {
             redisService.release(lock);
         }
+    }
+
+    /**
+     * 更新, 暂时无用
+     * @param req
+     * @return
+     */
+    @PostMapping("/update")
+    public BaseResponse<JSONObject> update(@Valid @RequestBody CouponUpdateReq req, HttpServletRequest request) {
+        BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
+
+        return response;
     }
 
 }
