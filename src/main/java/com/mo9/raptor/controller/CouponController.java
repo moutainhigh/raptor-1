@@ -134,4 +134,16 @@ public class CouponController {
         }
     }
 
+    /**
+     * 创建
+     * @param req
+     * @return
+     */
+    @PostMapping("/update")
+    public BaseResponse<JSONObject> update(@Valid @RequestBody CouponCreateReq req, HttpServletRequest request) {
+        BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
+
+        return response;
+    }
+
 }
