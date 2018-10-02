@@ -94,7 +94,7 @@ public class LoanOrderController {
         String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
         String clientId = request.getHeader(ReqHeaderParams.CLIENT_ID);
         String clientVersion = request.getHeader(ReqHeaderParams.CLIENT_VERSION);
-
+        logger.info("order/add方法开始，usercode:"+userCode);
         // 检查用户是否存在及是否合法
         UserEntity user = userService.findByUserCodeAndStatus(userCode, StatusEnum.PASSED);
         if (user == null) {
@@ -191,6 +191,7 @@ public class LoanOrderController {
 
                 // 保存借款订单, 还款订单
                 loanOrderService.saveLendOrder(loanOrder, lendOrder);
+                logger.info("order/add方法结束，usercode:"+userCode+",loanOrderId:"+loanOrder.getOrderId());
                 return response;
             } else {
                 logger.warn("用户[{}]预借款[{}], 竞争锁失败", userCode);
@@ -200,7 +201,7 @@ public class LoanOrderController {
             Log.error(logger , e ,"借款订单[{}]审核出错", orderId);
             return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
         } finally {
-            redisService.unlock(lock.getName());
+            redisService.release(lock);
         }
     }
 
