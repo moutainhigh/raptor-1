@@ -102,6 +102,30 @@ public class LoanOrderController {
             return response.buildFailureResponse(ResCodeEnum.USER_NOT_EXIST);
         }
 
+        //老用户续借从00开始，新用户借款从12点开始
+        //查询是否是中午12点之前
+        SimpleDateFormat df = new SimpleDateFormat("HH:mm");//设置日期格式
+        Date nowTime =null;
+        Date beginTime = null;
+        Date endTime = null;
+        try {
+            nowTime = df.parse(df.format(new Date()));
+            beginTime = df.parse("00:00");
+            endTime = df.parse("12:00");
+        } catch (Exception e) {
+            Log.error(logger , e ,"时间解析出错");
+        }
+
+        Boolean flag = belongCalendar(nowTime, beginTime, endTime);
+        if(flag){
+            LoanOrderEntity payoffOrder = loanOrderService.getLastIncompleteOrder(userCode, StatusEnum.OLD_PAYOFF);
+            //没有payoff订单的用户不可以借款
+            if(null == payoffOrder){
+                logger.warn("新用户该时间段不能借款,usercode:"+userCode);
+                return response.buildFailureResponse(ResCodeEnum.NO_LEND_AMOUNT);
+            }
+        }
+
         // 检查是否有每日限额配置, 没配直接不让借
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         String dateFormat = sdf.format(new Date());
@@ -143,29 +167,6 @@ public class LoanOrderController {
                     return response.buildFailureResponse(ResCodeEnum.ONLY_ONE_ORDER);
                 }
 
-                //老用户续借从00开始，新用户借款从12点开始
-                //查询是否是中午12点之前
-                SimpleDateFormat df = new SimpleDateFormat("HH:mm");//设置日期格式
-                Date nowTime =null;
-                Date beginTime = null;
-                Date endTime = null;
-                try {
-                    nowTime = df.parse(df.format(new Date()));
-                    beginTime = df.parse("00:00");
-                    endTime = df.parse("12:00");
-                } catch (Exception e) {
-                    Log.error(logger , e ,"时间解析出错");
-                }
-
-                Boolean flag = belongCalendar(nowTime, beginTime, endTime);
-                if(flag){
-                    LoanOrderEntity payoffOrder = loanOrderService.getLastIncompleteOrder(userCode, StatusEnum.OLD_PAYOFF);
-                   //没有payoff订单的用户不可以借款
-                    if(null == payoffOrder){
-                        logger.warn("新用户该时间段不能借款,usercode:"+userCode);
-                        return response.buildFailureResponse(ResCodeEnum.NO_LEND_AMOUNT);
-                    }
-                }
 
                 LoanOrderEntity loanOrder = new LoanOrderEntity();
                 loanOrder.setOrderId(orderId);
