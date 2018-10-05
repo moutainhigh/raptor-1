@@ -1,6 +1,5 @@
 package com.mo9.raptor.controller;
 
-import com.alibaba.fastjson.JSON;
 import com.mo9.raptor.bean.BaseResponse;
 import com.mo9.raptor.bean.req.PageReq;
 import com.mo9.raptor.engine.enums.StatusEnum;
@@ -40,6 +39,9 @@ public class OutsideController {
 
     private static Logger logger = Log.get();
 
+//    @Value("${raptor.url}")
+    private String raptorUrl;
+
     @Resource
     private UserService userService;
 
@@ -75,6 +77,22 @@ public class OutsideController {
             Log.error(logger,e,"拉黑用户----->>>>发生异常,userCode={}", userCode);
             return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
         }
+    }
+
+    /**
+     * 暂时无用 TODO
+     * @param model
+     * @param source
+     * @param subSource
+     * @return
+     */
+    @GetMapping(value = "/to_source_login")
+    public String toSourceLogin(Model model, @RequestParam("source") String source, @RequestParam("subSource") String subSource) {
+        model.addAttribute("source",source);
+        model.addAttribute("subSource", subSource);
+        model.addAttribute("host",raptorUrl);
+        //返回地址 todo ukar
+        return "/test";
     }
     /**
      * 根据日期条件分页获取新用户注册数

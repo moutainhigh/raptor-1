@@ -1,5 +1,7 @@
 package com.mo9.raptor.bean.req;
 
+import org.hibernate.validator.constraints.Length;
+
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
@@ -20,6 +22,7 @@ public class ModifyCertifyReq {
      *身份证
      */
     @NotBlank(message = "身份证不能为空")
+    @Length(min=18, max=18, message="请填写合法的身份证")
     private String idCard;
 
     /**

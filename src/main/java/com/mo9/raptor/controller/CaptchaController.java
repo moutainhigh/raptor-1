@@ -17,11 +17,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import sun.misc.BASE64Encoder;
 
 import javax.annotation.Resource;
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 /**
@@ -106,7 +108,7 @@ public class CaptchaController {
      * @throws IOException
      */
     @RequestMapping(value = "/send_graph_code")
-    public void getGraphicCode(HttpServletResponse request, @RequestParam("mobile") String captchaKey) throws IOException {
+    public String getGraphicCode(HttpServletResponse request, @RequestParam("captchaKey") String captchaKey) throws IOException {
 
         try{
             //生成图形验证码
@@ -116,17 +118,22 @@ public class CaptchaController {
             redisServiceApi.set(RedisParams.GRAPHIC_CAPTCHA_KEY + captchaKey, code, RedisParams.EXPIRE_5M, raptorRedis);
             logger.info("图片验证码: [{}]", code);
             // 禁止图像缓存。
-            request.setHeader("Pragma", "no-cache");
+           /* request.setHeader("Pragma", "no-cache");
             request.setHeader("Cache-Control", "no-cache");
             request.setDateHeader("Expires", 0);
             //设置响应图片格式
-            request.setContentType("image/png");
+            request.setContentType("image/png");*/
             // 将图像输出到Servlet输出流中。
-            ImageIO.write(validateGraphicCode.getBuffImg(), "png", request.getOutputStream());
+
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ImageIO.write(validateGraphicCode.getBuffImg(), "png", baos);
+            byte[] bytes = baos.toByteArray();
+            String  base64 =  new BASE64Encoder().encodeBuffer(bytes).trim();
+            return "data:image/png;base64,"+base64;
         }catch (Exception e){
             Log.error(logger, e,"生成图形验证码出现异常");
         }
-
+        return  null;
     }
 
     /**

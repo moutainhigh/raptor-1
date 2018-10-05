@@ -70,6 +70,12 @@ public interface IPayOrderService {
      * 用户还款, 通知先玩后付
      * @param payOrder
      */
+    void savePayOrderAndLogAndNotice(PayOrderEntity payOrder, PayOrderLogEntity payOrderLog);
+
+    /**
+     * 用户还款
+     * @param payOrder
+     */
     void savePayOrderAndLog(PayOrderEntity payOrder, PayOrderLogEntity payOrderLog);
 
     /**
