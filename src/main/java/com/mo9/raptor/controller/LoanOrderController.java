@@ -117,13 +117,17 @@ public class LoanOrderController {
         }
 
         Boolean flag = belongCalendar(nowTime, beginTime, endTime);
-        if(flag){
-            LoanOrderEntity payoffOrder = loanOrderService.getLastIncompleteOrder(userCode, StatusEnum.OLD_PAYOFF);
-            //没有payoff订单的用户不可以借款
-            if(null == payoffOrder){
+        LoanOrderEntity payoffOrder = loanOrderService.getLastIncompleteOrder(userCode, StatusEnum.OLD_PAYOFF);
+        //没有payoff订单的用户不可以借款
+        if(null == payoffOrder){
+            if(flag){
                 logger.warn("新用户该时间段不能借款,usercode:"+userCode);
                 return response.buildFailureResponse(ResCodeEnum.NO_LEND_AMOUNT);
+            }else{
+                logger.warn("新用户开始借款,usercode:"+userCode);
             }
+        }else{
+            logger.info("老用户开始借款,usercode:" + userCode);
         }
 
         // 检查是否有每日限额配置, 没配直接不让借
