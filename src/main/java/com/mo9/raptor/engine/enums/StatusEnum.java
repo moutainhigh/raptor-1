@@ -71,4 +71,9 @@ public enum StatusEnum {
      */
     public static final List<String> PROCESSING = Arrays.asList(PENDING.name(), PASSED.name(), AUDITING.name(), LENDING.name(), LENT.name());
 
+    /**
+     * 还清订单状态
+     */
+    public static final List<String> OLD_PAYOFF = Arrays.asList(PAYOFF.name());
+
 }
