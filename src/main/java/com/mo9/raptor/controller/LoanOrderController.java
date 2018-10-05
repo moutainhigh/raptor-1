@@ -39,6 +39,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -140,6 +141,30 @@ public class LoanOrderController {
                 LoanOrderEntity loanOrderEntity = loanOrderService.getLastIncompleteOrder(userCode, StatusEnum.PROCESSING);
                 if (loanOrderEntity != null) {
                     return response.buildFailureResponse(ResCodeEnum.ONLY_ONE_ORDER);
+                }
+
+                //老用户续借从00开始，新用户借款从12点开始
+                //查询是否是中午12点之前
+                SimpleDateFormat df = new SimpleDateFormat("HH:mm");//设置日期格式
+                Date nowTime =null;
+                Date beginTime = null;
+                Date endTime = null;
+                try {
+                    nowTime = df.parse(df.format(new Date()));
+                    beginTime = df.parse("00:00");
+                    endTime = df.parse("12:00");
+                } catch (Exception e) {
+                    Log.error(logger , e ,"时间解析出错");
+                }
+
+                Boolean flag = belongCalendar(nowTime, beginTime, endTime);
+                if(flag){
+                    LoanOrderEntity payoffOrder = loanOrderService.getLastIncompleteOrder(userCode, StatusEnum.OLD_PAYOFF);
+                   //没有payoff订单的用户不可以借款
+                    if(null == payoffOrder){
+                        logger.warn("新用户该时间段不能借款,usercode:"+userCode);
+                        return response.buildFailureResponse(ResCodeEnum.NO_LEND_AMOUNT);
+                    }
                 }
 
                 LoanOrderEntity loanOrder = new LoanOrderEntity();
@@ -249,4 +274,44 @@ public class LoanOrderController {
         }
     }
 
+    /**
+     * 判断时间是否在时间段内
+     * @param nowTime
+     * @param beginTime
+     * @param endTime
+     * @return
+     */
+    public static boolean belongCalendar(Date nowTime, Date beginTime, Date endTime) {
+        Calendar date = Calendar.getInstance();
+        date.setTime(nowTime);
+
+        Calendar begin = Calendar.getInstance();
+        begin.setTime(beginTime);
+
+        Calendar end = Calendar.getInstance();
+        end.setTime(endTime);
+
+        if (date.after(begin) && date.before(end)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public static void main(String[] args) {
+        SimpleDateFormat df = new SimpleDateFormat("HH:mm");//设置日期格式
+        Date nowTime =null;
+        Date beginTime = null;
+        Date endTime = null;
+        try {
+            nowTime = df.parse(df.format(new Date()));
+            beginTime = df.parse("22:00");
+            endTime = df.parse("23:00");
+        } catch (Exception e) {
+            Log.error(logger , e ,"时间解析出错");
+        }
+
+        Boolean flag = belongCalendar(nowTime, beginTime, endTime);
+        System.out.println(flag);
+    }
 }
