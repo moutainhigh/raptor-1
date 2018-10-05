@@ -73,6 +73,12 @@ public class RiskAuditServiceImpl implements RiskAuditService {
 
     private static final String ORIGN_CALL = "主叫";
 
+    /**
+     * 审核方法
+     *
+     * @param userCode
+     * @return
+     */
     @Override
     public AuditResponseEvent audit(String userCode) {
         UserEntity user = userService.findByUserCodeAndDeleted(userCode, false);
@@ -88,6 +94,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         if (!SourceEnum.WHITE.equals(user.getSource())) {
             logger.info(userCode + "开始运行规则[ContactsRule]");
             res = contactsRule(userCode);
+            //这里的HIT字段有点歧义，这里的hit为true的话是通过，false为未通过
             ruleLogService.create(userCode, "ContactsRule", res.isPass(), true, res.getExplanation());
             if (!res.isPass()) {
                 finalResult = res;
@@ -245,6 +252,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
 
     /**
      * 活体照与公安照片对比
+     *
      * @param userCode
      * @return
      */
@@ -314,6 +322,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
                     JSONObject jsonObject = JSON.parseObject(json);
                     Integer status = jsonObject.getInteger("status");
                     Integer checkResult = null;
+                    String reportIdcard = null;
                     if (status == 0) {
                         if (jsonObject.containsKey("data")) {
                             JSONObject data = jsonObject.getJSONObject("data");
@@ -322,12 +331,21 @@ public class RiskAuditServiceImpl implements RiskAuditService {
                                 if (userInfo.containsKey("conclusion_of_3_elements_check")) {
                                     checkResult = userInfo.getInteger("conclusion_of_3_elements_check");
                                 }
+                                if (userInfo.containsKey("user_idcard")) {
+                                    reportIdcard = userInfo.getString("user_idcard");
+                                }
                             }
                         }
                     }
                     if (checkResult == null) {
                         return new AuditResponseEvent(userCode, false, userCode + "[" + user.getMobile() + "]报告出错");
                     } else {
+                        //1代表匹配
+                        if (checkResult == 1) {
+                            if (user.getIdCard() == null || !user.getIdCard().toLowerCase().equals(reportIdcard)) {
+                                return new AuditResponseEvent(userCode, false, "用户填的身份证号码与报告匹配不上");
+                            }
+                        }
                         return new AuditResponseEvent(userCode, checkResult == 1 || checkResult == 5 || checkResult == 6, (checkResult == 1 || checkResult == 5 || checkResult == 6) ? "" : "实名三要素未通过");
                     }
                 } else {
