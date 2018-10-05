@@ -342,7 +342,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
                     } else {
                         //1代表匹配
                         if (checkResult == 1) {
-                            if (user.getIdCard() == null || !user.getIdCard().toLowerCase().equals(reportIdcard)) {
+                            if (user.getIdCard() == null ||reportIdcard == null ||!user.getIdCard().toLowerCase().equals(reportIdcard.toLowerCase())) {
                                 return new AuditResponseEvent(userCode, false, "用户填的身份证号码与报告匹配不上");
                             }
                         }
