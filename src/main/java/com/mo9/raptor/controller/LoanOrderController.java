@@ -102,21 +102,37 @@ public class LoanOrderController {
             return response.buildFailureResponse(ResCodeEnum.USER_NOT_EXIST);
         }
 
+
+        // 检查是否有每日限额配置, 没配直接不让借
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        String dateFormat = sdf.format(new Date());
+        DictDataEntity dictData = dictService.findDictData(DictTypeNoEnum.DAILY_LEND_AMOUNT.name(), dateFormat);
+        if (dictData == null) {
+            return response.buildFailureResponse(ResCodeEnum.NO_LEND_AMOUNT);
+        }
+
         //老用户续借从00开始，新用户借款从12点开始
         //查询是否是中午12点之前
         SimpleDateFormat df = new SimpleDateFormat("HH:mm");//设置日期格式
         Date nowTime =null;
         Date beginTime = null;
         Date endTime = null;
+        String nowTimeStr = null;
         try {
-            nowTime = df.parse(df.format(new Date()));
+            nowTimeStr = df.format(new Date());
+            nowTime = df.parse(nowTimeStr);
             beginTime = df.parse("00:00");
             endTime = df.parse("12:00");
         } catch (Exception e) {
             Log.error(logger , e ,"时间解析出错");
         }
+        Boolean flag = false;
+        if("00:00".equals(nowTimeStr)){
+            flag =true;
+        }else{
+            flag = belongCalendar(nowTime, beginTime, endTime);
+        }
 
-        Boolean flag = belongCalendar(nowTime, beginTime, endTime);
         LoanOrderEntity payoffOrder = loanOrderService.getLastIncompleteOrder(userCode, StatusEnum.OLD_PAYOFF);
         //没有payoff订单的用户不可以借款
         if(null == payoffOrder){
@@ -130,13 +146,6 @@ public class LoanOrderController {
             logger.info("老用户开始借款,usercode:" + userCode);
         }
 
-        // 检查是否有每日限额配置, 没配直接不让借
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        String dateFormat = sdf.format(new Date());
-        DictDataEntity dictData = dictService.findDictData(DictTypeNoEnum.DAILY_LEND_AMOUNT.name(), dateFormat);
-        if (dictData == null) {
-            return response.buildFailureResponse(ResCodeEnum.NO_LEND_AMOUNT);
-        }
 
         // 检查借款参数是否合法
         BigDecimal principal = req.getCapital();
@@ -309,9 +318,10 @@ public class LoanOrderController {
         Date beginTime = null;
         Date endTime = null;
         try {
-            nowTime = df.parse(df.format(new Date()));
-            beginTime = df.parse("22:00");
-            endTime = df.parse("23:00");
+            String nowTimeStr = df.format(new Date());
+            nowTime = df.parse(nowTimeStr);
+            beginTime = df.parse("00:27");
+            endTime = df.parse("11:13");
         } catch (Exception e) {
             Log.error(logger , e ,"时间解析出错");
         }
