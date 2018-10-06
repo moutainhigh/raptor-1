@@ -10,9 +10,9 @@ import com.alibaba.fastjson.JSONObject;
 public class StrategyCondition {
 
     /**
-     * 银行卡是否支持策略条件key
+     * 银行卡是否支持策略条件,银行卡名称key
      */
-    public static final String BANK_CONDITION = "BANK_CONDITION";
+    public static final String BANK_NAME_CONDITION = "BANK_NAME_CONDITION";
 
     public static final String[] SUPPORT_BANK = {"中国银行", "工商银行", "建设银行", "交通银行", "储蓄银行", "广发银行", "兴业银行", "中信银行", "广大银行","浦东银行","广州银行","平安银行"};
 
