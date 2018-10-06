@@ -16,6 +16,7 @@ import com.mo9.raptor.service.RuleLogService;
 import com.mo9.raptor.service.UserCertifyInfoService;
 import com.mo9.raptor.service.UserContactsService;
 import com.mo9.raptor.service.UserService;
+import com.mo9.raptor.utils.IdCardUtils;
 import com.mo9.raptor.utils.MobileUtil;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -104,6 +105,17 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         }
 
         if (finalResult == null) {
+            logger.info(userCode + "开始运行规则[IdCardRule]");
+            res = idCardRule(userCode);
+            ruleLogService.create(userCode, "IdCardRule", res.isPass(), true, res.getExplanation());
+            if (!res.isPass()) {
+                finalResult = res;
+            }
+        } else {
+            ruleLogService.create(userCode, "IdCardRule", null, false, "");
+        }
+
+        if (finalResult == null) {
             logger.info(userCode + "开始运行规则[CallLogRule]");
             res = callLogRule(userCode);
             ruleLogService.create(userCode, "CallLogRule", res.isPass(), true, res.getExplanation());
@@ -160,6 +172,30 @@ public class RiskAuditServiceImpl implements RiskAuditService {
 
     private static final int HTTP_OK = 200;
     private static final int ERROR_SCORE_CODE = -1;
+
+    AuditResponseEvent idCardRule(String userCode) {
+        UserEntity user = userService.findByUserCode(userCode);
+        String idCard = user.getIdCard();
+        if (idCard == null) {
+            return new AuditResponseEvent(userCode, false, "获取身份证失败！");
+        }
+        if (idCard.length() == 15) {
+            idCard = IdCardUtils.conver15CardTo18(idCard);
+        }
+        try {
+            String province = IdCardUtils.getProvinceByIdCard(idCard);
+            if ("新疆".equals(province) || "西藏".equals(province)) {
+                int age = IdCardUtils.getAgeByIdCard(idCard);
+                if (age > 30) {
+                    return new AuditResponseEvent(userCode, false, "西藏-新疆-年龄规则");
+                }
+            }
+            return new AuditResponseEvent(userCode, true, "");
+        } catch (Exception e) {
+            return new AuditResponseEvent(userCode, false, "身份证非法");
+        }
+    }
+
 
     /**
      * 通讯录规则【通讯录数量大于30条，180天内主动拨打通讯录中电话10次及以上】
@@ -342,7 +378,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
                     } else {
                         //1代表匹配
                         if (checkResult == 1) {
-                            if (user.getIdCard() == null ||reportIdcard == null ||!user.getIdCard().toLowerCase().equals(reportIdcard.toLowerCase())) {
+                            if (user.getIdCard() == null || reportIdcard == null || !user.getIdCard().toLowerCase().equals(reportIdcard.toLowerCase())) {
                                 return new AuditResponseEvent(userCode, false, "用户填的身份证号码与报告匹配不上");
                             }
                         }
