@@ -110,16 +110,6 @@ public class RiskAuditServiceImpl implements RiskAuditService {
             ruleLogService.create(userCode, "IdCardRule", null, false, "");
         }
 
-        if (finalResult == null) {
-            logger.info(userCode + "开始运行规则[RiskWordRule]");
-            res = riskWordRule(userCode);
-            ruleLogService.create(userCode, "RiskWordRule", res.isPass(), true, res.getExplanation());
-            if (!res.isPass()) {
-                finalResult = res;
-            }
-        } else {
-            ruleLogService.create(userCode, "RiskWordRule", null, false, "");
-        }
 
         if (finalResult == null) {
             logger.info(userCode + "开始运行规则[AgeRule]");
@@ -131,39 +121,52 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         } else {
             ruleLogService.create(userCode, "AgeRule", null, false, "");
         }
-
-        if (finalResult == null) {
-            logger.info(userCode + "开始运行规则[OpenDateRule]");
-            res = riskRuleEngineService.openDateRule(userCode);
-            ruleLogService.create(userCode, "OpenDateRule", res.isPass(), true, res.getExplanation());
-            if (!res.isPass()) {
-                finalResult = res;
-            }
-        } else {
-            ruleLogService.create(userCode, "OpenDateRule", null, false, "");
-        }
-
-        if (finalResult == null) {
-            logger.info(userCode + "开始运行规则[MergencyCallTimesRule]");
-            res = riskRuleEngineService.mergencyCallTimesRule(userCode);
-            ruleLogService.create(userCode, "MergencyCallTimesRule", res.isPass(), true, res.getExplanation());
-            if (!res.isPass()) {
-                finalResult = res;
-            }
-        } else {
-            ruleLogService.create(userCode, "MergencyCallTimesRule", null, false, "");
-        }
-
-        if (finalResult == null) {
-            logger.info(userCode + "开始运行规则[MergencyHadNoDoneOrderRule]");
-            res = riskRuleEngineService.mergencyHadNoDoneOrderRule(userCode);
-            ruleLogService.create(userCode, "MergencyHadNoDoneOrderRule", res.isPass(), true, res.getExplanation());
-            if (!res.isPass()) {
-                finalResult = res;
-            }
-        } else {
-            ruleLogService.create(userCode, "MergencyHadNoDoneOrderRule", null, false, "");
-        }
+//
+//
+//        if (finalResult == null) {
+//            logger.info(userCode + "开始运行规则[RiskWordRule]");
+//            res = riskWordRule(userCode);
+//            ruleLogService.create(userCode, "RiskWordRule", res.isPass(), true, res.getExplanation());
+//            if (!res.isPass()) {
+//                finalResult = res;
+//            }
+//        } else {
+//            ruleLogService.create(userCode, "RiskWordRule", null, false, "");
+//        }
+//
+//
+//        if (finalResult == null) {
+//            logger.info(userCode + "开始运行规则[OpenDateRule]");
+//            res = riskRuleEngineService.openDateRule(userCode);
+//            ruleLogService.create(userCode, "OpenDateRule", res.isPass(), true, res.getExplanation());
+//            if (!res.isPass()) {
+//                finalResult = res;
+//            }
+//        } else {
+//            ruleLogService.create(userCode, "OpenDateRule", null, false, "");
+//        }
+//
+//        if (finalResult == null) {
+//            logger.info(userCode + "开始运行规则[MergencyCallTimesRule]");
+//            res = riskRuleEngineService.mergencyCallTimesRule(userCode);
+//            ruleLogService.create(userCode, "MergencyCallTimesRule", res.isPass(), true, res.getExplanation());
+//            if (!res.isPass()) {
+//                finalResult = res;
+//            }
+//        } else {
+//            ruleLogService.create(userCode, "MergencyCallTimesRule", null, false, "");
+//        }
+//
+//        if (finalResult == null) {
+//            logger.info(userCode + "开始运行规则[MergencyHadNoDoneOrderRule]");
+//            res = riskRuleEngineService.mergencyHadNoDoneOrderRule(userCode);
+//            ruleLogService.create(userCode, "MergencyHadNoDoneOrderRule", res.isPass(), true, res.getExplanation());
+//            if (!res.isPass()) {
+//                finalResult = res;
+//            }
+//        } else {
+//            ruleLogService.create(userCode, "MergencyHadNoDoneOrderRule", null, false, "");
+//        }
 
         /*if (finalResult == null) {
             logger.info(userCode + "开始运行规则[MergencyInJHJJBlackListRule]");
@@ -177,27 +180,27 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         }
         */
 
-        if (finalResult == null) {
-            logger.info(userCode + "开始运行规则[CalledTimesByOneLoanCompanyRule]");
-            res = riskRuleEngineService.calledTimesByOneLoanCompanyRule(userCode);
-            ruleLogService.create(userCode, "CalledTimesByOneLoanCompanyRule", res.isPass(), true, res.getExplanation());
-            if (!res.isPass()) {
-                finalResult = res;
-            }
-        } else {
-            ruleLogService.create(userCode, "CalledTimesByOneLoanCompanyRule", null, false, "");
-        }
-
-        if (finalResult == null) {
-            logger.info(userCode + "开始运行规则[CalledTimesByDifferentLoanCompanyRule]");
-            res = riskRuleEngineService.calledTimesByDifferentLoanCompanyRule(userCode);
-            ruleLogService.create(userCode, "CalledTimesByDifferentLoanCompanyRule", res.isPass(), true, res.getExplanation());
-            if (!res.isPass()) {
-                finalResult = res;
-            }
-        } else {
-            ruleLogService.create(userCode, "CalledTimesByDifferentLoanCompanyRule", null, false, "");
-        }
+//        if (finalResult == null) {
+//            logger.info(userCode + "开始运行规则[CalledTimesByOneLoanCompanyRule]");
+//            res = riskRuleEngineService.calledTimesByOneLoanCompanyRule(userCode);
+//            ruleLogService.create(userCode, "CalledTimesByOneLoanCompanyRule", res.isPass(), true, res.getExplanation());
+//            if (!res.isPass()) {
+//                finalResult = res;
+//            }
+//        } else {
+//            ruleLogService.create(userCode, "CalledTimesByOneLoanCompanyRule", null, false, "");
+//        }
+//
+//        if (finalResult == null) {
+//            logger.info(userCode + "开始运行规则[CalledTimesByDifferentLoanCompanyRule]");
+//            res = riskRuleEngineService.calledTimesByDifferentLoanCompanyRule(userCode);
+//            ruleLogService.create(userCode, "CalledTimesByDifferentLoanCompanyRule", res.isPass(), true, res.getExplanation());
+//            if (!res.isPass()) {
+//                finalResult = res;
+//            }
+//        } else {
+//            ruleLogService.create(userCode, "CalledTimesByDifferentLoanCompanyRule", null, false, "");
+//        }
 
         //不在白名单内需要多运行一个通话记录规则
         if (!WHITE_LIST.equals(user.getSource())) {
