@@ -80,8 +80,8 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
         
         String openDate = telInfo.getOpenDate();
         if (StringUtils.isBlank(openDate)){
-            logger.warn("手机号码 {} 的开户时间为空, 校验失败", mobile);
-            return new AuditResponseEvent(userCode, false, "手机号码的开户时间为空");
+            logger.warn("手机号码 {} 的开户时间为空, 校验通过", mobile);
+            return new AuditResponseEvent(userCode, true, "");
         }
         
         Long openDateMillions = Long.parseLong(openDate);
