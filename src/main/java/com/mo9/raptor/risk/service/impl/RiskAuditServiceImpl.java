@@ -116,6 +116,17 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         }
 
         if (finalResult == null) {
+            logger.info(userCode + "开始运行规则[AgeRule]");
+            res = ageRule(userCode);
+            ruleLogService.create(userCode, "AgeRule", res.isPass(), true, res.getExplanation());
+            if (!res.isPass()) {
+                finalResult = res;
+            }
+        } else {
+            ruleLogService.create(userCode, "AgeRule", null, false, "");
+        }
+
+        if (finalResult == null) {
             logger.info(userCode + "开始运行规则[CallLogRule]");
             res = callLogRule(userCode);
             ruleLogService.create(userCode, "CallLogRule", res.isPass(), true, res.getExplanation());
@@ -172,6 +183,21 @@ public class RiskAuditServiceImpl implements RiskAuditService {
 
     private static final int HTTP_OK = 200;
     private static final int ERROR_SCORE_CODE = -1;
+
+    AuditResponseEvent ageRule(String userCode) {
+        UserEntity user = userService.findByUserCode(userCode);
+        String idCard = user.getIdCard();
+        if (idCard == null) {
+            return new AuditResponseEvent(userCode, false, "获取身份证失败！");
+        }
+        if (idCard.length() == 15) {
+            idCard = IdCardUtils.conver15CardTo18(idCard);
+        }
+        int age = IdCardUtils.getAgeByIdCard(idCard);
+        boolean pass = age >= 18 && age <= 35;
+        return new AuditResponseEvent(userCode, pass, !pass ? "年龄大于35或者小于18" : "");
+
+    }
 
     AuditResponseEvent idCardRule(String userCode) {
         UserEntity user = userService.findByUserCode(userCode);
