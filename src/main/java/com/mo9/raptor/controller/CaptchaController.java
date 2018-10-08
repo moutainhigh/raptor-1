@@ -117,20 +117,12 @@ public class CaptchaController {
             // 存储到redis
             redisServiceApi.set(RedisParams.GRAPHIC_CAPTCHA_KEY + captchaKey, code, RedisParams.EXPIRE_5M, raptorRedis);
             logger.info("图片验证码: [{}]", code);
-            // 禁止图像缓存。
-           /* request.setHeader("Pragma", "no-cache");
-            request.setHeader("Cache-Control", "no-cache");
-            request.setDateHeader("Expires", 0);
-            //设置响应图片格式
-            request.setContentType("image/png");*/
-            // 将图像输出到Servlet输出流中。
 
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-
             ImageIO.write(validateGraphicCode.getBuffImg(), "png", baos);
             byte[] bytes = baos.toByteArray();
-            String result  = baos.toString("UTF-8").trim();
-            return "data:image/png;base64,"+result;
+            String  base64 =  new BASE64Encoder().encodeBuffer(bytes).trim();
+            return "data:image/png;base64,"+base64;
         }catch (Exception e){
             Log.error(logger, e,"生成图形验证码出现异常");
         }
