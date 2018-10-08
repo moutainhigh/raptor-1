@@ -234,164 +234,164 @@ public class TestController {
     /**
      * 线下还款
      */
-    @GetMapping("/offline_repay")
-    public BaseResponse<JSONObject> offlineRepay(
-            @RequestParam("userCode") String userCode,
-            @RequestParam("type") String type,
-            @RequestParam("amount") BigDecimal amount,
-            @RequestParam("accessUserCode") String accessUserCode,
-            @RequestParam("sign") String sign,
-            HttpServletRequest request){
-        BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
-        List<String> access = new ArrayList<String>();
-        access.add("0E85007DC2B3852AD5EF198763049E83");
-        access.add("DD73904B9D39FD45CD7AC4E54F9576A8");
-
-        if (!access.contains(accessUserCode)) {
-            response.setMessage("不可访问");
-            return response;
-        }
-
-        // 检验签名
-        Map<String, String> signParams = new  HashMap<String, String> ();
-        signParams.put("userCode", userCode);
-        signParams.put("type", type);
-        signParams.put("amount", amount.toPlainString());
-        signParams.put("accessUserCode", accessUserCode);
-        String resultSign = Md5Encrypt.sign(signParams, "mo9123456");
-        if (!resultSign.equalsIgnoreCase(sign)) {
-            return response.buildFailureResponse(ResCodeEnum.INVALID_SIGN);
-        }
-
-
-        // 调用人员的实体
-        UserEntity accessUserEntity = userService.findByUserCodeAndDeleted(accessUserCode, false);
-        // 还清人员的实体
-        UserEntity userEntity = userService.findByUserCodeAndDeleted(userCode, false);
-        if (userEntity == null) {
-            return response.buildFailureResponse(ResCodeEnum.USER_NOT_EXIST);
-        }
-
-        LoanOrderEntity loanOrder = loanOrderService.getLastIncompleteOrder(userEntity.getUserCode(), Arrays.asList(StatusEnum.LENT.name()));
-        if (loanOrder == null) {
-            return response.buildFailureResponse(ResCodeEnum.LOAN_ORDER_NOT_EXISTED);
-        }
-        if (!StatusEnum.LENT.name().equals(loanOrder.getStatus())) {
-            return response.buildFailureResponse(ResCodeEnum.ILLEGAL_LOAN_ORDER_STATUE);
-        }
-
-        BigDecimal couponAmount = BigDecimal.ZERO;
-        String payType = null;
-        Integer postponeDays = 0;
-        String channel = "manual_pay";
-
-        // 计算还款信息
-        if (type.equals("REPAY")) {
-            BigDecimal lentNumber = loanOrder.getLentNumber();
-            if (amount.compareTo(lentNumber) < 0) {
-                // 还的钱比放款的要少
-                response.setMessage("至少应还" + lentNumber.toPlainString());
-                return response;
-            }
-            Item payoffRealItem = billService.payoffRealItem(loanOrder);
-            payType = payoffRealItem.getRepaymentType().name();
-            BigDecimal payoffSum = payoffRealItem.sum();
-            if (payoffSum.compareTo(amount) < 0) {
-                // 还的钱过多
-                response.setMessage("还清最多可还" + payoffSum.toPlainString());
-                return response;
-            }
-            couponAmount = payoffSum.subtract(amount);
-        } else if (type.equals("POSTPONE")) {
-            BigDecimal postponeUnitCharge = loanOrder.getPostponeUnitCharge();
-            if (amount.compareTo(postponeUnitCharge) < 0) {
-                // 还的钱比放款的要少
-                response.setMessage("至少应还" + postponeUnitCharge.toPlainString());
-                return response;
-            }
-            postponeDays = 7;
-            Item postponeRealItem = billService.realItem(loanOrder, PayTypeEnum.REPAY_POSTPONE, postponeDays);
-            payType = PayTypeEnum.REPAY_POSTPONE.name();
-            BigDecimal postponeSum = postponeRealItem.sum();
-            if (postponeSum.compareTo(amount) < 0) {
-                response.setMessage("延期最多可还" + postponeSum.toPlainString());
-                return response;
-            }
-            couponAmount = postponeSum.subtract(amount);
-        } else {
-            response.setMessage("不支持的type");
-            return response;
-        }
-
-        // 创建还款
-        String orderId = sockpuppet + "-" + String.valueOf(idWorker.nextId());
-        PayOrderEntity payOrder = new PayOrderEntity();
-        payOrder.setOrderId(orderId);
-        payOrder.setStatus(StatusEnum.DEDUCTING.name());
-        payOrder.setOwnerId(userCode);
-        payOrder.setType(payType);
-        payOrder.setApplyNumber(amount);
-        payOrder.setPostponeDays(postponeDays);
-        payOrder.setLoanOrderId(loanOrder.getOrderId());
-        payOrder.setDescription(System.currentTimeMillis() + ":用户线下还款" + amount.toPlainString() + ", 直接创建扣款中还款订单");
-        payOrder.setPayCurrency(CurrencyEnum.getDefaultCurrency().name());
-        payOrder.setChannel(channel);
-        payOrder.create();
-
-        PayOrderLogEntity payOrderLog = new PayOrderLogEntity();
-        payOrderLog.setIdCard("000000000000000000");
-        payOrderLog.setUserName("线下还款姓名未知");
-        payOrderLog.setRepayAmount(amount);
-        payOrderLog.setUserCode(userCode);
-        payOrderLog.setClientId("线下还款未知");
-        payOrderLog.setClientVersion("线下还款未知");
-        payOrderLog.setBankCard("线下还款未知");
-        payOrderLog.setBankMobile("线下还款未知");
-        payOrderLog.setOrderId(loanOrder.getOrderId());
-        if (PayTypeEnum.REPAY_POSTPONE.name().equals(payType)) {
-            payOrderLog.setFormerRepaymentDate(loanOrder.getRepaymentDate());
-        }
-        payOrderLog.setPayOrderId(payOrder.getOrderId());
-        payOrderLog.setChannel(channel);
-        payOrderLog.create();
-        payOrderService.savePayOrderAndLog(payOrder, payOrderLog);
-
-        // 制作优惠券
-        CouponEntity effectiveBundledCoupon = couponService.getEffectiveBundledCoupon(loanOrder.getOrderId());
-        if (effectiveBundledCoupon == null) {
-            CouponEntity coupon = new CouponEntity();
-            coupon.setCouponId(String.valueOf(idWorker.nextId()));
-            coupon.setBoundOrderId(loanOrder.getOrderId());
-            coupon.setApplyAmount(couponAmount);
-            Long today = TimeUtils.extractDateTime(System.currentTimeMillis());
-            coupon.setEffectiveDate(today);
-            coupon.setExpireDate(today + EngineStaticValue.DAY_MILLIS);
-            coupon.setStatus(StatusEnum.BUNDLED.name());
-            coupon.setCreator(accessUserEntity.getRealName());
-            coupon.setEntryAmount(BigDecimal.ZERO);
-            coupon.setReason("用户线下还清");
-            couponService.save(coupon);
-        } else {
-            logger.info("用户线下还款, 更新优惠券[{}]的金额为[{}], 原金额[{}]", effectiveBundledCoupon.getCouponId(), couponAmount, effectiveBundledCoupon.getApplyAmount());
-            effectiveBundledCoupon.setApplyAmount(couponAmount);
-            couponService.save(effectiveBundledCoupon);
-        }
-
-        // 模拟先玩后付mq还款通知
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put("status", "success");
-        params.put("channel", channel);
-        params.put("amount", payOrder.getApplyNumber());
-        params.put("dealcode", "线下还款未知");
-        params.put("channelDealcode", "线下还款未知");
-        params.put("orderId", payOrder.getOrderId());
-        params.put("offline", true);
-
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("remark", params);
-
-        MqMessage message = new MqMessage("TOPIC", "MQ_RAPTOR_PAYOFF_TAG", jsonObject.toJSONString());
-        loanMo9mqListener.consume(message, null);
-        return response;
-    }
+//    @GetMapping("/offline_repay")
+//    public BaseResponse<JSONObject> offlineRepay(
+//            @RequestParam("userCode") String userCode,
+//            @RequestParam("type") String type,
+//            @RequestParam("amount") BigDecimal amount,
+//            @RequestParam("accessUserCode") String accessUserCode,
+//            @RequestParam("sign") String sign,
+//            HttpServletRequest request){
+//        BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
+//        List<String> access = new ArrayList<String>();
+//        access.add("0E85007DC2B3852AD5EF198763049E83");
+//        access.add("DD73904B9D39FD45CD7AC4E54F9576A8");
+//
+//        if (!access.contains(accessUserCode)) {
+//            response.setMessage("不可访问");
+//            return response;
+//        }
+//
+//        // 检验签名
+//        Map<String, String> signParams = new  HashMap<String, String> ();
+//        signParams.put("userCode", userCode);
+//        signParams.put("type", type);
+//        signParams.put("amount", amount.toPlainString());
+//        signParams.put("accessUserCode", accessUserCode);
+//        String resultSign = Md5Encrypt.sign(signParams, "mo9123456");
+//        if (!resultSign.equalsIgnoreCase(sign)) {
+//            return response.buildFailureResponse(ResCodeEnum.INVALID_SIGN);
+//        }
+//
+//
+//        // 调用人员的实体
+//        UserEntity accessUserEntity = userService.findByUserCodeAndDeleted(accessUserCode, false);
+//        // 还清人员的实体
+//        UserEntity userEntity = userService.findByUserCodeAndDeleted(userCode, false);
+//        if (userEntity == null) {
+//            return response.buildFailureResponse(ResCodeEnum.USER_NOT_EXIST);
+//        }
+//
+//        LoanOrderEntity loanOrder = loanOrderService.getLastIncompleteOrder(userEntity.getUserCode(), Arrays.asList(StatusEnum.LENT.name()));
+//        if (loanOrder == null) {
+//            return response.buildFailureResponse(ResCodeEnum.LOAN_ORDER_NOT_EXISTED);
+//        }
+//        if (!StatusEnum.LENT.name().equals(loanOrder.getStatus())) {
+//            return response.buildFailureResponse(ResCodeEnum.ILLEGAL_LOAN_ORDER_STATUE);
+//        }
+//
+//        BigDecimal couponAmount = BigDecimal.ZERO;
+//        String payType = null;
+//        Integer postponeDays = 0;
+//        String channel = "manual_pay";
+//
+//        // 计算还款信息
+//        if (type.equals("REPAY")) {
+//            BigDecimal lentNumber = loanOrder.getLentNumber();
+//            if (amount.compareTo(lentNumber) < 0) {
+//                // 还的钱比放款的要少
+//                response.setMessage("至少应还" + lentNumber.toPlainString());
+//                return response;
+//            }
+//            Item payoffRealItem = billService.payoffRealItem(loanOrder);
+//            payType = payoffRealItem.getRepaymentType().name();
+//            BigDecimal payoffSum = payoffRealItem.sum();
+//            if (payoffSum.compareTo(amount) < 0) {
+//                // 还的钱过多
+//                response.setMessage("还清最多可还" + payoffSum.toPlainString());
+//                return response;
+//            }
+//            couponAmount = payoffSum.subtract(amount);
+//        } else if (type.equals("POSTPONE")) {
+//            BigDecimal postponeUnitCharge = loanOrder.getPostponeUnitCharge();
+//            if (amount.compareTo(postponeUnitCharge) < 0) {
+//                // 还的钱比放款的要少
+//                response.setMessage("至少应还" + postponeUnitCharge.toPlainString());
+//                return response;
+//            }
+//            postponeDays = 7;
+//            Item postponeRealItem = billService.realItem(loanOrder, PayTypeEnum.REPAY_POSTPONE, postponeDays);
+//            payType = PayTypeEnum.REPAY_POSTPONE.name();
+//            BigDecimal postponeSum = postponeRealItem.sum();
+//            if (postponeSum.compareTo(amount) < 0) {
+//                response.setMessage("延期最多可还" + postponeSum.toPlainString());
+//                return response;
+//            }
+//            couponAmount = postponeSum.subtract(amount);
+//        } else {
+//            response.setMessage("不支持的type");
+//            return response;
+//        }
+//
+//        // 创建还款
+//        String orderId = sockpuppet + "-" + String.valueOf(idWorker.nextId());
+//        PayOrderEntity payOrder = new PayOrderEntity();
+//        payOrder.setOrderId(orderId);
+//        payOrder.setStatus(StatusEnum.DEDUCTING.name());
+//        payOrder.setOwnerId(userCode);
+//        payOrder.setType(payType);
+//        payOrder.setApplyNumber(amount);
+//        payOrder.setPostponeDays(postponeDays);
+//        payOrder.setLoanOrderId(loanOrder.getOrderId());
+//        payOrder.setDescription(System.currentTimeMillis() + ":用户线下还款" + amount.toPlainString() + ", 直接创建扣款中还款订单");
+//        payOrder.setPayCurrency(CurrencyEnum.getDefaultCurrency().name());
+//        payOrder.setChannel(channel);
+//        payOrder.create();
+//
+//        PayOrderLogEntity payOrderLog = new PayOrderLogEntity();
+//        payOrderLog.setIdCard("000000000000000000");
+//        payOrderLog.setUserName("线下还款姓名未知");
+//        payOrderLog.setRepayAmount(amount);
+//        payOrderLog.setUserCode(userCode);
+//        payOrderLog.setClientId("线下还款未知");
+//        payOrderLog.setClientVersion("线下还款未知");
+//        payOrderLog.setBankCard("线下还款未知");
+//        payOrderLog.setBankMobile("线下还款未知");
+//        payOrderLog.setOrderId(loanOrder.getOrderId());
+//        if (PayTypeEnum.REPAY_POSTPONE.name().equals(payType)) {
+//            payOrderLog.setFormerRepaymentDate(loanOrder.getRepaymentDate());
+//        }
+//        payOrderLog.setPayOrderId(payOrder.getOrderId());
+//        payOrderLog.setChannel(channel);
+//        payOrderLog.create();
+//        payOrderService.savePayOrderAndLog(payOrder, payOrderLog);
+//
+//        // 制作优惠券
+//        CouponEntity effectiveBundledCoupon = couponService.getEffectiveBundledCoupon(loanOrder.getOrderId());
+//        if (effectiveBundledCoupon == null) {
+//            CouponEntity coupon = new CouponEntity();
+//            coupon.setCouponId(String.valueOf(idWorker.nextId()));
+//            coupon.setBoundOrderId(loanOrder.getOrderId());
+//            coupon.setApplyAmount(couponAmount);
+//            Long today = TimeUtils.extractDateTime(System.currentTimeMillis());
+//            coupon.setEffectiveDate(today);
+//            coupon.setExpireDate(today + EngineStaticValue.DAY_MILLIS);
+//            coupon.setStatus(StatusEnum.BUNDLED.name());
+//            coupon.setCreator(accessUserEntity.getRealName());
+//            coupon.setEntryAmount(BigDecimal.ZERO);
+//            coupon.setReason("用户线下还清");
+//            couponService.save(coupon);
+//        } else {
+//            logger.info("用户线下还款, 更新优惠券[{}]的金额为[{}], 原金额[{}]", effectiveBundledCoupon.getCouponId(), couponAmount, effectiveBundledCoupon.getApplyAmount());
+//            effectiveBundledCoupon.setApplyAmount(couponAmount);
+//            couponService.save(effectiveBundledCoupon);
+//        }
+//
+//        // 模拟先玩后付mq还款通知
+//        Map<String, Object> params = new HashMap<String, Object>();
+//        params.put("status", "success");
+//        params.put("channel", channel);
+//        params.put("amount", payOrder.getApplyNumber());
+//        params.put("dealcode", "线下还款未知");
+//        params.put("channelDealcode", "线下还款未知");
+//        params.put("orderId", payOrder.getOrderId());
+//        params.put("offline", true);
+//
+//        JSONObject jsonObject = new JSONObject();
+//        jsonObject.put("remark", params);
+//
+//        MqMessage message = new MqMessage("TOPIC", "MQ_RAPTOR_PAYOFF_TAG", jsonObject.toJSONString());
+//        loanMo9mqListener.consume(message, null);
+//        return response;
+//    }
 }
