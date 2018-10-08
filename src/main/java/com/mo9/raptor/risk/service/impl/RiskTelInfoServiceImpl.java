@@ -49,7 +49,8 @@ public class RiskTelInfoServiceImpl implements RiskTelInfoService {
     public TRiskTelInfo save(TRiskTelInfo riskTelInfo) {
         TRiskTelInfo exists = this.findByMobile(riskTelInfo.getMobile());
         if(exists != null){
-            return exists;
+            
+            return update(riskTelInfo);
         }
         return riskTelInfoRepository.save(riskTelInfo);        
     }
