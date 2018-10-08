@@ -12,6 +12,7 @@ import com.mo9.raptor.risk.entity.TRiskCallLog;
 import com.mo9.raptor.risk.repo.RiskCallLogRepository;
 import com.mo9.raptor.risk.service.LinkFaceService;
 import com.mo9.raptor.risk.service.RiskAuditService;
+import com.mo9.raptor.risk.service.RiskRuleEngineService;
 import com.mo9.raptor.risk.service.RiskWordService;
 import com.mo9.raptor.service.RuleLogService;
 import com.mo9.raptor.service.UserCertifyInfoService;
@@ -73,6 +74,9 @@ public class RiskAuditServiceImpl implements RiskAuditService {
 
     @Resource
     private RiskWordService riskWordService;
+    
+    @Resource
+    private RiskRuleEngineService riskRuleEngineService;
 
     private static final String WHITE_LIST = "WHITE";
 
@@ -108,6 +112,73 @@ public class RiskAuditServiceImpl implements RiskAuditService {
             ruleLogService.create(userCode, "ContactsRule", null, false, "");
         }
 
+        if (finalResult == null) {
+            logger.info(userCode + "开始运行规则[OpenDateRule]");
+            res = riskRuleEngineService.openDateRule(userCode);
+            ruleLogService.create(userCode, "OpenDateRule", res.isPass(), true, res.getExplanation());
+            if (!res.isPass()) {
+                finalResult = res;
+            }
+        } else {
+            ruleLogService.create(userCode, "OpenDateRule", null, false, "");
+        }
+
+        if (finalResult == null) {
+            logger.info(userCode + "开始运行规则[MergencyCallTimesRule]");
+            res = riskRuleEngineService.mergencyCallTimesRule(userCode);
+            ruleLogService.create(userCode, "MergencyCallTimesRule", res.isPass(), true, res.getExplanation());
+            if (!res.isPass()) {
+                finalResult = res;
+            }
+        } else {
+            ruleLogService.create(userCode, "MergencyCallTimesRule", null, false, "");
+        }
+
+        if (finalResult == null) {
+            logger.info(userCode + "开始运行规则[MergencyHadNoDoneOrderRule]");
+            res = riskRuleEngineService.mergencyHadNoDoneOrderRule(userCode);
+            ruleLogService.create(userCode, "MergencyHadNoDoneOrderRule", res.isPass(), true, res.getExplanation());
+            if (!res.isPass()) {
+                finalResult = res;
+            }
+        } else {
+            ruleLogService.create(userCode, "MergencyHadNoDoneOrderRule", null, false, "");
+        }
+
+        if (finalResult == null) {
+            logger.info(userCode + "开始运行规则[MergencyInJHJJBlackListRule]");
+            res = riskRuleEngineService.mergencyInJHJJBlackListRule(userCode);
+            ruleLogService.create(userCode, "MergencyInJHJJBlackListRule", res.isPass(), true, res.getExplanation());
+            if (!res.isPass()) {
+                finalResult = res;
+            }
+        } else {
+            ruleLogService.create(userCode, "MergencyInJHJJBlackListRule", null, false, "");
+        }
+
+        if (finalResult == null) {
+            logger.info(userCode + "开始运行规则[CalledTimesByOneLoanCompanyRule]");
+            res = riskRuleEngineService.calledTimesByOneLoanCompanyRule(userCode);
+            ruleLogService.create(userCode, "CalledTimesByOneLoanCompanyRule", res.isPass(), true, res.getExplanation());
+            if (!res.isPass()) {
+                finalResult = res;
+            }
+        } else {
+            ruleLogService.create(userCode, "CalledTimesByOneLoanCompanyRule", null, false, "");
+        }
+
+        if (finalResult == null) {
+            logger.info(userCode + "开始运行规则[CalledTimesByDifferentLoanCompanyRule]");
+            res = riskRuleEngineService.calledTimesByDifferentLoanCompanyRule(userCode);
+            ruleLogService.create(userCode, "CalledTimesByDifferentLoanCompanyRule", res.isPass(), true, res.getExplanation());
+            if (!res.isPass()) {
+                finalResult = res;
+            }
+        } else {
+            ruleLogService.create(userCode, "CalledTimesByDifferentLoanCompanyRule", null, false, "");
+        }
+        
+        
         if (finalResult == null) {
             logger.info(userCode + "开始运行规则[IdCardRule]");
             res = idCardRule(userCode);
