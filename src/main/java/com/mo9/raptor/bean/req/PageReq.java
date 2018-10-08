@@ -14,7 +14,7 @@ public class PageReq {
     /**
      * 每页条数
      */
-    private Integer size = 20;
+    private Integer size = 1000;
     /**
      * 排序方式 ASC, DESC;
      */

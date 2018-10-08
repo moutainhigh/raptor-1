@@ -7,11 +7,12 @@ import com.mo9.raptor.engine.state.event.impl.AuditResponseEvent;
 import com.mo9.raptor.entity.UserCertifyInfoEntity;
 import com.mo9.raptor.entity.UserContactsEntity;
 import com.mo9.raptor.entity.UserEntity;
-import com.mo9.raptor.enums.SourceEnum;
 import com.mo9.raptor.risk.entity.TRiskCallLog;
 import com.mo9.raptor.risk.repo.RiskCallLogRepository;
 import com.mo9.raptor.risk.service.LinkFaceService;
 import com.mo9.raptor.risk.service.RiskAuditService;
+import com.mo9.raptor.risk.service.RiskRuleEngineService;
+import com.mo9.raptor.risk.service.RiskWordService;
 import com.mo9.raptor.service.RuleLogService;
 import com.mo9.raptor.service.UserCertifyInfoService;
 import com.mo9.raptor.service.UserContactsService;
@@ -70,6 +71,12 @@ public class RiskAuditServiceImpl implements RiskAuditService {
     @Resource
     private RuleLogService ruleLogService;
 
+    @Resource
+    private RiskWordService riskWordService;
+
+    @Resource
+    private RiskRuleEngineService riskRuleEngineService;
+
     private static final String WHITE_LIST = "WHITE";
 
     private static final String ORIGN_CALL = "主叫";
@@ -91,18 +98,6 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         AuditResponseEvent finalResult = null;
         AuditResponseEvent res;
 
-        //不在白名单内需要多运行一个通话记录规则
-        if (!SourceEnum.WHITE.equals(user.getSource())) {
-            logger.info(userCode + "开始运行规则[ContactsRule]");
-            res = contactsRule(userCode);
-            //这里的HIT字段有点歧义，这里的hit为true的话是通过，false为未通过
-            ruleLogService.create(userCode, "ContactsRule", res.isPass(), true, res.getExplanation());
-            if (!res.isPass()) {
-                finalResult = res;
-            }
-        } else {
-            ruleLogService.create(userCode, "ContactsRule", null, false, "");
-        }
 
         if (finalResult == null) {
             logger.info(userCode + "开始运行规则[IdCardRule]");
@@ -114,6 +109,115 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         } else {
             ruleLogService.create(userCode, "IdCardRule", null, false, "");
         }
+
+
+        if (finalResult == null) {
+            logger.info(userCode + "开始运行规则[AgeRule]");
+            res = ageRule(userCode);
+            ruleLogService.create(userCode, "AgeRule", res.isPass(), true, res.getExplanation());
+            if (!res.isPass()) {
+                finalResult = res;
+            }
+        } else {
+            ruleLogService.create(userCode, "AgeRule", null, false, "");
+        }
+//
+//
+//        if (finalResult == null) {
+//            logger.info(userCode + "开始运行规则[RiskWordRule]");
+//            res = riskWordRule(userCode);
+//            ruleLogService.create(userCode, "RiskWordRule", res.isPass(), true, res.getExplanation());
+//            if (!res.isPass()) {
+//                finalResult = res;
+//            }
+//        } else {
+//            ruleLogService.create(userCode, "RiskWordRule", null, false, "");
+//        }
+//
+//
+        if (finalResult == null) {
+            logger.info(userCode + "开始运行规则[OpenDateRule]");
+            res = riskRuleEngineService.openDateRule(userCode);
+            ruleLogService.create(userCode, "OpenDateRule", res.isPass(), true, res.getExplanation());
+            if (!res.isPass()) {
+                finalResult = res;
+            }
+        } else {
+            ruleLogService.create(userCode, "OpenDateRule", null, false, "");
+        }
+//
+//        if (finalResult == null) {
+//            logger.info(userCode + "开始运行规则[MergencyCallTimesRule]");
+//            res = riskRuleEngineService.mergencyCallTimesRule(userCode);
+//            ruleLogService.create(userCode, "MergencyCallTimesRule", res.isPass(), true, res.getExplanation());
+//            if (!res.isPass()) {
+//                finalResult = res;
+//            }
+//        } else {
+//            ruleLogService.create(userCode, "MergencyCallTimesRule", null, false, "");
+//        }
+//
+//        if (finalResult == null) {
+//            logger.info(userCode + "开始运行规则[MergencyHadNoDoneOrderRule]");
+//            res = riskRuleEngineService.mergencyHadNoDoneOrderRule(userCode);
+//            ruleLogService.create(userCode, "MergencyHadNoDoneOrderRule", res.isPass(), true, res.getExplanation());
+//            if (!res.isPass()) {
+//                finalResult = res;
+//            }
+//        } else {
+//            ruleLogService.create(userCode, "MergencyHadNoDoneOrderRule", null, false, "");
+//        }
+
+        /*if (finalResult == null) {
+            logger.info(userCode + "开始运行规则[MergencyInJHJJBlackListRule]");
+            res = riskRuleEngineService.mergencyInJHJJBlackListRule(userCode);
+            ruleLogService.create(userCode, "MergencyInJHJJBlackListRule", res.isPass(), true, res.getExplanation());
+            if (!res.isPass()) {
+                finalResult = res;
+            }
+        } else {
+            ruleLogService.create(userCode, "MergencyInJHJJBlackListRule", null, false, "");
+        }
+        */
+
+//        if (finalResult == null) {
+//            logger.info(userCode + "开始运行规则[CalledTimesByOneLoanCompanyRule]");
+//            res = riskRuleEngineService.calledTimesByOneLoanCompanyRule(userCode);
+//            ruleLogService.create(userCode, "CalledTimesByOneLoanCompanyRule", res.isPass(), true, res.getExplanation());
+//            if (!res.isPass()) {
+//                finalResult = res;
+//            }
+//        } else {
+//            ruleLogService.create(userCode, "CalledTimesByOneLoanCompanyRule", null, false, "");
+//        }
+//
+//        if (finalResult == null) {
+//            logger.info(userCode + "开始运行规则[CalledTimesByDifferentLoanCompanyRule]");
+//            res = riskRuleEngineService.calledTimesByDifferentLoanCompanyRule(userCode);
+//            ruleLogService.create(userCode, "CalledTimesByDifferentLoanCompanyRule", res.isPass(), true, res.getExplanation());
+//            if (!res.isPass()) {
+//                finalResult = res;
+//            }
+//        } else {
+//            ruleLogService.create(userCode, "CalledTimesByDifferentLoanCompanyRule", null, false, "");
+//        }
+
+        //不在白名单内需要多运行一个通话记录规则
+        if (!WHITE_LIST.equals(user.getSource())) {
+            if (finalResult == null) {
+                logger.info(userCode + "开始运行规则[ContactsRule]");
+                res = contactsRule(userCode);
+                ruleLogService.create(userCode, "ContactsRule", res.isPass(), true, res.getExplanation());
+                if (!res.isPass()) {
+                    finalResult = res;
+                }
+            } else {
+                ruleLogService.create(userCode, "ContactsRule", null, false, "");
+            }
+        } else {
+            ruleLogService.create(userCode, "ContactsRule", null, false, "");
+        }
+
 
         if (finalResult == null) {
             logger.info(userCode + "开始运行规则[CallLogRule]");
@@ -173,6 +277,42 @@ public class RiskAuditServiceImpl implements RiskAuditService {
     private static final int HTTP_OK = 200;
     private static final int ERROR_SCORE_CODE = -1;
 
+    AuditResponseEvent riskWordRule(String userCode) {
+        int limit = 15;
+        UserContactsEntity userContacts = userContactsService.getByUserCode(userCode);
+        String json = userContacts.getContactsList();
+        JSONArray jsonArray;
+        //有2种JSON格式...
+        if (json.startsWith("{")) {
+            jsonArray = JSON.parseObject(json).getJSONArray("contact");
+        } else {
+            jsonArray = JSON.parseArray(json);
+        }
+        StringBuilder stringBuilder = new StringBuilder();
+        for (int i = 0; i < jsonArray.size(); i++) {
+            String name = MobileUtil.processMobile(jsonArray.getJSONObject(i).getString("contact_name"));
+            stringBuilder.append(name + "|");
+        }
+        int hitCount = riskWordService.filter(stringBuilder.toString());
+        return new AuditResponseEvent(userCode, hitCount <= limit, !(hitCount <= limit) ? "通信录风险词大于15" : "");
+
+    }
+
+    AuditResponseEvent ageRule(String userCode) {
+        UserEntity user = userService.findByUserCode(userCode);
+        String idCard = user.getIdCard();
+        if (idCard == null) {
+            return new AuditResponseEvent(userCode, false, "获取身份证失败！");
+        }
+        if (idCard.length() == 15) {
+            idCard = IdCardUtils.conver15CardTo18(idCard);
+        }
+        int age = IdCardUtils.getAgeByIdCard(idCard);
+        boolean pass = age >= 18 && age <= 30;
+        return new AuditResponseEvent(userCode, pass, !pass ? "年龄大于30或者小于18" : "");
+
+    }
+
     AuditResponseEvent idCardRule(String userCode) {
         UserEntity user = userService.findByUserCode(userCode);
         String idCard = user.getIdCard();
@@ -185,10 +325,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         try {
             String province = IdCardUtils.getProvinceByIdCard(idCard);
             if ("新疆".equals(province) || "西藏".equals(province)) {
-                int age = IdCardUtils.getAgeByIdCard(idCard);
-                if (age > 30) {
-                    return new AuditResponseEvent(userCode, false, "西藏-新疆-年龄规则");
-                }
+                return new AuditResponseEvent(userCode, false, "西藏-新疆-年龄规则");
             }
             return new AuditResponseEvent(userCode, true, "");
         } catch (Exception e) {

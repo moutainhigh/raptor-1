@@ -40,10 +40,13 @@
   <th>日期</th>
   </thead>
   <tbody>
+  <tr th:if="${#lists.size(resultList)}==0">
+    <td th:text="暂无记录" colspan="5"></td>
+  </tr>
   <tr th:each="entries,stat:${resultList}" th:style="'background-color:'+@{${stat.odd}?'#F2F2F2'}">
     <td th:text="${stat.count}" width=100px></td>
     <td th:text="${entries['source']}" width=100px></td>
-    <td th:text="${entries['subtd trce']}" width=100px></td>
+    <td th:text="${entries['sub_source']}" width=100px></td>
     <td th:text="${entries['num']}" width=100px></td>
     <td th:text="${entries['date']}" width=100px></td>
   </tr>

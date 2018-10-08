@@ -170,18 +170,21 @@ public class RiskController {
             for (UserEntity noReportUser : noReportUsers) {
                 TRiskTelInfo hasCallLogUser = riskTelInfoService.findByMobile(noReportUser.getMobile());
                 if (hasCallLogUser == null){ 
-                    logger.info("-----UserCode为{}的用户未查询到有通话记录，现在重新拉取。", noReportUser.getUserCode());
+                    logger.info("-----手机号为 {} 的用户未查询到有通话记录，现在重新拉取。", noReportUser.getMobile());
                     //没有通话记录，则先查找sid，然后主动拉取callLog
                     String sid = callLogUtils.getSidByMobile(sessionId, noReportUser.getMobile(), httpClient);
+                    logger.info("----获取sid。mobile: {}, sid: {}",noReportUser.getMobile(), sid);
                     if (StringUtils.isNotBlank(sid)){
                         
                         String callLogJson = this.getCallLogReport(sid, "record");
                         if (StringUtils.isNotBlank(callLogJson)){
-                            logger.info("----UserCode为{}的用户成功拉取到通话记录", noReportUser.getUserCode());
+                            logger.info("----Mobile为 {} 的用户成功拉取到通话记录", noReportUser.getMobile());
                             this.saveCallLogResult(callLogJson, null);
+                        }else {
+                            logger.info("----通话记录详单不存在或采集失败，mobile: {} , sid: {}", noReportUser.getMobile(), sid);
                         }
                     }else {
-                        logger.info("----未查询到UserCode为{}，手机号为{}的sid信息，拉取失败", noReportUser.getUserCode(), noReportUser.getMobile());
+                        logger.info("----未查询到UserCode为 {} ，手机号为 {} 的sid信息，拉取失败", noReportUser.getUserCode(), noReportUser.getMobile());
                     }
                 }
                 
@@ -193,6 +196,7 @@ public class RiskController {
         }
         return "ok";
     }
+
     
     public void uploadFile2Oss(String str, String fileName){
         
