@@ -72,10 +72,10 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
     @Query(value = "select COUNT(*) num,FROM_UNIXTIME(create_time/1000,'%Y-%m-%d ') date ,sub_source,source from t_raptor_user  where source = ?1 and FROM_UNIXTIME(create_time/1000,'%Y-%m-%d ')" +
             " >= FROM_UNIXTIME(?2/1000,'%Y-%m-%d ') and  FROM_UNIXTIME(create_time/1000,'%Y-%m-%d ')  <=  FROM_UNIXTIME(?3/1000,'%Y-%m-%d ')" +
-            " GROUP BY FROM_UNIXTIME(create_time/1000,'%Y-%m-%d ')",
+            " GROUP BY FROM_UNIXTIME(create_time/1000,'%Y-%m-%d '),sub_source",
             countQuery = "select SUM(t.num) from (select COUNT(*) num ,FROM_UNIXTIME(create_time/1000,'%Y-%m-%d ') date ,sub_source from t_raptor_user  where source = ?1 and " +
                     " FROM_UNIXTIME(create_time/1000,'%Y-%m-%d ') >= FROM_UNIXTIME(?2/1000,'%Y-%m-%d ') and  FROM_UNIXTIME(create_time/1000,'%Y-%m-%d ')  <= " +
-                    " FROM_UNIXTIME(?3/1000,'%Y-%m-%d ') GROUP BY FROM_UNIXTIME(create_time/1000,'%Y-%m-%d ')) t",
+                    " FROM_UNIXTIME(?3/1000,'%Y-%m-%d ') GROUP BY FROM_UNIXTIME(create_time/1000,'%Y-%m-%d '),sub_source) t",
             nativeQuery = true)
     Page<Map<String,Object>> findRegisterUserNumber(String source,Long startTime, Long endTime, Pageable pageable);
 }

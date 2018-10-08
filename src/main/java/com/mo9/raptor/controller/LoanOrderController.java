@@ -86,6 +86,7 @@ public class LoanOrderController {
 
     /**
      * 下单
+     *
      * @param req
      * @return
      */
@@ -95,39 +96,11 @@ public class LoanOrderController {
         String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
         String clientId = request.getHeader(ReqHeaderParams.CLIENT_ID);
         String clientVersion = request.getHeader(ReqHeaderParams.CLIENT_VERSION);
-        logger.info("order/add方法开始，usercode:"+userCode);
+        logger.info("order/add方法开始，usercode:" + userCode);
         // 检查用户是否存在及是否合法
         UserEntity user = userService.findByUserCodeAndStatus(userCode, StatusEnum.PASSED);
         if (user == null) {
             return response.buildFailureResponse(ResCodeEnum.USER_NOT_EXIST);
-        }
-
-        //老用户续借从00开始，新用户借款从12点开始
-        //查询是否是中午12点之前
-        SimpleDateFormat df = new SimpleDateFormat("HH:mm");//设置日期格式
-        Date nowTime =null;
-        Date beginTime = null;
-        Date endTime = null;
-        try {
-            nowTime = df.parse(df.format(new Date()));
-            beginTime = df.parse("00:00");
-            endTime = df.parse("12:00");
-        } catch (Exception e) {
-            Log.error(logger , e ,"时间解析出错");
-        }
-
-        Boolean flag = belongCalendar(nowTime, beginTime, endTime);
-        LoanOrderEntity payoffOrder = loanOrderService.getLastIncompleteOrder(userCode, StatusEnum.OLD_PAYOFF);
-        //没有payoff订单的用户不可以借款
-        if(null == payoffOrder){
-            if(flag){
-                logger.warn("新用户该时间段不能借款,usercode:"+userCode);
-                return response.buildFailureResponse(ResCodeEnum.NO_LEND_AMOUNT);
-            }else{
-                logger.warn("新用户开始借款,usercode:"+userCode);
-            }
-        }else{
-            logger.info("老用户开始借款,usercode:" + userCode);
         }
 
         // 检查是否有每日限额配置, 没配直接不让借
@@ -153,16 +126,24 @@ public class LoanOrderController {
 
         String orderId = sockpuppet + "-" + idWorker.nextId();
         // 锁定用户借款行为
-        Lock lock = new Lock(userCode + RedisLockKeySuffix.PRE_LOAN_ORDER_KEY, idWorker.nextId()+"");
+        Lock lock = new Lock(userCode + RedisLockKeySuffix.PRE_LOAN_ORDER_KEY, idWorker.nextId() + "");
         try {
             if (redisService.lock(lock.getName(), lock.getValue(), 1500000, TimeUnit.MILLISECONDS)) {
-                // 锁定后检查今天是否还有限额
-                BigDecimal dailyLendAmount = lendOrderService.getDailyLendAmount();
-                if (new BigDecimal(dictData.getName()).compareTo(dailyLendAmount.add(actuallyGetAmount)) < 0) {
-                    logger.warn("今日已放款[{}]元, 不再放款!", dailyLendAmount.toPlainString());
-                    return response.buildFailureResponse(ResCodeEnum.NO_LEND_AMOUNT);
+
+                LoanOrderEntity payoffOrder = loanOrderService.getLastIncompleteOrder(userCode, StatusEnum.OLD_PAYOFF);
+                //没有payoff订单的用户不可以借款
+                if (null == payoffOrder) {
+                    // 锁定后检查今天是否还有限额
+                    BigDecimal dailyLendAmount = lendOrderService.getDailyLendAmount();
+                    if (new BigDecimal(dictData.getName()).compareTo(dailyLendAmount.add(actuallyGetAmount)) < 0) {
+                        logger.warn("今日已放款[{}]元, 不再放款!", dailyLendAmount.toPlainString());
+                        return response.buildFailureResponse(ResCodeEnum.NO_LEND_AMOUNT);
+                    } else {
+                        logger.info("今日已放款[{}]元", dailyLendAmount.toPlainString());
+                    }
+                    logger.warn("新用户开始借款,usercode:" + userCode);
                 } else {
-                    logger.info("今日已放款[{}]元", dailyLendAmount.toPlainString());
+                    logger.info("老用户开始借款,usercode:" + userCode);
                 }
 
                 // 锁定后再查询 是否有在接订单
@@ -170,7 +151,6 @@ public class LoanOrderController {
                 if (loanOrderEntity != null) {
                     return response.buildFailureResponse(ResCodeEnum.ONLY_ONE_ORDER);
                 }
-
 
                 LoanOrderEntity loanOrder = new LoanOrderEntity();
                 loanOrder.setOrderId(orderId);
@@ -221,14 +201,14 @@ public class LoanOrderController {
 
                 // 保存借款订单, 还款订单
                 loanOrderService.saveLendOrder(loanOrder, lendOrder);
-                logger.info("order/add方法结束，usercode:"+userCode+",loanOrderId:"+loanOrder.getOrderId());
+                logger.info("order/add方法结束，usercode:" + userCode + ",loanOrderId:" + loanOrder.getOrderId());
                 return response;
             } else {
                 logger.warn("用户[{}]预借款[{}], 竞争锁失败", userCode);
                 return response.buildFailureResponse(ResCodeEnum.GET_LOCK_FAILED);
             }
         } catch (Exception e) {
-            Log.error(logger , e ,"借款订单[{}]审核出错", orderId);
+            Log.error(logger, e, "借款订单[{}]审核出错", orderId);
             return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
         } finally {
             redisService.release(lock);
@@ -237,15 +217,16 @@ public class LoanOrderController {
 
     /**
      * 获取上一笔未还清订单
+     *
      * @param request
      * @return
      */
     @GetMapping("/get_last_incomplete")
-    public BaseResponse<Map<String,LoanOrderRes>> getLastIncomplete(HttpServletRequest request) {
-        BaseResponse<Map<String,LoanOrderRes>> response = new BaseResponse<>();
+    public BaseResponse<Map<String, LoanOrderRes>> getLastIncomplete(HttpServletRequest request) {
+        BaseResponse<Map<String, LoanOrderRes>> response = new BaseResponse<>();
         String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
         try {
-            HashMap<String,LoanOrderRes> map = new HashMap<>(16);
+            HashMap<String, LoanOrderRes> map = new HashMap<>(16);
             // 查询订单进行中的状态
             LoanOrderEntity loanOrderEntity = loanOrderService.getLastIncompleteOrder(userCode, StatusEnum.PROCESSING);
             if (loanOrderEntity == null) {
@@ -271,16 +252,17 @@ public class LoanOrderController {
             }
             res.setRenew(billService.getRenewInfo(loanOrderEntity));
             res.setAgreementUrl("https://www.baidu.com");
-            map.put("entity",res);
+            map.put("entity", res);
             return response.buildSuccessResponse(map);
         } catch (Exception e) {
-            Log.error(logger , e , "用户[{}]获取上一笔未还清订单错误, ", userCode);
+            Log.error(logger, e, "用户[{}]获取上一笔未还清订单错误, ", userCode);
             return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
         }
     }
 
     /**
      * 判断时间是否在时间段内
+     *
      * @param nowTime
      * @param beginTime
      * @param endTime
@@ -296,7 +278,7 @@ public class LoanOrderController {
         Calendar end = Calendar.getInstance();
         end.setTime(endTime);
 
-        if (date.after(begin) && date.before(end)) {
+        if ((date.equals(begin) || date.after(begin)) && (date.equals(end) || date.before(end))) {
             return true;
         } else {
             return false;
@@ -305,17 +287,16 @@ public class LoanOrderController {
 
     public static void main(String[] args) {
         SimpleDateFormat df = new SimpleDateFormat("HH:mm");//设置日期格式
-        Date nowTime =null;
+        Date nowTime = null;
         Date beginTime = null;
         Date endTime = null;
         try {
             nowTime = df.parse(df.format(new Date()));
-            beginTime = df.parse("22:00");
-            endTime = df.parse("23:00");
+            beginTime = df.parse("00:00");
+            endTime = df.parse("22:16");
         } catch (Exception e) {
-            Log.error(logger , e ,"时间解析出错");
+            Log.error(logger, e, "时间解析出错");
         }
-
         Boolean flag = belongCalendar(nowTime, beginTime, endTime);
         System.out.println(flag);
     }
