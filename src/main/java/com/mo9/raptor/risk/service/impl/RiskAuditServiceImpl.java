@@ -135,16 +135,16 @@ public class RiskAuditServiceImpl implements RiskAuditService {
 //        }
 //
 //
-//        if (finalResult == null) {
-//            logger.info(userCode + "开始运行规则[OpenDateRule]");
-//            res = riskRuleEngineService.openDateRule(userCode);
-//            ruleLogService.create(userCode, "OpenDateRule", res.isPass(), true, res.getExplanation());
-//            if (!res.isPass()) {
-//                finalResult = res;
-//            }
-//        } else {
-//            ruleLogService.create(userCode, "OpenDateRule", null, false, "");
-//        }
+        if (finalResult == null) {
+            logger.info(userCode + "开始运行规则[OpenDateRule]");
+            res = riskRuleEngineService.openDateRule(userCode);
+            ruleLogService.create(userCode, "OpenDateRule", res.isPass(), true, res.getExplanation());
+            if (!res.isPass()) {
+                finalResult = res;
+            }
+        } else {
+            ruleLogService.create(userCode, "OpenDateRule", null, false, "");
+        }
 //
 //        if (finalResult == null) {
 //            logger.info(userCode + "开始运行规则[MergencyCallTimesRule]");
