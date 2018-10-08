@@ -3,6 +3,9 @@ package com.mo9.raptor.risk.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.mo9.raptor.engine.entity.LoanOrderEntity;
+import com.mo9.raptor.engine.enums.StatusEnum;
+import com.mo9.raptor.engine.service.ILoanOrderService;
 import com.mo9.raptor.engine.state.event.impl.AuditResponseEvent;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.risk.entity.TRiskTelInfo;
@@ -14,16 +17,21 @@ import com.mo9.raptor.utils.log.Log;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.List;
 
 /**
  * @author wtwei .
  * @date 2018/10/8 .
  * @time 15:13 .
  */
+
+@Service("riskRuleEngineService")
 public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
     //手机号入网时长阈值 150天
     private static final Long ONLINE_LENGTH_LIMIT = 150 * 24 * 60 * 60L;
@@ -55,6 +63,9 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
     
     @Resource
     private UserService userService;
+    
+    @Resource
+    private ILoanOrderService loanOrderService;
     
     @Override
     public AuditResponseEvent openDateRule(String userCode) {
@@ -123,6 +134,13 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
             logger.info("运营商报告状态不正常，校验失败，规则：mergencyHadNoDoneOrderRule");
             return new AuditResponseEvent(userCode, false, "运营商报告状态不正常" );
         }
+
+        List<String> LEND = Arrays.asList(StatusEnum.LENDING.name());
+        LoanOrderEntity lendOrder = loanOrderService.getLastIncompleteOrder(userCode, LEND);
+        if (lendOrder == null){
+            return new AuditResponseEvent(userCode, true, "" );
+        }
+        
         return new AuditResponseEvent(userCode, false, "紧急联系人有未完成的订单" );
     }
 
