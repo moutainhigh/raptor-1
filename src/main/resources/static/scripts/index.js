@@ -157,6 +157,7 @@ function commitBottom() {
 
 function main() {
   log('ready')
+    $(".mask , .confirm-modal").hide();
   initTermPicker()
   initCardPicker()
     initSubmit()
