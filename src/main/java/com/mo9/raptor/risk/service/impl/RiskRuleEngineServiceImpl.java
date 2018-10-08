@@ -38,9 +38,9 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
     
     private static final int CALL_MERGENCY_TIMES = 1;
     
-    private static final int ONE_LOAN_COMPANY_CALL_TIMES = 3;
+    private static final int ONE_LOAN_COMPANY_CALL_TIMES = 12;
     
-    private static final int DIFFERENT_LOAN_COMPANY_CALL_TIMES = 6;
+    private static final int DIFFERENT_LOAN_COMPANY_CALL_TIMES = 20;
 
 
     @Value("${raptor.sockpuppet}")
@@ -80,8 +80,8 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
         
         String openDate = telInfo.getOpenDate();
         if (StringUtils.isBlank(openDate)){
-            logger.warn("手机号码 {} 的开户时间为空, 校验失败", mobile);
-            return new AuditResponseEvent(userCode, false, "手机号码的开户时间为");
+            logger.warn("手机号码 {} 的开户时间为空, 校验通过", mobile);
+            return new AuditResponseEvent(userCode, true, "");
         }
         
         Long openDateMillions = Long.parseLong(openDate);
@@ -183,6 +183,21 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
             logger.info("运营商报告状态不正常，校验失败，规则：calledTimesByOneLoanCompanyRule");
             return new AuditResponseEvent(userCode, false, "运营商报告状态不正常" );
         }
+
+
+        JSONObject jsonObject = JSON.parseObject(reportJson);
+
+        JSONObject cuishou = jsonObject.getJSONObject("cuishou");
+        JSONObject yisicuishou = jsonObject.getJSONObject("yisicuishou");
+        
+        Integer cuishouOneCallMaxTimes = cuishou.getInteger("most_times_by_tel");
+        Integer yisicuishouOneCallMaxTimes = yisicuishou.getInteger("most_times_by_tel");
+        
+        if (cuishouOneCallMaxTimes < ONE_LOAN_COMPANY_CALL_TIMES
+                && yisicuishouOneCallMaxTimes < ONE_LOAN_COMPANY_CALL_TIMES){
+            new AuditResponseEvent(userCode, true, "");
+        }
+        
         return new AuditResponseEvent(userCode, false, "被同一贷款机构呼叫次数大于 " + ONE_LOAN_COMPANY_CALL_TIMES);
     }
 
@@ -196,6 +211,20 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
             logger.info("运营商报告状态不正常，校验失败，规则：calledTimesByDifferentLoanCompanyRule");
             return new AuditResponseEvent(userCode, false, "运营商报告状态不正常" );
         }
+
+        JSONObject jsonObject = JSON.parseObject(reportJson);
+
+        JSONObject cuishou = jsonObject.getJSONObject("cuishou");
+        JSONObject yisicuishou = jsonObject.getJSONObject("yisicuishou");
+
+        Integer cuishouCallMaxTimes = cuishou.getInteger("call_in_times");
+        Integer yisicuishouCallMaxTimes = yisicuishou.getInteger("call_in_times");
+
+        if (cuishouCallMaxTimes < DIFFERENT_LOAN_COMPANY_CALL_TIMES
+                && yisicuishouCallMaxTimes < DIFFERENT_LOAN_COMPANY_CALL_TIMES){
+            new AuditResponseEvent(userCode, true, "");
+        }
+        
         return new AuditResponseEvent(userCode, false, "被不同贷款机构呼叫次数大于 " + DIFFERENT_LOAN_COMPANY_CALL_TIMES);
     }
 
