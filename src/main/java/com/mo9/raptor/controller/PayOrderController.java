@@ -442,6 +442,29 @@ public class PayOrderController {
         return "cashier/feedback_fail";
     }
 
+    @GetMapping("/cashier/has_repaying")
+    @ResponseBody
+    public BaseResponse<Boolean> hasRepaying ( @RequestParam String code , HttpServletRequest request) {
+        //获取userCode
+        BaseResponse<Boolean> response = new BaseResponse<Boolean>();
+        PayInfoCache payInfoCache =  (PayInfoCache) redisServiceApi.get(RedisParams.PAY_CODE + code, raptorRedis);
+        if (payInfoCache == null) {
+            return response.buildFailureResponse(ResCodeEnum.PAY_INFO_EXPIRED);
+        }
+        String userCode = payInfoCache.getUserCode() ;
+        List<String> statusEnums = new ArrayList<String>() ;
+        statusEnums.add(StatusEnum.DEDUCTING.name()) ;
+        List<PayOrderEntity> payOrderEntities = payOrderService.listByUserAndStatus(userCode , statusEnums);
+        if(payOrderEntities != null && payOrderEntities.size() > 0){
+            logger.info("用户 " + userCode + " 查询是否存在扣款中订单 " + payOrderEntities.size() + " 个 ");
+            response.setData(true);
+        }else{
+            logger.info("用户 " + userCode + " 不存在扣款中订单 " );
+            response.setData(false);
+        }
+        return response;
+    }
+
     /**
      * 获取渠道列表
      * @return
