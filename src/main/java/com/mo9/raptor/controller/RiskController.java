@@ -173,6 +173,7 @@ public class RiskController {
                     logger.info("-----UserCode为{}的用户未查询到有通话记录，现在重新拉取。", noReportUser.getUserCode());
                     //没有通话记录，则先查找sid，然后主动拉取callLog
                     String sid = callLogUtils.getSidByMobile(sessionId, noReportUser.getMobile(), httpClient);
+                    logger.info("mobile: {}, sid: {}",noReportUser.getMobile(), sid);
                     if (StringUtils.isNotBlank(sid)){
                         
                         String callLogJson = this.getCallLogReport(sid, "record");
@@ -193,6 +194,7 @@ public class RiskController {
         }
         return "ok";
     }
+
     
     public void uploadFile2Oss(String str, String fileName){
         
