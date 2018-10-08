@@ -173,12 +173,12 @@ public class RiskController {
                     logger.info("-----手机号为 {} 的用户未查询到有通话记录，现在重新拉取。", noReportUser.getMobile());
                     //没有通话记录，则先查找sid，然后主动拉取callLog
                     String sid = callLogUtils.getSidByMobile(sessionId, noReportUser.getMobile(), httpClient);
-                    logger.info("mobile: {}, sid: {}",noReportUser.getMobile(), sid);
+                    logger.info("----获取sid。mobile: {}, sid: {}",noReportUser.getMobile(), sid);
                     if (StringUtils.isNotBlank(sid)){
                         
                         String callLogJson = this.getCallLogReport(sid, "record");
                         if (StringUtils.isNotBlank(callLogJson)){
-                            logger.info("----UserCode为{}的用户成功拉取到通话记录", noReportUser.getUserCode());
+                            logger.info("----Mobile为 {} 的用户成功拉取到通话记录", noReportUser.getMobile());
                             this.saveCallLogResult(callLogJson, null);
                         }else {
                             logger.info("----通话记录详单不存在或采集失败，mobile: {} , sid: {}", noReportUser.getMobile(), sid);
