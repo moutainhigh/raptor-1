@@ -12,6 +12,7 @@ import com.mo9.raptor.entity.BankEntity;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.BankAuthStatusEnum;
 import com.mo9.raptor.enums.ResCodeEnum;
+import com.mo9.raptor.enums.SourceEnum;
 import com.mo9.raptor.redis.RedisParams;
 import com.mo9.raptor.redis.RedisServiceApi;
 import com.mo9.raptor.service.*;
@@ -75,6 +76,10 @@ public class UserController {
         Map<String, Object> entity = new HashMap<>(16);
         String clientId = request.getHeader(ReqHeaderParams.CLIENT_ID);
         String mobile = loginByCodeReq.getMobile();
+        String source = loginByCodeReq.getSource();
+        String subSource = loginByCodeReq.getSubSource();
+        String captchaKey = loginByCodeReq.getCaptchaKey();
+        boolean isNewUser = false;
         //校验手机号是否合法，不合法登录失败
         boolean check = RegexUtils.checkChinaMobileNumber(mobile);
         if (!check) {
@@ -82,17 +87,35 @@ public class UserController {
             return response.buildFailureResponse(ResCodeEnum.MOBILE_NOT_MEET_THE_REQUIRE);
         }
         try {
-            //检查用户是否在白名单，并可用
-            UserEntity userEntity = userService.findByMobileAndDeleted(mobile,false);
-            if (userEntity == null) {
-                logger.warn("用户登录----->>>>手机号=[{}]非白名单用户",mobile);
-                return response.buildFailureResponse(ResCodeEnum.NOT_WHITE_LIST_USER);
+            //判断是否需要校验图形验证码
+            ResCodeEnum checkGraphic = null;
+            if(StringUtils.isNotBlank(source)){
+                checkGraphic = checkGraphic(loginByCodeReq.getCaptcha(), RedisParams.GRAPHIC_CAPTCHA_KEY + captchaKey);
             }
+            if(checkGraphic != null && ResCodeEnum.SUCCESS != checkGraphic){
+                logger.warn("用户登录----->>>>图形验证码校验失败mobile={}", mobile);
+                return response.buildFailureResponse(checkGraphic);
+            }
+
             //校验验证码是否正确
             String code = loginByCodeReq.getCode();
             ResCodeEnum resCodeEnum = captchaService.checkLoginMobileCaptcha(mobile, code);
             if (ResCodeEnum.SUCCESS != resCodeEnum) {
                 return response.buildFailureResponse(resCodeEnum);
+            }
+
+            //检查用户是否在白名单，并可用
+            UserEntity userEntity = userService.findByMobileAndDeleted(mobile,false);
+            if (userEntity == null) {
+                //校验今天是否允许新用户注册
+                boolean b = userService.isaAllowNewUser();
+                if(!b){
+                    logger.warn("用户登录----->>>>手机号=[{}]非白名单用户",mobile);
+                    return response.buildFailureResponse(ResCodeEnum.NOT_WHITE_LIST_USER);
+                }
+                //新用户注册
+                userEntity = UserEntity.buildNewUser(mobile, source, subSource);
+                isNewUser = true;
             }
             //返回token
             String token = UUID.randomUUID().toString().replaceAll("-", StringUtils.EMPTY);
@@ -104,7 +127,11 @@ public class UserController {
             resMap.put("entity",entity);
             userEntity.setLastLoginTime(System.currentTimeMillis());
             userEntity.setUserIp(IpUtils.getRemoteHost(request));
+            userEntity.setUpdateTime(System.currentTimeMillis());
             userService.save(userEntity);
+            if(isNewUser){
+                userService.addAllowNewUserNum();
+            }
             logger.info("用户登录成功----->>>>手机号=[{}]",mobile);
         } catch (IOException e) {
             Log.error(logger,e,"用户登录----->>>>验证码发送发生异常,手机号={}",mobile);
@@ -198,6 +225,8 @@ public class UserController {
             userEntity.setRealName(modifyCertifyReq.getRealName());
             if(!userEntity.getCertifyInfo()){
                 userService.updateCertifyInfo(userEntity,true);
+            }else {
+                userService.save(userEntity);
             }
             return response.buildSuccessResponse(true);
         }catch (Exception e){
@@ -312,5 +341,25 @@ public class UserController {
             return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
         }
         return response.buildSuccessResponse("ok");
+    }
+
+    /**
+     * 校验图形验证码是否正确
+     * @param captcha
+     * @return
+     */
+    private ResCodeEnum checkGraphic(String captcha, String redisCaptchaKey) {
+
+        String pinCode = (String) redisServiceApi.get(redisCaptchaKey, raptorRedis);
+        if (StringUtils.isBlank(pinCode) || StringUtils.isBlank(captcha)) {
+            return ResCodeEnum.CAPTCHA_IS_INVALID_GRAPHIC;
+        }
+
+        if (!captcha.equalsIgnoreCase(pinCode)) {
+            return ResCodeEnum.CAPTCHA_CHECK_ERROR_GRAPHIC;
+        }
+        redisServiceApi.remove(redisCaptchaKey, raptorRedis);
+       return ResCodeEnum.SUCCESS;
+
     }
 }

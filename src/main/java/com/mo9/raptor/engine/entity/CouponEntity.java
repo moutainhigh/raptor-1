@@ -9,71 +9,132 @@ import javax.persistence.Table;
 import java.math.BigDecimal;
 
 /**
- * 优惠券 Created by gqwu on 2018/7/6.
+ * 优惠券 Created by xzhang on 2018/9/28.
  */
 @Entity
 @DynamicInsert
 @DynamicUpdate
 @Table(name = "t_raptor_coupon")
-public class CouponEntity extends AbstractStrategyEntity implements IStateEntity {
+public class CouponEntity extends AbstractStateEntity {
 
-    /** 优惠券所有者 */
-    @Column(name = "owner_id")
-    private String ownerId;
+    /**
+     * 优惠券号, 唯一编号
+     */
+    @Column(name = "coupon_id")
+    private String couponId;
 
-    /** 优惠限定范围-用户、订单（补充：业务粒度 的优惠约束，由策略实现，分期款项粒度 的优惠由十字交叉约束（itemType X fieldType）实现） */
-    @Column(name = "scope_bundle")
-    private String scopeBundle;
+    /**
+     * 绑定订单号
+     */
+    @Column(name = "bound_order_id")
+    private String boundOrderId;
 
-    /** 优惠限定范围内关联对象ID */
-    @Column(name = "scope_bundle_id")
-    private String scopeBundleId;
+    /**
+     * 优惠券面值
+     */
+    @Column(name = "apply_amount")
+    private BigDecimal applyAmount;
 
-    /** 优惠券结算方式 - 一次性结算、持续结算 */
-    @Column(name = "entry_mode")
-    private String entryMode;
+    /**
+     * 已入账金额, 绑定订单后有值
+     */
+    @Column(name = "entry_amount")
+    private BigDecimal entryAmount;
 
-    /** 已入账优惠金额 */
-    @Column(name = "entry_number")
-    private BigDecimal entryNumber;
+    /**
+     * 生效起始日期
+     */
+    @Column(name = "effective_date")
+    private Long effectiveDate;
 
-    public String getOwnerId() {
-        return ownerId;
+    /**
+     * 失效日期
+     */
+    @Column(name = "expire_date")
+    private Long expireDate;
+
+    /**
+     * 入账结束时间
+     */
+    @Column(name = "end_time")
+    private Long endTime = -1L;
+
+    @Column(name = "creator")
+    private String creator;
+
+    @Column(name = "reason")
+    private String reason;
+
+
+    public String getCouponId() {
+        return couponId;
     }
 
-    public void setOwnerId(String ownerId) {
-        this.ownerId = ownerId;
+    public void setCouponId(String couponId) {
+        this.couponId = couponId;
     }
 
-    public String getScopeBundleId() {
-        return scopeBundleId;
+    public String getBoundOrderId() {
+        return boundOrderId;
     }
 
-    public void setScopeBundleId(String scopeBundleId) {
-        this.scopeBundleId = scopeBundleId;
+    public void setBoundOrderId(String boundOrderId) {
+        this.boundOrderId = boundOrderId;
     }
 
-    public String getEntryMode() {
-        return entryMode;
+    public BigDecimal getApplyAmount() {
+        return applyAmount;
     }
 
-    public void setEntryMode(String entryMode) {
-        this.entryMode = entryMode;
+    public void setApplyAmount(BigDecimal applyAmount) {
+        this.applyAmount = applyAmount;
     }
 
-    public String getScopeBundle() {
-        return scopeBundle;
+    public BigDecimal getEntryAmount() {
+        return entryAmount;
     }
 
-    public void setScopeBundle(String scopeBundle) {
-        this.scopeBundle = scopeBundle;
+    public void setEntryAmount(BigDecimal entryAmount) {
+        this.entryAmount = entryAmount;
     }
 
-    public BigDecimal getEntryNumber() {
-        return entryNumber;
+    public Long getEffectiveDate() {
+        return effectiveDate;
     }
 
-    public void setEntryNumber(BigDecimal entryNumber) {
-        this.entryNumber = entryNumber;
+    public void setEffectiveDate(Long effectiveDate) {
+        this.effectiveDate = effectiveDate;
+    }
+
+    public Long getExpireDate() {
+        return expireDate;
+    }
+
+    public void setExpireDate(Long expireDate) {
+        this.expireDate = expireDate;
+    }
+
+    public Long getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(Long endTime) {
+        this.endTime = endTime;
+    }
+
+    public String getCreator() {
+        return creator;
+    }
+
+    public void setCreator(String creator) {
+        this.creator = creator;
+    }
+
+    public String getReason() {
+        return reason;
+    }
+
+    public void setReason(String reason) {
+        this.reason = reason;
     }
 }

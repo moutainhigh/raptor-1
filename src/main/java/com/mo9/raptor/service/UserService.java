@@ -1,10 +1,13 @@
 package com.mo9.raptor.service;
 
+import com.mo9.raptor.bean.req.PageReq;
 import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.BankAuthStatusEnum;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author zma
@@ -88,10 +91,33 @@ public interface UserService {
     void checkAuditStatus(UserEntity userEntity) throws Exception;
 
     /**
+     * 当天是否允许新用户进入
+     * @return
+     */
+    boolean isaAllowNewUser();
+
+    /**
+     * 当天允许新用户注册增加计数
+     */
+    void addAllowNewUserNum();
+    /**
      * 查找没有通话记录报告的用户
      * @return
      * @throws Exception
      */
     List<UserEntity> findNoCallLogReports() throws Exception;
 
+    /**
+     * 获取用户注册数量
+     * @param source
+     * @param pageReq
+     * @return
+     */
+    Page<Map<String,Object>> getRegisterUserNumber(String source,PageReq pageReq);
+    /**
+     * 拉黑用户
+     * @param userEntity
+     * @param desc
+     */
+    void toBlackUser(UserEntity userEntity, String desc) throws Exception;
 }

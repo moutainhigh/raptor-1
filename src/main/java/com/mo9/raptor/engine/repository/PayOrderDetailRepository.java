@@ -18,7 +18,7 @@ public interface PayOrderDetailRepository extends JpaRepository<PayOrderDetailEn
      * @param orderId  订单号
      * @return         明细
      */
-    @Query(value = "select * from t_raptor_pay_order_detail where loan_order_id=?1 and deleted = false", nativeQuery = true)
+    @Query(value = "select * from t_raptor_pay_order_detail where destination_id=?1 and deleted = false", nativeQuery = true)
     List<PayOrderDetailEntity> listByOrderId(String orderId);
 
     /**
@@ -26,7 +26,7 @@ public interface PayOrderDetailRepository extends JpaRepository<PayOrderDetailEn
      * @param payOrderId  还款订单号
      * @return         明细
      */
-    @Query(value = "select * from t_raptor_pay_order_detail where pay_order_id=?1 and deleted = false", nativeQuery = true)
+    @Query(value = "select * from t_raptor_pay_order_detail where source_id=?1 and deleted = false", nativeQuery = true)
     List<PayOrderDetailEntity> listByPayOrderId(String payOrderId);
 
 }

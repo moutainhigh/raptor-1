@@ -121,4 +121,13 @@ public class LoanOrderServiceImpl implements ILoanOrderService {
         AuditLaunchEvent event = new AuditLaunchEvent(loanOrder.getOwnerId(), loanOrder.getOrderId());
         loanEventLauncher.launch(event);
     }
+
+    @Override
+    public List<LoanOrderEntity> listByStatus(List<StatusEnum> statusEnums) {
+        List<String> status = new ArrayList<String>();
+        for (StatusEnum statusEnum : statusEnums) {
+            status.add(statusEnum.name());
+        }
+        return loanOrderRepository.listByStatus(status);
+    }
 }

@@ -2,6 +2,10 @@ package com.mo9.raptor.entity;
 
 import com.mo9.raptor.engine.entity.AbstractStateEntity;
 import com.mo9.raptor.engine.entity.IStateEntity;
+import com.mo9.raptor.engine.enums.StatusEnum;
+import com.mo9.raptor.enums.SourceEnum;
+import com.mo9.raptor.utils.Md5Util;
+import org.apache.commons.lang.StringUtils;
 
 import javax.persistence.*;
 
@@ -36,7 +40,7 @@ public class UserEntity extends AbstractStateEntity implements IStateEntity {
      * 手机通讯录是否上传
      */
     @Column(name = "mobile_contacts")
-    private Boolean mobileContacts;
+    private Boolean mobileContacts = false;
     /**
      * 银行卡认证状态
      */
@@ -46,25 +50,20 @@ public class UserEntity extends AbstractStateEntity implements IStateEntity {
      * 认证信息是否上传并通过
      */
     @Column(name = "certify_info")
-    private Boolean certifyInfo;
+    private Boolean certifyInfo = false;
     /**
      * 是否设置银行卡 信息
      */
     @Column(name = "bank_card_set")
-    private Boolean bankCardSet;
+    private Boolean bankCardSet = false;
     /**
      * 通话记录是否授权
      */
     @Column(name = "call_history")
-    private Boolean callHistory;
-    /**
-     * 活体认证状态
-     */
-    @Column(name = "living_body_certify")
-    private String livingBodyCertify;
+    private Boolean callHistory = false;
 
     @Column(name = "receive_call_history")
-    private Boolean receiveCallHistory;
+    private Boolean receiveCallHistory = false;
 
     @Column(name = "user_ip")
     private String userIp;
@@ -76,6 +75,54 @@ public class UserEntity extends AbstractStateEntity implements IStateEntity {
      */
     @Column(name = "auth_time")
     private Long authTime;
+
+    /**
+     * 注册来源
+     */
+    @Column(name = "source")
+    private String source = SourceEnum.WHITE.name();
+
+    /**
+     * 子来源
+     */
+    @Column(name = "sub_source")
+    private String subSource;
+
+    /**
+     * 手机通讯录完成时间
+     */
+    @Column(name = "mobile_contacts_time")
+    private Long mobileContactsTime = -1L;
+
+    /**
+     * 身份信息完成时间
+     */
+    @Column(name = "certify_info_time")
+    private Long certifyInfoTime = -1L;
+
+    /**
+     * 银行卡完成时间
+     */
+    @Column(name = "bank_card_set_time")
+    private Long bankCardSetTime = -1L;
+
+    /**
+     * 通话记录授权时间
+     */
+    @Column(name = "call_history_time")
+    private Long callHistoryTime = -1L;
+
+    /**
+     * 爬虫返回通话记录完成时间
+     */
+    @Column(name = "receive_call_history_time")
+    private Long receiveCallHistoryTime = -1L;
+
+    @Column(name = "living_body_certify")
+    private Boolean livingBodyCertify = false;
+
+    @Column(name = "login_enable")
+    private Boolean loginEnable = true;
 
     @Override
     public Long getId() {
@@ -167,14 +214,6 @@ public class UserEntity extends AbstractStateEntity implements IStateEntity {
         this.receiveCallHistory = receiveCallHistory;
     }
 
-    public String getLivingBodyCertify() {
-        return livingBodyCertify;
-    }
-
-    public void setLivingBodyCertify(String livingBodyCertify) {
-        this.livingBodyCertify = livingBodyCertify;
-    }
-
     public String getUserIp() {
         return userIp;
     }
@@ -205,5 +244,108 @@ public class UserEntity extends AbstractStateEntity implements IStateEntity {
 
     public void setUserCode(String userCode) {
         this.userCode = userCode;
+    }
+
+    public void setLastLoginTime(Long lastLoginTime) {
+        this.lastLoginTime = lastLoginTime;
+    }
+
+    public void setAuthTime(Long authTime) {
+        this.authTime = authTime;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+
+    public Long getMobileContactsTime() {
+        return mobileContactsTime;
+    }
+
+    public void setMobileContactsTime(Long mobileContactsTime) {
+        this.mobileContactsTime = mobileContactsTime;
+    }
+
+    public Long getCertifyInfoTime() {
+        return certifyInfoTime;
+    }
+
+    public void setCertifyInfoTime(Long certifyInfoTime) {
+        this.certifyInfoTime = certifyInfoTime;
+    }
+
+    public Long getBankCardSetTime() {
+        return bankCardSetTime;
+    }
+
+    public void setBankCardSetTime(Long bankCardSetTime) {
+        this.bankCardSetTime = bankCardSetTime;
+    }
+
+    public Long getCallHistoryTime() {
+        return callHistoryTime;
+    }
+
+    public void setCallHistoryTime(Long callHistoryTime) {
+        this.callHistoryTime = callHistoryTime;
+    }
+
+    public Long getReceiveCallHistoryTime() {
+        return receiveCallHistoryTime;
+    }
+
+    public void setReceiveCallHistoryTime(Long receiveCallHistoryTime) {
+        this.receiveCallHistoryTime = receiveCallHistoryTime;
+    }
+
+    public Boolean getLivingBodyCertify() {
+        return livingBodyCertify;
+    }
+
+    public void setLivingBodyCertify(Boolean livingBodyCertify) {
+        this.livingBodyCertify = livingBodyCertify;
+    }
+
+    public Boolean getLoginEnable() {
+        return loginEnable;
+    }
+
+    public void setLoginEnable(Boolean loginEnable) {
+        this.loginEnable = loginEnable;
+    }
+
+    public String getSubSource() {
+        return subSource;
+    }
+
+    public void setSubSource(String subSource) {
+        this.subSource = subSource;
+    }
+
+    /**
+     * 构建一个新用户
+     * @param mobile
+     * @param source
+     * @return
+     */
+    public static UserEntity buildNewUser(String mobile, String source, String subSource){
+        UserEntity userEntity = new UserEntity();
+        if(StringUtils.isBlank(source)){
+            source = SourceEnum.NEW.name();
+            subSource = null;
+        }
+        userEntity.setMobile(mobile);
+        userEntity.setUserCode(Md5Util.getMD5(mobile).toUpperCase());
+        userEntity.setStatus(StatusEnum.COLLECTING.name());
+        userEntity.setSource(source);
+        userEntity.setSubSource(subSource);
+        long now = System.currentTimeMillis();
+        userEntity.setCreateTime(now);
+        userEntity.setUpdateTime(now);
+        return userEntity;
     }
 }

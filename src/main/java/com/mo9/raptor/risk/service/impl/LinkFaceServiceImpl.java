@@ -17,6 +17,7 @@ import java.util.HashMap;
 
 /**
  * @author yngong
+ * 这个文件下面全部都是HTTP API 调用
  */
 @Service("linkFaceService")
 public class LinkFaceServiceImpl implements com.mo9.raptor.risk.service.LinkFaceService {
@@ -47,10 +48,12 @@ public class LinkFaceServiceImpl implements com.mo9.raptor.risk.service.LinkFace
      */
     @Override
     public double preventHack(String userCode, String imageUrl) {
+        //调用参数记录
         String callUrl = "https://cloudapi.linkface.cn/hackness/selfie_hack_detect";
         HashMap<String, Object> callParams = new HashMap<>(2);
         callParams.put("callUrl", callUrl);
         callParams.put("file", imageUrl);
+        //创建日志记录
         LinkfaceLogEntity linkfaceLogEntity = linkfaceLogService.create(userCode, JSONObject.toJSONString(callParams), "INIT", "");
 
         try {
@@ -84,6 +87,7 @@ public class LinkFaceServiceImpl implements com.mo9.raptor.risk.service.LinkFace
                 linkfaceLogService.update(linkfaceLogEntity);
                 //{"request_id":"TID7c205d05fa6b4df099ad9fd1f38d76a2","status":"OK","score":0.5303437113761902,"image_id":"7c6649688d054507b6819f97b9d5d7a4"}
                 JSONObject jsonObject = JSONObject.parseObject(res);
+                //超出调用限制的时候重试
                 if (res.contains("RATE_LIMIT_EXCEEDED")) {
                     linkfaceLogEntity.setStatus("RATE_LIMIT_EXCEEDED");
                     linkfaceLogService.update(linkfaceLogEntity);
@@ -159,6 +163,7 @@ public class LinkFaceServiceImpl implements com.mo9.raptor.risk.service.LinkFace
                     linkfaceLogEntity.setCallResult(res);
                     linkfaceLogService.update(linkfaceLogEntity);
                     JSONObject jsonObject = JSONObject.parseObject(res);
+                    //超出调用限制的时候重试
                     if (res.contains("RATE_LIMIT_EXCEEDED")) {
                         linkfaceLogEntity.setStatus("RATE_LIMIT_EXCEEDED");
                         linkfaceLogService.update(linkfaceLogEntity);
@@ -233,6 +238,7 @@ public class LinkFaceServiceImpl implements com.mo9.raptor.risk.service.LinkFace
                     linkfaceLogEntity.setCallResult(res);
                     linkfaceLogService.update(linkfaceLogEntity);
                     JSONObject jsonObject = JSONObject.parseObject(res);
+                    //超出调用限制的时候重试
                     if (res.contains("RATE_LIMIT_EXCEEDED")) {
                         linkfaceLogEntity.setStatus("RATE_LIMIT_EXCEEDED");
                         linkfaceLogService.update(linkfaceLogEntity);

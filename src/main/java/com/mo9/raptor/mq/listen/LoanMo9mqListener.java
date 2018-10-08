@@ -10,20 +10,16 @@ import com.mo9.raptor.bean.res.LendInfoMqRes;
 import com.mo9.raptor.bean.res.RepayDetailRes;
 import com.mo9.raptor.bean.res.RepayInfoMqRes;
 import com.mo9.raptor.bean.res.UserInfoMqRes;
-import com.mo9.raptor.engine.calculator.ILoanCalculator;
-import com.mo9.raptor.engine.calculator.LoanCalculatorFactory;
 import com.mo9.raptor.engine.entity.LendOrderEntity;
 import com.mo9.raptor.engine.entity.LoanOrderEntity;
 import com.mo9.raptor.engine.entity.PayOrderEntity;
 import com.mo9.raptor.engine.enums.StatusEnum;
-import com.mo9.raptor.engine.service.ILendOrderService;
-import com.mo9.raptor.engine.service.ILoanOrderService;
-import com.mo9.raptor.engine.service.IPayOrderDetailService;
-import com.mo9.raptor.engine.service.IPayOrderService;
+import com.mo9.raptor.engine.service.*;
 import com.mo9.raptor.engine.state.event.impl.lend.LendResponseEvent;
+import com.mo9.raptor.engine.state.event.impl.loan.LoanResponseEvent;
 import com.mo9.raptor.engine.state.event.impl.pay.DeductResponseEvent;
 import com.mo9.raptor.engine.state.launcher.IEventLauncher;
-import com.mo9.raptor.engine.structure.field.Field;
+import com.mo9.raptor.engine.structure.Unit;
 import com.mo9.raptor.engine.structure.field.FieldTypeEnum;
 import com.mo9.raptor.engine.structure.item.Item;
 import com.mo9.raptor.entity.*;
@@ -32,7 +28,6 @@ import com.mo9.raptor.mq.producer.RabbitProducer;
 import com.mo9.raptor.service.*;
 import com.mo9.raptor.utils.log.Log;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -78,16 +73,16 @@ public class LoanMo9mqListener implements IMqMsgListener{
 	private UserCertifyInfoService userCertifyInfoService;
 
 	@Autowired
-	private UserContactsService userContactsService;
-
-	@Autowired
 	private IEventLauncher payEventLauncher;
 
 	@Autowired
 	private IEventLauncher lendEventLauncher;
 
     @Autowired
-    private LoanCalculatorFactory loanCalculatorFactory;
+    private IEventLauncher loanEventLauncher;
+
+    @Autowired
+    private BillService billService;
 
 	@Autowired
 	private RabbitProducer rabbitProducer;
@@ -136,8 +131,8 @@ public class LoanMo9mqListener implements IMqMsgListener{
 		}
 		PayOrderLogEntity payOrderLog = payOrderLogService.getByPayOrderId(orderId);
 		if (payOrderLog == null) {
-			logger.error("还款订单号[{}], 查不到对应的还款log", orderId);
-			return MqAction.CommitMessage;
+			logger.error("还款订单号[{}], 查不到对应的还款log, 可能由于放款请求未结束而MQ先到, 延后再次发送MQ", orderId);
+			return MqAction.ReconsumeLater;
 		}
 		payOrderLog.setChannel(channel);
 		payOrderLog.setThirdChannelNo(channelDealcode);
@@ -150,13 +145,16 @@ public class LoanMo9mqListener implements IMqMsgListener{
 		// 发送还款扣款成功事件
 		try {
 			try {
-				CardBinInfoEntity cardBinInfoEntity = cardBinInfoService.findByCardPrefix(payOrderLog.getBankCard());
-				String bankName = "银行卡" ;
-				if(cardBinInfoEntity != null){
-                    bankName = cardBinInfoEntity.getCardBank() ;
+                Boolean offline = bodyJson.getBoolean("offline");
+			    if (offline == null || !offline) {
+                    CardBinInfoEntity cardBinInfoEntity = cardBinInfoService.findByCardPrefix(payOrderLog.getBankCard());
+                    String bankName = "银行卡" ;
+                    if(cardBinInfoEntity != null){
+                        bankName = cardBinInfoEntity.getCardBank() ;
+                    }
+                    bankService.createOrUpdateBank( payOrderLog.getBankCard() ,  payOrderLog.getIdCard() ,  payOrderLog.getUserName() ,
+                            payOrderLog.getBankMobile() ,  bankName ,  payOrderLog.getUserCode());
                 }
-				bankService.createOrUpdateBank( payOrderLog.getBankCard() ,  payOrderLog.getIdCard() ,  payOrderLog.getUserName() ,
-                        payOrderLog.getBankMobile() ,  bankName ,  payOrderLog.getUserCode());
 			} catch (Exception e) {
 				Log.error(logger , e , "还款成功保存银行卡异常 orderId : " + orderId);
 			}
@@ -276,10 +274,25 @@ public class LoanMo9mqListener implements IMqMsgListener{
 		}
 		try {
 			LendOrderEntity lendOrderEntity = lendOrderService.getByOrderId(orderId);
-			if (lendOrderEntity == null || !StatusEnum.LENDING.name().equals(lendOrderEntity.getStatus())) {
+			if (lendOrderEntity == null) {
 				logger.info("接收到了订单[{}]放款的MQ, 然而查不到放款订单, 可能由于放款请求未结束而MQ先到, 延后再次发送MQ", orderId);
 				return MqAction.ReconsumeLater;
 			}
+			if (StatusEnum.SUCCESS.name().equals(lendOrderEntity.getStatus()) || StatusEnum.FAILED.name().equals(lendOrderEntity.getStatus())) {
+                logger.warn("接收到了订单[{}]放款的MQ, 然而查到的放款订单状态为[{}], 可能由于状态机报错而未更新借款订单状态", orderId, lendOrderEntity.getStatus());
+                LoanOrderEntity loanOrderEntity = loanOrderService.getByOrderId(orderId);
+                if (StatusEnum.LENDING.name().equals(loanOrderEntity.getStatus())) {
+                    LoanResponseEvent event = null;
+                    if (isSucceed) {
+                        event =  new LoanResponseEvent(loanOrderEntity.getOrderId(), lendAmount, isSucceed, lendSettleTime, "放款成功", "lendorder[" + lendOrderEntity.getStatus() + "], 再次接到MQ后改为成功");
+                    } else {
+                        event =  new LoanResponseEvent(loanOrderEntity.getOrderId(), BigDecimal.ZERO, isSucceed, lendSettleTime, "放款失败", "lendorder[" + lendOrderEntity.getStatus() + "], 再次接到MQ后改为失败");
+                    }
+                    loanEventLauncher.launch(event);
+                    logger.warn("lendOrder状态[{}], 原loanOrder[{}]状态[{}], 是否成功[{}]", lendOrderEntity.getStatus(), loanOrderEntity.getOrderId(), loanOrderEntity.getStatus(), isSucceed);
+                    return MqAction.CommitMessage;
+                }
+            }
 
 			lendEventLauncher.launch(lendResponse);
 		} catch (Exception e) {
@@ -303,7 +316,7 @@ public class LoanMo9mqListener implements IMqMsgListener{
      * 通知贷后放款
      * @param orderId
      */
-    private void notifyMisLend(String orderId) {
+    public void notifyMisLend(String orderId) {
         LendOrderEntity lendOrderEntity = lendOrderService.getByOrderId(orderId);
 		LoanOrderEntity loanOrderEntity = loanOrderService.getByOrderId(orderId);
 		LendInfoMqRes lendInfo = new LendInfoMqRes();
@@ -355,7 +368,7 @@ public class LoanMo9mqListener implements IMqMsgListener{
      * 通知贷后还款
 	 * @param payOrderLog  还款log
 	 */
-    private void notifyMisRepay(PayOrderLogEntity payOrderLog, Integer postponeCount, LoanOrderEntity loanOrderEntity) {
+    public void notifyMisRepay(PayOrderLogEntity payOrderLog, Integer postponeCount, LoanOrderEntity loanOrderEntity) {
         RepayInfoMqRes repayInfo = new RepayInfoMqRes();
         BeanUtils.copyProperties(payOrderLog, repayInfo);
 
@@ -369,11 +382,11 @@ public class LoanMo9mqListener implements IMqMsgListener{
         List<RepayDetailRes> repayDetail = payOrderDetailService.getRepayDetail(payOrderEntity.getOrderId());
         repayInfo.setRepayDetail(repayDetail);
 
-        ILoanCalculator calculator = loanCalculatorFactory.load(loanOrderEntity);
-        Item realItem = calculator.realItem(System.currentTimeMillis(), loanOrderEntity, PayTypeEnum.REPAY_AS_PLAN.name());
+        Item realItem = billService.payoffRealItem(loanOrderEntity);
         List<RepayDetailRes> shouldPay = new ArrayList<RepayDetailRes>();
-        for (Map.Entry<FieldTypeEnum, Field> entry : realItem.entrySet()) {
-            BigDecimal number = entry.getValue().getNumber();
+
+        for (Map.Entry<FieldTypeEnum, Unit> entry : realItem.entrySet()) {
+            BigDecimal number = entry.getValue().sum();
             if (BigDecimal.ZERO.compareTo(number) < 0) {
                 RepayDetailRes res = new RepayDetailRes();
                 res.setFieldType(entry.getKey().name());

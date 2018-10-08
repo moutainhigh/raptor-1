@@ -2,13 +2,12 @@ package com.mo9.raptor.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.bean.BaseResponse;
-import com.mo9.raptor.enums.ResCodeEnum;
+import com.mo9.raptor.engine.utils.TimeUtils;
 import com.mo9.raptor.service.CommonService;
 import com.mo9.raptor.service.DingTalkService;
 import com.mo9.raptor.utils.CommonValues;
 import com.mo9.raptor.utils.log.Log;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -77,11 +76,12 @@ public class SystemController {
     @GetMapping("/common_task")
     public BaseResponse<JSONObject> commonTask(){
         BaseResponse<JSONObject> response = new BaseResponse<>();
+        Long time = TimeUtils.extractDateTime(System.currentTimeMillis())/1000 ;
         JSONObject returnJson = new JSONObject() ;
         returnJson.put("contactInformation",contactInformation);
         Map<String , Integer> commonUserInfo = commonService.findUserInfo("ssss") ;
         Map<String , Integer> loanInfo = commonService.findLoanInfo("ssss") ;
-        Map<String , Integer> repayInfo = commonService.findRepayInfo("ssss");
+        Map<String , Integer> repayInfo = commonService.findRepayInfo(time);
 
         dingTalkService.sendText(" 用户总数 :  " + commonUserInfo.get("userNumber") + "\n 今日登陆用户数 : " + commonUserInfo.get("userLoginNumber")
                 + "\n身份证认证总数 : " + commonUserInfo.get("userCardNumber") + "\n通话记录认证总数 : " + commonUserInfo.get("userPhoneNumber")

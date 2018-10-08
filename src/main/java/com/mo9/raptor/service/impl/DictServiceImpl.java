@@ -37,7 +37,7 @@ public class DictServiceImpl implements DictService {
     @Override
     public String findDictName(String dictTypeNo, String dictDataNo) {
         DictDataEntity dictData = findDictData(dictTypeNo, dictDataNo);
-        return dictData.getName();
+        return dictData == null ? null : dictData.getName();
     }
 
     @Override
