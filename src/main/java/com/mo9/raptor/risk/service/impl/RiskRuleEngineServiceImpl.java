@@ -220,8 +220,8 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
         Integer cuishouCallMaxTimes = cuishou.getInteger("call_in_times");
         Integer yisicuishouCallMaxTimes = yisicuishou.getInteger("call_in_times");
 
-        if (cuishouCallMaxTimes < ONE_LOAN_COMPANY_CALL_TIMES
-                && yisicuishouCallMaxTimes < ONE_LOAN_COMPANY_CALL_TIMES){
+        if (cuishouCallMaxTimes < DIFFERENT_LOAN_COMPANY_CALL_TIMES
+                && yisicuishouCallMaxTimes < DIFFERENT_LOAN_COMPANY_CALL_TIMES){
             new AuditResponseEvent(userCode, true, "");
         }
         
