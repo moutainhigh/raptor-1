@@ -35,29 +35,58 @@ function initCardPicker() {
 }
 function initSubmit() {
   $('#normal-submit').click(function () {
-      /** json 数据提交*/
       var contextPath = window.location.pathname.split("/")[1];
       console.log(contextPath);
       var code = getUrlParam("code");
+      var url = "/" + contextPath + "/cash/cashier/has_repaying?code="+code ;
       var params={"code":code,"channel":$('.term-picker .term-item.choosen .text').attr("value"),"bankNo":$('.term-picker .term-item.choosen .bank-card').attr("value")}
-      $.post("/" + contextPath + "/cash/cashier/submit",params,function(response){
+      //查询是否有正在还款中订单
+      $.get(url,function(response){
           var code = response.code;
-          var message = response.message;
           if (code != 0) {
-              window.location.href = 'failed?code='+code + "&message=" + message;
+              //交易失效 , 直接提交交易 , 由交易接口返回正常错误信息
+              /** json 数据提交*/
+              initSubmitInside(contextPath ,  params);
           } else {
-              var entities = response.data.entities;
-              var state = entities.state;
-              if (state == false) {
-                  code = -123456789;
-                  message = 88888888;
-                  window.location.href = 'failed?code='+code + "&message=" + message;
-              } else {
-                  window.location.href = entities.result;
+              var data = response.data;
+              if(data){
+                  //存在扣款中订单 提示
+                  var flag = confirm("是否确认删除!");
+                  if(flag){
+                      /** json 数据提交*/
+                      initSubmitInside(contextPath ,  params);
+                  }
+              }else{
+                  //存在扣款中订单 , 直接提交还款
+                  /** json 数据提交*/
+                  initSubmitInside(contextPath ,  params);
               }
+
           }
-      },"json");
+      });
+
   })
+}
+
+function initSubmitInside( contextPath ,  params){
+    alert("contextPath  - " + contextPath + "  params - " + params);
+    $.post("/" + contextPath + "/cash/cashier/submit",params,function(response){
+        var code = response.code;
+        var message = response.message;
+        if (code != 0) {
+            window.location.href = 'failed?code='+code + "&message=" + message;
+        } else {
+            var entities = response.data.entities;
+            var state = entities.state;
+            if (state == false) {
+                code = -123456789;
+                message = 88888888;
+                window.location.href = 'failed?code='+code + "&message=" + message;
+            } else {
+                window.location.href = entities.result;
+            }
+        }
+    },"json");
 }
 
 function initCardSubmit() {
