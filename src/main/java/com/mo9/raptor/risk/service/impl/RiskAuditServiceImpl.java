@@ -7,7 +7,6 @@ import com.mo9.raptor.engine.state.event.impl.AuditResponseEvent;
 import com.mo9.raptor.entity.UserCertifyInfoEntity;
 import com.mo9.raptor.entity.UserContactsEntity;
 import com.mo9.raptor.entity.UserEntity;
-import com.mo9.raptor.enums.SourceEnum;
 import com.mo9.raptor.risk.entity.TRiskCallLog;
 import com.mo9.raptor.risk.repo.RiskCallLogRepository;
 import com.mo9.raptor.risk.service.LinkFaceService;
@@ -74,7 +73,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
 
     @Resource
     private RiskWordService riskWordService;
-    
+
     @Resource
     private RiskRuleEngineService riskRuleEngineService;
 
@@ -99,17 +98,38 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         AuditResponseEvent finalResult = null;
         AuditResponseEvent res;
 
-        //不在白名单内需要多运行一个通话记录规则
-        if (!SourceEnum.WHITE.equals(user.getSource())) {
-            logger.info(userCode + "开始运行规则[ContactsRule]");
-            res = contactsRule(userCode);
-            //这里的HIT字段有点歧义，这里的hit为true的话是通过，false为未通过
-            ruleLogService.create(userCode, "ContactsRule", res.isPass(), true, res.getExplanation());
+
+        if (finalResult == null) {
+            logger.info(userCode + "开始运行规则[IdCardRule]");
+            res = idCardRule(userCode);
+            ruleLogService.create(userCode, "IdCardRule", res.isPass(), true, res.getExplanation());
             if (!res.isPass()) {
                 finalResult = res;
             }
         } else {
-            ruleLogService.create(userCode, "ContactsRule", null, false, "");
+            ruleLogService.create(userCode, "IdCardRule", null, false, "");
+        }
+
+        if (finalResult == null) {
+            logger.info(userCode + "开始运行规则[RiskWordRule]");
+            res = riskWordRule(userCode);
+            ruleLogService.create(userCode, "RiskWordRule", res.isPass(), true, res.getExplanation());
+            if (!res.isPass()) {
+                finalResult = res;
+            }
+        } else {
+            ruleLogService.create(userCode, "RiskWordRule", null, false, "");
+        }
+
+        if (finalResult == null) {
+            logger.info(userCode + "开始运行规则[AgeRule]");
+            res = ageRule(userCode);
+            ruleLogService.create(userCode, "AgeRule", res.isPass(), true, res.getExplanation());
+            if (!res.isPass()) {
+                finalResult = res;
+            }
+        } else {
+            ruleLogService.create(userCode, "AgeRule", null, false, "");
         }
 
         if (finalResult == null) {
@@ -155,6 +175,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         } else {
             ruleLogService.create(userCode, "MergencyInJHJJBlackListRule", null, false, "");
         }
+        */
 
         if (finalResult == null) {
             logger.info(userCode + "开始运行规则[CalledTimesByOneLoanCompanyRule]");
@@ -176,41 +197,24 @@ public class RiskAuditServiceImpl implements RiskAuditService {
             }
         } else {
             ruleLogService.create(userCode, "CalledTimesByDifferentLoanCompanyRule", null, false, "");
-        }*/
-        
-        
-        if (finalResult == null) {
-            logger.info(userCode + "开始运行规则[IdCardRule]");
-            res = idCardRule(userCode);
-            ruleLogService.create(userCode, "IdCardRule", res.isPass(), true, res.getExplanation());
-            if (!res.isPass()) {
-                finalResult = res;
-            }
-        } else {
-            ruleLogService.create(userCode, "IdCardRule", null, false, "");
         }
 
-        if (finalResult == null) {
-            logger.info(userCode + "开始运行规则[RiskWordRule]");
-            res = riskWordRule(userCode);
-            ruleLogService.create(userCode, "RiskWordRule", res.isPass(), true, res.getExplanation());
-            if (!res.isPass()) {
-                finalResult = res;
+        //不在白名单内需要多运行一个通话记录规则
+        if (!WHITE_LIST.equals(user.getSource())) {
+            if (finalResult == null) {
+                logger.info(userCode + "开始运行规则[ContactsRule]");
+                res = contactsRule(userCode);
+                ruleLogService.create(userCode, "ContactsRule", res.isPass(), true, res.getExplanation());
+                if (!res.isPass()) {
+                    finalResult = res;
+                }
+            } else {
+                ruleLogService.create(userCode, "ContactsRule", null, false, "");
             }
         } else {
-            ruleLogService.create(userCode, "RiskWordRule", null, false, "");
+            ruleLogService.create(userCode, "ContactsRule", null, false, "");
         }
 
-        if (finalResult == null) {
-            logger.info(userCode + "开始运行规则[AgeRule]");
-            res = ageRule(userCode);
-            ruleLogService.create(userCode, "AgeRule", res.isPass(), true, res.getExplanation());
-            if (!res.isPass()) {
-                finalResult = res;
-            }
-        } else {
-            ruleLogService.create(userCode, "AgeRule", null, false, "");
-        }
 
         if (finalResult == null) {
             logger.info(userCode + "开始运行规则[CallLogRule]");
