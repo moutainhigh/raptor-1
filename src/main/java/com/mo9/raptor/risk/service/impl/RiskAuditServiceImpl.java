@@ -175,6 +175,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         } else {
             ruleLogService.create(userCode, "MergencyInJHJJBlackListRule", null, false, "");
         }
+        */
 
         if (finalResult == null) {
             logger.info(userCode + "开始运行规则[CalledTimesByOneLoanCompanyRule]");
@@ -196,7 +197,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
             }
         } else {
             ruleLogService.create(userCode, "CalledTimesByDifferentLoanCompanyRule", null, false, "");
-        }*/
+        }
 
         //不在白名单内需要多运行一个通话记录规则
         if (!WHITE_LIST.equals(user.getSource())) {
