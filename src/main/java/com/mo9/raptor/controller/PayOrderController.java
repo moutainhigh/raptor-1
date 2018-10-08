@@ -100,7 +100,7 @@ public class PayOrderController {
         String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
         String clientId = request.getHeader(ReqHeaderParams.CLIENT_ID);
         String clientVersion = request.getHeader(ReqHeaderParams.CLIENT_VERSION);
-
+        logger.info("repay方法开始,userCode:"+userCode+",loanOrderId:"+loanOrderId);
         try{
             // 用户没删就行, 拉黑也能还
             //UserEntity user = userService.findByUserCodeAndDeleted(userCode, false);
@@ -141,7 +141,7 @@ public class PayOrderController {
 
             String url = request.getScheme()+ "://" + request.getServerName() + request.getContextPath() + "/cash/cashier?code=" + code;
             data.put("url", url);
-
+            logger.info("repay方法结束,userCode:"+userCode+",loanOrderId:"+loanOrderId+",url:"+url);
             return response.buildSuccessResponse(data);
         }catch (Exception e){
             Log.error(logger, e,"发起支付出现异常userCode={}", userCode);
@@ -287,11 +287,12 @@ public class PayOrderController {
                                                    @RequestParam String bankNo) {
         BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
         try{
+
             PayInfoCache payInfoCache =  (PayInfoCache) redisServiceApi.get(RedisParams.PAY_CODE + code, raptorRedis);
             if (payInfoCache == null) {
                 return response.buildFailureResponse(ResCodeEnum.PAY_INFO_EXPIRED);
             }
-
+            logger.info("/cashier/submit方法开始,userCode:"+payInfoCache.getUserCode());
             // 检查渠道
             ChannelEntity channelEntity = channelService.getChannelByType(channel, ChannelTypeEnum.REPAY.name());
             if (channelEntity == null) {
@@ -335,7 +336,7 @@ public class PayOrderController {
             payOrderLog.setBankMobile(bank.getMobile());
 
             payOrderLog.create();
-            payOrderService.savePayOrderAndLog(payOrder, payOrderLog);
+            payOrderService.savePayOrderAndLogAndNotice(payOrder, payOrderLog);
 
             redisServiceApi.remove(RedisParams.PAY_CODE + code, raptorRedis);
 
@@ -344,7 +345,7 @@ public class PayOrderController {
             JSONObject data = new JSONObject();
 
             data.put("entities", res);
-
+            logger.info("/cashier/submit方法结束,userCode:"+payInfoCache.getUserCode()+"url:"+res.toString());
             return response.buildSuccessResponse(data);
         }catch (Exception e){
             Log.error(logger, e,"cashierSubmit出现异常code={}", code);
@@ -415,7 +416,7 @@ public class PayOrderController {
             payOrderLog.setBankMobile(mobile);
 
             payOrderLog.create();
-            payOrderService.savePayOrderAndLog(payOrder, payOrderLog);
+            payOrderService.savePayOrderAndLogAndNotice(payOrder, payOrderLog);
 
             redisServiceApi.remove(RedisParams.PAY_CODE + code, raptorRedis);
 
