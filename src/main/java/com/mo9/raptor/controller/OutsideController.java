@@ -10,6 +10,7 @@ import com.mo9.raptor.redis.RedisParams;
 import com.mo9.raptor.redis.RedisServiceApi;
 import com.mo9.raptor.service.SpreadChannelService;
 import com.mo9.raptor.service.UserService;
+import com.mo9.raptor.utils.IpUtils;
 import com.mo9.raptor.utils.Md5Util;
 import com.mo9.raptor.utils.log.Log;
 import org.slf4j.Logger;
@@ -116,9 +117,9 @@ public class OutsideController {
     public String toLogin(Model model,HttpServletRequest request){
         String userName = request.getParameter("userName");
         String password = request.getParameter("password");
-
+        String remoteHost = IpUtils.getRemoteHost(request);
         //查看是否在登录状态
-        SpreadChannelEntity spreadChannelUser = (SpreadChannelEntity)redisServiceApi.get(RedisParams.ACTION_TOKEN_LONG + userName, raptorRedis);
+        SpreadChannelEntity spreadChannelUser = (SpreadChannelEntity)redisServiceApi.get(RedisParams.ACTION_TOKEN_LONG + remoteHost, raptorRedis);
         //非登录状态去登录
         if (spreadChannelUser == null){
             if (StringUtils.isEmpty(userName)||StringUtils.isEmpty(password)){
@@ -132,7 +133,8 @@ public class OutsideController {
             }
         }
         //设置登录成功
-        redisServiceApi.set(RedisParams.ACTION_TOKEN_LONG+userName,spreadChannelUser,RedisParams.EXPIRE_1D,raptorRedis);
+        redisServiceApi.set(RedisParams.ACTION_TOKEN_LONG+remoteHost,spreadChannelUser,RedisParams.EXPIRE_30M,raptorRedis);
+        logger.info("渠道推广登录接口-------->>>>>渠道[{}]登录成功,ip为[{}]",spreadChannelUser.getSource(),remoteHost);
         Page<Map<String, Object>> registerUser = userService.getRegisterUserNumber(spreadChannelUser.getSource(),  new PageReq());
         List<Map<String, Object>> content = registerUser.getContent();
         model.addAttribute("resultList",content);
@@ -141,6 +143,7 @@ public class OutsideController {
     }
     @GetMapping("/login")
     public String loginIndex(Model model,HttpServletRequest request){
+        redisServiceApi.remove(RedisParams.ACTION_TOKEN_LONG+IpUtils.getRemoteHost(request),raptorRedis);
         return "channel/login";
     }
 
