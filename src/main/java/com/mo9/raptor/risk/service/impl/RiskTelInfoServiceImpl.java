@@ -49,7 +49,17 @@ public class RiskTelInfoServiceImpl implements RiskTelInfoService {
     public TRiskTelInfo save(TRiskTelInfo riskTelInfo) {
         TRiskTelInfo exists = this.findByMobile(riskTelInfo.getMobile());
         if(exists != null){
-            return exists;
+            exists.setSid(riskTelInfo.getSid());
+            exists.setReportReceived(false);
+            exists.setAddress(riskTelInfo.getAddress());
+            exists.setOpenDate(riskTelInfo.getOpenDate());
+            exists.setIdCard(riskTelInfo.getIdCard());
+            exists.setUpdatedAt(new Date());
+            exists.setField1(riskTelInfo.getField1());
+            exists.setField2(riskTelInfo.getField2());
+            exists.setField3(riskTelInfo.getField3());
+            
+            return update(exists);
         }
         return riskTelInfoRepository.save(riskTelInfo);        
     }
