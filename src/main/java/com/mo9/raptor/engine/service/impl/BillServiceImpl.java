@@ -100,8 +100,17 @@ public class BillServiceImpl implements BillService {
                 }
             }
         }
+        /**
+         * 只有少于应还金额的时候会报错
+         */
         if (entryItem.sum().compareTo(shouldPay) != 0) {
-            throw new LoanEntryException("订单" + payType.getExplanation() + payOrder.getPayNumber() + ", 优惠" + applyAmount + ", 与应还: " + shouldPay + "不匹配!");
+            throw new LoanEntryException("订单" + loanOrder.getOrderId() + payType.getExplanation() + payOrder.getPayNumber() + ", 优惠" + applyAmount + ", 与应还: " + shouldPay + "不匹配!");
+        }
+        /**
+         *  超额还款控制
+         */
+        if (entryItem.sum().compareTo(payOrder.getPayNumber()) != 0) {
+            throw new LoanEntryException("订单" + loanOrder.getOrderId() + payType.getExplanation() + payOrder.getPayNumber() + ", 优惠" + applyAmount + ", 与可入账金额: " + entryItem.sum() + "不匹配!");
         }
         return entryItem;
     }
