@@ -145,7 +145,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
             ruleLogService.create(userCode, "MergencyHadNoDoneOrderRule", null, false, "");
         }
 
-        if (finalResult == null) {
+        /*if (finalResult == null) {
             logger.info(userCode + "开始运行规则[MergencyInJHJJBlackListRule]");
             res = riskRuleEngineService.mergencyInJHJJBlackListRule(userCode);
             ruleLogService.create(userCode, "MergencyInJHJJBlackListRule", res.isPass(), true, res.getExplanation());
@@ -176,7 +176,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
             }
         } else {
             ruleLogService.create(userCode, "CalledTimesByDifferentLoanCompanyRule", null, false, "");
-        }
+        }*/
         
         
         if (finalResult == null) {

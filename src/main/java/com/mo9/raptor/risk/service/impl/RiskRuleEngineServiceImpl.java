@@ -135,13 +135,29 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
             return new AuditResponseEvent(userCode, false, "运营商报告状态不正常" );
         }
 
-        List<String> LEND = Arrays.asList(StatusEnum.LENDING.name());
-        LoanOrderEntity lendOrder = loanOrderService.getLastIncompleteOrder(userCode, LEND);
-        if (lendOrder == null){
-            return new AuditResponseEvent(userCode, true, "" );
+        JSONObject jsonObject = JSON.parseObject(reportJson);
+
+        JSONArray mergencyContactArray = jsonObject.getJSONArray("mergency_contact");
+
+        for (int i = 0; i < mergencyContactArray.size(); i++) {
+            JSONObject mergencyContract = mergencyContactArray.getJSONObject(i);
+
+            String mergencyTel = mergencyContract.getString("format_tel");
+            
+            UserEntity mergency = userService.findByMobile(mergencyTel);
+            
+            if (mergency != null){
+                List<String> LEND = Arrays.asList(StatusEnum.LENDING.name());
+                LoanOrderEntity lendOrder = loanOrderService.getLastIncompleteOrder(mergency.getUserCode(), LEND);
+                if (lendOrder != null){
+                    return new AuditResponseEvent(userCode, false, "紧急联系人有未完成的订单，联系人电话 " + mergencyTel );
+                }
+            }
+            
         }
         
-        return new AuditResponseEvent(userCode, false, "紧急联系人有未完成的订单" );
+        
+        return new AuditResponseEvent(userCode, true, "" );
     }
 
     @Override
