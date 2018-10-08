@@ -52,7 +52,7 @@ function initSubmit() {
                 var data = response.data;
                 if(data){
                     //存在扣款中订单 提示
-                    var flag = confirm("是否确认删除!");
+                    var flag = confirm("是否确认再次支付?");
                     if(flag){
                         /** json 数据提交*/
                         initSubmitInside(contextPath ,  params);
