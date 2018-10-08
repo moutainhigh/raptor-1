@@ -39,6 +39,17 @@ function initSubmit() {
         var contextPath = window.location.pathname.split("/")[1];
         console.log(contextPath);
         var code = getUrlParam("code");
+        var params={"code":code,"channel":$('.term-picker .term-item.choosen .text').attr("value"),"bankNo":$('.term-picker .term-item.choosen .bank-card').attr("value")}
+        initSubmitInside(contextPath ,  params);
+    })
+}
+
+
+function initSubmitNew() {
+    $('#normal-submit-new').click(function () {
+        var contextPath = window.location.pathname.split("/")[1];
+        console.log(contextPath);
+        var code = getUrlParam("code");
         var url = "/" + contextPath + "/cash/cashier/has_repaying?code="+code ;
         var params={"code":code,"channel":$('.term-picker .term-item.choosen .text').attr("value"),"bankNo":$('.term-picker .term-item.choosen .bank-card').attr("value")}
         //查询是否有正在还款中订单
@@ -52,11 +63,7 @@ function initSubmit() {
                 var data = response.data;
                 if(data){
                     //存在扣款中订单 提示
-                    var flag = confirm("是否确认再次支付?");
-                    if(flag){
-                        /** json 数据提交*/
-                        initSubmitInside(contextPath ,  params);
-                    }
+                    $(".mask , .confirm-modal").show();
                 }else{
                     //存在扣款中订单 , 直接提交还款
                     /** json 数据提交*/
@@ -131,6 +138,23 @@ function getUrlParam (name) {
     return null;
 }
 
+function cancelBottom() {
+    $('#cancelBottom').click(function () {
+        $(".mask , .confirm-modal").hide();
+    })
+}
+
+function commitBottom() {
+    $('#commitBottom').click(function () {
+        var contextPath = window.location.pathname.split("/")[1];
+        console.log(contextPath);
+        var code = getUrlParam("code");
+        var params={"code":code,"channel":$('.term-picker .term-item.choosen .text').attr("value"),"bankNo":$('.term-picker .term-item.choosen .bank-card').attr("value")}
+        $(".mask , .confirm-modal").hide();
+        initSubmitInside(contextPath ,  params);
+    })
+}
+
 function main() {
   log('ready')
   initTermPicker()
@@ -138,6 +162,9 @@ function main() {
     initSubmit()
     initCardSubmit()
     payAgain()
+    initSubmitNew()
+    cancelBottom()
+    commitBottom()
 }
 
 $(document).ready(main)

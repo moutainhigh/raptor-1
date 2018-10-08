@@ -290,4 +290,41 @@ body .wrapper .card-picker-container .card-picker ul li.add-new-card .logo-more 
   position: absolute;
   right: 5.33333vw;
 }
+
+
+body .mask {
+  height: 100vh;
+  position: absolute;
+  width: 100vw;
+  background: black;
+  opacity: 0.5;
+  top: 0;
+}
+
+body .confirm-modal {
+  position: absolute;
+  top: 27%;
+  left: 10%;
+  z-index: 1;
+  background: white;
+  min-height: 150px;
+  width: 70%;
+  margin: 0 auto;
+  border-radius: 5px;
+  padding: 20px;
+}
+
+body .confirm-modal .bottom {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+}
+
+body .confirm-modal .bottom > span {
+  margin-left: 20px;
+  color: #4fc0b2;
+}
+
+
+
 /*# sourceMappingURL=pay.css.map */
