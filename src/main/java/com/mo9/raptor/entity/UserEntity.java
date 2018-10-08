@@ -3,6 +3,7 @@ package com.mo9.raptor.entity;
 import com.mo9.raptor.engine.entity.AbstractStateEntity;
 import com.mo9.raptor.engine.entity.IStateEntity;
 import com.mo9.raptor.engine.enums.StatusEnum;
+import com.mo9.raptor.enums.CreditStatusEnum;
 import com.mo9.raptor.enums.SourceEnum;
 import com.mo9.raptor.utils.Md5Util;
 import org.apache.commons.lang.StringUtils;
@@ -35,7 +36,7 @@ public class UserEntity extends AbstractStateEntity implements IStateEntity {
      * 账户信用状态
      */
     @Column(name = "credit_status")
-    private String creditStatus;
+    private String creditStatus = CreditStatusEnum.INITIAL.name();
     /**
      * 手机通讯录是否上传
      */
