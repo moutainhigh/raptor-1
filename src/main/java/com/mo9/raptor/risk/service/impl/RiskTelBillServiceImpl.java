@@ -38,7 +38,7 @@ public class RiskTelBillServiceImpl implements RiskTelBillService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void batchSave(List<TRiskTelBill> riskTelBillList) {
+    public void insertIfNotExists(List<TRiskTelBill> riskTelBillList) {
         for (TRiskTelBill riskTelBill : riskTelBillList) {
             TRiskTelBill exists = riskTelBillRepository.findOneBill(riskTelBill.getMobile(), riskTelBill.getBillMonth());
             if (exists != null){
