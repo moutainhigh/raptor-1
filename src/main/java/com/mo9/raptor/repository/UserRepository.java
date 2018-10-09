@@ -80,7 +80,7 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
             nativeQuery = true)
     Page<Map<String, Object>> findRegisterUserNumber(String source, Long startTime, Long endTime, Pageable pageable);
 
-    @Query(value = "SELECT  count(*)>0 from t_raptor_user where mobile = ?1", nativeQuery = true)
+    @Query(value = "SELECT  count(*)>0 from t_raptor_user where `status` = 'BLACK' and (mobile = ?1 or id_card = ?1)", nativeQuery = true)
     Integer inBlackList(String value);
 
 }
