@@ -140,21 +140,25 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         if (!user.getReceiveCallHistory()) {
             return null;
         }
+//
+//        if (1 == 1) {
+//            return new AuditResponseEvent(userCode, "", AuditResultEnum.MANUAL);
+//        }
 
         AuditResponseEvent finalResult = null;
         AuditResponseEvent res = null;
         ArrayList<AuditTask> taskList = new ArrayList<>();
-        taskList.add(new AuditTask((u) -> blackListRule(u), "BlackListRule", true));
-        taskList.add(new AuditTask((u) -> riskWordRule(u), "RiskWordRule", true));
-        taskList.add(new AuditTask((u) -> riskRuleEngineService.mergencyCallTimesRule(u), "MergencyCallTimesRule", true));
-        taskList.add(new AuditTask((u) -> riskRuleEngineService.mergencyHadNoDoneOrderRule(u), "MergencyHadNoDoneOrderRule", true));
-        taskList.add(new AuditTask((u) -> riskRuleEngineService.calledTimesByOneLoanCompanyRule(u), "CalledTimesByOneLoanCompanyRule", true));
-        taskList.add(new AuditTask((u) -> riskRuleEngineService.calledTimesByDifferentLoanCompanyRule(u), "CalledTimesByDifferentLoanCompanyRule", true));
-        taskList.add(new AuditTask((u) -> riskRuleEngineService.mergencyInJHJJBlackListRule(u), "MergencyInJHJJBlackListRule", true));
-        taskList.add(new AuditTask((u) -> riskRuleEngineService.openDateRule(u), "OpenDateRule", true));
+//        taskList.add(new AuditTask((u) -> blackListRule(u), "BlackListRule", true));
+//        taskList.add(new AuditTask((u) -> riskWordRule(u), "RiskWordRule", true));
+//        taskList.add(new AuditTask((u) -> riskRuleEngineService.mergencyCallTimesRule(u), "MergencyCallTimesRule", true));
+//        taskList.add(new AuditTask((u) -> riskRuleEngineService.mergencyHadNoDoneOrderRule(u), "MergencyHadNoDoneOrderRule", true));
+//        taskList.add(new AuditTask((u) -> riskRuleEngineService.calledTimesByOneLoanCompanyRule(u), "CalledTimesByOneLoanCompanyRule", true));
+//        taskList.add(new AuditTask((u) -> riskRuleEngineService.calledTimesByDifferentLoanCompanyRule(u), "CalledTimesByDifferentLoanCompanyRule", true));
+//        taskList.add(new AuditTask((u) -> riskRuleEngineService.mergencyInJHJJBlackListRule(u), "MergencyInJHJJBlackListRule", true));
+//        taskList.add(new AuditTask((u) -> riskRuleEngineService.openDateRule(u), "OpenDateRule", true));
         taskList.add(new AuditTask((u) -> idCardRule(u), "IdCardRule", true));
         taskList.add(new AuditTask((u) -> ageRule(u), "AgeRule", true));
-        //taskList.add(new AuditTask((u) -> contactsRule(u), "ContactsRule", true));
+        taskList.add(new AuditTask((u) -> contactsRule(u), "ContactsRule", true));
         taskList.add(new AuditTask((u) -> callLogRule(u), "CallLogRule", false));
         taskList.add(new AuditTask((u) -> threeElementCheck(u), "ThreeElementCheck", false));
         taskList.add(new AuditTask((u) -> antiHackRule(u), "AntiHackRule", false));

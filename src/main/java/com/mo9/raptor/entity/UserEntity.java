@@ -349,4 +349,17 @@ public class UserEntity extends AbstractStateEntity implements IStateEntity {
         userEntity.setUpdateTime(now);
         return userEntity;
     }
+
+    /**
+     * 判断是否需要将用户当前状态修改为Auditing
+     * @param status
+     * @return
+     */
+    public static UserEntity changeStatusToAuditing(String status, UserEntity entity){
+        if(status.equals(StatusEnum.MANUAL.name())){
+            status = StatusEnum.AUDITING.name();
+        }
+        entity.setStatus(status);
+        return entity;
+    }
 }
