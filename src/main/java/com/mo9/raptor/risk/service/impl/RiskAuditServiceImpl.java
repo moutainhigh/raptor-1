@@ -160,8 +160,9 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         taskList.add(new AuditTask((u) -> livePicCompareRule(u), "LivePicCompareRule", false));
         taskList.add(new AuditTask((u) -> idPicCompareRule(u), "IdPicCompareRule", false));
 
+        boolean isWhiteListUser = WHITE_LIST.equals(user.getSource());
+
         for (AuditTask auditTask : taskList) {
-            boolean isWhiteListUser = WHITE_LIST.equals(user.getSource());
             if (auditTask.whiteListUserSkip && isWhiteListUser) {
                 ruleLogService.create(userCode, auditTask.ruleName, null, false, "");
             } else {
@@ -181,7 +182,8 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         if (finalResult == null) {
             finalResult = res;
         }
-        AuditResponseEvent convert = new AuditResponseEvent(userCode, finalResult.getExplanation(), finalResult.isPass() ? AuditResultEnum.PASS : AuditResultEnum.REJECTED);
+
+        AuditResponseEvent convert = new AuditResponseEvent(userCode, finalResult.getExplanation(), finalResult.isPass() ? (isWhiteListUser ? AuditResultEnum.PASS : AuditResultEnum.MANUAL) : AuditResultEnum.REJECTED);
         return convert;
 
         /*if (finalResult == null) {
