@@ -120,4 +120,11 @@ public interface UserService {
      * @param desc
      */
     void toBlackUser(UserEntity userEntity, String desc) throws Exception;
+
+    /**
+     * 根据批量手机号查询用户
+     * @param mobiles
+     * @return
+     */
+    List<UserEntity> findByMobiles(List<String> mobiles);
 }

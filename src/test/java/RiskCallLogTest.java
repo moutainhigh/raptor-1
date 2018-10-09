@@ -92,7 +92,7 @@ public class RiskCallLogTest extends BaseTest{
             riskTelBillList.add(callLog);
         }
         
-        riskTelBillService.batchSave(riskTelBillList);
+//        riskTelBillService.batchSave(riskTelBillList);
     }
     
     @Test
