@@ -263,6 +263,7 @@ public class TestController {
             return response.buildFailureResponse(ResCodeEnum.INVALID_SIGN);
         }
 
+        logger.info("offline_repay接口开始, 参数:userCode[{}], type[{}], amount[{}], accessUserCode[{}], sign[{}],", userCode, type, amount, accessUserCode, sign);
 
         // 调用人员的实体
         UserEntity accessUserEntity = userService.findByUserCodeAndDeleted(accessUserCode, false);
@@ -395,6 +396,7 @@ public class TestController {
 
         MqMessage message = new MqMessage("TOPIC", "MQ_RAPTOR_PAYOFF_TAG", jsonObject.toJSONString());
         loanMo9mqListener.consume(message, null);
+        logger.info("offline_repay接口结束");
         return response;
     }
 }
