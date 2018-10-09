@@ -23,8 +23,8 @@ public interface RiskTelInfoService {
     void saveAllCallLogData(CallLogReq callLogReq);
 
     TRiskTelInfo coverReq2Entity(CallLogReq callLogReq);
-    
-    Set<TRiskTelInfo> findNoReportTelInfo(Date start);
+
+    Set<String> findNoReportMobiles(Date start);
     
     TRiskTelInfo update(TRiskTelInfo riskTelInfo);
 }

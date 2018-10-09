@@ -99,28 +99,38 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         AuditResponseEvent res;
 
 
-        if (finalResult == null) {
-            logger.info(userCode + "开始运行规则[IdCardRule]");
-            res = idCardRule(userCode);
-            ruleLogService.create(userCode, "IdCardRule", res.isPass(), true, res.getExplanation());
-            if (!res.isPass()) {
-                finalResult = res;
+        if (!WHITE_LIST.equals(user.getSource())) {
+            if (finalResult == null) {
+                logger.info(userCode + "开始运行规则[IdCardRule]");
+                res = idCardRule(userCode);
+                ruleLogService.create(userCode, "IdCardRule", res.isPass(), true, res.getExplanation());
+                if (!res.isPass()) {
+                    finalResult = res;
+                }
+            } else {
+                ruleLogService.create(userCode, "IdCardRule", null, false, "");
             }
         } else {
             ruleLogService.create(userCode, "IdCardRule", null, false, "");
         }
 
 
-        if (finalResult == null) {
-            logger.info(userCode + "开始运行规则[AgeRule]");
-            res = ageRule(userCode);
-            ruleLogService.create(userCode, "AgeRule", res.isPass(), true, res.getExplanation());
-            if (!res.isPass()) {
-                finalResult = res;
+        if (!WHITE_LIST.equals(user.getSource())) {
+            if (finalResult == null) {
+                logger.info(userCode + "开始运行规则[AgeRule]");
+                res = ageRule(userCode);
+                ruleLogService.create(userCode, "AgeRule", res.isPass(), true, res.getExplanation());
+                if (!res.isPass()) {
+                    finalResult = res;
+                }
+            } else {
+                ruleLogService.create(userCode, "AgeRule", null, false, "");
             }
         } else {
-            ruleLogService.create(userCode, "AgeRule", null, false, "");
+            ruleLogService.create(userCode, "IdCardRule", null, false, "");
         }
+
+
 //
 //
 //        if (finalResult == null) {
