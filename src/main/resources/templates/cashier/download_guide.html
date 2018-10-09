@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.thymeleaf.org" xmlns:th="http://www.w3.org/1999/xhtml">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <!--<link rel="stylesheet" th:href="@{/styles/normalize.css}">-->
+  <!--<link rel="stylesheet" th:href="@{/styles/download_guide.css}">-->
+  <link rel="stylesheet" href="https://ttyq.mo9.com/static/styles/normalize.css">
+  <link rel="stylesheet" href="https://ttyq.mo9.com/static/styles/download_guide.css">
+  <style>
+    #btn-trust {
+      background-image: url(https://ttyq.mo9.com/static/images/download_guide/trust.png);
+      background-size: auto 100%;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+    #tip-view {
+      /*margin:0 auto;*/
+      text-align: center;
+      position: absolute;
+      top: 130.86667vw;
+      width:100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrapper">
+    <div class="mask" id='mask'></div>
+    <div class="button" id='btn'></div>
+    <div class="tip" id='tip-view' style="display: none">正在安装，请按Home键在桌面查看</div>
+    <div class="button" id='btn-trust'  style="display: none"></div>
+  </div>
+</body>
+<script>
+
+  function main() {
+    var mask = document.getElementById('mask');
+    var btn = document.getElementById('btn');
+    var btn_trust = document.getElementById('btn-trust');
+      var tip_view = document.getElementById('tip-view');
+
+      btn_trust.onclick = function () {
+          window.location.href="https://appdl.mo9.com/embedded.mobileprovision";
+      }
+
+    mask.onclick = function () {
+      mask.style.display = 'none'
+    }
+      btn.onclick = function () {
+          var UA = window.navigator.userAgent,
+              IsAndroid = (/Android|HTC/i.test(UA) || !!(window.navigator['platform']+'').match(/Linux/i)),
+              IsIPad = !IsAndroid && /'iPad/i.test(UA),
+              IsIPhone = !IsAndroid && /iPod|iPhone/i.test(UA),
+              IsIOS = IsIPad || IsIPhone;
+
+          var ua = window.navigator.userAgent.toLowerCase();
+          if(ua.match(/MicroMessenger/i) == 'micromessenger'){
+              //微信
+              mask.style.display = 'block'
+          }else{
+              if(IsAndroid){
+                  //安卓apk下载地址
+                  window.location.href="https://appdl.mo9.com/app-tiantianyouqian-envOnline-archThin-release-v1.0.0-develop-75_20180925_100320.apk";
+              } else if(IsIOS){
+
+                  //苹果ios下载地址
+                  btn.style.display = 'none';
+                  tip_view.style.display='block';
+                  btn_trust.style.display = 'block';
+                  var contextPath = window.location.pathname.split("/")[1];
+                 // window.location.href="itms-services://?action=download-manifest&url=" + document.location.protocol + "//" + window.location.host + "/" + contextPath + "file/manifest.plist";
+                  window.location.href="itms-services://?action=download-manifest&url=https://appdl.mo9.com/manifest.plist";
+              } else{
+                  window.location.href="https://appdl.mo9.com/app-tiantianyouqian-envOnline-archThin-release-v1.0.0-develop-75_20180925_100320.apk";
+              }
+          }
+      }
+    console.log('ready')
+  }
+  window.onload = main
+  // main()
+</script>
+
+</html>

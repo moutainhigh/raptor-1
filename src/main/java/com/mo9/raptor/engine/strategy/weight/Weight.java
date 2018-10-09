@@ -1,6 +1,6 @@
 package com.mo9.raptor.engine.strategy.weight;
 
-import com.mo9.raptor.engine.statics.EngineStaticValue;
+import com.mo9.raptor.engine.utils.EngineStaticValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

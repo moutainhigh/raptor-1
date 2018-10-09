@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.thymeleaf.org" xmlns:th="http://www.w3.org/1999/xhtml">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <!--<link rel="stylesheet" th:href="@{/styles/normalize.css}">-->
+  <!--<link rel="stylesheet" th:href="@{/styles/pay.css}">-->
+  <!--<script src="https://ttyq.mo9.com/static/js/jquery-3.1.1.min.js"></script>-->
+  <!--<script th:src="@{/scripts/index.js}"></script>-->
+  <link rel="stylesheet" href="https://ttyq.mo9.com/static/styles/normalize.css">
+  <link rel="stylesheet" href="https://ttyq.mo9.com/static/styles/pay_V1.css">
+  <script src="https://ttyq.mo9.com/static/js/jquery-3.1.1.min.js"></script>
+  <script src="https://ttyq.mo9.com/static/scripts/index_V1.js"></script>
+</head>
+
+<body>
+  <div class="wrapper">
+    <div class="amount-part">
+      <div class="title">支付金额</div>
+      <div class="amount" th:text="${payInfo.payNumber}"></div>
+    </div>
+    <div class="term-part">
+      <div class="title">支付方式</div>
+      <ul class="term-picker" th:if="${not #lists.isEmpty(channels)}">
+        <li th:each="channel:${channels}" th:class="${channelStat.index eq 0}?'term-item choosen':'term-item'" >
+          <div class="checkbox"></div>
+          <div class="logo"></div>
+          <div class="text" name="channel"  th:value="${channel.channel}" th:text="${channel.channelName}"></div>
+          <div class="bank-card" name="bankNo" th:value="${defaultBank.bankNo}" th:text="${defaultBank.bankName} + ' 尾号' + ${#strings.substring(defaultBank.bankNo, #strings.length(defaultBank.bankNo) - 4, #strings.length(defaultBank.bankNo))}"></div>
+          <div class="logo-more"></div>
+        </li>
+      </ul>
+    </div>
+    <div class="btn-part">
+      <div class="btn-submit btn" id="normal-submit-new">提交</div>
+      <div class="agreement">
+        已阅读并同意 <a>「天天有钱支付协议」</a>
+      </div>
+    </div>
+    <div class="card-picker-container">
+      <div class="card-picker">
+        <div class="title-part">
+          <div class="logo-go-back"></div>
+          <div class="title">选择银行卡</div>
+        </div>
+        <ul>
+          <li th:each="bank:${banks}" th:class="${defaultBank.bankNo eq bank.bankNo}?'bank-card-item choosen':'bank-card-item'" th:if="${not #lists.isEmpty(banks)}" >
+            <div class="bank-name" th:text="${bank.bankName}"></div>
+            <div class="card-number" th:value="${bank.bankNo}" th:text="'尾号' + ${#strings.substring(bank.bankNo, #strings.length(bank.bankNo) - 4, #strings.length(bank.bankNo))}"></div>
+            <div class="btn-check"></div>
+          </li>
+          <li class='add-new-card'>
+            <div class="logo-card"></div>
+            <div class="text">添加其他银行卡付款</div>
+            <div class="logo-more"></div>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="mask"></div>
+    <div class="confirm-modal">
+      <div class="content">
+        你有一笔正在支付中的订单 , 是否再次支付?
+      </div>
+      <div class="bottom">
+        <span id="cancelBottom">取消</span>
+        <span id="commitBottom">确定</span>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

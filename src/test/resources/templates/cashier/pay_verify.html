@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <link rel="stylesheet" href="./styles/normalize.css">
+  <link rel="stylesheet" href="./styles/pay.css">
+  <link rel="stylesheet" href="./styles/pay_verify.css">
+</head>
+
+<body>
+  <div class="wrapper">
+    <div class="go-back"></div>
+    <div class="amount-part">
+      <div class="title">支付金额</div>
+      <div class="amount">1000.00</div>
+    </div>
+    <div class="term-part">
+      <div class="title">支付方式</div>
+      <ul>
+        <li class="term-item">
+          <div class="logo"></div>
+          <div class="text">银联支付</div>
+          <div class="bank-card">招商银行 尾号5360</div>
+        </li>
+      </ul>
+    </div>
+    <div class="btn-part">
+      <div class="btn-submit btn">确认支付</div>
+    </div>
+    <div class="verify-part">
+      <div class="title">安全验证</div>
+      <form action="">
+        <div class="form-item sms">
+          <div class="text">短信验证码</div>
+          <input type="text" name='sms' placeholder="请输入">
+          <div class="btn-send">发送验证码</div>
+        </div>
+        <div class="form-item trade">
+          <div class="text">交易密码</div>
+          <input type="password" name='password' placeholder="请输入">
+          <div class="btn-send"></div>
+        </div>
+      </form>
+    </div>
+  </div>
+  <script src="https://ttyq.mo9.com/static/js/jquery-3.1.1.min.js"></script>
+  <script src="./scripts/config.js"></script>
+  <script src="./scripts/pay_verify.js"></script>
+</body>
+
+</html>

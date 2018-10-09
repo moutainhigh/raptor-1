@@ -11,10 +11,10 @@ public abstract class BaseEntity {
     private Long id;
 
     @Column(name = "create_time")
-    private Long createTime;
+    private Long createTime = System.currentTimeMillis();
 
     @Column(name = "update_time")
-    private Long updateTime;
+    private Long updateTime = System.currentTimeMillis();
 
     @Column(name = "deleted")
     private Boolean deleted = false;
