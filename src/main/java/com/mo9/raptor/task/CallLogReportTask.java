@@ -58,19 +58,21 @@ public class CallLogReportTask {
             Calendar calendar = Calendar.getInstance();
             calendar.add(Calendar.DATE, -30);
             
-            Set<TRiskTelInfo> noReportRecords = riskTelInfoService.findNoReportTelInfo(calendar.getTime());
+            Set<String> noReportMobiles = riskTelInfoService.findNoReportMobiles(calendar.getTime());
             
-            logger.info("-----运营商报告补偿任务--> 共发现30天内有{}条数据没有成功获取到运营商报告。", noReportRecords.size());
+            logger.info("-----运营商报告补偿任务--> 共发现30天内有 {} 条数据没有成功获取到运营商报告。", noReportMobiles.size());
 
             String sid;
             String uid;
             String mobile;
             Long nowTime = Calendar.getInstance().getTimeInMillis();
-            for (TRiskTelInfo noReportRecord : noReportRecords) {
+            for (String noReportMobile : noReportMobiles) {
+                TRiskTelInfo noReportRecord = riskTelInfoService.findByMobile(noReportMobile);
+                
                 UserEntity userEntity = userService.findByUserCode(noReportRecord.getUid());
                 
                 if (userEntity == null){
-                    logger.info("-----运营商报告补偿任务--> t_raptor_user表未找到userCode为{}的数据, 跳过");
+                    logger.info("-----运营商报告补偿任务--> t_raptor_user表未找到userCode为{}的数据, 跳过", noReportRecord.getUid());
                     continue;
                 }
                 
