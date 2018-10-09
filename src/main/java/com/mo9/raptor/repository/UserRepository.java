@@ -83,4 +83,6 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
     @Query(value = "SELECT  count(*)>0 from t_raptor_user where mobile = ?1", nativeQuery = true)
     Integer inBlackList(String value);
 
+    @Query(value = "SELECT  * from t_raptor_user where mobile in ?1 and deleted = 0", nativeQuery = true)
+    List<UserEntity> findByMobiles(List<String> mobiles);
 }
