@@ -150,6 +150,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         taskList.add(new AuditTask((u) -> riskRuleEngineService.mergencyHadNoDoneOrderRule(u), "MergencyHadNoDoneOrderRule", true));
         taskList.add(new AuditTask((u) -> riskRuleEngineService.calledTimesByOneLoanCompanyRule(u), "CalledTimesByOneLoanCompanyRule", true));
         taskList.add(new AuditTask((u) -> riskRuleEngineService.calledTimesByDifferentLoanCompanyRule(u), "CalledTimesByDifferentLoanCompanyRule", true));
+        taskList.add(new AuditTask((u) -> riskRuleEngineService.mergencyInJHJJBlackListRule(u), "MergencyInJHJJBlackListRule", true));
         taskList.add(new AuditTask((u) -> riskRuleEngineService.openDateRule(u), "OpenDateRule", true));
         taskList.add(new AuditTask((u) -> idCardRule(u), "IdCardRule", true));
         taskList.add(new AuditTask((u) -> ageRule(u), "AgeRule", true));
@@ -160,8 +161,9 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         taskList.add(new AuditTask((u) -> livePicCompareRule(u), "LivePicCompareRule", false));
         taskList.add(new AuditTask((u) -> idPicCompareRule(u), "IdPicCompareRule", false));
 
+        boolean isWhiteListUser = WHITE_LIST.equals(user.getSource());
+
         for (AuditTask auditTask : taskList) {
-            boolean isWhiteListUser = WHITE_LIST.equals(user.getSource());
             if (auditTask.whiteListUserSkip && isWhiteListUser) {
                 ruleLogService.create(userCode, auditTask.ruleName, null, false, "");
             } else {
@@ -181,7 +183,8 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         if (finalResult == null) {
             finalResult = res;
         }
-        AuditResponseEvent convert = new AuditResponseEvent(userCode, finalResult.getExplanation(), finalResult.isPass() ? AuditResultEnum.PASS : AuditResultEnum.REJECTED);
+
+        AuditResponseEvent convert = new AuditResponseEvent(userCode, finalResult.getExplanation(), finalResult.isPass() ? (isWhiteListUser ? AuditResultEnum.PASS : AuditResultEnum.MANUAL) : AuditResultEnum.REJECTED);
         return convert;
 
         /*if (finalResult == null) {

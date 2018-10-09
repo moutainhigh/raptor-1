@@ -11,6 +11,7 @@ import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.risk.entity.TRiskTelInfo;
 import com.mo9.raptor.risk.service.RiskRuleEngineService;
 import com.mo9.raptor.risk.service.RiskTelInfoService;
+import com.mo9.raptor.riskdb.repo.RiskThirdBlackListRepository;
 import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.httpclient.HttpClientApi;
 import com.mo9.raptor.utils.log.Log;
@@ -66,6 +67,9 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
     
     @Resource
     private ILoanOrderService loanOrderService;
+
+    @Resource
+    private RiskThirdBlackListRepository riskThirdBlackListRepository;
     
     @Override
     public AuditResponseEvent openDateRule(String userCode) {
@@ -170,7 +174,23 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
             logger.info("运营商报告状态不正常，校验失败，规则：mergencyInJHJJBlackListRule");
             return new AuditResponseEvent(userCode, false, "运营商报告状态不正常" );
         }
-        return new AuditResponseEvent(userCode, false, "紧急联系人命中江湖救急黑名单" );
+
+        JSONObject jsonObject = JSON.parseObject(reportJson);
+
+        JSONArray mergencyContactArray = jsonObject.getJSONArray("mergency_contact");
+
+        for (int i = 0; i < mergencyContactArray.size(); i++) {
+            JSONObject mergencyContract = mergencyContactArray.getJSONObject(i);
+
+            String mergencyTel = mergencyContract.getString("format_tel");
+
+            if(riskThirdBlackListRepository.isInBlackList(mergencyTel) > 0){
+                return new AuditResponseEvent(userCode, false, "紧急联系人电话命中江湖救急黑名单, mobile: " + mergencyTel );
+            }
+
+        }
+        
+        return new AuditResponseEvent(userCode, true, "" );
     }
 
     @Override
