@@ -18,15 +18,11 @@ import com.mo9.raptor.entity.DictDataEntity;
 import com.mo9.raptor.entity.LoanProductEntity;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.DictTypeNoEnum;
-import com.mo9.raptor.enums.PayTypeEnum;
 import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.lock.Lock;
 import com.mo9.raptor.lock.RedisService;
 import com.mo9.raptor.redis.RedisLockKeySuffix;
-import com.mo9.raptor.service.BankService;
-import com.mo9.raptor.service.DictService;
-import com.mo9.raptor.service.LoanProductService;
-import com.mo9.raptor.service.UserService;
+import com.mo9.raptor.service.*;
 import com.mo9.raptor.utils.IDWorker;
 import com.mo9.raptor.utils.log.Log;
 import org.apache.commons.lang.StringUtils;
@@ -71,6 +67,9 @@ public class LoanOrderController {
 
     @Autowired
     private DictService dictService;
+
+    @Autowired
+    private SpreadChannelService spreadChannelService;
 
     @Autowired
     private RedisService redisService;
@@ -129,10 +128,13 @@ public class LoanOrderController {
         Lock lock = new Lock(userCode + RedisLockKeySuffix.PRE_LOAN_ORDER_KEY, idWorker.nextId() + "");
         try {
             if (redisService.lock(lock.getName(), lock.getValue(), 1500000, TimeUnit.MILLISECONDS)) {
-
                 LoanOrderEntity payoffOrder = loanOrderService.getLastIncompleteOrder(userCode, StatusEnum.OLD_PAYOFF);
                 //没有payoff订单的用户不可以借款
                 if (null == payoffOrder) {
+                    if(StringUtils.isBlank(user.getSource()) || !spreadChannelService.checkSourceIsAllow(user.getSource())) {
+                        logger.warn("用户渠道[{}], 不放款!", user.getSource());
+                        return response.buildFailureResponse(ResCodeEnum.NO_LEND);
+                    }
                     // 锁定后检查今天是否还有限额
                     BigDecimal dailyLendAmount = lendOrderService.getDailyLendAmount();
                     if (new BigDecimal(dictData.getName()).compareTo(dailyLendAmount.add(actuallyGetAmount)) < 0) {
