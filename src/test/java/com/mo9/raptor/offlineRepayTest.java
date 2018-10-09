@@ -34,9 +34,9 @@ public class offlineRepayTest {
 
     @Test
     public void offlineRepay() {
-        String userCode = "8396E4CDD4C0A69D18124D412A81445D";
+        String userCode = "123";
         String type = "REPAY";
-        BigDecimal amount = new BigDecimal(750);
+        BigDecimal amount = new BigDecimal("750");
         String accessUserCode = "0E85007DC2B3852AD5EF198763049E83";
 
         Map<String, String> signParams = new HashMap<String, String>();
@@ -47,7 +47,7 @@ public class offlineRepayTest {
         String resultSign = Md5Encrypt.sign(signParams, "mo9123456");
         signParams.put("sign", resultSign);
 
-        String url = "https://www.mo9.com/raptorApi/test/offline_repay";
+        String url = "http://localhost/raptorApi/test/offline_repay";
         try {
             String result = httpClientApi.doGet(url, signParams);
             logger.info(result);

@@ -93,7 +93,10 @@ public class LoanMo9mqListener implements IMqMsgListener{
 	@Resource
 	private CardBinInfoService cardBinInfoService;
 
-	@Override
+	@Autowired
+    private CouponService couponService;
+
+    @Override
 	 public MqAction consume(MqMessage msg, Object consumeContext) {
 		String tag = msg.getTag() ;
 		logger.info("获取tag -- " + tag);
@@ -431,11 +434,12 @@ public class LoanMo9mqListener implements IMqMsgListener{
         }
         repayInfo.setShouldPay(shouldPay);
 		repayInfo.setRepaymentDate(loanOrderEntity.getRepaymentDate());
+        repayInfo.setPayoffTime(loanOrderEntity.getPayoffTime());
 
-		// TODO:增加还清时间
-		if (StatusEnum.PAYOFF.name().equals(loanOrderEntity.getStatus())) {
-			repayInfo.setPayoffTime(loanOrderEntity.getUpdateTime());
-		}
+        // 设置减免金额
+        BigDecimal totalDeductedAmount = couponService.getTotalDeductedAmount(loanOrderEntity.getOrderId());
+        repayInfo.setTotalReliefAmount(totalDeductedAmount);
+
 
         JSONObject result = new JSONObject();
         result.put("repayInfo", repayInfo);

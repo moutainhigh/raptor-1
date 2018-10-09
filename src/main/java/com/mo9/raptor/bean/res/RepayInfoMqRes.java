@@ -25,6 +25,11 @@ public class RepayInfoMqRes {
     private String payOrderId;
 
     /**
+     * 目前为止所减免的所有金额
+     */
+    private BigDecimal totalReliefAmount;
+
+    /**
      * 还款类型
      */
     private String payType;
@@ -281,5 +286,13 @@ public class RepayInfoMqRes {
 
     public void setPayoffTime(Long payoffTime) {
         this.payoffTime = payoffTime;
+    }
+
+    public BigDecimal getTotalReliefAmount() {
+        return totalReliefAmount;
+    }
+
+    public void setTotalReliefAmount(BigDecimal totalReliefAmount) {
+        this.totalReliefAmount = totalReliefAmount;
     }
 }
