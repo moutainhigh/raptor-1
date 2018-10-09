@@ -112,8 +112,8 @@ public class RiskTelInfoServiceImpl implements RiskTelInfoService {
     }
 
     @Override
-    public Set<TRiskTelInfo> findNoReportTelInfo(Date start) {
-        return riskTelInfoRepository.findNoReportRecords(start, sockpuppet);
+    public Set<String> findNoReportMobiles(Date start) {
+        return riskTelInfoRepository.findNoReportMobiles(start, sockpuppet);
     }
 
     @Override
