@@ -1,15 +1,13 @@
 package com.mo9.raptor.service.impl;
 
 import com.mo9.raptor.bean.req.BankReq;
-import com.mo9.raptor.entity.BankEntity;
-import com.mo9.raptor.entity.BankLogEntity;
-import com.mo9.raptor.entity.UserCertifyInfoEntity;
-import com.mo9.raptor.entity.UserEntity;
+import com.mo9.raptor.entity.*;
 import com.mo9.raptor.enums.BankAuthStatusEnum;
 import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.repository.BankRepository;
 import com.mo9.raptor.service.BankLogService;
 import com.mo9.raptor.service.BankService;
+import com.mo9.raptor.service.CardBinInfoService;
 import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.CommonValues;
 import com.mo9.raptor.utils.GatewayUtils;
@@ -39,6 +37,10 @@ public class BankServiceImpl implements BankService {
     @Autowired
     private BankLogService bankLogService;
 
+    @Autowired
+    private CardBinInfoService cardBinInfoService;
+
+
     @Override
     public BankEntity findByMobileLastOne(String mobile) {
         List<BankEntity> bankEntityList = bankRepository.findByMobile(mobile);
@@ -67,7 +69,11 @@ public class BankServiceImpl implements BankService {
     public ResCodeEnum verify(BankReq bankReq, UserEntity userEntity, UserCertifyInfoEntity userCertifyInfoEntity){
         String bankNo = bankReq.getCard() ;
         String mobile = bankReq.getCardMobile() ;
-        String bankName = bankReq.getBankName() ;
+        String bankName = "未知";
+        CardBinInfoEntity cardBinInfoEntity = cardBinInfoService.findByCardPrefix(bankNo.substring(0, 6));
+        if(cardBinInfoEntity != null){
+            bankName = cardBinInfoEntity.getCardBank();
+        }
         /**银行卡扫描开始计数*/
         Integer cardStartCount = bankReq.getCardStartCount();
         /**银行卡扫描成功计数*/
@@ -145,6 +151,11 @@ public class BankServiceImpl implements BankService {
     public void createOrUpdateBank(String bankNo, String cardId, String userName, String mobile, String bankName , String userCode) {
         BankEntity bankEntity = this.findByBankNo(bankNo) ;
         if(bankEntity == null){
+            bankName = "未知";
+            CardBinInfoEntity cardBinInfoEntity = cardBinInfoService.findByCardPrefix(bankNo.substring(0, 6));
+            if(cardBinInfoEntity != null){
+                bankName = cardBinInfoEntity.getCardBank();
+            }
             this.create( bankNo , cardId , userName , mobile , bankName,userCode) ;
             //存储log
             bankLogService.create(bankNo , cardId , userName , mobile , bankName , userCode ,
@@ -154,6 +165,17 @@ public class BankServiceImpl implements BankService {
             bankEntity.setUpdateTime(System.currentTimeMillis());
             bankRepository.save(bankEntity) ;
         }
+    }
+
+    @Override
+    public List<BankEntity> findAll() {
+        List<BankEntity> all = bankRepository.findAll();
+        return all;
+    }
+
+    @Override
+    public void save(BankEntity bankEntity) {
+        bankRepository.save(bankEntity);
     }
 
     /**
