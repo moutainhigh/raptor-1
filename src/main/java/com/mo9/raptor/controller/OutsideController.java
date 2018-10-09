@@ -3,6 +3,8 @@ package com.mo9.raptor.controller;
 import com.mo9.raptor.bean.BaseResponse;
 import com.mo9.raptor.bean.req.PageReq;
 import com.mo9.raptor.engine.enums.StatusEnum;
+import com.mo9.raptor.engine.state.event.impl.user.ManualAuditEvent;
+import com.mo9.raptor.engine.state.launcher.IEventLauncher;
 import com.mo9.raptor.entity.SpreadChannelEntity;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.ResCodeEnum;
@@ -14,6 +16,7 @@ import com.mo9.raptor.utils.IpUtils;
 import com.mo9.raptor.utils.Md5Util;
 import com.mo9.raptor.utils.log.Log;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
@@ -54,6 +57,9 @@ public class OutsideController {
 
     @Resource(name = "raptorRedis")
     private RedisTemplate raptorRedis;
+
+    @Autowired
+    private IEventLauncher userEventLauncher;
 
     @GetMapping(value = "/to_black_user")
     @ResponseBody
@@ -145,6 +151,53 @@ public class OutsideController {
     public String loginIndex(Model model,HttpServletRequest request){
         redisServiceApi.remove(RedisParams.ACTION_TOKEN_LONG+IpUtils.getRemoteHost(request),raptorRedis);
         return "channel/login";
+    }
+
+
+    @RequestMapping(value = "/manual_audit_user")
+    @ResponseBody
+    public BaseResponse<Boolean> manualAuditUser(@RequestParam(value = "mobiles") List<String> mobiles, @RequestParam(value = "status") StatusEnum status){
+        BaseResponse<Boolean> response = new BaseResponse<Boolean>();
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    manualUser(mobiles, status) ;
+                } catch (Exception e) {
+                    logger.error("批量人工修改用户状态出现异常");
+                    e.printStackTrace();
+                }
+            }
+        });
+        t.start();
+        return response.buildSuccessResponse(true);
+
+    }
+
+    private void manualUser(List<String> mobiles, StatusEnum statusEnum) throws Exception {
+        List<UserEntity> list = userService.findByMobiles(mobiles);
+        if(list == null || list.size() == 0){
+            logger.info("批量人工修改用户状态根据手机号列表查询用户不存在");
+            return;
+        }
+        boolean isPass = false;
+        if(statusEnum == StatusEnum.PASSED){
+            isPass = true;
+        }else if(statusEnum == StatusEnum.REJECTED){
+            isPass = false;
+        }else {
+            logger.info("批量人工修改用户状态，statusEnum不符合要求statusEnum={}", statusEnum);
+            return;
+        }
+        for(UserEntity userEntity : list){
+            String status = userEntity.getStatus();
+            if(!StatusEnum.MANUAL.name().equals(status)){
+                continue;
+            }
+            ManualAuditEvent event = new ManualAuditEvent(userEntity.getUserCode(), isPass, "人工审核");
+            userEventLauncher.launch(event);
+        }
+
     }
 
 }
