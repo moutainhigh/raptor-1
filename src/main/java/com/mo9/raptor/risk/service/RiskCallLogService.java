@@ -20,7 +20,7 @@ public interface RiskCallLogService {
     @Transactional(rollbackFor = Exception.class)
     void saveAll(List<TRiskCallLog> callLogList);
 
-    void batchSave(List<TRiskCallLog> callLogList);
+    void insertIfNotExists(List<TRiskCallLog> callLogList);
 
     List<TRiskCallLog> coverReqToEntity(CallLogReq callLogReq);
 }

@@ -3,16 +3,19 @@ package com.mo9.raptor.risk.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.mo9.raptor.engine.enums.AuditResultEnum;
 import com.mo9.raptor.engine.state.event.impl.AuditResponseEvent;
 import com.mo9.raptor.entity.UserCertifyInfoEntity;
 import com.mo9.raptor.entity.UserContactsEntity;
 import com.mo9.raptor.entity.UserEntity;
+import com.mo9.raptor.repository.UserRepository;
 import com.mo9.raptor.risk.entity.TRiskCallLog;
 import com.mo9.raptor.risk.repo.RiskCallLogRepository;
 import com.mo9.raptor.risk.service.LinkFaceService;
 import com.mo9.raptor.risk.service.RiskAuditService;
 import com.mo9.raptor.risk.service.RiskRuleEngineService;
 import com.mo9.raptor.risk.service.RiskWordService;
+import com.mo9.raptor.riskdb.repo.RiskThirdBlackListRepository;
 import com.mo9.raptor.service.RuleLogService;
 import com.mo9.raptor.service.UserCertifyInfoService;
 import com.mo9.raptor.service.UserContactsService;
@@ -32,12 +35,49 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * @author yngong
  */
 @Service("riskAuditService")
 public class RiskAuditServiceImpl implements RiskAuditService {
+
+    private class AuditTask {
+        private Function<String, AuditResponseEvent> callFunc;
+        private String ruleName;
+        private boolean whiteListUserSkip;
+
+        public AuditTask(Function<String, AuditResponseEvent> callFunc, String ruleName, boolean whiteListUserSkip) {
+            this.callFunc = callFunc;
+            this.ruleName = ruleName;
+            this.whiteListUserSkip = whiteListUserSkip;
+        }
+
+        public Function<String, AuditResponseEvent> getCallFunc() {
+            return callFunc;
+        }
+
+        public void setCallFunc(Function<String, AuditResponseEvent> callFunc) {
+            this.callFunc = callFunc;
+        }
+
+        public String getRuleName() {
+            return ruleName;
+        }
+
+        public void setRuleName(String ruleName) {
+            this.ruleName = ruleName;
+        }
+
+        public boolean isWhiteListUserSkip() {
+            return whiteListUserSkip;
+        }
+
+        public void setWhiteListUserSkip(boolean whiteListUserSkip) {
+            this.whiteListUserSkip = whiteListUserSkip;
+        }
+    }
 
     @Value("${raptor.sockpuppet}")
     private String sockpuppet;
@@ -58,6 +98,12 @@ public class RiskAuditServiceImpl implements RiskAuditService {
 
     @Resource
     private RiskCallLogRepository riskCallLogRepository;
+
+    @Resource
+    private RiskThirdBlackListRepository riskThirdBlackListRepository;
+
+    @Resource
+    private UserRepository userRepository;
 
     @Resource
     private LinkFaceService linkFaceService;
@@ -88,95 +134,62 @@ public class RiskAuditServiceImpl implements RiskAuditService {
      * @return
      */
     @Override
-    public AuditResponseEvent audit(String userCode) {
+    public AuditResponseEvent audit(final String userCode) {
         UserEntity user = userService.findByUserCodeAndDeleted(userCode, false);
         //没收到通话记录则先跳过
         if (!user.getReceiveCallHistory()) {
             return null;
         }
+//
+//        if (1 == 1) {
+//            return new AuditResponseEvent(userCode, "", AuditResultEnum.MANUAL);
+//        }
 
         AuditResponseEvent finalResult = null;
-        AuditResponseEvent res;
+        AuditResponseEvent res = null;
+        ArrayList<AuditTask> taskList = new ArrayList<>();
+//        taskList.add(new AuditTask((u) -> blackListRule(u), "BlackListRule", true));
+//        taskList.add(new AuditTask((u) -> riskWordRule(u), "RiskWordRule", true));
+//        taskList.add(new AuditTask((u) -> riskRuleEngineService.mergencyCallTimesRule(u), "MergencyCallTimesRule", true));
+//        taskList.add(new AuditTask((u) -> riskRuleEngineService.mergencyHadNoDoneOrderRule(u), "MergencyHadNoDoneOrderRule", true));
+//        taskList.add(new AuditTask((u) -> riskRuleEngineService.calledTimesByOneLoanCompanyRule(u), "CalledTimesByOneLoanCompanyRule", true));
+//        taskList.add(new AuditTask((u) -> riskRuleEngineService.calledTimesByDifferentLoanCompanyRule(u), "CalledTimesByDifferentLoanCompanyRule", true));
+//        taskList.add(new AuditTask((u) -> riskRuleEngineService.mergencyInJHJJBlackListRule(u), "MergencyInJHJJBlackListRule", true));
+//        taskList.add(new AuditTask((u) -> riskRuleEngineService.openDateRule(u), "OpenDateRule", true));
+        taskList.add(new AuditTask((u) -> idCardRule(u), "IdCardRule", true));
+        taskList.add(new AuditTask((u) -> ageRule(u), "AgeRule", true));
+        taskList.add(new AuditTask((u) -> contactsRule(u), "ContactsRule", true));
+        taskList.add(new AuditTask((u) -> callLogRule(u), "CallLogRule", false));
+        taskList.add(new AuditTask((u) -> threeElementCheck(u), "ThreeElementCheck", false));
+        taskList.add(new AuditTask((u) -> antiHackRule(u), "AntiHackRule", false));
+        taskList.add(new AuditTask((u) -> livePicCompareRule(u), "LivePicCompareRule", false));
+        taskList.add(new AuditTask((u) -> idPicCompareRule(u), "IdPicCompareRule", false));
 
+        boolean isWhiteListUser = WHITE_LIST.equals(user.getSource());
 
-        if (!WHITE_LIST.equals(user.getSource())) {
-            if (finalResult == null) {
-                logger.info(userCode + "开始运行规则[IdCardRule]");
-                res = idCardRule(userCode);
-                ruleLogService.create(userCode, "IdCardRule", res.isPass(), true, res.getExplanation());
-                if (!res.isPass()) {
-                    finalResult = res;
-                }
+        for (AuditTask auditTask : taskList) {
+            if (auditTask.whiteListUserSkip && isWhiteListUser) {
+                ruleLogService.create(userCode, auditTask.ruleName, null, false, "");
             } else {
-                ruleLogService.create(userCode, "IdCardRule", null, false, "");
+                if (finalResult == null) {
+                    logger.info(userCode + "开始运行规则[" + auditTask.ruleName + "]");
+                    res = auditTask.callFunc.apply(userCode);
+                    ruleLogService.create(userCode, auditTask.ruleName, res.isPass(), true, res.getExplanation());
+                    if (!res.isPass()) {
+                        finalResult = res;
+                    }
+                } else {
+                    ruleLogService.create(userCode, auditTask.ruleName, null, false, "");
+                }
             }
-        } else {
-            ruleLogService.create(userCode, "IdCardRule", null, false, "");
         }
 
-
-        if (!WHITE_LIST.equals(user.getSource())) {
-            if (finalResult == null) {
-                logger.info(userCode + "开始运行规则[AgeRule]");
-                res = ageRule(userCode);
-                ruleLogService.create(userCode, "AgeRule", res.isPass(), true, res.getExplanation());
-                if (!res.isPass()) {
-                    finalResult = res;
-                }
-            } else {
-                ruleLogService.create(userCode, "AgeRule", null, false, "");
-            }
-        } else {
-            ruleLogService.create(userCode, "IdCardRule", null, false, "");
-        }
-
-
-//
-//
-//        if (finalResult == null) {
-//            logger.info(userCode + "开始运行规则[RiskWordRule]");
-//            res = riskWordRule(userCode);
-//            ruleLogService.create(userCode, "RiskWordRule", res.isPass(), true, res.getExplanation());
-//            if (!res.isPass()) {
-//                finalResult = res;
-//            }
-//        } else {
-//            ruleLogService.create(userCode, "RiskWordRule", null, false, "");
-//        }
-//
-//
         if (finalResult == null) {
-            logger.info(userCode + "开始运行规则[OpenDateRule]");
-            res = riskRuleEngineService.openDateRule(userCode);
-            ruleLogService.create(userCode, "OpenDateRule", res.isPass(), true, res.getExplanation());
-            if (!res.isPass()) {
-                finalResult = res;
-            }
-        } else {
-            ruleLogService.create(userCode, "OpenDateRule", null, false, "");
+            finalResult = res;
         }
-//
-//        if (finalResult == null) {
-//            logger.info(userCode + "开始运行规则[MergencyCallTimesRule]");
-//            res = riskRuleEngineService.mergencyCallTimesRule(userCode);
-//            ruleLogService.create(userCode, "MergencyCallTimesRule", res.isPass(), true, res.getExplanation());
-//            if (!res.isPass()) {
-//                finalResult = res;
-//            }
-//        } else {
-//            ruleLogService.create(userCode, "MergencyCallTimesRule", null, false, "");
-//        }
-//
-//        if (finalResult == null) {
-//            logger.info(userCode + "开始运行规则[MergencyHadNoDoneOrderRule]");
-//            res = riskRuleEngineService.mergencyHadNoDoneOrderRule(userCode);
-//            ruleLogService.create(userCode, "MergencyHadNoDoneOrderRule", res.isPass(), true, res.getExplanation());
-//            if (!res.isPass()) {
-//                finalResult = res;
-//            }
-//        } else {
-//            ruleLogService.create(userCode, "MergencyHadNoDoneOrderRule", null, false, "");
-//        }
+
+        AuditResponseEvent convert = new AuditResponseEvent(userCode, finalResult.getExplanation(), finalResult.isPass() ? (isWhiteListUser ? AuditResultEnum.PASS : AuditResultEnum.MANUAL) : AuditResultEnum.REJECTED);
+        return convert;
 
         /*if (finalResult == null) {
             logger.info(userCode + "开始运行规则[MergencyInJHJJBlackListRule]");
@@ -189,103 +202,19 @@ public class RiskAuditServiceImpl implements RiskAuditService {
             ruleLogService.create(userCode, "MergencyInJHJJBlackListRule", null, false, "");
         }
         */
-
-//        if (finalResult == null) {
-//            logger.info(userCode + "开始运行规则[CalledTimesByOneLoanCompanyRule]");
-//            res = riskRuleEngineService.calledTimesByOneLoanCompanyRule(userCode);
-//            ruleLogService.create(userCode, "CalledTimesByOneLoanCompanyRule", res.isPass(), true, res.getExplanation());
-//            if (!res.isPass()) {
-//                finalResult = res;
-//            }
-//        } else {
-//            ruleLogService.create(userCode, "CalledTimesByOneLoanCompanyRule", null, false, "");
-//        }
-//
-//        if (finalResult == null) {
-//            logger.info(userCode + "开始运行规则[CalledTimesByDifferentLoanCompanyRule]");
-//            res = riskRuleEngineService.calledTimesByDifferentLoanCompanyRule(userCode);
-//            ruleLogService.create(userCode, "CalledTimesByDifferentLoanCompanyRule", res.isPass(), true, res.getExplanation());
-//            if (!res.isPass()) {
-//                finalResult = res;
-//            }
-//        } else {
-//            ruleLogService.create(userCode, "CalledTimesByDifferentLoanCompanyRule", null, false, "");
-//        }
-
-        //不在白名单内需要多运行一个通话记录规则
-        if (!WHITE_LIST.equals(user.getSource())) {
-            if (finalResult == null) {
-                logger.info(userCode + "开始运行规则[ContactsRule]");
-                res = contactsRule(userCode);
-                ruleLogService.create(userCode, "ContactsRule", res.isPass(), true, res.getExplanation());
-                if (!res.isPass()) {
-                    finalResult = res;
-                }
-            } else {
-                ruleLogService.create(userCode, "ContactsRule", null, false, "");
-            }
-        } else {
-            ruleLogService.create(userCode, "ContactsRule", null, false, "");
-        }
-
-
-        if (finalResult == null) {
-            logger.info(userCode + "开始运行规则[CallLogRule]");
-            res = callLogRule(userCode);
-            ruleLogService.create(userCode, "CallLogRule", res.isPass(), true, res.getExplanation());
-            if (!res.isPass()) {
-                finalResult = res;
-            }
-        } else {
-            ruleLogService.create(userCode, "CallLogRule", null, false, "");
-        }
-
-        if (finalResult == null) {
-            logger.info(userCode + "开始运行规则[ThreeElementCheck]");
-            res = threeElementCheck(userCode);
-            ruleLogService.create(userCode, "ThreeElementCheck", res.isPass(), true, res.getExplanation());
-            if (!res.isPass()) {
-                finalResult = res;
-            }
-        } else {
-            ruleLogService.create(userCode, "ThreeElementCheck", null, false, "");
-        }
-
-        if (finalResult == null) {
-            logger.info(userCode + "开始运行规则[AntiHackRule]");
-            res = antiHackRule(userCode);
-            ruleLogService.create(userCode, "AntiHackRule", res.isPass(), true, res.getExplanation());
-            if (!res.isPass()) {
-                finalResult = res;
-            }
-        } else {
-            ruleLogService.create(userCode, "AntiHackRule", null, false, "");
-        }
-
-        if (finalResult == null) {
-            logger.info(userCode + "开始运行规则[LivePicCompareRule]");
-            res = livePicCompareRule(userCode);
-            ruleLogService.create(userCode, "LivePicCompareRule", res.isPass(), true, res.getExplanation());
-            if (!res.isPass()) {
-                finalResult = res;
-            }
-        } else {
-            ruleLogService.create(userCode, "LivePicCompareRule", null, false, "");
-        }
-
-        if (finalResult == null) {
-            logger.info(userCode + "开始运行规则[IdPicCompareRule]");
-            res = idPicCompareRule(userCode);
-            ruleLogService.create(userCode, "IdPicCompareRule", res.isPass(), true, res.getExplanation());
-            finalResult = res;
-        } else {
-            ruleLogService.create(userCode, "IdPicCompareRule", null, false, "");
-        }
-        return finalResult;
     }
 
     private static final int HTTP_OK = 200;
     private static final int ERROR_SCORE_CODE = -1;
+
+    AuditResponseEvent blackListRule(String userCode) {
+        UserEntity user = userService.findByUserCodeAndDeleted(userCode, false);
+        String idCard = user.getIdCard();
+        String mobile = user.getMobile();
+        Boolean isIn = userRepository.inBlackList(idCard) > 0 || userRepository.inBlackList(mobile) > 0 ||
+                riskThirdBlackListRepository.isInBlackList(idCard) > 0 || riskThirdBlackListRepository.isInBlackList(mobile) > 0;
+        return new AuditResponseEvent(userCode, !isIn, isIn ? "用户手机号或者身份证在黑名单中" : "");
+    }
 
     AuditResponseEvent riskWordRule(String userCode) {
         int limit = 15;

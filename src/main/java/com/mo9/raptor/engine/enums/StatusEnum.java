@@ -46,6 +46,7 @@ public enum StatusEnum {
      * 用户状态
      */
     COLLECTING("信息采集中"),
+    MANUAL("人工审核"),
     BLACK("拉黑"),
 
     ;
