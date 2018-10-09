@@ -1,5 +1,6 @@
 package com.mo9.raptor.engine.state.handler.user;
 
+import com.mo9.raptor.engine.enums.AuditResultEnum;
 import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.engine.exception.InvalidEventException;
 import com.mo9.raptor.engine.state.action.IActionExecutor;
@@ -22,15 +23,20 @@ class AuditingStateHandler implements IStateHandler<UserEntity> {
 
         if (event instanceof AuditResponseEvent) {
             AuditResponseEvent auditResponseEvent = (AuditResponseEvent) event;
-            if (auditResponseEvent.isPass()) {
+            AuditResultEnum auditResultEnum = auditResponseEvent.getAuditResultEnum();
+            if (auditResultEnum == AuditResultEnum.MANUAL) {
+                user.setStatus(StatusEnum.MANUAL.name());
+            }else if(auditResultEnum == AuditResultEnum.PASS){
                 user.setStatus(StatusEnum.PASSED.name());
-            } else {
+            } else if(auditResultEnum == AuditResultEnum.REJECTED){
                 user.setStatus(StatusEnum.REJECTED.name());
+            }else{
+                throw new InvalidEventException("用户状态事件类型不匹配，状态：" + user.getStatus() + "，事件：" + event);
             }
             user.setDescription(user.getDescription()  + event.getEventTime() + ":" + auditResponseEvent.getExplanation() + ";");
 
         } else {
-            throw new InvalidEventException("还款订单状态与事件类型不匹配，状态：" + user.getStatus() + "，事件：" + event);
+            throw new InvalidEventException("用户状态事件类型不匹配，状态：" + user.getStatus() + "，事件：" + event);
         }
 
         return user;

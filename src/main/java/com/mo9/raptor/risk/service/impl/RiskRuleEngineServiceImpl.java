@@ -11,6 +11,7 @@ import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.risk.entity.TRiskTelInfo;
 import com.mo9.raptor.risk.service.RiskRuleEngineService;
 import com.mo9.raptor.risk.service.RiskTelInfoService;
+import com.mo9.raptor.riskdb.repo.RiskThirdBlackListRepository;
 import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.httpclient.HttpClientApi;
 import com.mo9.raptor.utils.log.Log;
@@ -66,6 +67,9 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
     
     @Resource
     private ILoanOrderService loanOrderService;
+
+    @Resource
+    private RiskThirdBlackListRepository riskThirdBlackListRepository;
     
     @Override
     public AuditResponseEvent openDateRule(String userCode) {
@@ -109,7 +113,7 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
 
         JSONObject jsonObject = JSON.parseObject(reportJson);
 
-        JSONArray mergencyContactArray = jsonObject.getJSONArray("mergency_contact");
+        JSONArray mergencyContactArray = jsonObject.getJSONObject("data").getJSONArray("mergency_contact");
 
         for (int i = 0; i < mergencyContactArray.size(); i++) {
             JSONObject mergencyContract = mergencyContactArray.getJSONObject(i);
@@ -135,7 +139,7 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
             return new AuditResponseEvent(userCode, false, "运营商报告状态不正常" );
         }
 
-        JSONObject jsonObject = JSON.parseObject(reportJson);
+        JSONObject jsonObject = JSON.parseObject(reportJson).getJSONObject("data");
 
         JSONArray mergencyContactArray = jsonObject.getJSONArray("mergency_contact");
 
@@ -170,7 +174,23 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
             logger.info("运营商报告状态不正常，校验失败，规则：mergencyInJHJJBlackListRule");
             return new AuditResponseEvent(userCode, false, "运营商报告状态不正常" );
         }
-        return new AuditResponseEvent(userCode, false, "紧急联系人命中江湖救急黑名单" );
+
+        JSONObject jsonObject = JSON.parseObject(reportJson).getJSONObject("data");
+
+        JSONArray mergencyContactArray = jsonObject.getJSONArray("mergency_contact");
+
+        for (int i = 0; i < mergencyContactArray.size(); i++) {
+            JSONObject mergencyContract = mergencyContactArray.getJSONObject(i);
+
+            String mergencyTel = mergencyContract.getString("format_tel");
+
+            if(riskThirdBlackListRepository.isInBlackList(mergencyTel) > 0){
+                return new AuditResponseEvent(userCode, false, "紧急联系人电话命中江湖救急黑名单, mobile: " + mergencyTel );
+            }
+
+        }
+        
+        return new AuditResponseEvent(userCode, true, "" );
     }
 
     @Override
@@ -185,17 +205,18 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
         }
 
 
-        JSONObject jsonObject = JSON.parseObject(reportJson);
+        JSONObject jsonObject = JSON.parseObject(reportJson).getJSONObject("data");
 
         JSONObject cuishou = jsonObject.getJSONObject("cuishou");
         JSONObject yisicuishou = jsonObject.getJSONObject("yisicuishou");
         
-        Integer cuishouOneCallMaxTimes = cuishou.getInteger("most_times_by_tel");
-        Integer yisicuishouOneCallMaxTimes = yisicuishou.getInteger("most_times_by_tel");
+        
+        Integer cuishouOneCallMaxTimes = cuishou == null ? 0 : cuishou.getInteger("most_times_by_tel");
+        Integer yisicuishouOneCallMaxTimes = yisicuishou == null ? 0 : yisicuishou.getInteger("most_times_by_tel");
         
         if (cuishouOneCallMaxTimes < ONE_LOAN_COMPANY_CALL_TIMES
                 && yisicuishouOneCallMaxTimes < ONE_LOAN_COMPANY_CALL_TIMES){
-            new AuditResponseEvent(userCode, true, "");
+            return new AuditResponseEvent(userCode, true, "");
         }
         
         return new AuditResponseEvent(userCode, false, "被同一贷款机构呼叫次数大于 " + ONE_LOAN_COMPANY_CALL_TIMES);
@@ -212,13 +233,13 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
             return new AuditResponseEvent(userCode, false, "运营商报告状态不正常" );
         }
 
-        JSONObject jsonObject = JSON.parseObject(reportJson);
+        JSONObject jsonObject = JSON.parseObject(reportJson).getJSONObject("data");
 
         JSONObject cuishou = jsonObject.getJSONObject("cuishou");
         JSONObject yisicuishou = jsonObject.getJSONObject("yisicuishou");
 
-        Integer cuishouCallMaxTimes = cuishou.getInteger("call_in_times");
-        Integer yisicuishouCallMaxTimes = yisicuishou.getInteger("call_in_times");
+        Integer cuishouCallMaxTimes = cuishou == null ? 0 : cuishou.getInteger("call_in_times");
+        Integer yisicuishouCallMaxTimes = yisicuishou == null ? 0 : yisicuishou.getInteger("call_in_times");
 
         if (cuishouCallMaxTimes < DIFFERENT_LOAN_COMPANY_CALL_TIMES
                 && yisicuishouCallMaxTimes < DIFFERENT_LOAN_COMPANY_CALL_TIMES){

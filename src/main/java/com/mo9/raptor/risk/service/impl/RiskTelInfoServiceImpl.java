@@ -77,10 +77,10 @@ public class RiskTelInfoServiceImpl implements RiskTelInfoService {
         if (existsUser != null){ //已存在的手机号，去重插入
             this.save(riskTelInfo);
             //账单信息
-            riskTelBillService.batchSave(riskTelBillList);
+            riskTelBillService.insertIfNotExists(riskTelBillList);
 
             //通话记录
-            riskCallLogService.batchSave(riskCallLogList);
+            riskCallLogService.insertIfNotExists(riskCallLogList);
         }else { //手机号不存在，直接插入
             riskTelInfoRepository.save(riskTelInfo);
             //账单信息

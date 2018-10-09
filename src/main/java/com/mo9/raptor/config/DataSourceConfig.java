@@ -45,6 +45,19 @@ public class DataSourceConfig {
     @Value("${spring.datasource.secondary.jdbc-url}")
     private String riskUrl;
 
+
+    @Value("${spring.datasource.riskdb.driver-class-name}")
+    private String riskDBDriverClassName;
+
+    @Value("${spring.datasource.riskdb.username}")
+    private String riskDBUsername;
+
+    @Value("${spring.datasource.riskdb.password}")
+    private String riskDBPassword;
+
+    @Value("${spring.datasource.riskdb.jdbc-url}")
+    private String riskDBUrl;
+
     @Primary
     @Bean(name = "primaryDataSource")
     @Qualifier("primaryDataSource")
@@ -73,4 +86,15 @@ public class DataSourceConfig {
         return dataSource;
     }
 
+    @Bean(name = "riskdbDataSource")
+    @Qualifier("riskdbDataSource")
+//    @ConfigurationProperties(prefix="spring.datasource.riskdb")
+    public DataSource riskdbDataSource() {
+        DruidDataSource dataSource = new DruidDataSource();
+        dataSource.setDriverClassName(riskDBDriverClassName);
+        dataSource.setUsername(riskDBUsername);
+        dataSource.setPassword(riskDBPassword);
+        dataSource.setUrl(riskDBUrl);
+        return dataSource;
+    }
 }
