@@ -130,9 +130,15 @@ public class LoanOrderController {
         try {
             if (redisService.lock(lock.getName(), lock.getValue(), 1500000, TimeUnit.MILLISECONDS)) {
 
+                if(true) {
+                    logger.warn("渠道不支持, 不放款!");
+                    return response.buildFailureResponse(ResCodeEnum.NO_LEND_AMOUNT);
+                }
+
                 LoanOrderEntity payoffOrder = loanOrderService.getLastIncompleteOrder(userCode, StatusEnum.OLD_PAYOFF);
                 //没有payoff订单的用户不可以借款
                 if (null == payoffOrder) {
+
                     // 锁定后检查今天是否还有限额
                     BigDecimal dailyLendAmount = lendOrderService.getDailyLendAmount();
                     if (new BigDecimal(dictData.getName()).compareTo(dailyLendAmount.add(actuallyGetAmount)) < 0) {

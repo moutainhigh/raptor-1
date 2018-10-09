@@ -175,58 +175,64 @@ public class LoanMo9mqListener implements IMqMsgListener{
         if ("success".equals(status)) {
 			PayOrderEntity payOrderEntity = payOrderService.getByOrderId(orderId);
 			LoanOrderEntity loanOrderEntity = loanOrderService.getByOrderId(payOrderEntity.getLoanOrderId());
-			// 增加延期次数
-			List<FetchPayOrderCondition.Type> type = new ArrayList<FetchPayOrderCondition.Type>();
-			type.add(FetchPayOrderCondition.Type.REPAY_POSTPONE);
-			List<FetchPayOrderCondition.Status> statuses = new ArrayList<FetchPayOrderCondition.Status>();
-			statuses.add(FetchPayOrderCondition.Status.ENTRY_DONE);
-			FetchPayOrderCondition condition = new FetchPayOrderCondition();
-			condition.setTypes(type);
-			condition.setStates(statuses);
-			condition.setLoanOrderNumber(payOrderEntity.getLoanOrderId());
-			Page<PayOrderEntity> payOrderEntities = payOrderService.listPayOrderByCondition(condition);
-			int count = payOrderEntities.getContent().size();
-			loanOrderEntity.setPostponeCount(count);
-            loanOrderEntity.setUpdateTime(System.currentTimeMillis());
-            loanOrderService.save(loanOrderEntity);
+			String payOrderStatus = payOrderEntity.getStatus();
+			// 入账成功才向贷后发消息
+			if (StatusEnum.ENTRY_DONE.name().equals(payOrderStatus)) {
+				// 增加延期次数
+				List<FetchPayOrderCondition.Type> type = new ArrayList<FetchPayOrderCondition.Type>();
+				type.add(FetchPayOrderCondition.Type.REPAY_POSTPONE);
+				List<FetchPayOrderCondition.Status> statuses = new ArrayList<FetchPayOrderCondition.Status>();
+				statuses.add(FetchPayOrderCondition.Status.ENTRY_DONE);
+				FetchPayOrderCondition condition = new FetchPayOrderCondition();
+				condition.setTypes(type);
+				condition.setStates(statuses);
+				condition.setLoanOrderNumber(payOrderEntity.getLoanOrderId());
+				Page<PayOrderEntity> payOrderEntities = payOrderService.listPayOrderByCondition(condition);
+				int count = payOrderEntities.getContent().size();
+				loanOrderEntity.setPostponeCount(count);
+				loanOrderEntity.setUpdateTime(System.currentTimeMillis());
+				loanOrderService.save(loanOrderEntity);
 
-			try {
-				// 发送消息给贷后
-				notifyMisRepay(payOrderLog, count, loanOrderEntity);
-			} catch (Exception e) {
-				logger.error("向贷后发送还款信息失败   ", e);
-			}
+				try {
+					// 发送消息给贷后
+					notifyMisRepay(payOrderLog, count, loanOrderEntity);
+				} catch (Exception e) {
+					logger.error("向贷后发送还款信息失败   ", e);
+				}
 
-			// 修改用户信用状态
-			String userCode = payOrderEntity.getOwnerId();
-			UserEntity userEntity = userService.findByUserCodeAndDeleted(userCode, false);
-			if (userEntity != null) {
-				String newCreditStatus = null;
-				String creditStatus = userEntity.getCreditStatus();
-				String payOrderType = payOrderEntity.getType();
-				if (PayTypeEnum.REPAY_POSTPONE.name().equals(payOrderType)) {
-					Long formerRepaymentDate = TimeUtils.extractDateTime(payOrderLog.getFormerRepaymentDate());
-					Long createTime = TimeUtils.extractDateTime(payOrderEntity.getCreateTime());
-					if (formerRepaymentDate < createTime) {
+				// 修改用户信用状态
+				String userCode = payOrderEntity.getOwnerId();
+				UserEntity userEntity = userService.findByUserCodeAndDeleted(userCode, false);
+				if (userEntity != null) {
+					String newCreditStatus = null;
+					String creditStatus = userEntity.getCreditStatus();
+					String payOrderType = payOrderEntity.getType();
+					if (PayTypeEnum.REPAY_POSTPONE.name().equals(payOrderType)) {
+						Long formerRepaymentDate = TimeUtils.extractDateTime(payOrderLog.getFormerRepaymentDate());
+						Long createTime = TimeUtils.extractDateTime(payOrderEntity.getCreateTime());
+						if (formerRepaymentDate < createTime) {
+							newCreditStatus = CreditStatusEnum.REPAY_OVERDUE.name();
+						} else {
+							newCreditStatus = CreditStatusEnum.REPAY_REGULAR.name();
+						}
+					} else if (PayTypeEnum.REPAY_OVERDUE.name().equals(payOrderType)) {
 						newCreditStatus = CreditStatusEnum.REPAY_OVERDUE.name();
 					} else {
 						newCreditStatus = CreditStatusEnum.REPAY_REGULAR.name();
 					}
-				} else if (PayTypeEnum.REPAY_OVERDUE.name().equals(payOrderType)) {
-					newCreditStatus = CreditStatusEnum.REPAY_OVERDUE.name();
+					if (StringUtils.isBlank(creditStatus) || CreditStatusEnum.INITIAL.name().equals(creditStatus)) {
+						userEntity.setCreditStatus(newCreditStatus);
+					}
+					if (CreditStatusEnum.REPAY_REGULAR.name().equals(creditStatus) && CreditStatusEnum.REPAY_OVERDUE.name().equals(newCreditStatus)) {
+						userEntity.setCreditStatus(newCreditStatus);
+					}
+					userEntity.setUpdateTime(System.currentTimeMillis());
+					userService.save(userEntity);
 				} else {
-					newCreditStatus = CreditStatusEnum.REPAY_REGULAR.name();
+					logger.error("userCode[{}] 查不到用户实体", userCode);
 				}
-				if (StringUtils.isBlank(creditStatus) || CreditStatusEnum.INITIAL.name().equals(creditStatus)) {
-					userEntity.setCreditStatus(newCreditStatus);
-				}
-				if (CreditStatusEnum.REPAY_REGULAR.name().equals(creditStatus) && CreditStatusEnum.REPAY_OVERDUE.name().equals(newCreditStatus)) {
-					userEntity.setCreditStatus(newCreditStatus);
-				}
-				userEntity.setUpdateTime(System.currentTimeMillis());
-				userService.save(userEntity);
 			} else {
-				logger.error("userCode[{}] 查不到用户实体", userCode);
+				logger.warn("还款订单[{}]入账出现问题, 不向贷后发送mq以及更改用户信用状态", payOrderEntity.getOrderId());
 			}
 		}
 		return MqAction.CommitMessage;
@@ -415,7 +421,8 @@ public class LoanMo9mqListener implements IMqMsgListener{
         String status = payOrderEntity.getStatus();
         repayInfo.setEntryDone(StatusEnum.ENTRY_DONE.name().equals(status));
         repayInfo.setPayType(payOrderEntity.getType());
-        repayInfo.setPostponeDays(postponeCount);
+        repayInfo.setPostponeCount(postponeCount);
+        repayInfo.setPostponeDays(payOrderEntity.getPostponeDays());
 
         List<RepayDetailRes> repayDetail = payOrderDetailService.getRepayDetail(payOrderEntity.getOrderId());
         repayInfo.setRepayDetail(repayDetail);
