@@ -278,6 +278,11 @@ public class UserController {
                 //用户不存在
                 return response.buildFailureResponse(ResCodeEnum.NOT_WHITE_LIST_USER);
             }
+            /**
+             * 判断当前用户状态是否需要扭转 因新增用户状态，
+             * app无法快速改变，所以添加的临时改变计划，非长久之计
+             */
+            userEntity = UserEntity.changeStatusToAuditing(userEntity.getStatus(), userEntity);
             auditStatusRes.setAuditStatus(userEntity.getStatus());
             auditStatusRes.setCertifyInfo(userEntity.getCertifyInfo());
             auditStatusRes.setCallHistory(userEntity.getCallHistory());
