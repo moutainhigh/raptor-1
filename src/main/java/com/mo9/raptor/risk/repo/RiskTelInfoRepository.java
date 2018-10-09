@@ -28,4 +28,7 @@ public interface RiskTelInfoRepository extends JpaRepository<TRiskTelInfo, Long>
     
     @Query(value = "select * from t_risk_tel_info where created_at > ?1 and platform = ?2 and deleted = false and report_received = false ", nativeQuery = true)
     Set<TRiskTelInfo> findNoReportRecords(Date start, String platform);
+
+    @Query(value = "select mobile from t_risk_tel_info where created_at > ?1 and platform = ?2 and deleted = false and report_received = false ", nativeQuery = true)
+    Set<String> findNoReportMobiles(Date start, String platform);
 }
