@@ -141,6 +141,10 @@ public class RiskAuditServiceImpl implements RiskAuditService {
             return null;
         }
 
+        if (1 == 1) {
+            return new AuditResponseEvent(userCode, "", AuditResultEnum.MANUAL);
+        }
+
         AuditResponseEvent finalResult = null;
         AuditResponseEvent res = null;
         ArrayList<AuditTask> taskList = new ArrayList<>();
