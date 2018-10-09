@@ -70,7 +70,7 @@ public class CallLogReportTask {
                 UserEntity userEntity = userService.findByUserCode(noReportRecord.getUid());
                 
                 if (userEntity == null){
-                    logger.info("-----运营商报告补偿任务--> t_raptor_user表未找到userCode为{}的数据, 跳过");
+                    logger.info("-----运营商报告补偿任务--> t_raptor_user表未找到userCode为{}的数据, 跳过", noReportRecord.getUid());
                     continue;
                 }
                 

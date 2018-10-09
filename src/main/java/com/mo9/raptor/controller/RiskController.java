@@ -156,7 +156,7 @@ public class RiskController {
     
     
     @PostMapping(value = "/pull_call_log")
-    public String mobile2Sid(@RequestBody String sessionId){
+    public String processNoSidMobile(@RequestBody String sessionId){
         if (StringUtils.isBlank(sessionId)){
             return "sessionId不能为空";
         }
