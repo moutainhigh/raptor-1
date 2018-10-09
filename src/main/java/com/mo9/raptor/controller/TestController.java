@@ -263,6 +263,7 @@ public class TestController {
             return response.buildFailureResponse(ResCodeEnum.INVALID_SIGN);
         }
 
+        logger.info("offline_repay接口开始, 参数:userCode[{}], type[{}], amount[{}], accessUserCode[{}], sign[{}],", userCode, type, amount, accessUserCode, sign);
 
         // 调用人员的实体
         UserEntity accessUserEntity = userService.findByUserCodeAndDeleted(accessUserCode, false);
@@ -359,18 +360,21 @@ public class TestController {
         // 制作优惠券
         CouponEntity effectiveBundledCoupon = couponService.getEffectiveBundledCoupon(loanOrder.getOrderId());
         if (effectiveBundledCoupon == null) {
-            CouponEntity coupon = new CouponEntity();
-            coupon.setCouponId(String.valueOf(idWorker.nextId()));
-            coupon.setBoundOrderId(loanOrder.getOrderId());
-            coupon.setApplyAmount(couponAmount);
-            Long today = TimeUtils.extractDateTime(System.currentTimeMillis());
-            coupon.setEffectiveDate(today);
-            coupon.setExpireDate(today + EngineStaticValue.DAY_MILLIS);
-            coupon.setStatus(StatusEnum.BUNDLED.name());
-            coupon.setCreator(accessUserEntity.getRealName());
-            coupon.setEntryAmount(BigDecimal.ZERO);
-            coupon.setReason("用户线下还清");
-            couponService.save(coupon);
+            // 需要优惠才创建优惠券
+            if (BigDecimal.ZERO.compareTo(couponAmount) < 0) {
+                CouponEntity coupon = new CouponEntity();
+                coupon.setCouponId(String.valueOf(idWorker.nextId()));
+                coupon.setBoundOrderId(loanOrder.getOrderId());
+                coupon.setApplyAmount(couponAmount);
+                Long today = TimeUtils.extractDateTime(System.currentTimeMillis());
+                coupon.setEffectiveDate(today);
+                coupon.setExpireDate(today + EngineStaticValue.DAY_MILLIS);
+                coupon.setStatus(StatusEnum.BUNDLED.name());
+                coupon.setCreator(accessUserEntity.getRealName());
+                coupon.setEntryAmount(BigDecimal.ZERO);
+                coupon.setReason("用户线下还清");
+                couponService.save(coupon);
+            }
         } else {
             logger.info("用户线下还款, 更新优惠券[{}]的金额为[{}], 原金额[{}]", effectiveBundledCoupon.getCouponId(), couponAmount, effectiveBundledCoupon.getApplyAmount());
             effectiveBundledCoupon.setApplyAmount(couponAmount);
@@ -392,6 +396,7 @@ public class TestController {
 
         MqMessage message = new MqMessage("TOPIC", "MQ_RAPTOR_PAYOFF_TAG", jsonObject.toJSONString());
         loanMo9mqListener.consume(message, null);
+        logger.info("offline_repay接口结束");
         return response;
     }
 }
