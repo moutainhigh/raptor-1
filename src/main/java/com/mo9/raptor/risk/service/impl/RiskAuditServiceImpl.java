@@ -150,6 +150,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         taskList.add(new AuditTask((u) -> riskRuleEngineService.mergencyHadNoDoneOrderRule(u), "MergencyHadNoDoneOrderRule", true));
         taskList.add(new AuditTask((u) -> riskRuleEngineService.calledTimesByOneLoanCompanyRule(u), "CalledTimesByOneLoanCompanyRule", true));
         taskList.add(new AuditTask((u) -> riskRuleEngineService.calledTimesByDifferentLoanCompanyRule(u), "CalledTimesByDifferentLoanCompanyRule", true));
+        taskList.add(new AuditTask((u) -> riskRuleEngineService.mergencyInJHJJBlackListRule(u), "MergencyInJHJJBlackListRule", true));
         taskList.add(new AuditTask((u) -> riskRuleEngineService.openDateRule(u), "OpenDateRule", true));
         taskList.add(new AuditTask((u) -> idCardRule(u), "IdCardRule", true));
         taskList.add(new AuditTask((u) -> ageRule(u), "AgeRule", true));
