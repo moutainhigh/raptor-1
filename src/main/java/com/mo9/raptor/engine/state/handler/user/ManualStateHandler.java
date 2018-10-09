@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
  * @author jyou
  * 人工审核事件
  */
-@Component("userAuditingState")
+@Component
 @StateHandler(name = StatusEnum.MANUAL)
 
 public class ManualStateHandler implements IStateHandler<UserEntity> {
