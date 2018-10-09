@@ -19,6 +19,16 @@ public class SendSmsVerificationCodeReq {
 
     private String graphCode;
 
+    /**
+     * 来源
+     */
+    private String source;
+
+    /**
+     * 子来源
+     */
+    private String subSource;
+
     public CaptchaBusinessEnum getReason() {
         return reason;
     }
@@ -41,5 +51,21 @@ public class SendSmsVerificationCodeReq {
 
     public void setMobile(String mobile) {
         this.mobile = mobile;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+
+    public String getSubSource() {
+        return subSource;
+    }
+
+    public void setSubSource(String subSource) {
+        this.subSource = subSource;
     }
 }
