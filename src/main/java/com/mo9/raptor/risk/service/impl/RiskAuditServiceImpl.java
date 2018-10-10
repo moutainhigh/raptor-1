@@ -345,9 +345,10 @@ public class RiskAuditServiceImpl implements RiskAuditService {
                     lastId = list.get(list.size() - 1).getId();
                 }
             }
+            logger.info(user.getMobile() + "拉取到数据" + allCallLog.size());
             for (TRiskCallLog tRiskCallLog : allCallLog) {
                 //主叫 && 在通讯录内
-                if (ORIGN_CALL.equals(tRiskCallLog.getCallMethod()) && allMobileSet.contains(tRiskCallLog.getCallTel())) {
+                if (tRiskCallLog.getCallMethod() != null && tRiskCallLog.getCallMethod().contains("主叫") && allMobileSet.contains(tRiskCallLog.getCallTel())) {
                     count++;
                     inListMobiles.add(tRiskCallLog.getCallTel());
                 }
