@@ -271,8 +271,14 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
     
     private boolean checkReportStatus(String reportJson){
         JSONObject jsonObject = JSON.parseObject(reportJson);
-        Integer status = jsonObject.getInteger("status");
-        
+        Integer status = null;
+        try {
+            status = jsonObject.getInteger("status");
+        } catch (Exception e) {
+            logger.error("解析运营商报告状态出错", e);
+            return false;
+        }
+
         if (status == 0){
             return true;
         }
