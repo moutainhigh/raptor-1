@@ -12,7 +12,6 @@ public class RiskScoreEntity {
     @Column(name = "user_code")
     private String userCode;
 
-
     @Column(name = "mobile")
     private String mobile;
 

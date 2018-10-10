@@ -6,6 +6,7 @@ import com.mo9.raptor.RaptorApplicationTest;
 import com.mo9.raptor.engine.state.event.impl.AuditResponseEvent;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.repository.UserRepository;
+import com.mo9.raptor.risk.entity.TRiskCallLog;
 import com.mo9.raptor.risk.repo.RiskCallLogRepository;
 import com.mo9.raptor.risk.service.RiskAuditService;
 import com.mo9.raptor.risk.service.RiskWordService;
@@ -37,7 +38,7 @@ public class AuditServiceTest {
     @Resource
     private RiskThirdBlackListRepository riskThirdBlackListRepository;
 
-    //@Resource
+    @Resource
     private RiskCallLogRepository riskCallLogRepository;
 
     @Resource
@@ -96,4 +97,11 @@ public class AuditServiceTest {
         System.out.println(hitCount);
     }
 
+    @Test
+    public void t5(){
+        String ORIGN_CALL = "%主叫%";
+        Long days180ts = 180 * 24 * 60 * 60 * 1000L;
+        List<TRiskCallLog> list = riskCallLogRepository.getCallLogByMobileAfterTimestamp("18720994213", (System.currentTimeMillis() - days180ts) / 1000, 0L);
+        System.out.println(list);
+    }
 }
