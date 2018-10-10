@@ -85,6 +85,7 @@
                   if(flag){
                     var code =$.ajax({url:url,async:false});
                     if(code.toString = '0'){
+                       alert("操作成功");
                         window.location.reload();
                     }else{
                         alert("操作异常");
