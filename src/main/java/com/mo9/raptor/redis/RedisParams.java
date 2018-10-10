@@ -103,6 +103,7 @@ public class RedisParams {
      * 用于保存临时token的key
      */
     public static final String ACTION_TOKEN_LONG = "action_token_long_";
+    public static final String ACTION_TOKEN_LONG_AUDIT = "action_token_long_audit";
 
     /**
      * 修改资金密码限制错误次数key
