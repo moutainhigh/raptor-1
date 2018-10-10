@@ -86,6 +86,6 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
     @Query(value = "SELECT  * from t_raptor_user where mobile in ?1 and deleted = 0", nativeQuery = true)
     List<UserEntity> findByMobiles(List<String> mobiles);
 
-    @Query(value = "SELECT  * from t_raptor_user where source = ?1 and deleted = 0", nativeQuery = true)
+    @Query(value = "SELECT  * from t_raptor_user where source = ?1 and deleted = 0 and status in('MANUAL','PASSED','REJECTED')", nativeQuery = true)
     List<UserEntity> findManualAuditUser(String source);
 }
