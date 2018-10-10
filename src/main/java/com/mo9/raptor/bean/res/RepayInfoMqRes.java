@@ -10,6 +10,11 @@ import java.util.List;
 public class RepayInfoMqRes {
 
     /**
+     * 产品类型
+     */
+    private String productType;
+
+    /**
      * 还的借款订单号
      */
     private String orderId;
@@ -294,5 +299,13 @@ public class RepayInfoMqRes {
 
     public void setTotalReliefAmount(BigDecimal totalReliefAmount) {
         this.totalReliefAmount = totalReliefAmount;
+    }
+
+    public String getProductType() {
+        return productType;
+    }
+
+    public void setProductType(String productType) {
+        this.productType = productType;
     }
 }
