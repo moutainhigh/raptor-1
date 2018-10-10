@@ -176,7 +176,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         taskList.add(new AuditTask((u) -> riskRuleEngineService.openDateRule(u), "OpenDateRule", true));
         taskList.add(new AuditTask((u) -> idCardRule(u), "IdCardRule", true));
         taskList.add(new AuditTask((u) -> ageRule(u), "AgeRule", true));
-//        taskList.add(new AuditTask((u) -> contactsRule(u), "ContactsRule", true));
+        taskList.add(new AuditTask((u) -> contactsRule(u), "ContactsRule", true));
         taskList.add(new AuditTask((u) -> callLogRule(u), "CallLogRule", false));
         taskList.add(new AuditTask((u) -> threeElementCheck(u), "ThreeElementCheck", false));
         taskList.add(new AuditTask((u) -> antiHackRule(u), "AntiHackRule", false));
