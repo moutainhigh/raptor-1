@@ -10,6 +10,11 @@ import java.util.List;
 public class RepayInfoMqRes {
 
     /**
+     * 产品类型
+     */
+    private String productType;
+
+    /**
      * 还的借款订单号
      */
     private String orderId;
@@ -23,6 +28,11 @@ public class RepayInfoMqRes {
      * 还款订单号
      */
     private String payOrderId;
+
+    /**
+     * 目前为止所减免的所有金额
+     */
+    private BigDecimal totalReliefAmount;
 
     /**
      * 还款类型
@@ -281,5 +291,21 @@ public class RepayInfoMqRes {
 
     public void setPayoffTime(Long payoffTime) {
         this.payoffTime = payoffTime;
+    }
+
+    public BigDecimal getTotalReliefAmount() {
+        return totalReliefAmount;
+    }
+
+    public void setTotalReliefAmount(BigDecimal totalReliefAmount) {
+        this.totalReliefAmount = totalReliefAmount;
+    }
+
+    public String getProductType() {
+        return productType;
+    }
+
+    public void setProductType(String productType) {
+        this.productType = productType;
     }
 }

@@ -6,6 +6,8 @@ import com.mo9.raptor.service.SpreadChannelService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * @author zma
  * @date 2018/9/29
@@ -19,5 +21,29 @@ public class SpreadChannelServiceImpl implements SpreadChannelService{
     @Override
     public SpreadChannelEntity findByLoginNameAndPassword(String userName, String password) {
         return spreadChannelRepository.findByLoginNameAndPassword(userName,password);
+    }
+
+    @Override
+    public List<SpreadChannelEntity> findAll() {
+        List<SpreadChannelEntity> all = spreadChannelRepository.findAll();
+        return all;
+    }
+
+    @Override
+    public boolean checkSourceIsAllow(String source) {
+        List<SpreadChannelEntity> list = findAll();
+        if(list == null || list.size() == 0){
+            return false;
+        }
+        if(source.equals("NEW")){
+            return false;
+        }
+        for (SpreadChannelEntity entity: list){
+            String source1 = entity.getSource();
+            if(source.equals(source1)){
+                return true;
+            }
+        }
+        return false;
     }
 }

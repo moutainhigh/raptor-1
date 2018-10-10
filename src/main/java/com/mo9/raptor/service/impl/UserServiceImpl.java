@@ -196,7 +196,10 @@ public class UserServiceImpl implements UserService {
         int num = Integer.valueOf(dictName);
         String key = RedisParams.ALLOW_NEW_USER_REGISTER_KEY + DateUtils.formartDate(new Date());
         Integer redisNum = (Integer) redisServiceApi.get(key, redisTemplate);
-        if(redisNum == null || redisNum < num){
+        if(redisNum == null){
+            redisNum = 0;
+        }
+        if(redisNum < num){
             return true;
         }
         return false;
@@ -234,5 +237,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<UserEntity> findByMobiles(List<String> mobiles) {
         return userRepository.findByMobiles(mobiles);
+    }
+
+    @Override
+    public List<UserEntity> findManualAuditUser(String source) {
+     return  userRepository.findManualAuditUser(source);
     }
 }

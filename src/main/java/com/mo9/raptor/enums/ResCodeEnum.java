@@ -57,6 +57,10 @@ public enum ResCodeEnum {
     CHANNEL_REPAY_FAILED(11155007, "渠道下单失败", "渠道下单失败"),
     INVALID_REPAY_INFO(11155008, "支付信息非法", "支付信息非法"),
     ERROR_BANK_CARD(11155009, "非法银行卡", "支付银行卡"),
+    ILLEGAL_REQUEST_PRARM(11155010, "非法的请求参数", "非法的请求参数"),
+    ILLEGAL_COUPON_AMOUNT(11155011, "非法的优惠金额", "非法的优惠金额"),
+    MISMATCH_USER(11155012, "不匹配的用户和订单", "不匹配的用户和订单"),
+    UNSUPPORTED_TYPE(11155013, "不支持的线下还款类型", "不支持的线下还款类型"),
 
     /**
      * xx=60, 借款
@@ -67,6 +71,7 @@ public enum ResCodeEnum {
     PRODUCT_ERROR(11156003, "产品配置表错误", "系统繁忙，请稍后重试"),
     NO_LEND_INFO(11156004, "放款银行信息不存在", "放款失败"),
     LOAN_ORDER_NOT_EXISTED(11156005, "借款订单不存在", "借款订单不存在"),
+    NO_LEND(11156006, "暂不支持借款", "暂不支持借款"),
 
     /**
      * xx=70,文件

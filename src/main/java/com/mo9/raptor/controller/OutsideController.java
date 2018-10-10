@@ -2,6 +2,7 @@ package com.mo9.raptor.controller;
 
 import com.mo9.raptor.bean.BaseResponse;
 import com.mo9.raptor.bean.req.PageReq;
+import com.mo9.raptor.bean.res.ManualAuditUserRes;
 import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.engine.state.event.impl.user.ManualAuditEvent;
 import com.mo9.raptor.engine.state.launcher.IEventLauncher;
@@ -16,6 +17,7 @@ import com.mo9.raptor.utils.IpUtils;
 import com.mo9.raptor.utils.Md5Util;
 import com.mo9.raptor.utils.log.Log;
 import org.slf4j.Logger;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -26,6 +28,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -42,7 +46,7 @@ public class OutsideController {
     private static final String salt = "rtsDDcogZcPCu!NYkfgfjQq6O;~2Brtr";
 
     private static Logger logger = Log.get();
-
+    private static final String DATE_FORMAT = "yyyy-MM-dd hh:mm:ss";
 //    @Value("${raptor.url}")
     private String raptorUrl;
 
@@ -152,12 +156,70 @@ public class OutsideController {
         redisServiceApi.remove(RedisParams.ACTION_TOKEN_LONG+IpUtils.getRemoteHost(request),raptorRedis);
         return "channel/login";
     }
+    /**
+     * 人工审核登录页面
+     * @param model
+     * @param request
+     * @return
+     */
+    @RequestMapping("audit/to_login")
+    public String audittoLogin(Model model,HttpServletRequest request){
+        String userName = request.getParameter("userName");
+        String password = request.getParameter("password");
+        String remoteHost = IpUtils.getRemoteHost(request);
+        //查看是否在登录状态
+        Object auditUser = redisServiceApi.get(RedisParams.ACTION_TOKEN_LONG_AUDIT + remoteHost, raptorRedis);
+        //非登录状态去登录
+        if (auditUser == null){
+            if (StringUtils.isEmpty(userName)||StringUtils.isEmpty(password)){
+                model.addAttribute("message","登录已过期");
+                return "audit/login";
+            }
+            if (!"RBA:8KOBR4".equals(userName+":"+password)){
+                model.addAttribute("message","帐号或密码错误");
+                return "audit/login";
+            }
+        }
+        //设置登录成功
+        redisServiceApi.set(RedisParams.ACTION_TOKEN_LONG_AUDIT+remoteHost,userName,RedisParams.EXPIRE_30M,raptorRedis);
+        logger.info("人工审核登录接口-------->>>>>用户[{}]登录成功,ip为[{}]",userName,remoteHost);
+        //查询所有需要人工审核的用户
+        List<UserEntity> userEntities = userService.findManualAuditUser("channel_1");
+        //封装返回参数
+        List<ManualAuditUserRes> resultList =  copyUserEntityProperties(userEntities);
+
+        model.addAttribute("resultList",resultList);
+        model.addAttribute("code",0);
+        return "audit/show";
+    }
+
+    private List<ManualAuditUserRes> copyUserEntityProperties(List<UserEntity> userEntities) {
+        List<ManualAuditUserRes> resultList = new ArrayList<>();
+        for (UserEntity userEntity: userEntities){
+            ManualAuditUserRes manualAuditUserRes = new ManualAuditUserRes();
+            BeanUtils.copyProperties(userEntity,manualAuditUserRes);
+            manualAuditUserRes.setStatus(StatusEnum.valueOf(userEntity.getStatus()).getExplanation());
+            manualAuditUserRes.setCreateTime(new SimpleDateFormat(DATE_FORMAT).format(userEntity.getCreateTime()));
+            resultList.add(manualAuditUserRes);
+        }
+        return resultList;
+    }
+
+    @GetMapping("audit/login")
+    public String auditLoginIndex(Model model,HttpServletRequest request){
+        redisServiceApi.remove(RedisParams.ACTION_TOKEN_LONG_AUDIT+IpUtils.getRemoteHost(request),raptorRedis);
+        return "audit/login";
+    }
 
 
     @RequestMapping(value = "/manual_audit_user")
     @ResponseBody
-    public BaseResponse<Boolean> manualAuditUser(@RequestParam(value = "mobiles") List<String> mobiles, @RequestParam(value = "status") StatusEnum status){
+    public BaseResponse<Boolean> manualAuditUser(@RequestParam(value = "mobiles") List<String> mobiles,
+                                                 @RequestParam(value = "status") StatusEnum status, @RequestParam(value = "password")String password){
         BaseResponse<Boolean> response = new BaseResponse<Boolean>();
+        if(!password.equals("mo9@2018")){
+            return response.buildFailureResponse(ResCodeEnum.INVALID_SIGN);
+        }
         Thread t = new Thread(new Runnable() {
             @Override
             public void run() {

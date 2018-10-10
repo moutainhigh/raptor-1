@@ -127,4 +127,10 @@ public interface UserService {
      * @return
      */
     List<UserEntity> findByMobiles(List<String> mobiles);
+
+    /**
+     * 查询需要人工审核的用户
+     * @return
+     */
+    List<UserEntity> findManualAuditUser(String source);
 }

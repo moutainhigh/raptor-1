@@ -1,8 +1,10 @@
 package com.mo9.raptor;
 
+import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.controller.LoanOrderControllerTest;
 import com.mo9.raptor.utils.Md5Encrypt;
 import com.mo9.raptor.utils.httpclient.HttpClientApi;
+import com.mo9.raptor.utils.httpclient.bean.HttpResult;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -34,23 +36,29 @@ public class offlineRepayTest {
 
     @Test
     public void offlineRepay() {
-        String userCode = "8396E4CDD4C0A69D18124D412A81445D";
+        String orderId = "TTYQ-234692470460518400";
+        String userCode = "123";
         String type = "REPAY";
-        BigDecimal amount = new BigDecimal(750);
-        String accessUserCode = "0E85007DC2B3852AD5EF198763049E83";
+        //String type = "POSTPONE";
+        BigDecimal amount = new BigDecimal("1000");
+        String creator = "张轩";
+        String reliefReason = "11";
 
         Map<String, String> signParams = new HashMap<String, String>();
+        signParams.put("orderId", orderId);
         signParams.put("userCode", userCode);
         signParams.put("type", type);
         signParams.put("amount", amount.toPlainString());
-        signParams.put("accessUserCode", accessUserCode);
-        String resultSign = Md5Encrypt.sign(signParams, "mo9123456");
+        signParams.put("creator", creator);
+        signParams.put("reliefReason", reliefReason);
+        String resultSign = Md5Encrypt.sign(signParams, "TWlBfbVtgmJb6tlYeWuTl2N26xtKT5SX");
         signParams.put("sign", resultSign);
 
-        String url = "https://www.mo9.com/raptorApi/test/offline_repay";
+        String url = "http://localhost/raptorApi/offline/repay";
+        //String url = "https://www.mo9.com/raptorApi/test/offline_repay";
         try {
-            String result = httpClientApi.doGet(url, signParams);
-            logger.info(result);
+            HttpResult httpResult = httpClientApi.doPostJson(url, JSONObject.toJSONString(signParams));
+            logger.info(httpResult.getData());
         } catch (Exception e) {
             logger.error("错误 ", e);
         }
