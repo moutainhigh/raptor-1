@@ -115,14 +115,19 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
             return new AuditResponseEvent(userCode, false, "运营商报告状态不正常");
         }
 
-        JSONObject jsonObject = JSON.parseObject(reportJson);
+        JSONObject jsonObject = JSON.parseObject(reportJson).getJSONObject("data");
 
-        JSONArray mergencyContactArray = jsonObject.getJSONObject("data").getJSONArray("mergency_contact");
+        JSONArray mergencyContactArray = jsonObject.getJSONArray("mergency_contact");
 
         for (int i = 0; i < mergencyContactArray.size(); i++) {
             JSONObject mergencyContract = mergencyContactArray.getJSONObject(i);
 
-            Integer callTimes = mergencyContract.getInteger("call_times");
+            String callTimesStr = mergencyContract.getString("call_times");
+            logger.info("callTimesStr: " + callTimesStr);
+            
+            Integer callTimes = Integer.parseInt(callTimesStr);
+            
+            logger.info("callTimes" + callTimes);
             
             if (callTimes >= CALL_MERGENCY_TIMES){
                 return new AuditResponseEvent(userCode, true, "");
