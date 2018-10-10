@@ -65,6 +65,7 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
     /**
      * 查询没有通话记录报告的用户
+     *
      * @return
      */
     @Query(value = "select t from UserEntity t where t.status='AUDITING' and t.receiveCallHistory = 0 and t.callHistory=1 and t.bankCardSet=1 and t.certifyInfo=1 and t.mobileContacts=1 and t.deleted = 0")
@@ -77,5 +78,11 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
                     " FROM_UNIXTIME(create_time/1000,'%Y-%m-%d ') >= FROM_UNIXTIME(?2/1000,'%Y-%m-%d ') and  FROM_UNIXTIME(create_time/1000,'%Y-%m-%d ')  <= " +
                     " FROM_UNIXTIME(?3/1000,'%Y-%m-%d ') GROUP BY FROM_UNIXTIME(create_time/1000,'%Y-%m-%d '),sub_source) t",
             nativeQuery = true)
-    Page<Map<String,Object>> findRegisterUserNumber(String source,Long startTime, Long endTime, Pageable pageable);
+    Page<Map<String, Object>> findRegisterUserNumber(String source, Long startTime, Long endTime, Pageable pageable);
+
+    @Query(value = "SELECT  count(*)>0 from t_raptor_user where `status` = 'BLACK' and (mobile = ?1 or id_card = ?1)", nativeQuery = true)
+    Integer inBlackList(String value);
+
+    @Query(value = "SELECT  * from t_raptor_user where mobile in ?1 and deleted = 0", nativeQuery = true)
+    List<UserEntity> findByMobiles(List<String> mobiles);
 }

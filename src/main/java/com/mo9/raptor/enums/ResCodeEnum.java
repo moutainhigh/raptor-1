@@ -68,6 +68,7 @@ public enum ResCodeEnum {
     PRODUCT_ERROR(11156003, "产品配置表错误", "系统繁忙，请稍后重试"),
     NO_LEND_INFO(11156004, "放款银行信息不存在", "放款失败"),
     LOAN_ORDER_NOT_EXISTED(11156005, "借款订单不存在", "借款订单不存在"),
+    NO_LEND(11156006, "暂不支持借款", "暂不支持借款"),
 
     /**
      * xx=70,文件

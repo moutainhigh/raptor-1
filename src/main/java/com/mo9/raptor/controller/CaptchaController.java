@@ -8,6 +8,7 @@ import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.redis.RedisParams;
 import com.mo9.raptor.redis.RedisServiceApi;
 import com.mo9.raptor.service.CaptchaService;
+import com.mo9.raptor.service.SpreadChannelService;
 import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.ValidateGraphicCode;
 import com.mo9.raptor.utils.log.Log;
@@ -50,6 +51,9 @@ public class CaptchaController {
     @Resource
     private CaptchaService captchaService;
 
+    @Resource
+    private SpreadChannelService spreadChannelService;
+
 
     /**
      * 发送登录短信验证码
@@ -64,6 +68,7 @@ public class CaptchaController {
         BaseResponse<Boolean> response = new BaseResponse<>();
         String mobile = sendSmsVerificationCodeReq.getMobile();
         CaptchaBusinessEnum reason = CaptchaBusinessEnum.LOGIN;
+        String source = sendSmsVerificationCodeReq.getSource();
         try{
             /**   逻辑修缮 by James 18/09/16    */
             //这里就要判断用户是否再名单之列
@@ -73,6 +78,16 @@ public class CaptchaController {
                 boolean b = userService.isaAllowNewUser();
                 if(!b){
                     logger.warn("发送登录验证码-------->>>>>>>>非白名单用户[{}]", mobile);
+                    return response.buildFailureResponse(ResCodeEnum.NOT_WHITE_LIST_USER);
+                }
+                if(StringUtils.isBlank(source)){
+                    logger.warn("发送登录验证码-------->>>>>>>>来源为空");
+                    return response.buildFailureResponse(ResCodeEnum.NOT_WHITE_LIST_USER);
+                }
+                //判断source是否支持
+                boolean b1 = spreadChannelService.checkSourceIsAllow(source);
+                if(!b1){
+                    logger.warn("发送登录验证码-------->>>>>>>>来源不支持source={}", source);
                     return response.buildFailureResponse(ResCodeEnum.NOT_WHITE_LIST_USER);
                 }
             }

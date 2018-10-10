@@ -19,10 +19,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author wtwei .
@@ -92,7 +89,7 @@ public class RiskCallLogTest extends BaseTest{
             riskTelBillList.add(callLog);
         }
         
-        riskTelBillService.batchSave(riskTelBillList);
+        riskTelBillService.insertIfNotExists(riskTelBillList);
     }
     
     @Test
@@ -106,6 +103,19 @@ public class RiskCallLogTest extends BaseTest{
         riskTelInfoRepository.saveAndFlush(telInfo);
         
         
+    }
+    
+    @Test
+    public void findNoReportRecords(){
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.DATE, -30);
+        Set<String> noReportRecords = riskTelInfoService.findNoReportMobiles(calendar.getTime());
+
+        System.out.println(noReportRecords.size());
+        for (String mobile : noReportRecords) {
+            System.out.println(mobile);
+        }
+
     }
 
 

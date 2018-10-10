@@ -233,4 +233,9 @@ public class UserServiceImpl implements UserService {
         BlackEvent event = new BlackEvent(userEntity.getUserCode(), desc);
         userEventLauncher.launch(event);
     }
+
+    @Override
+    public List<UserEntity> findByMobiles(List<String> mobiles) {
+        return userRepository.findByMobiles(mobiles);
+    }
 }
