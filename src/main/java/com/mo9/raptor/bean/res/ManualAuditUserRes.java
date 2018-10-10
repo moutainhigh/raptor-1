@@ -21,6 +21,8 @@ public class ManualAuditUserRes {
 
     private String status;
 
+    private String userCode;
+
     public String getMobile() {
         return mobile;
     }
@@ -83,5 +85,13 @@ public class ManualAuditUserRes {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getUserCode() {
+        return userCode;
+    }
+
+    public void setUserCode(String userCode) {
+        this.userCode = userCode;
     }
 }
