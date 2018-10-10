@@ -222,6 +222,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
                     return new AuditResponseEvent(userCode, "评分过低[" + score + "]", AuditResultEnum.MANUAL);
                 }
             } catch (Exception e) {
+                logger.error(userCode +"["+ user.getMobile() + "]评分出错", e);
                 riskScoreService.create(userCode, user.getMobile(), -1d);
                 return new AuditResponseEvent(userCode, "评分出错", AuditResultEnum.MANUAL);
             }
