@@ -44,7 +44,7 @@
   </thead>
   <tbody>
   <tr th:if="${#lists.size(resultList)}==0">
-    <td th:text="暂无记录" colspan="9"></td>
+    <td th:text="暂无记录" colspan="8"></td>
   </tr>
   <tr th:each="entries,stat:${resultList}" th:style="'background-color:'+@{${stat.odd}?'#F2F2F2'}">
     <td th:text="${stat.count}" width=100px></td>
