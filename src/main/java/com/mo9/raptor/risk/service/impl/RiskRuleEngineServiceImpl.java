@@ -247,7 +247,7 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
 
         if (cuishouCallMaxTimes < DIFFERENT_LOAN_COMPANY_CALL_TIMES
                 && yisicuishouCallMaxTimes < DIFFERENT_LOAN_COMPANY_CALL_TIMES){
-            new AuditResponseEvent(userCode, true, "");
+            return new AuditResponseEvent(userCode, true, "");
         }
         
         return new AuditResponseEvent(userCode, false, "被不同贷款机构呼叫次数大于 " + DIFFERENT_LOAN_COMPANY_CALL_TIMES);
