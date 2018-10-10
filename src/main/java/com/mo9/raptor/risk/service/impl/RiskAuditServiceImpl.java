@@ -131,7 +131,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
 
     private static final String WHITE_LIST = "WHITE";
 
-    private static final String ORIGN_CALL = "主叫";
+    private static final String ORIGN_CALL = "%主叫%";
 
 
     private Double score(String userCode, String mobile) throws Exception {
@@ -222,7 +222,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
                     return new AuditResponseEvent(userCode, "评分过低[" + score + "]", AuditResultEnum.MANUAL);
                 }
             } catch (Exception e) {
-                logger.error(userCode +"["+ user.getMobile() + "]评分出错", e);
+                logger.error(userCode + "[" + user.getMobile() + "]评分出错", e);
                 riskScoreService.create(userCode, user.getMobile(), -1d);
                 return new AuditResponseEvent(userCode, "评分出错", AuditResultEnum.MANUAL);
             }
@@ -337,7 +337,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
             List<TRiskCallLog> allCallLog = new ArrayList<>();
             Long lastId = 0L;
             while (true) {
-                List<TRiskCallLog> list = riskCallLogRepository.getCallLogByMobileAfterTimestamp(user.getMobile(), (currentTimeMillis - days180ts) / 1000, ORIGN_CALL, lastId);
+                List<TRiskCallLog> list = riskCallLogRepository.getCallLogByMobileAfterTimestamp(user.getMobile(), (currentTimeMillis - days180ts) / 1000, lastId);
                 allCallLog.addAll(list);
                 if (list.size() == 0) {
                     break;
