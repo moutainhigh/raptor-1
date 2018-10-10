@@ -24,21 +24,22 @@ public class LoanOrderControllerTest {
     @Test
     public void add() {
         try {
-            String address = "http://localhost/raptorApi";
+            String address = "http://riskclone.mo9.com/raptorApi";
+//            String address = "http://localhost/raptorApi";
             String orderRear = "/order/add";
             String orderUrl = address + orderRear;
             HttpHeaders headers = new HttpHeaders();
-            headers.add("Account-Code", "123");
+            headers.add("Account-Code", "596348FB29F87DEBF950EF0AF1755126");
             headers.add("client-id", "503");
             headers.add("content-type", "application/json; charset=UTF-8");
+            headers.add("access-token", "2e3ee5f2d61841339efc901935825b06");
 
             Map<String, String> params = new HashMap<String, String>();
             params.put("capital", "1000");
             params.put("period", "7");
             HttpEntity<String> requestEntity = new HttpEntity<String>(JSONObject.toJSONString(params), headers);
-            ResponseEntity<BaseResponse> result = new RestTemplate().exchange(orderUrl, HttpMethod.POST, requestEntity, BaseResponse.class);
-            BaseResponse body = result.getBody();
-            logger.info("返回结果:"+ JSONObject.toJSONString(body, SerializerFeature.PrettyFormat));
+            ResponseEntity<String> result = new RestTemplate().exchange(orderUrl, HttpMethod.POST, requestEntity, String.class);
+            logger.info("返回结果:"+ JSONObject.toJSONString(result.getBody(), SerializerFeature.PrettyFormat));
         } catch (Exception e) {
             logger.error("错误", e);
         }
