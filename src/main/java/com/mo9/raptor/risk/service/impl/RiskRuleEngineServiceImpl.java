@@ -188,7 +188,7 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
 
             String mergencyTel = mergencyContract.getString("format_tel");
 
-            if(riskThirdBlackListRepository.isInBlackList(mergencyTel) > 0 || userRepository.inBlackList(mobile) > 0){
+            if(riskThirdBlackListRepository.isInBlackList(mergencyTel) > 0 || userRepository.inBlackList(mergencyTel) > 0){
                 return new AuditResponseEvent(userCode, false, "紧急联系人电话命中江湖救急黑名单, mobile: " + mergencyTel );
             }
 
