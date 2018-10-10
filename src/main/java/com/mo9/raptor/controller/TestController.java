@@ -218,4 +218,27 @@ public class TestController {
         response.setMessage("ok");
         return response;
     }
+
+    @RequestMapping("/push_lent_mq")
+    public BaseResponse<JSONObject> pushLentMq(
+            @RequestParam("sign") String sign,
+            @RequestParam("orderId") String orderId,
+            HttpServletRequest request){
+        BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
+        if (!"28B21099FBDD85467CC01E7B80146FF0".equals(sign)) {
+            response.setMessage("验签错误");
+            return response;
+        }
+        LoanOrderEntity loanOrderEntity = loanOrderService.getByOrderId(orderId);
+        if (loanOrderEntity == null || !StatusEnum.LENT.name().equals(loanOrderEntity.getStatus())) {
+            response.setMessage("无订单");
+            return response;
+        }
+
+        loanMo9mqListener.notifyMisLend(orderId);
+
+        response.setMessage("ok");
+        return response;
+    }
+
 }
