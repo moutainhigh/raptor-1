@@ -348,7 +348,11 @@ public class LoanMo9mqListener implements IMqMsgListener{
 		// TODO: 发送消息给贷后
         if ("1".equals(status)) {
 			try {
-				notifyMisLend(orderId);
+				LoanOrderEntity loanOrderEntity = loanOrderService.getByOrderId(orderId);
+				if (StatusEnum.LENT.name().equals(loanOrderEntity.getStatus())) {
+					// 放款成功才想贷后发信息
+					notifyMisLend(orderId);
+				}
 			} catch (Exception e) {
 				logger.error("向贷后发送放款信息失败  ", e);
 			}
