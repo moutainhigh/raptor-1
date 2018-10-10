@@ -41,7 +41,6 @@
   <th>渠道</th>
   <th>子渠道</th>
   <th>注册时间</th>
-  <th>认证流程描述</th>
   </thead>
   <tbody>
   <tr th:if="${#lists.size(resultList)}==0">
@@ -56,7 +55,6 @@
     <td th:text="${entries['source']}" width=100px></td>
     <td th:text="${entries['subSource']}" width=100px></td>
     <td th:text="${entries['createTime']}" width=180px></td>
-    <td th:text="${entries['description']}" width=300px></td>
   </tr>
   </tbody>
 </table>
