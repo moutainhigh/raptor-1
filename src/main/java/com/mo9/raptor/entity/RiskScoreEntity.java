@@ -9,7 +9,7 @@ public class RiskScoreEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "userCode")
+    @Column(name = "user_code")
     private String userCode;
 
 
