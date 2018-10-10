@@ -127,6 +127,11 @@ public class RiskAuditServiceImpl implements RiskAuditService {
 
     private static final String ORIGN_CALL = "主叫";
 
+
+//    private Boolean score(String userCode) {
+//
+//    }
+
     /**
      * 审核方法
      *
@@ -161,9 +166,9 @@ public class RiskAuditServiceImpl implements RiskAuditService {
 //        taskList.add(new AuditTask((u) -> contactsRule(u), "ContactsRule", true));
         taskList.add(new AuditTask((u) -> callLogRule(u), "CallLogRule", false));
         taskList.add(new AuditTask((u) -> threeElementCheck(u), "ThreeElementCheck", false));
-        taskList.add(new AuditTask((u) -> antiHackRule(u), "AntiHackRule", false));
-        taskList.add(new AuditTask((u) -> livePicCompareRule(u), "LivePicCompareRule", false));
-        taskList.add(new AuditTask((u) -> idPicCompareRule(u), "IdPicCompareRule", false));
+//        taskList.add(new AuditTask((u) -> antiHackRule(u), "AntiHackRule", false));
+//        taskList.add(new AuditTask((u) -> livePicCompareRule(u), "LivePicCompareRule", false));
+//        taskList.add(new AuditTask((u) -> idPicCompareRule(u), "IdPicCompareRule", false));
 
         boolean isWhiteListUser = WHITE_LIST.equals(user.getSource());
 
