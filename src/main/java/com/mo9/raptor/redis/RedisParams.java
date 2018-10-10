@@ -130,6 +130,11 @@ public class RedisParams {
      */
     public static final String ALLOW_NEW_USER_REGISTER_KEY = "allow_new_user_register_key_";
 
+    /**
+     * 下单限制的key
+     */
+    public static final String ADD_LOAN_ORDER_KEY = "add_loan_order_key";
+
     public static String getActionToken(String actionToken){
         return ACTION_TOKEN_LONG + actionToken;
     }
