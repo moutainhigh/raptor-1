@@ -115,14 +115,19 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
             return new AuditResponseEvent(userCode, false, "运营商报告状态不正常");
         }
 
-        JSONObject jsonObject = JSON.parseObject(reportJson);
+        JSONObject jsonObject = JSON.parseObject(reportJson).getJSONObject("data");
 
-        JSONArray mergencyContactArray = jsonObject.getJSONObject("data").getJSONArray("mergency_contact");
+        JSONArray mergencyContactArray = jsonObject.getJSONArray("mergency_contact");
 
         for (int i = 0; i < mergencyContactArray.size(); i++) {
             JSONObject mergencyContract = mergencyContactArray.getJSONObject(i);
 
-            Integer callTimes = mergencyContract.getInteger("call_times");
+            String callTimesStr = mergencyContract.getString("call_times");
+            logger.info("callTimesStr: " + callTimesStr);
+            
+            Integer callTimes = Integer.parseInt(callTimesStr);
+            
+            logger.info("callTimes" + callTimes);
             
             if (callTimes >= CALL_MERGENCY_TIMES){
                 return new AuditResponseEvent(userCode, true, "");
@@ -275,8 +280,14 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
     
     private boolean checkReportStatus(String reportJson){
         JSONObject jsonObject = JSON.parseObject(reportJson);
-        Integer status = jsonObject.getInteger("status");
-        
+        Integer status = null;
+        try {
+            status = jsonObject.getInteger("status");
+        } catch (Exception e) {
+            logger.error("解析运营商报告状态出错", e);
+            return false;
+        }
+
         if (status == 0){
             return true;
         }
