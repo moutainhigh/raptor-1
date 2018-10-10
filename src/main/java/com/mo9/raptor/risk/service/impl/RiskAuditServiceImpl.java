@@ -16,10 +16,7 @@ import com.mo9.raptor.risk.service.RiskAuditService;
 import com.mo9.raptor.risk.service.RiskRuleEngineService;
 import com.mo9.raptor.risk.service.RiskWordService;
 import com.mo9.raptor.riskdb.repo.RiskThirdBlackListRepository;
-import com.mo9.raptor.service.RuleLogService;
-import com.mo9.raptor.service.UserCertifyInfoService;
-import com.mo9.raptor.service.UserContactsService;
-import com.mo9.raptor.service.UserService;
+import com.mo9.raptor.service.*;
 import com.mo9.raptor.utils.IdCardUtils;
 import com.mo9.raptor.utils.MobileUtil;
 import okhttp3.OkHttpClient;
@@ -91,6 +88,12 @@ public class RiskAuditServiceImpl implements RiskAuditService {
     @Value("${risk.calllog.limit}")
     private int callLogLimit;
 
+    @Value("${risk.score.url}")
+    private String scoreUrl;
+
+    @Value("${risk.score}")
+    private Double riskScoreLimit;
+
     @Resource
     private UserContactsService userContactsService;
 
@@ -123,14 +126,24 @@ public class RiskAuditServiceImpl implements RiskAuditService {
     @Resource
     private RiskRuleEngineService riskRuleEngineService;
 
+    @Resource
+    private RiskScoreService riskScoreService;
+
     private static final String WHITE_LIST = "WHITE";
 
     private static final String ORIGN_CALL = "主叫";
 
 
-//    private Boolean score(String userCode) {
-//
-//    }
+    private Double score(String userCode, String mobile) throws Exception {
+        OkHttpClient okHttpClient = new OkHttpClient();
+        String jsonResult = okHttpClient.newCall(new Request.Builder().url(scoreUrl + "?mobile=" + mobile).build()).execute().body().string();
+        JSONObject jsonObject = JSONObject.parseObject(jsonResult);
+        if (jsonObject.getInteger("status") != 1) {
+            return null;
+        } else {
+            return jsonObject.getDouble("score");
+        }
+    }
 
     /**
      * 审核方法
@@ -166,9 +179,9 @@ public class RiskAuditServiceImpl implements RiskAuditService {
 //        taskList.add(new AuditTask((u) -> contactsRule(u), "ContactsRule", true));
         taskList.add(new AuditTask((u) -> callLogRule(u), "CallLogRule", false));
         taskList.add(new AuditTask((u) -> threeElementCheck(u), "ThreeElementCheck", false));
-//        taskList.add(new AuditTask((u) -> antiHackRule(u), "AntiHackRule", false));
-//        taskList.add(new AuditTask((u) -> livePicCompareRule(u), "LivePicCompareRule", false));
-//        taskList.add(new AuditTask((u) -> idPicCompareRule(u), "IdPicCompareRule", false));
+        taskList.add(new AuditTask((u) -> antiHackRule(u), "AntiHackRule", false));
+        taskList.add(new AuditTask((u) -> livePicCompareRule(u), "LivePicCompareRule", false));
+        taskList.add(new AuditTask((u) -> idPicCompareRule(u), "IdPicCompareRule", false));
 
         boolean isWhiteListUser = WHITE_LIST.equals(user.getSource());
 
@@ -193,20 +206,26 @@ public class RiskAuditServiceImpl implements RiskAuditService {
             finalResult = res;
         }
 
-        AuditResponseEvent convert = new AuditResponseEvent(userCode, finalResult.getExplanation(), finalResult.isPass() ? (isWhiteListUser ? AuditResultEnum.PASS : AuditResultEnum.MANUAL) : AuditResultEnum.REJECTED);
-        return convert;
-
-        /*if (finalResult == null) {
-            logger.info(userCode + "开始运行规则[MergencyInJHJJBlackListRule]");
-            res = riskRuleEngineService.mergencyInJHJJBlackListRule(userCode);
-            ruleLogService.create(userCode, "MergencyInJHJJBlackListRule", res.isPass(), true, res.getExplanation());
-            if (!res.isPass()) {
-                finalResult = res;
-            }
+        if (!finalResult.isPass()) {
+            return new AuditResponseEvent(userCode, finalResult.getExplanation(), AuditResultEnum.REJECTED);
         } else {
-            ruleLogService.create(userCode, "MergencyInJHJJBlackListRule", null, false, "");
+            try {
+                Double score = score(userCode, user.getMobile());
+                if (score == null) {
+                    riskScoreService.create(userCode, user.getMobile(), null);
+                    return new AuditResponseEvent(userCode, "评分出错", AuditResultEnum.MANUAL);
+                }
+                riskScoreService.create(userCode, user.getMobile(), score);
+                if (score >= riskScoreLimit) {
+                    return new AuditResponseEvent(userCode, "", AuditResultEnum.PASS);
+                } else {
+                    return new AuditResponseEvent(userCode, "评分过低[" + score + "]", AuditResultEnum.MANUAL);
+                }
+            } catch (Exception e) {
+                riskScoreService.create(userCode, user.getMobile(), -1d);
+                return new AuditResponseEvent(userCode, "评分出错", AuditResultEnum.MANUAL);
+            }
         }
-        */
     }
 
     private static final int HTTP_OK = 200;
@@ -234,7 +253,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         }
         StringBuilder stringBuilder = new StringBuilder();
         for (int i = 0; i < jsonArray.size(); i++) {
-            String name = MobileUtil.processMobile(jsonArray.getJSONObject(i).getString("contact_name"));
+            String name = jsonArray.getJSONObject(i).getString("contact_name");
             stringBuilder.append(name + "|");
         }
         int hitCount = riskWordService.filter(stringBuilder.toString());
