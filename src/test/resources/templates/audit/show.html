@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.thymeleaf.org" xmlns:th="http://www.w3.org/1999/xhtml">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://ttyq.mo9.com/static/js/jquery-3.1.1.min.js"></script>
+  <style type="text/css">
+    table {
+      border: 1px solid black;
+      text-align: center;
+      border-collapse: collapse;
+    }
+    table thead th {
+      border: 1px solid black;
+    }
+    table tbody td {
+      border: 1px solid black;
+    }
+    body {
+      width: 100%;
+      height:100%;
+      font-family: 'Open Sans', sans-serif;
+      background: #3e7492;
+      filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#3E1D6D', endColorstr='#3e7492',GradientType=1 );
+    }
+  </style>
+</head>
+
+<body>
+<div align="right"><a href="./login">退出登录 </a></div>
+<div align="center">
+  <h2>新用户统计表</h2>
+<table cellpadding="0" cellspacing="0" style="margin-top: 20px;"  >
+  <thead>
+  <th>序号</th>
+  <th>姓名</th>
+  <th>手机号</th>
+  <th>身份证号</th>
+  <th>当前认证状态</th>
+  <th>渠道</th>
+  <th>子渠道</th>
+  <th>注册时间</th>
+  <th>认证流程描述</th>
+  </thead>
+  <tbody>
+  <tr th:if="${#lists.size(resultList)}==0">
+    <td th:text="暂无记录" colspan="9"></td>
+  </tr>
+  <tr th:each="entries,stat:${resultList}" th:style="'background-color:'+@{${stat.odd}?'#F2F2F2'}">
+    <td th:text="${stat.count}" width=100px></td>
+    <td th:text="${entries['realName']}" width=100px></td>
+    <td th:text="${entries['mobile']}" width=100px></td>
+    <td th:text="${entries['idCard']}" width=100px></td>
+    <td th:text="${entries['status']}" width=100px></td>
+    <td th:text="${entries['source']}" width=100px></td>
+    <td th:text="${entries['subSource']}" width=100px></td>
+    <td th:text="${entries['createTime']}" width=180px></td>
+    <td th:text="${entries['description']}" width=300px></td>
+  </tr>
+  </tbody>
+</table>
+</div>
+</body>
+
+</html>
