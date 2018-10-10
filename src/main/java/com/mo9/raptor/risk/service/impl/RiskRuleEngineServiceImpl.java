@@ -8,6 +8,7 @@ import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.engine.service.ILoanOrderService;
 import com.mo9.raptor.engine.state.event.impl.AuditResponseEvent;
 import com.mo9.raptor.entity.UserEntity;
+import com.mo9.raptor.repository.UserRepository;
 import com.mo9.raptor.risk.entity.TRiskTelInfo;
 import com.mo9.raptor.risk.service.RiskRuleEngineService;
 import com.mo9.raptor.risk.service.RiskTelInfoService;
@@ -43,6 +44,9 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
     
     private static final int DIFFERENT_LOAN_COMPANY_CALL_TIMES = 20;
 
+
+    @Resource
+    private UserRepository userRepository;
 
     @Value("${raptor.sockpuppet}")
     private String sockpuppet;
@@ -184,7 +188,7 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
 
             String mergencyTel = mergencyContract.getString("format_tel");
 
-            if(riskThirdBlackListRepository.isInBlackList(mergencyTel) > 0){
+            if(riskThirdBlackListRepository.isInBlackList(mergencyTel) > 0 || userRepository.inBlackList(mergencyTel) > 0){
                 return new AuditResponseEvent(userCode, false, "紧急联系人电话命中江湖救急黑名单, mobile: " + mergencyTel );
             }
 
