@@ -135,10 +135,21 @@ body .wrapper .term-part ul li.term-item .logo {
   background-image: url(../images/payeco.png);
 }
 
+body .wrapper .term-part ul li.term-item .yibao2018pay {
+  width: 10.66667vw;
+  height: 10.66667vw;
+  margin: 0 3.73333vw;
+  background-size:100% auto;
+  background-position: 50% 50%;
+  background-repeat: no-repeat;
+  background-image: url(../images/yibao2018pay.png);
+}
+
 body .wrapper .term-part ul li.term-item .text {
   font-size: 4.26667vw;
   color: #333333;
   padding-right: 4.26667vw;
+  width: 21.33333vw;
 }
 
 body .wrapper .term-part ul li.term-item .bank-card {

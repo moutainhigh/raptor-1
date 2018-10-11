@@ -23,7 +23,7 @@ public class LoanFlowTest {
 
     public static void main(String[] args) {
 
-        String address = "http://localhost:80/raptorApi";
+        String address = "http://gqwu.local.mo9.com:80/raptorApi";
         HttpHeaders headers = new HttpHeaders();
         headers.add("Account-Code", "AA20A480E526D644D13D9AC5593D268E");
         headers.add("client-id", "503");
