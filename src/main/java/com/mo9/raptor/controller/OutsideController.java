@@ -358,7 +358,7 @@ public class OutsideController {
     @GetMapping("/test")
     @ResponseBody
     public String test(){
-        return "1";
+        return "1111";
     }
 
 }
