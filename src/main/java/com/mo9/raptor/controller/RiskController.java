@@ -1,9 +1,12 @@
 package com.mo9.raptor.controller;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.aliyun.oss.OSSClient;
 import com.mo9.raptor.bean.req.risk.CallLogReq;
 import com.mo9.raptor.entity.DianHuaBangApiLogEntity;
+import com.mo9.raptor.entity.RiskMergencyContact;
+import com.mo9.raptor.entity.RiskTelYellowPage;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.risk.entity.TRiskCallLog;
 import com.mo9.raptor.risk.entity.TRiskTelBill;
@@ -12,16 +15,21 @@ import com.mo9.raptor.risk.service.RiskCallLogService;
 import com.mo9.raptor.risk.service.RiskTelBillService;
 import com.mo9.raptor.risk.service.RiskTelInfoService;
 import com.mo9.raptor.service.DianHuaBangApiLogService;
+import com.mo9.raptor.service.RiskMergencyContactService;
+import com.mo9.raptor.service.RiskTelYellowPageService;
 import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.CallLogUtils;
 import com.mo9.raptor.utils.httpclient.HttpClientApi;
 import com.mo9.raptor.utils.log.Log;
 import com.mo9.raptor.utils.oss.OSSProperties;
 import okhttp3.OkHttpClient;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.annotation.ReadOnlyProperty;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,6 +40,11 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.*;
 import java.util.Calendar;
 import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author wtwei .
@@ -42,6 +55,14 @@ import java.util.List;
 @RestController
 @RequestMapping("/risk")
 public class RiskController {
+    
+    private ThreadPoolExecutor poolExecutor = new ThreadPoolExecutor(
+            5,
+            50,
+            10,
+            TimeUnit.SECONDS,
+            new ArrayBlockingQueue<Runnable>(200),
+            new ThreadPoolExecutor.CallerRunsPolicy());
 
     private static Logger logger = Log.get();
     @Resource
@@ -58,6 +79,12 @@ public class RiskController {
     
     @Resource
     private HttpClientApi httpClientApi;
+    
+    @Resource
+    private RiskMergencyContactService riskMergencyContactService;
+    
+    @Resource
+    private RiskTelYellowPageService riskTelYellowPageService;
     
     @Value("${raptor.sockpuppet}")
     private String sockpuppet;
@@ -89,7 +116,7 @@ public class RiskController {
                 ", uid: " + callLogReq.getData().getUid() + 
                 ", sid: " + callLogReq.getData().getSid());
         
-        new Thread(new Runnable() {
+        poolExecutor.execute(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -115,7 +142,7 @@ public class RiskController {
                     uploadFile2Oss(callLogReq.toString(),  fileName);
                 }
             }
-        }).start();
+        });
         
         
         return "ok";
@@ -145,6 +172,12 @@ public class RiskController {
                     riskTelInfo.setReportReceived(true);
                     riskTelInfoService.update(riskTelInfo);
                     logger.info("更新用户通话记录历史信息成功，tel: " + tel + ", uid: " + uid);
+                    
+                    try {
+                        saveYellowPageAndContact(report);
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -273,5 +306,106 @@ public class RiskController {
         entity.setPlatform(sockpuppet);
         
         return entity;
+    }
+
+    //emoji表情
+    final Pattern pattern = Pattern.compile("(?:[\uD83C\uDF00-\uD83D\uDDFF]|[\uD83E\uDD00-\uD83E\uDDFF]|[\uD83D\uDE00-\uD83D\uDE4F]|[\uD83D\uDE80-\uD83D\uDEFF]|[\u2600-\u26FF]\uFE0F?|[\u2700-\u27BF]\uFE0F?|\u24C2\uFE0F?|[\uD83C\uDDE6-\uD83C\uDDFF]{1,2}|[\uD83C\uDD70\uD83C\uDD71\uD83C\uDD7E\uD83C\uDD7F\uD83C\uDD8E\uD83C\uDD91-\uD83C\uDD9A]\uFE0F?|[\u0023\u002A\u0030-\u0039]\uFE0F?\u20E3|[\u2194-\u2199\u21A9-\u21AA]\uFE0F?|[\u2B05-\u2B07\u2B1B\u2B1C\u2B50\u2B55]\uFE0F?|[\u2934\u2935]\uFE0F?|[\u3030\u303D]\uFE0F?|[\u3297\u3299]\uFE0F?|[\uD83C\uDE01\uD83C\uDE02\uD83C\uDE1A\uD83C\uDE2F\uD83C\uDE32-\uD83C\uDE3A\uD83C\uDE50\uD83C\uDE51]\uFE0F?|[\u203C\u2049]\uFE0F?|[\u25AA\u25AB\u25B6\u25C0\u25FB-\u25FE]\uFE0F?|[\u00A9\u00AE]\uFE0F?|[\u2122\u2139]\uFE0F?|\uD83C\uDC04\uFE0F?|\uD83C\uDCCF\uFE0F?|[\u231A\u231B\u2328\u23CF\u23E9-\u23F3\u23F8-\u23FA]\uFE0F?)");
+
+    /**
+     * 保存黄页和紧急联系人数据
+     * @param reportJson
+     */
+    public void saveYellowPageAndContact(String reportJson){
+
+        poolExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    JSONObject jsonObject = JSONObject.parseObject(reportJson).getJSONObject("data");
+                    String mobile = jsonObject.getJSONObject("tel_info").getString("tel");
+
+                    //保存紧急联系人
+                    JSONArray mergencyObjectArray = jsonObject.getJSONArray("mergency_contact");
+
+                    for (int i = 0; i < mergencyObjectArray.size(); i++) {
+                        JSONObject mergencyObject = mergencyObjectArray.getJSONObject(i);
+                        String contactName = mergencyObject.getString("contact_name");
+                        Matcher matcher = pattern.matcher(contactName);
+                        contactName = matcher.find() ? matcher.replaceAll("") : contactName;
+
+                        RiskMergencyContact mergencyContact = new RiskMergencyContact();
+                        mergencyContact.setTagsLabel(mergencyObject.getString("tags_label"));
+
+                        List tagsFinaList = mergencyObject.getJSONArray("tags_financial").toJavaList(String.class);
+
+                        mergencyContact.setTagsFinancial(list2Str(tagsFinaList));
+                        mergencyContact.setFanchaTelloc(mergencyObject.getString("fancha_telloc"));
+                        mergencyContact.setContractTel(mergencyObject.getString("format_tel"));
+                        mergencyContact.setMobile(mobile);
+                        mergencyContact.setCallTimes(mergencyObject.getString("call_times"));
+                        mergencyContact.setCallLength(mergencyObject.getString("call_length"));
+                        mergencyContact.setContactRelationship(mergencyObject.getString("contact_relationship"));
+                        mergencyContact.setContactName(contactName);
+                        mergencyContact.setContactPriority(mergencyObject.getInteger("contact_priority"));
+                        mergencyContact.setTagsYellowPage(mergencyObject.getString("tags_yellow_page"));
+                        riskMergencyContactService.saveOrUpdate(mergencyContact);
+                        logger.info("保存紧急联系人, mobile: {}, contactTel: {}", mobile, mergencyContact.getContractTel());
+                    }
+
+
+                    //保存黄页
+                    JSONArray callLogLabelsArray = jsonObject.getJSONArray("call_log_group_by_tel");
+                    JSONObject callLogJson = null;
+                    String tagsLabel = null;
+                    String tagsYellowPage = null;
+                    List tagsFinancial = null;
+                    String tagsFinancialStr = null;
+                    RiskTelYellowPage yellowPage;
+                    for (int i = 0; i < callLogLabelsArray.size(); i++) {
+                        callLogJson = callLogLabelsArray.getJSONObject(i);
+                        tagsLabel = callLogJson.getString("tags_label");
+                        tagsYellowPage = callLogJson.getString("tags_yellow_page");
+                        tagsFinancial = callLogJson.getJSONArray("tags_financial").toJavaList(String.class);
+
+                        if (StringUtils.isBlank(tagsLabel) && StringUtils.isBlank(tagsYellowPage) && CollectionUtils.isEmpty(tagsFinancial)){
+                            continue;
+                        }
+
+                        tagsFinancialStr = list2Str(tagsFinancial);
+
+                        yellowPage = new RiskTelYellowPage();
+
+                        yellowPage.setFormatTel(callLogJson.getString("format_tel"));
+                        yellowPage.setTagsLabel(tagsLabel);
+                        yellowPage.setTagsYellowPage(tagsYellowPage);
+                        yellowPage.setTagsFinancial(tagsFinancialStr);
+                        yellowPage.setTagsLabelTimes(callLogJson.getInteger("tags_label_times"));
+                        yellowPage.setFanchaTelloc(callLogJson.getString("fancha_telloc"));
+
+                        riskTelYellowPageService.saveOrUpdate(yellowPage);
+                    }
+
+
+                    logger.info("紧急联系人和黄页数据保存完成，mobile: {}", mobile);
+                }catch (Exception e){
+
+                    logger.error("保存紧急联系人和黄页数据失败, 本错误不影响正常的业务流程", e);
+                }
+            }
+        });
+    }
+    
+    private String list2Str(List list){
+        String str = null;
+        StringBuffer sb = new StringBuffer();
+        for (Object o : list) {
+            sb.append(o).append(",");
+        }
+
+        if (sb.length() > 0){
+            str = sb.substring(0, sb.length() - 1);
+        }
+        
+        return str;
     }
 }

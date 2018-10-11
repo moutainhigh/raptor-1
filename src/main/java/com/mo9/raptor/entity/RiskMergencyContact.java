@@ -1,5 +1,7 @@
 package com.mo9.raptor.entity;
 
+import org.springframework.stereotype.Component;
+
 import javax.persistence.*;
 
 /**
@@ -50,6 +52,9 @@ public class RiskMergencyContact {
     
     @Column(name = "call_times")
     private String callTimes;
+    
+    @Column(name = "tags_yellow_page")
+    private String tagsYellowPage;
 
     @Column(name = "update_time")
     private Long updateTime = System.currentTimeMillis();
@@ -152,6 +157,14 @@ public class RiskMergencyContact {
 
     public void setCallTimes(String callTimes) {
         this.callTimes = callTimes;
+    }
+
+    public String getTagsYellowPage() {
+        return tagsYellowPage;
+    }
+
+    public void setTagsYellowPage(String tagsYellowPage) {
+        this.tagsYellowPage = tagsYellowPage;
     }
 
     public Long getUpdateTime() {

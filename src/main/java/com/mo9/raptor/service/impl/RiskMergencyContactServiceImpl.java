@@ -19,7 +19,22 @@ public class RiskMergencyContactServiceImpl implements RiskMergencyContactServic
     private RiskMergencyContactRepository riskMergencyContactRepository;
     
     @Override
-    public RiskMergencyContact save(RiskMergencyContact entity) {
+    public RiskMergencyContact saveOrUpdate(RiskMergencyContact entity) {
+        RiskMergencyContact exists = riskMergencyContactRepository.findByMobileAndContractTel(entity.getMobile(), entity.getContractTel());
+        if (exists != null){
+            exists.setCallLength(entity.getCallLength());
+            exists.setCallTimes(entity.getCallTimes());
+            exists.setContactName(entity.getContactName());
+            exists.setContactPriority(entity.getContactPriority());
+            exists.setContactRelationship(entity.getContactRelationship());
+            exists.setFanchaTelloc(entity.getFanchaTelloc());
+            exists.setTagsFinancial(entity.getTagsFinancial());
+            exists.setTagsLabel(entity.getTagsLabel());
+            exists.setUpdateTime(System.currentTimeMillis());
+            
+            return riskMergencyContactRepository.save(exists);
+        }
+        
         return riskMergencyContactRepository.save(entity);
     }
 }
