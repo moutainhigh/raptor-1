@@ -305,10 +305,9 @@ public class OutsideController {
     }
 
 
-    @RequestMapping(value = "/manual_audit_user")
+    @GetMapping("/manual_audit_user")
     @ResponseBody
-    public BaseResponse<Boolean> manualAuditUser(@RequestParam(value = "mobiles") List<String> mobiles,
-                                                 @RequestParam(value = "status") StatusEnum status, @RequestParam(value = "password") String password,@RequestParam(required = false) String explanation) {
+    private BaseResponse<Boolean> manualAuditUser(@RequestParam("mobiles") List<String> mobiles, @RequestParam("status")StatusEnum status, @RequestParam("password")String password, @RequestParam(value = "explanation", required = false)String explanation) {
         BaseResponse<Boolean> response = new BaseResponse<Boolean>();
         if (!password.equals("mo9@2018")) {
             return response.buildFailureResponse(ResCodeEnum.INVALID_SIGN);
@@ -353,6 +352,11 @@ public class OutsideController {
             userEventLauncher.launch(event);
         }
 
+    }
+
+    @GetMapping("/test")
+    public String test(){
+        return "1";
     }
 
 }

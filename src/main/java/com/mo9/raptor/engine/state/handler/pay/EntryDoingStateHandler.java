@@ -4,10 +4,13 @@ import com.mo9.raptor.engine.entity.PayOrderEntity;
 import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.engine.exception.InvalidEventException;
 import com.mo9.raptor.engine.state.action.IActionExecutor;
+import com.mo9.raptor.engine.state.action.impl.pay.RepaySuccessNoticeAction;
 import com.mo9.raptor.engine.state.event.IEvent;
 import com.mo9.raptor.engine.state.event.impl.pay.EntryResponseEvent;
 import com.mo9.raptor.engine.state.handler.IStateHandler;
 import com.mo9.raptor.engine.state.handler.StateHandler;
+import com.mo9.raptor.utils.push.PushUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -17,6 +20,9 @@ import org.springframework.stereotype.Component;
 @StateHandler(name = StatusEnum.ENTRY_DOING)
 public class EntryDoingStateHandler implements IStateHandler<PayOrderEntity> {
 
+    @Autowired
+    private PushUtils pushUtils;
+
     @Override
     public PayOrderEntity handle(PayOrderEntity payOrder, IEvent event, IActionExecutor actionExecutor) throws InvalidEventException {
 
@@ -25,6 +31,8 @@ public class EntryDoingStateHandler implements IStateHandler<PayOrderEntity> {
             payOrder.setEntryNumber(payOrder.getEntryNumber().add(entryResponseEvent.getActualEntry()));
             if (payOrder.getEntryNumber().compareTo(payOrder.getPayNumber()) == 0) {
                 payOrder.setStatus(StatusEnum.ENTRY_DONE.name());
+                // 发送还款成功消息
+                actionExecutor.append(new RepaySuccessNoticeAction(payOrder.getOrderId(), payOrder.getOwnerId(), pushUtils));
             } else {
                 payOrder.setStatus(StatusEnum.ENTRY_FAILED.name());
             }
