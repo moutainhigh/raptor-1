@@ -122,7 +122,8 @@ public class OfflineController {
 
         // 计算还款信息
         if (type.equals("REPAY")) {
-            BigDecimal lentNumber = loanOrder.getLentNumber();
+            // TODO: 部分还款实现后, 这里要改, 最小应还款  LentNumber
+            BigDecimal lentNumber = loanOrder.getLentNumber().add(loanOrder.getChargeValue());
             if (amount.compareTo(lentNumber) < 0) {
                 // 还的钱比放款的要少
                 response.setCode(ResCodeEnum.EXCEPTION_CODE.getCode());
