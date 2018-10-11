@@ -352,4 +352,9 @@ public class OutsideController {
 
     }
 
+    @GetMapping("/test")
+    public String test(){
+        return "1";
+    }
+
 }
