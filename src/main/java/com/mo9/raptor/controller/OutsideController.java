@@ -319,8 +319,7 @@ public class OutsideController {
                 try {
                     manualUser(mobiles, status,explanation);
                 } catch (Exception e) {
-                    logger.error("批量人工修改用户状态出现异常");
-                    e.printStackTrace();
+                    logger.error("批量人工修改用户状态出现异常", e);
                 }
             }
         });
