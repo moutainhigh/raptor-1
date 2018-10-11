@@ -28,7 +28,6 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
-import org.thymeleaf.spring5.expression.Fields;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -133,7 +132,7 @@ public class CouponController {
                     effectiveCoupon.setCouponId(String.valueOf(idWorker.nextId()));
                     Long today = TimeUtils.extractDateTime(System.currentTimeMillis());
                     effectiveCoupon.setEffectiveDate(today);
-                    effectiveCoupon.setExpireDate(today + EngineStaticValue.DAY_MILLIS);
+                    effectiveCoupon.setExpireDate(today + EngineStaticValue.DAY_MILLIS * 365);
                     effectiveCoupon.setStatus(StatusEnum.BUNDLED.name());
                     effectiveCoupon.setCreator(req.getCreator());
                     effectiveCoupon.setReason(req.getReason());
