@@ -9,6 +9,8 @@ import com.mo9.raptor.engine.service.ILendOrderService;
 import com.mo9.raptor.engine.service.ILoanOrderService;
 import com.mo9.raptor.engine.state.event.impl.AuditLaunchEvent;
 import com.mo9.raptor.engine.state.launcher.IEventLauncher;
+import com.mo9.raptor.engine.utils.EngineStaticValue;
+import com.mo9.raptor.engine.utils.TimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -129,5 +131,12 @@ public class LoanOrderServiceImpl implements ILoanOrderService {
             status.add(statusEnum.name());
         }
         return loanOrderRepository.listByStatus(status);
+    }
+
+    @Override
+    public List<LoanOrderEntity> listShouldPayOrder() {
+        Long today = TimeUtils.extractDateTime(System.currentTimeMillis());
+        Long tomorrow = today + EngineStaticValue.DAY_MILLIS;
+        return loanOrderRepository.listShouldPayOrder(today, tomorrow);
     }
 }

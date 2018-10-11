@@ -64,6 +64,9 @@ public class GatewayUtils {
     @Resource
     private CardBinInfoService cardBinInfoService;
 
+    @Value("${this.product.name}")
+    private String productName ;
+
     /**
      * 放款
      * @return
@@ -72,7 +75,7 @@ public class GatewayUtils {
         String method = "/proxypay/pay.mhtml" ;
         String key = "werocxofsdjnfksdf892349729lkfnnmgn/x,.zx=9=-MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAJGLeWVIS3wo0U2h8lzWjiq5RJJDi14hzsbxxwedhqje123";
         Map<String, String> payParams = new HashMap<String, String>();
-        payParams.put("bizSys", "RAPTOR");
+        payParams.put("bizSys", productName);
         //订单号
         payParams.put("invoice",  lendOrder.getApplyUniqueCode());
         payParams.put("notifyUrl", ""); //使用mq，则可以不传？
@@ -148,7 +151,7 @@ public class GatewayUtils {
                 }
             }
             //orderId : 订单号;
-            params.put("remark", "FASTRAPTOR_" + payOrderEntity.getOrderId() + "_" + payOrderEntity.getLoanOrderId() + "_" + bankName);
+            params.put("remark", "FAST" + productName + "_" + payOrderEntity.getOrderId() + "_" + payOrderEntity.getLoanOrderId() + "_" + bankName);
 
             params.put("userMobile", user.getMobile());
             params.put("bankmobile", payOrderLog.getBankMobile());
