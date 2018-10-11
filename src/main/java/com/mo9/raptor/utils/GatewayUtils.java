@@ -64,8 +64,11 @@ public class GatewayUtils {
     @Resource
     private CardBinInfoService cardBinInfoService;
 
-    @Value("${this.product.name}")
-    private String productName ;
+    @Value("${loan.name.en}")
+    private String loanNameEn ;
+
+    @Value("${loan.name.cn}")
+    private String loanNameCn ;
 
     /**
      * 放款
@@ -75,7 +78,7 @@ public class GatewayUtils {
         String method = "/proxypay/pay.mhtml" ;
         String key = "werocxofsdjnfksdf892349729lkfnnmgn/x,.zx=9=-MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAJGLeWVIS3wo0U2h8lzWjiq5RJJDi14hzsbxxwedhqje123";
         Map<String, String> payParams = new HashMap<String, String>();
-        payParams.put("bizSys", productName);
+        payParams.put("bizSys", loanNameEn);
         //订单号
         payParams.put("invoice",  lendOrder.getApplyUniqueCode());
         payParams.put("notifyUrl", ""); //使用mq，则可以不传？
@@ -84,22 +87,13 @@ public class GatewayUtils {
         payParams.put("idCard", lendOrder.getIdCard()); //身份证
         payParams.put("mobile", lendOrder.getBankMobile()); //手机号
         payParams.put("openBank", lendOrder.getBankName()); // 银行名称
-        //payParams.put("prov", "未知"); // 默认
-        //payParams.put("city", "未知"); // 默认
-        //payParams.put("subBank", "建设银行");
         payParams.put("transAmt", lendOrder.getApplyNumber().toPlainString()); // 金额
         payParams.put("attach", lendOrder.getOrderId()); //同invoice
-        /*JSONObject jsonParams = new JSONObject();
-        jsonParams.put("loan_term", "14");
-        jsonParams.put("property", "男");
-        payParams.put("purpose", "FAST放款");//自定义中文
-        payParams.put("extraParameter", jsonParams.toJSONString());*/
-        payParams.put("purpose", "猛禽放款");
+        payParams.put("purpose", loanNameCn);
 
         String sign = Md5Encrypt.sign(payParams, key);
         payParams.put("sign", sign);
         try {
-            //String gatewayUrl = "http://ycheng.local.mo9.com/gateway";
             String resJson = httpClientApi.doGet(gatewayUrl + method, payParams);
             JSONObject jsonObject = JSONObject.parseObject(resJson);
             String status = jsonObject.getString("status");
@@ -151,7 +145,7 @@ public class GatewayUtils {
                 }
             }
             //orderId : 订单号;
-            params.put("remark", "FAST" + productName + "_" + payOrderEntity.getOrderId() + "_" + payOrderEntity.getLoanOrderId() + "_" + bankName);
+            params.put("remark", "FAST" + loanNameEn + "_" + payOrderEntity.getOrderId() + "_" + payOrderEntity.getLoanOrderId() + "_" + bankName);
 
             params.put("userMobile", user.getMobile());
             params.put("bankmobile", payOrderLog.getBankMobile());
@@ -249,17 +243,6 @@ public class GatewayUtils {
             } else {
                 logger.error("查询放款订单状态报错, 返回为: [{}]", result);
             }
-//            JSONObject data = JSON.parseObject(result) ;
-//            String status = data.getString("status") ; //请求状态 success 请求成功 failed 请求失败
-//            String description = data.getString("description") ;   //请求返回信息
-//            String invoice = data.getString("invoice") ;  //订单号
-//            String dealcode = data.getString("dealcode") ; //先玩后付订单号
-//            String orderStatus = data.getString("orderStatus") ;  //订单状态
-//            String amount = data.getString("amount") ; //金额(分)
-//            String statusTime = data.getString("statusTime") ;  // 状态时间
-//            String channel = data.getString("channel") ;  //渠道
-//            String thirdDealcode = data.getString("thirdDealcode") ;  //第三方订单号
-            //TODO 后续操作
         } catch (Exception e) {
             logger.error("查询先玩后付放款订单[{}]状态报错 ", orderNo, e);
         }
