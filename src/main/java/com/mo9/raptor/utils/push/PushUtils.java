@@ -54,7 +54,7 @@ public class PushUtils {
         try {
             httpClientApi.doPostJson(pushUrl + "/push/unicastPushByPushNo", JSON.toJSONString(params), headers);
         } catch (IOException e) {
-            logger.error("推送消息出现异常，pushNo={}", pushBean.getPushNo());
+            logger.error("推送消息出现异常，pushNo={}", pushBean.getPushNo(), e);
         }
     }
 
