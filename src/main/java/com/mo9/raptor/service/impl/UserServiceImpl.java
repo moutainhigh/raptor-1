@@ -238,4 +238,9 @@ public class UserServiceImpl implements UserService {
     public List<UserEntity> findByMobiles(List<String> mobiles) {
         return userRepository.findByMobiles(mobiles);
     }
+
+    @Override
+    public List<UserEntity> findManualAuditUser(String source) {
+     return  userRepository.findManualAuditUser(source);
+    }
 }
