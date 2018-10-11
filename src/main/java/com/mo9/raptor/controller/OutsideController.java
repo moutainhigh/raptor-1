@@ -217,13 +217,14 @@ public class OutsideController {
                 return "audit/login";
             }
             auditUser = userName;
+            //设置登录成功
+            logger.info("人工审核登录接口-------->>>>>用户[{}]登录成功,ip为[{}]", auditUser, remoteHost);
         }
         Cookie cookie = new Cookie("username", auditUser.toString());
         cookie.setMaxAge(30 * 60);
         response.addCookie(cookie);
         redisServiceApi.set(RedisParams.ACTION_TOKEN_LONG_AUDIT + remoteHost, auditUser, RedisParams.EXPIRE_30M, raptorRedis);
-        //设置登录成功
-        logger.info("人工审核登录接口-------->>>>>用户[{}]登录成功,ip为[{}]", auditUser, remoteHost);
+
         //查询所有需要人工审核的用户
         List<UserEntity> userEntities = userService.findManualAuditUser("channel_1");
         //封装返回参数
