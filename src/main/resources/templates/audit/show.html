@@ -60,13 +60,13 @@
             <td th:text="${entries['source']}" width=100px></td>
             <td th:text="${entries['subSource']}" width=100px></td>
             <td th:text="${entries['createTime']}" width=180px></td>
-            <td width=200px>
+            <td  th:if="${entries['status']}=='人工审核'" width=200px>
                 <button th:value="${entries['userCode']}" onclick="audit_function(this.value,'passed')">通过</button>
                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button th:value="${entries['userCode']}"
                                                             onclick="audit_function(this.value,'reject')">拒绝
             </button>
-
             </td>
+            <td th:if="${entries['status']}!='人工审核'" width=200px></td>
         </tr>
         </tbody>
     </table>
@@ -84,11 +84,11 @@
          var flag = confirm(tip);
                   if(flag){
                     var code =$.ajax({url:url,async:false});
-                    if(code.toString = '0'){
-                        alert("操作成功");
+                    if(code.responseText == '0'){
+                       alert("操作成功");
                         window.location.reload();
                     }else{
-                        alert("操作异常");
+                        alert("非法操作");
                     }
                   }
 }

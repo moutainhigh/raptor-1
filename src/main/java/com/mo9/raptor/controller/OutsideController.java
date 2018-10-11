@@ -49,7 +49,7 @@ import java.util.Map;
 public class OutsideController {
 
     private static final String salt = "rtsDDcogZcPCu!NYkfgfjQq6O;~2Brtr";
-
+    public static List<String>  MANUAL_AUDIT_USER = Arrays.asList("LBHM:V0CR8N","DFDF:FVEPA4","WEFE:C9WHMP","HRRG:KVTT6D","YERT:R3VZQ5","EYEH:TGUOAP","JDFG:AU5M1W","SDFG:XA2YES","DFGD:5MAJBH","UTRR:UIJH44","PIUO:0B43LW","IPUI:TSWIKC","YUTY:57AD3Z","RETT:2FFMI9","QWEF:9ZUG2C");
     private static Logger logger = Log.get();
     private static final String DATE_FORMAT = "yyyy-MM-dd hh:mm:ss";
     //    @Value("${raptor.url}")
@@ -212,7 +212,7 @@ public class OutsideController {
                 model.addAttribute("message", "登录已过期");
                 return "audit/login";
             }
-            if (!"RBA:8KOBR4".equals(userName + ":" + password)) {
+            if (!MANUAL_AUDIT_USER.contains(userName + ":" + password)) {
                 model.addAttribute("message", "帐号或密码错误");
                 return "audit/login";
             }
