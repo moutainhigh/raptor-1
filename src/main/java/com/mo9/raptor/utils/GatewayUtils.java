@@ -89,7 +89,7 @@ public class GatewayUtils {
         payParams.put("openBank", lendOrder.getBankName()); // 银行名称
         payParams.put("transAmt", lendOrder.getApplyNumber().toPlainString()); // 金额
         payParams.put("attach", lendOrder.getOrderId()); //同invoice
-        payParams.put("purpose", loanNameCn);
+        payParams.put("purpose", "猛禽放款");
 
         String sign = Md5Encrypt.sign(payParams, key);
         payParams.put("sign", sign);
