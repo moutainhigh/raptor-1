@@ -5,6 +5,7 @@ import com.mo9.raptor.engine.service.IPayOrderDetailService;
 import com.mo9.raptor.engine.state.action.IActionExecutor;
 import com.mo9.raptor.engine.entity.LoanOrderEntity;
 import com.mo9.raptor.engine.enums.StatusEnum;
+import com.mo9.raptor.engine.state.action.impl.lend.LendSuccessNoticeAction;
 import com.mo9.raptor.engine.state.event.IEvent;
 import com.mo9.raptor.engine.state.event.impl.loan.LoanResponseEvent;
 import com.mo9.raptor.engine.exception.InvalidEventException;
@@ -13,6 +14,7 @@ import com.mo9.raptor.engine.state.handler.StateHandler;
 import com.mo9.raptor.engine.structure.field.FieldTypeEnum;
 import com.mo9.raptor.engine.structure.item.ItemTypeEnum;
 import com.mo9.raptor.enums.CurrencyEnum;
+import com.mo9.raptor.utils.push.PushUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +33,7 @@ public class LendingStateHandler implements IStateHandler<LoanOrderEntity> {
     private static final Logger logger = LoggerFactory.getLogger(LendingStateHandler.class);
 
     @Autowired
-    private IPayOrderDetailService payOrderDetailService;
+    private PushUtils pushUtils;
 
     @Override
     public LoanOrderEntity handle(LoanOrderEntity loanOrder, IEvent event, IActionExecutor actionExecutor) throws InvalidEventException {
@@ -47,20 +49,8 @@ public class LendingStateHandler implements IStateHandler<LoanOrderEntity> {
                 loanOrder.setLendSignature(lendResponseEvent.getLendSignature());
                 loanOrder.setLendTime(lendResponseEvent.getSuccessTime());
 
-//                PayOrderDetailEntity entity = new PayOrderDetailEntity();
-//                entity.setOwnerId(loanOrder.getOwnerId());
-//                entity.setLoanOrderId(loanOrder.getOrderId());
-//                entity.setPayOrderId(loanOrder.getOrderId());
-//                entity.setPayCurrency(CurrencyEnum.getDefaultCurrency().name());
-//                entity.setItemType(ItemTypeEnum.PREPAY.name());
-//                entity.setRepayDay(loanOrder.getRepaymentDate());
-//                entity.setField(FieldTypeEnum.CUT_CHARGE.name());
-//                entity.setShouldPay(loanOrder.getLoanNumber().subtract(lentNumber));
-//                entity.setPaid(loanOrder.getLoanNumber().subtract(lentNumber));
-//                entity.create();
-//
-//                // 入账砍头息
-//                payOrderDetailService.saveItem(Arrays.asList(entity));
+                // append一个放款成功的Action
+                actionExecutor.append(new LendSuccessNoticeAction(loanOrder.getOrderId(), loanOrder.getOwnerId(), pushUtils));
             } else {
                 loanOrder.setStatus(StatusEnum.FAILED.name());
             }
