@@ -29,6 +29,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -134,14 +135,22 @@ public class RiskAuditServiceImpl implements RiskAuditService {
     private static final String ORIGN_CALL = "%主叫%";
 
 
-    private Double score(String userCode, String mobile) throws Exception {
-        OkHttpClient okHttpClient = new OkHttpClient();
-        String jsonResult = okHttpClient.newCall(new Request.Builder().url(scoreUrl + "?mobile=" + mobile).build()).execute().body().string();
-        JSONObject jsonObject = JSONObject.parseObject(jsonResult);
-        if (jsonObject.getInteger("status") != 1) {
-            return null;
-        } else {
-            return jsonObject.getDouble("score");
+    private Double score(String userCode, String mobile) throws IOException {
+        try {
+            OkHttpClient okHttpClient = new OkHttpClient();
+            String jsonResult = okHttpClient.newCall(new Request.Builder().url(scoreUrl + "?mobile=" + mobile).build()).execute().body().string();
+            JSONObject jsonObject = JSONObject.parseObject(jsonResult);
+            if (jsonObject.getInteger("status") != 1) {
+                riskScoreService.create(userCode, mobile, null, jsonResult);
+                return null;
+            } else {
+                Double d = jsonObject.getDouble("score");
+                riskScoreService.create(userCode, mobile, d, jsonResult);
+                return d;
+            }
+        } catch (Exception e) {
+            riskScoreService.create(userCode, mobile, -1d, "");
+            throw e;
         }
     }
 
@@ -212,10 +221,8 @@ public class RiskAuditServiceImpl implements RiskAuditService {
             try {
                 Double score = score(userCode, user.getMobile());
                 if (score == null) {
-                    riskScoreService.create(userCode, user.getMobile(), null);
                     return new AuditResponseEvent(userCode, "评分出错", AuditResultEnum.MANUAL);
                 }
-                riskScoreService.create(userCode, user.getMobile(), score);
                 if (score >= riskScoreLimit) {
                     return new AuditResponseEvent(userCode, "", AuditResultEnum.PASS);
                 } else {
@@ -223,7 +230,6 @@ public class RiskAuditServiceImpl implements RiskAuditService {
                 }
             } catch (Exception e) {
                 logger.error(userCode + "[" + user.getMobile() + "]评分出错", e);
-                riskScoreService.create(userCode, user.getMobile(), -1d);
                 return new AuditResponseEvent(userCode, "评分出错", AuditResultEnum.MANUAL);
             }
         }

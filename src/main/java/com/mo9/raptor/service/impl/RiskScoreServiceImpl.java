@@ -15,11 +15,12 @@ public class RiskScoreServiceImpl implements RiskScoreService {
     private RiskScoreRepository riskScoreRepository;
 
     @Override
-    public RiskScoreEntity create(String userCode, String mobile, Double score) {
+    public RiskScoreEntity create(String userCode, String mobile, Double score, String result) {
         RiskScoreEntity riskScoreEntity = new RiskScoreEntity();
         riskScoreEntity.setMobile(mobile);
         riskScoreEntity.setUserCode(userCode);
         riskScoreEntity.setScore(score);
+        riskScoreEntity.setResult(result);
         riskScoreEntity.setCreateTime(System.currentTimeMillis());
         return riskScoreRepository.save(riskScoreEntity);
     }
