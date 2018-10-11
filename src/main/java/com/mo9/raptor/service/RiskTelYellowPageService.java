@@ -9,7 +9,6 @@ import com.mo9.raptor.entity.RiskTelYellowPage;
  */
 public interface RiskTelYellowPageService {
     
-    RiskTelYellowPage save(RiskTelYellowPage entity);
+    RiskTelYellowPage saveOrUpdate(RiskTelYellowPage entity);
     
-    RiskTelYellowPage update(RiskTelYellowPage updateEntity);
 }
