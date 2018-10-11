@@ -80,6 +80,9 @@ public class LoanOrderController {
     @Value("${raptor.sockpuppet}")
     private String sockpuppet;
 
+    @Value("${loan.name.en}")
+    private String loanNameEn;
+
     @Autowired
     private BankService bankService;
 
@@ -157,7 +160,7 @@ public class LoanOrderController {
                 LoanOrderEntity loanOrder = new LoanOrderEntity();
                 loanOrder.setOrderId(orderId);
                 loanOrder.setOwnerId(userCode);
-                loanOrder.setType("RAPTOR");
+                loanOrder.setType(loanNameEn);
                 loanOrder.setLoanNumber(principal);
                 loanOrder.setPostponeUnitCharge(product.getRenewalBaseAmount());
                 loanOrder.setLoanTerm(loanTerm);
