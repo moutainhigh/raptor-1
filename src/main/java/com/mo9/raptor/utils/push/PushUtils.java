@@ -52,7 +52,7 @@ public class PushUtils {
         headers.put("Sign", sign);
 
         try {
-            httpClientApi.doPostJson("https://new.mo9.com/alouattaApi/push/unicastPushByPushNo", JSON.toJSONString(params), headers);
+            httpClientApi.doPostJson(pushUrl + "/push/unicastPushByPushNo", JSON.toJSONString(params), headers);
         } catch (IOException e) {
             logger.error("推送消息出现异常，pushNo={}", pushBean.getPushNo());
         }
