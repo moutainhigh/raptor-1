@@ -54,4 +54,13 @@ public interface LoanOrderRepository extends JpaRepository<LoanOrderEntity,Long>
      */
     @Query(value = "select * from t_raptor_loan_order where status in (?1) and deleted = false", nativeQuery = true)
     List<LoanOrderEntity> listByStatus(List<String> statusEnums);
+
+    /**
+     * 查询所有今天还款的订单
+     * @param today    今天0点
+     * @param tomorrow 明天0点
+     * @return
+     */
+    @Query(value = "select * from t_raptor_loan_order where repayment_date >= ?1 and repayment_date < ?2 and deleted = false", nativeQuery = true)
+    List<LoanOrderEntity> listShouldPayOrder(Long today, Long tomorrow);
 }
