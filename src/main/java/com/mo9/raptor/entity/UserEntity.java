@@ -340,7 +340,7 @@ public class UserEntity extends AbstractStateEntity implements IStateEntity {
             subSource = null;
         }
         userEntity.setMobile(mobile);
-        userEntity.setUserCode(Md5Util.getMD5(mobile).toUpperCase());
+        userEntity.setUserCode(Md5Util.getMD5(mobile + String.valueOf(System.currentTimeMillis())).toUpperCase());
         userEntity.setStatus(StatusEnum.COLLECTING.name());
         userEntity.setSource(source);
         userEntity.setSubSource(subSource);

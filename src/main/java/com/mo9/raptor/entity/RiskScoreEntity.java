@@ -9,12 +9,14 @@ public class RiskScoreEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "userCode")
+    @Column(name = "user_code")
     private String userCode;
-
 
     @Column(name = "mobile")
     private String mobile;
+
+    @Column(name = "result")
+    private String result;
 
     @Column(name = "score")
     private Double score;
@@ -60,5 +62,13 @@ public class RiskScoreEntity {
 
     public void setCreateTime(Long createTime) {
         this.createTime = createTime;
+    }
+
+    public String getResult() {
+        return result;
+    }
+
+    public void setResult(String result) {
+        this.result = result;
     }
 }

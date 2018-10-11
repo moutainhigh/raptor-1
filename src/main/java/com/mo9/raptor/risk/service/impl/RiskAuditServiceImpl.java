@@ -29,6 +29,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -131,17 +132,25 @@ public class RiskAuditServiceImpl implements RiskAuditService {
 
     private static final String WHITE_LIST = "WHITE";
 
-    private static final String ORIGN_CALL = "主叫";
+    private static final String ORIGN_CALL = "%主叫%";
 
 
-    private Double score(String userCode, String mobile) throws Exception {
-        OkHttpClient okHttpClient = new OkHttpClient();
-        String jsonResult = okHttpClient.newCall(new Request.Builder().url(scoreUrl + "?mobile=" + mobile).build()).execute().body().string();
-        JSONObject jsonObject = JSONObject.parseObject(jsonResult);
-        if (jsonObject.getInteger("status") != 1) {
-            return null;
-        } else {
-            return jsonObject.getDouble("score");
+    private Double score(String userCode, String mobile) throws IOException {
+        try {
+            OkHttpClient okHttpClient = new OkHttpClient();
+            String jsonResult = okHttpClient.newCall(new Request.Builder().url(scoreUrl + "?mobile=" + mobile).build()).execute().body().string();
+            JSONObject jsonObject = JSONObject.parseObject(jsonResult);
+            if (jsonObject.getInteger("status") != 1) {
+                riskScoreService.create(userCode, mobile, null, jsonResult);
+                return null;
+            } else {
+                Double d = jsonObject.getDouble("score");
+                riskScoreService.create(userCode, mobile, d, jsonResult);
+                return d;
+            }
+        } catch (Exception e) {
+            riskScoreService.create(userCode, mobile, -1d, "");
+            throw e;
         }
     }
 
@@ -176,7 +185,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         taskList.add(new AuditTask((u) -> riskRuleEngineService.openDateRule(u), "OpenDateRule", true));
         taskList.add(new AuditTask((u) -> idCardRule(u), "IdCardRule", true));
         taskList.add(new AuditTask((u) -> ageRule(u), "AgeRule", true));
-//        taskList.add(new AuditTask((u) -> contactsRule(u), "ContactsRule", true));
+        taskList.add(new AuditTask((u) -> contactsRule(u), "ContactsRule", true));
         taskList.add(new AuditTask((u) -> callLogRule(u), "CallLogRule", false));
         taskList.add(new AuditTask((u) -> threeElementCheck(u), "ThreeElementCheck", false));
         taskList.add(new AuditTask((u) -> antiHackRule(u), "AntiHackRule", false));
@@ -212,17 +221,15 @@ public class RiskAuditServiceImpl implements RiskAuditService {
             try {
                 Double score = score(userCode, user.getMobile());
                 if (score == null) {
-                    riskScoreService.create(userCode, user.getMobile(), null);
                     return new AuditResponseEvent(userCode, "评分出错", AuditResultEnum.MANUAL);
                 }
-                riskScoreService.create(userCode, user.getMobile(), score);
                 if (score >= riskScoreLimit) {
                     return new AuditResponseEvent(userCode, "", AuditResultEnum.PASS);
                 } else {
                     return new AuditResponseEvent(userCode, "评分过低[" + score + "]", AuditResultEnum.MANUAL);
                 }
             } catch (Exception e) {
-                riskScoreService.create(userCode, user.getMobile(), -1d);
+                logger.error(userCode + "[" + user.getMobile() + "]评分出错", e);
                 return new AuditResponseEvent(userCode, "评分出错", AuditResultEnum.MANUAL);
             }
         }
@@ -336,7 +343,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
             List<TRiskCallLog> allCallLog = new ArrayList<>();
             Long lastId = 0L;
             while (true) {
-                List<TRiskCallLog> list = riskCallLogRepository.getCallLogByMobileAfterTimestamp(user.getMobile(), (currentTimeMillis - days180ts) / 1000, ORIGN_CALL, lastId);
+                List<TRiskCallLog> list = riskCallLogRepository.getCallLogByMobileAfterTimestamp(user.getMobile(), (currentTimeMillis - days180ts) / 1000, lastId);
                 allCallLog.addAll(list);
                 if (list.size() == 0) {
                     break;
@@ -344,9 +351,10 @@ public class RiskAuditServiceImpl implements RiskAuditService {
                     lastId = list.get(list.size() - 1).getId();
                 }
             }
+            logger.info(user.getMobile() + "拉取到数据" + allCallLog.size());
             for (TRiskCallLog tRiskCallLog : allCallLog) {
                 //主叫 && 在通讯录内
-                if (ORIGN_CALL.equals(tRiskCallLog.getCallMethod()) && allMobileSet.contains(tRiskCallLog.getCallTel())) {
+                if (tRiskCallLog.getCallMethod() != null && tRiskCallLog.getCallMethod().contains("主叫") && allMobileSet.contains(tRiskCallLog.getCallTel())) {
                     count++;
                     inListMobiles.add(tRiskCallLog.getCallTel());
                 }

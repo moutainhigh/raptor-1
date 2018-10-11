@@ -71,4 +71,10 @@ public interface ILoanOrderService {
      * @return
      */
     List<LoanOrderEntity> listByStatus(List<StatusEnum> statusEnums);
+
+    /**
+     * 查询所有今天还款的订单
+     * @return
+     */
+    List<LoanOrderEntity> listShouldPayOrder();
 }
