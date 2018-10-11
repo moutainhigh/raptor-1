@@ -305,7 +305,9 @@ public class OutsideController {
     }
 
 
-    private BaseResponse<Boolean> manualAuditUser(List<String> mobiles, StatusEnum status, String password, String explanation) {
+    @GetMapping("/manual_audit_user")
+    @ResponseBody
+    private BaseResponse<Boolean> manualAuditUser(@RequestParam("mobiles") List<String> mobiles, @RequestParam("status")StatusEnum status, @RequestParam("password")String password, @RequestParam(value = "explanation", required = false)String explanation) {
         BaseResponse<Boolean> response = new BaseResponse<Boolean>();
         if (!password.equals("mo9@2018")) {
             return response.buildFailureResponse(ResCodeEnum.INVALID_SIGN);
