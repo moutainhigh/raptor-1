@@ -45,7 +45,7 @@ public class AddLoanOrderInterceptor extends HandlerInterceptorAdapter {
             redisServiceApi.set(RedisParams.ADD_LOAN_ORDER_KEY + userCode, newCounts, 60L, raptorRedis);
         }
 
-        if (newCounts == 11) {
+        if (newCounts == 11L) {
             redisServiceApi.remove(RedisParams.getAccessToken(clientId,userCode), raptorRedis);
             logger.warn("用户[{}]在一分钟内第[{}]次调用下单接口, 被踢下线", userCode, newCounts);
             return false;
