@@ -8,5 +8,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * @date 2018/10/8 .
  * @time 14:43 .
  */
-public interface RiskTelYellowPageRepository extends JpaRepository<RiskTelYellowPage, Long>{
+public interface RiskTelYellowPageRepository extends JpaRepository<RiskTelYellowPage, String>{
 }
