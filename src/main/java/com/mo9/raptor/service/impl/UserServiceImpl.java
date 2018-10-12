@@ -243,4 +243,14 @@ public class UserServiceImpl implements UserService {
     public List<UserEntity> findManualAuditUser(String source) {
      return  userRepository.findManualAuditUser(source);
     }
+
+    @Override
+    public List<Map<String, Object>> toAuditUserCount(String source) {
+        return userRepository.toAuditUserCount(source);
+    }
+
+    @Override
+    public List<Map<String, Object>> getChannelLoanCount(String source) {
+        return userRepository.getChannelLoanCount(source);
+    }
 }
