@@ -205,8 +205,11 @@ public class OutsideController {
     }
     @GetMapping("/update_all_bank_name")
     @ResponseBody
-    public BaseResponse<Boolean> updateAllBankName(){
+    public BaseResponse<Boolean> updateAllBankName(String password){
         BaseResponse<Boolean> response = new BaseResponse<Boolean>();
+        if(!password.equals("mo9@2018")){
+            return response.buildFailureResponse(ResCodeEnum.INVALID_SIGN);
+        }
         Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -230,8 +233,8 @@ public class OutsideController {
                             continue;
                         }
                         bankEntity.setBankName(cardBank);
-                        bankService.save(bankEntity);
                     }
+                    bankService.save(bankEntity);
                 }
             }
         });
