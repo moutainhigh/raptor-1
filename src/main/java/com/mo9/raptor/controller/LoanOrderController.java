@@ -3,6 +3,7 @@ package com.mo9.raptor.controller;
 import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.bean.BaseResponse;
 import com.mo9.raptor.bean.ReqHeaderParams;
+import com.mo9.raptor.bean.condition.StrategyCondition;
 import com.mo9.raptor.bean.req.OrderAddReq;
 import com.mo9.raptor.bean.res.LoanOrderRes;
 import com.mo9.raptor.engine.entity.LendOrderEntity;
@@ -13,10 +14,7 @@ import com.mo9.raptor.engine.service.ILendOrderService;
 import com.mo9.raptor.engine.service.ILoanOrderService;
 import com.mo9.raptor.engine.structure.item.Item;
 import com.mo9.raptor.engine.utils.EngineStaticValue;
-import com.mo9.raptor.entity.BankEntity;
-import com.mo9.raptor.entity.DictDataEntity;
-import com.mo9.raptor.entity.LoanProductEntity;
-import com.mo9.raptor.entity.UserEntity;
+import com.mo9.raptor.entity.*;
 import com.mo9.raptor.enums.DictTypeNoEnum;
 import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.lock.Lock;
@@ -85,6 +83,12 @@ public class LoanOrderController {
 
     @Autowired
     private BankService bankService;
+
+    @Autowired
+    private StrategyService strategyService;
+
+    @Autowired
+    private CardBinInfoService cardBinInfoService;
 
     /**
      * 下单
@@ -188,11 +192,13 @@ public class LoanOrderController {
                 }
                 lendOrder.setUserName(bankEntity.getUserName());
                 lendOrder.setIdCard(bankEntity.getCardId());
-                lendOrder.setBankName(bankEntity.getBankName());
                 if (StringUtils.isBlank(req.getCard())) {
                     lendOrder.setBankCard(bankEntity.getBankNo());
+                    lendOrder.setBankName(bankEntity.getBankName());
                 } else {
+                    CardBinInfoEntity byCardPrefix = cardBinInfoService.findByCardPrefix(req.getCard().substring(0, 6));
                     lendOrder.setBankCard(req.getCard());
+                    lendOrder.setBankName(byCardPrefix.getCardBank());
                 }
                 if (StringUtils.isBlank(req.getCardMobile())) {
                     lendOrder.setBankMobile(bankEntity.getMobile());
@@ -203,6 +209,17 @@ public class LoanOrderController {
                 lendOrder.setType("");
                 lendOrder.setCreateTime(now);
                 lendOrder.setUpdateTime(now);
+
+                //检查银行卡是否支持
+                StrategyCondition condition = new StrategyCondition(true);
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put(StrategyCondition.BANK_NAME_CONDITION, lendOrder.getBankName());
+                condition.setCondition(jsonObject);
+                ResCodeEnum resCodeEnum = strategyService.loanOrderStrategy(condition);
+                if(resCodeEnum != ResCodeEnum.SUCCESS){
+                    logger.warn("借款订单银行卡不支持userCode={}, bankName={},bankNo={}", userCode, lendOrder.getBankName(), lendOrder.getBankCard());
+                    return response.buildFailureResponse(resCodeEnum);
+                }
 
                 // 保存借款订单, 还款订单
                 loanOrderService.saveLendOrder(loanOrder, lendOrder);
