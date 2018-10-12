@@ -4,6 +4,8 @@ import com.mo9.raptor.bean.BaseResponse;
 import com.mo9.raptor.bean.req.PageReq;
 import com.mo9.raptor.bean.res.ManualAuditUserRes;
 import com.mo9.raptor.engine.enums.StatusEnum;
+import com.mo9.raptor.entity.BankEntity;
+import com.mo9.raptor.entity.CardBinInfoEntity;
 import com.mo9.raptor.engine.state.event.impl.user.ManualAuditEvent;
 import com.mo9.raptor.engine.state.launcher.IEventLauncher;
 import com.mo9.raptor.entity.SpreadChannelEntity;
@@ -12,6 +14,8 @@ import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.redis.RedisParams;
 import com.mo9.raptor.redis.RedisServiceApi;
+import com.mo9.raptor.service.BankService;
+import com.mo9.raptor.service.CardBinInfoService;
 import com.mo9.raptor.service.SpreadChannelService;
 import com.mo9.raptor.service.UserContactsService;
 import com.mo9.raptor.service.UserService;
@@ -74,6 +78,19 @@ public class OutsideController {
     @Autowired
     private IEventLauncher userEventLauncher;
 
+    @Resource
+    private BankService bankService;
+
+    @Resource
+    private CardBinInfoService cardBinInfoService;
+
+    /**
+     * 拉黑用户
+     * @param userCode
+     * @param desc
+     * @param sign
+     * @return
+     */
     @GetMapping(value = "/to_black_user")
     @ResponseBody
     public BaseResponse<Boolean> toBlackUser(@RequestParam("userCode") String userCode, @RequestParam("desc") String desc, @RequestParam("sign") String sign) {
@@ -186,6 +203,45 @@ public class OutsideController {
         }
         return "audit/contacts";
     }
+    @GetMapping("/update_all_bank_name")
+    @ResponseBody
+    public BaseResponse<Boolean> updateAllBankName(String password){
+        BaseResponse<Boolean> response = new BaseResponse<Boolean>();
+        if(!password.equals("mo9@2018")){
+            return response.buildFailureResponse(ResCodeEnum.INVALID_SIGN);
+        }
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                List<BankEntity> list = bankService.findAll();
+                if(list == null || list.size() == 0){
+                    return;
+                }
+
+                for(BankEntity bankEntity : list){
+                    String bankNo = bankEntity.getBankNo();
+                    if(org.apache.commons.lang.StringUtils.isBlank(bankNo) || bankNo.length() < 6){
+                        continue;
+                    }
+                    CardBinInfoEntity cardBinInfoEntity = cardBinInfoService.findByCardPrefix(bankNo.substring(0, 6));
+                    if(cardBinInfoEntity == null){
+                        bankEntity.setBankName("未知");
+                    }else{
+                        String bankName = bankEntity.getBankName();
+                        String cardBank = cardBinInfoEntity.getCardBank();
+                        if(cardBank.equals(bankName)){
+                            continue;
+                        }
+                        bankEntity.setBankName(cardBank);
+                    }
+                    bankService.save(bankEntity);
+                }
+            }
+        });
+        t.start();
+        return response.buildSuccessResponse(true);
+    }
+
 
     /**
      * 人工审核登录页面
