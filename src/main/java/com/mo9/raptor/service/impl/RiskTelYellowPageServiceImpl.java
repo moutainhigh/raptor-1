@@ -20,10 +20,15 @@ public class RiskTelYellowPageServiceImpl implements RiskTelYellowPageService {
     
     @Override
     public RiskTelYellowPage saveOrUpdate(RiskTelYellowPage entity) {
-        if (entity.getCreateTime() == null){
-            entity.setCreateTime(System.currentTimeMillis());
+        try {
+            if (entity.getCreateTime() == null){
+                entity.setCreateTime(System.currentTimeMillis());
+            }
+            return riskTelYellowPageRepository.save(entity);
+        }catch (Exception e){
+            e.printStackTrace();
         }
-        return riskTelYellowPageRepository.save(entity);
+        return null;
     }
 
 }
