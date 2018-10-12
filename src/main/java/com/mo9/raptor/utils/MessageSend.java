@@ -97,7 +97,7 @@ public class MessageSend {
     private Boolean sendMessageInside(MessageNotifyRequestVo requestVo) {
 
         //设置消息id
-        String messageId = "Raptor_" + idWorker.nextId();
+        String messageId = systemCode+"_" + idWorker.nextId();
         requestVo.setMessageId(messageId);
         //设置短信或邮件发送
         //TODO 短信网关待配置

@@ -49,6 +49,9 @@ public class CaptchaServiceImpl implements CaptchaService {
     @Value(value = "${test.open}")
     private String testOpen;
 
+    @Value(value = "${loan.sign.name}")
+    private String sign;
+
 
 
 
@@ -102,7 +105,7 @@ public class CaptchaServiceImpl implements CaptchaService {
             redisServiceApi.set(RedisParams.LIMIT_CAPTCHA_KEY + mobile, mobile, RedisParams.EXPIRE_30S, redisTemplate);
             JSONObject jsonObject = new JSONObject();
             jsonObject.put(CAPTCHA, pinCode);
-            jsonObject.put(SIGN, RAPTOR_SIGN_NAME);
+            jsonObject.put(SIGN, sign);
             MessageNotifyEventEnum messageNotifyEvent = getMessageNotifyEventEnum(businessCode);
             messageSend.sendMobileSms(mobile, messageNotifyEvent, AreaCodeEnum.CN, jsonObject);
 
