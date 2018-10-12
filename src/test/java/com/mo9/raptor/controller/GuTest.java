@@ -45,6 +45,9 @@ public class GuTest {
 
     @Value("${loan.name.en}")
     private String loanNameEn;
+
+    @Value("${loan.name.cn}")
+    private String loanNameCn;
     /**
      * 放款
      */
@@ -236,6 +239,12 @@ public class GuTest {
         System.out.println(sdf.format(new Date()));*/
     }
 
-
+    /**
+     * 查询产品信息
+     */
+    @Test
+    public void printLoanNameTest(){
+        System.out.println(loanNameCn);
+    }
 
 }
