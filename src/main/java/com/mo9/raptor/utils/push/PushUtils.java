@@ -24,7 +24,7 @@ public class PushUtils {
 
     private Logger logger = LoggerFactory.getLogger(PushUtils.class);
 
-    @Value("${push.rul}")
+    @Value("${push.url}")
     private String pushUrl;
 
     @Resource
