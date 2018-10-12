@@ -9,4 +9,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * @time 14:44 .
  */
 public interface RiskMergencyContactRepository extends JpaRepository<RiskMergencyContact, Long> {
+    
+    RiskMergencyContact findByMobileAndContractTel(String mobile, String contactTel);
 }

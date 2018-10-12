@@ -122,7 +122,8 @@ public class OfflineController {
 
         // 计算还款信息
         if (type.equals("REPAY")) {
-            BigDecimal lentNumber = loanOrder.getLentNumber();
+            // TODO: 部分还款实现后, 这里要改, 最小应还款  LentNumber
+            BigDecimal lentNumber = loanOrder.getLentNumber().add(loanOrder.getChargeValue());
             if (amount.compareTo(lentNumber) < 0) {
                 // 还的钱比放款的要少
                 response.setCode(ResCodeEnum.EXCEPTION_CODE.getCode());
@@ -163,30 +164,15 @@ public class OfflineController {
 
         // 制作优惠券
         CouponEntity effectiveBundledCoupon = couponService.getEffectiveBundledCoupon(loanOrder.getOrderId());
-        if (effectiveBundledCoupon == null) {
-            // 需要优惠才创建优惠券
-            if (BigDecimal.ZERO.compareTo(couponAmount) < 0) {
-                CouponEntity coupon = new CouponEntity();
-                coupon.setCouponId(String.valueOf(idWorker.nextId()));
-                coupon.setBoundOrderId(loanOrder.getOrderId());
-                coupon.setApplyAmount(couponAmount);
-                Long today = TimeUtils.extractDateTime(System.currentTimeMillis());
-                coupon.setEffectiveDate(today);
-                coupon.setExpireDate(today + EngineStaticValue.DAY_MILLIS);
-                coupon.setStatus(StatusEnum.BUNDLED.name());
-                coupon.setCreator(creator);
-                coupon.setEntryAmount(BigDecimal.ZERO);
-                if (StringUtils.isBlank(reliefReason)) {
-                    return response.buildFailureResponse(ResCodeEnum.ILLEGAL_REQUEST_PRARM);
-                }
-                coupon.setReason(reliefReason);
-                couponService.save(coupon);
-            }
-        } else {
-            if (effectiveBundledCoupon.getApplyAmount().compareTo(couponAmount) != 0) {
-                logger.info("用户线下还款, 优惠券[{}]的金额为[{}], 当前应优惠金额为[{}], 不匹配, 请先修改优惠券金额", effectiveBundledCoupon.getCouponId(), effectiveBundledCoupon.getApplyAmount(), couponAmount);
-                return response.buildFailureResponse(ResCodeEnum.ILLEGAL_COUPON_AMOUNT);
-            }
+        BigDecimal currentCouponAmount = BigDecimal.ZERO;
+        if (effectiveBundledCoupon != null) {
+            // 获得当前减免金额
+            currentCouponAmount = effectiveBundledCoupon.getApplyAmount();
+        }
+        if (currentCouponAmount.compareTo(couponAmount) != 0) {
+            response.setCode(ResCodeEnum.ILLEGAL_COUPON_AMOUNT.getCode());
+            response.setMessage("本次还款应减免[" + couponAmount.toPlainString() + "]元, 请更新优惠券金额.");
+            return response;
         }
 
         // 创建还款
