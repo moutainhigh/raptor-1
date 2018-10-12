@@ -42,7 +42,7 @@ public class StrategyServiceImpl implements StrategyService {
         boolean contains = Arrays.asList(supportBank).contains(bankName);
         if(!contains){
             logger.warn("校验银行卡是否支持-->返回结果不支持bank={}", bankName);
-            return ResCodeEnum.LOAN_BANK_LIST_NOT_SUPPORT;
+            return ResCodeEnum.BANK_VERIFY_ERROR;
         }
         return ResCodeEnum.SUCCESS;
     }
