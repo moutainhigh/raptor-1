@@ -81,6 +81,9 @@ public class LoanOrderController {
     @Value("${raptor.sockpuppet}")
     private String sockpuppet;
 
+    @Value("${loan.name.en}")
+    private String loanNameEn;
+
     @Autowired
     private BankService bankService;
 
@@ -137,7 +140,7 @@ public class LoanOrderController {
                 if (null == payoffOrder) {
                     if(StringUtils.isBlank(user.getSource()) || !spreadChannelService.checkSourceIsAllow(user.getSource())) {
                         logger.warn("用户渠道[{}], 不放款!", user.getSource());
-                        return response.buildFailureResponse(ResCodeEnum.NO_LEND);
+                        return response.buildFailureResponse(ResCodeEnum.NO_LEND_AMOUNT);
                     }
                     // 锁定后检查今天是否还有限额
                     BigDecimal dailyLendAmount = lendOrderService.getDailyLendAmount();
@@ -161,7 +164,7 @@ public class LoanOrderController {
                 LoanOrderEntity loanOrder = new LoanOrderEntity();
                 loanOrder.setOrderId(orderId);
                 loanOrder.setOwnerId(userCode);
-                loanOrder.setType("RAPTOR");
+                loanOrder.setType(loanNameEn);
                 loanOrder.setLoanNumber(principal);
                 loanOrder.setPostponeUnitCharge(product.getRenewalBaseAmount());
                 loanOrder.setLoanTerm(loanTerm);

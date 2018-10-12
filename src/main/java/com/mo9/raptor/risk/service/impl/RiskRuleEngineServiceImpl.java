@@ -8,6 +8,7 @@ import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.engine.service.ILoanOrderService;
 import com.mo9.raptor.engine.state.event.impl.AuditResponseEvent;
 import com.mo9.raptor.entity.UserEntity;
+import com.mo9.raptor.repository.UserRepository;
 import com.mo9.raptor.risk.entity.TRiskTelInfo;
 import com.mo9.raptor.risk.service.RiskRuleEngineService;
 import com.mo9.raptor.risk.service.RiskTelInfoService;
@@ -43,6 +44,9 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
     
     private static final int DIFFERENT_LOAN_COMPANY_CALL_TIMES = 20;
 
+
+    @Resource
+    private UserRepository userRepository;
 
     @Value("${raptor.sockpuppet}")
     private String sockpuppet;
@@ -111,14 +115,19 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
             return new AuditResponseEvent(userCode, false, "运营商报告状态不正常");
         }
 
-        JSONObject jsonObject = JSON.parseObject(reportJson);
+        JSONObject jsonObject = JSON.parseObject(reportJson).getJSONObject("data");
 
-        JSONArray mergencyContactArray = jsonObject.getJSONObject("data").getJSONArray("mergency_contact");
+        JSONArray mergencyContactArray = jsonObject.getJSONArray("mergency_contact");
 
         for (int i = 0; i < mergencyContactArray.size(); i++) {
             JSONObject mergencyContract = mergencyContactArray.getJSONObject(i);
 
-            Integer callTimes = mergencyContract.getInteger("call_times");
+            String callTimesStr = mergencyContract.getString("call_times");
+            logger.info("callTimesStr: " + callTimesStr);
+            
+            Integer callTimes = Integer.parseInt(callTimesStr);
+            
+            logger.info("callTimes" + callTimes);
             
             if (callTimes >= CALL_MERGENCY_TIMES){
                 return new AuditResponseEvent(userCode, true, "");
@@ -184,7 +193,7 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
 
             String mergencyTel = mergencyContract.getString("format_tel");
 
-            if(riskThirdBlackListRepository.isInBlackList(mergencyTel) > 0){
+            if(riskThirdBlackListRepository.isInBlackList(mergencyTel) > 0 || userRepository.inBlackList(mergencyTel) > 0){
                 return new AuditResponseEvent(userCode, false, "紧急联系人电话命中江湖救急黑名单, mobile: " + mergencyTel );
             }
 
@@ -243,7 +252,7 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
 
         if (cuishouCallMaxTimes < DIFFERENT_LOAN_COMPANY_CALL_TIMES
                 && yisicuishouCallMaxTimes < DIFFERENT_LOAN_COMPANY_CALL_TIMES){
-            new AuditResponseEvent(userCode, true, "");
+            return new AuditResponseEvent(userCode, true, "");
         }
         
         return new AuditResponseEvent(userCode, false, "被不同贷款机构呼叫次数大于 " + DIFFERENT_LOAN_COMPANY_CALL_TIMES);
@@ -271,8 +280,14 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
     
     private boolean checkReportStatus(String reportJson){
         JSONObject jsonObject = JSON.parseObject(reportJson);
-        Integer status = jsonObject.getInteger("status");
-        
+        Integer status = null;
+        try {
+            status = jsonObject.getInteger("status");
+        } catch (Exception e) {
+            logger.error("解析运营商报告状态出错", e);
+            return false;
+        }
+
         if (status == 0){
             return true;
         }

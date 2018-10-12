@@ -8,6 +8,11 @@ import javax.persistence.Column;
  */
 public class UserInfoMqRes {
 
+    /**
+     * 产品类型
+     */
+    private String productType;
+
     private String userCode;
 
     private String mobile;
@@ -146,5 +151,13 @@ public class UserInfoMqRes {
 
     public void setGender(Integer gender) {
         this.gender = gender;
+    }
+
+    public String getProductType() {
+        return productType;
+    }
+
+    public void setProductType(String productType) {
+        this.productType = productType;
     }
 }

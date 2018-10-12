@@ -17,6 +17,9 @@ public class WebMvcConfig extends WebMvcConfigurerAdapter {
     @Autowired
     private AuthInterceptor authInterceptor;
 
+    @Autowired
+    private AddLoanOrderInterceptor addLoanOrderInterceptor;
+
     @Value("${sign.switch}")
     private String signSwitch;
 
@@ -26,6 +29,7 @@ public class WebMvcConfig extends WebMvcConfigurerAdapter {
         Boolean aBoolean = Boolean.valueOf(signSwitch);
         if(aBoolean){
             registry.addInterceptor(authInterceptor).addPathPatterns("/**");
+            registry.addInterceptor(addLoanOrderInterceptor).addPathPatterns("/order/add");
         }
     }
 

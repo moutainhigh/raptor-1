@@ -103,6 +103,7 @@ public class RedisParams {
      * 用于保存临时token的key
      */
     public static final String ACTION_TOKEN_LONG = "action_token_long_";
+    public static final String ACTION_TOKEN_LONG_AUDIT = "action_token_long_audit";
 
     /**
      * 修改资金密码限制错误次数key
@@ -128,6 +129,11 @@ public class RedisParams {
      * 允许新用户注册key
      */
     public static final String ALLOW_NEW_USER_REGISTER_KEY = "allow_new_user_register_key_";
+
+    /**
+     * 下单限制的key
+     */
+    public static final String ADD_LOAN_ORDER_KEY = "add_loan_order_key";
 
     public static String getActionToken(String actionToken){
         return ACTION_TOKEN_LONG + actionToken;

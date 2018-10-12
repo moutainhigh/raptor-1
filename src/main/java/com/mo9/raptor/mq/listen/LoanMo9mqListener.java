@@ -33,6 +33,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
@@ -95,6 +96,9 @@ public class LoanMo9mqListener implements IMqMsgListener{
 
 	@Autowired
     private CouponService couponService;
+
+	@Value("${raptor.sockpuppet}")
+	private String sockpuppet;
 
     @Override
 	 public MqAction consume(MqMessage msg, Object consumeContext) {
@@ -348,7 +352,11 @@ public class LoanMo9mqListener implements IMqMsgListener{
 		// TODO: 发送消息给贷后
         if ("1".equals(status)) {
 			try {
-				notifyMisLend(orderId);
+				LoanOrderEntity loanOrderEntity = loanOrderService.getByOrderId(orderId);
+				if (StatusEnum.LENT.name().equals(loanOrderEntity.getStatus())) {
+					// 放款成功才想贷后发信息
+					notifyMisLend(orderId);
+				}
 			} catch (Exception e) {
 				logger.error("向贷后发送放款信息失败  ", e);
 			}
@@ -378,6 +386,7 @@ public class LoanMo9mqListener implements IMqMsgListener{
         List<PayOrderEntity> payOrderEntities = payOrderService.listByLoanOrderIdAndType(orderId, PayTypeEnum.REPAY_POSTPONE);
         lendInfo.setPostponeCount(payOrderEntities.size());
         lendInfo.setRepaymentTime(loanOrderEntity.getRepaymentDate());
+        lendInfo.setProductType(sockpuppet);
 
 
 
@@ -399,6 +408,7 @@ public class LoanMo9mqListener implements IMqMsgListener{
 //        userInfo.setContactsList(userContactsEntity.getContactsList());
         userInfo.setGender(userCertifyInfoEntity.getOcrGender());
         userInfo.setDeleted(userEntity.getDeleted());
+		userInfo.setProductType(sockpuppet);
 
         JSONObject result = new JSONObject();
         result.put("lendInfo", lendInfo);
@@ -446,6 +456,7 @@ public class LoanMo9mqListener implements IMqMsgListener{
         // 设置减免金额
         BigDecimal totalDeductedAmount = couponService.getTotalDeductedAmount(loanOrderEntity.getOrderId());
         repayInfo.setTotalReliefAmount(totalDeductedAmount);
+		repayInfo.setProductType(sockpuppet);
 
 
         JSONObject result = new JSONObject();

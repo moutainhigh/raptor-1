@@ -135,10 +135,21 @@ body .wrapper .term-part ul li.term-item .logo {
   background-image: url(../images/payeco.png);
 }
 
+body .wrapper .term-part ul li.term-item .yibao2018pay {
+  width: 10.66667vw;
+  height: 10.66667vw;
+  margin: 0 3.73333vw;
+  background-size:100% auto;
+  background-position: 50% 50%;
+  background-repeat: no-repeat;
+  background-image: url(../images/yibao2018pay.png);
+}
+
 body .wrapper .term-part ul li.term-item .text {
   font-size: 4.26667vw;
   color: #333333;
   padding-right: 4.26667vw;
+  width: 21.33333vw;
 }
 
 body .wrapper .term-part ul li.term-item .bank-card {
@@ -290,4 +301,41 @@ body .wrapper .card-picker-container .card-picker ul li.add-new-card .logo-more 
   position: absolute;
   right: 5.33333vw;
 }
+
+
+body .mask {
+  height: 100vh;
+  position: absolute;
+  width: 100vw;
+  background: black;
+  opacity: 0.5;
+  top: 0;
+}
+
+body .confirm-modal {
+  position: absolute;
+  top: 27%;
+  left: 10%;
+  z-index: 1;
+  background: white;
+  min-height: 150px;
+  width: 70%;
+  margin: 0 auto;
+  border-radius: 5px;
+  padding: 20px;
+}
+
+body .confirm-modal .bottom {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+}
+
+body .confirm-modal .bottom > span {
+  margin-left: 20px;
+  color: #4fc0b2;
+}
+
+
+
 /*# sourceMappingURL=pay.css.map */

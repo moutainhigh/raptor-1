@@ -3,6 +3,8 @@ package com.mo9.raptor.utils;
 import com.mo9.raptor.bean.ReqHeaderParams;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * ip相关工具类
@@ -10,6 +12,8 @@ import javax.servlet.http.HttpServletRequest;
  * @date 2018/9/18
  */
 public class IpUtils {
+
+    public static List<String> ips = Arrays.asList("127.0.0.1","180.169.230.184","180.169.230.29","117.131.10.26", "58.247.31.122", "192.168.3.31", "180.169.230.186", "192.168.12.52", "192.168.12.118");
 
     public static String getRemoteHost(HttpServletRequest request) {
         String unknown = "unknown";
