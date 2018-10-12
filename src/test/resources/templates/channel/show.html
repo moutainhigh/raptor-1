@@ -37,17 +37,21 @@
   <th>渠道名称</th>
   <th>子渠道</th>
   <th>注册用户数</th>
+  <th>填写资料数</th>
+  <th>借款数</th>
   <th>日期</th>
   </thead>
   <tbody>
   <tr th:if="${#lists.size(resultList)}==0">
-    <td th:text="暂无记录" colspan="5"></td>
+    <td th:text="暂无记录" colspan="7"></td>
   </tr>
-  <tr th:each="entries,stat:${resultList}" th:style="'background-color:'+@{${stat.odd}?'#F2F2F2'}">
+  <tr th:each="entries,stat:${resultList}" style="background-color:#F2F2F2">
     <td th:text="${stat.count}" width=100px></td>
     <td th:text="${entries['source']}" width=100px></td>
     <td th:text="${entries['sub_source']}" width=100px></td>
     <td th:text="${entries['num']}" width=100px></td>
+    <td th:text="${entries['audit_num']}?:'0'" width=100px></td>
+    <td th:text="${entries['loan_num']}?:'0'" width=100px></td>
     <td th:text="${entries['date']}" width=100px></td>
   </tr>
   </tbody>
