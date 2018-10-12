@@ -15,6 +15,9 @@ public class RiskScoreEntity {
     @Column(name = "mobile")
     private String mobile;
 
+    @Column(name = "result")
+    private String result;
+
     @Column(name = "score")
     private Double score;
 
@@ -59,5 +62,13 @@ public class RiskScoreEntity {
 
     public void setCreateTime(Long createTime) {
         this.createTime = createTime;
+    }
+
+    public String getResult() {
+        return result;
+    }
+
+    public void setResult(String result) {
+        this.result = result;
     }
 }

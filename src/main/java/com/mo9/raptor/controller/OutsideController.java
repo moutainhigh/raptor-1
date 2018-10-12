@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
+import org.springframework.stereotype.Repository;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -305,10 +306,9 @@ public class OutsideController {
     }
 
 
-    @RequestMapping(value = "/manual_audit_user")
-    @ResponseBody
-    public BaseResponse<Boolean> manualAuditUser(@RequestParam(value = "mobiles") List<String> mobiles,
-                                                 @RequestParam(value = "status") StatusEnum status, @RequestParam(value = "password") String password,@RequestParam(required = false) String explanation) {
+//    @GetMapping("/manual_audit_user")
+//    @ResponseBody
+    private BaseResponse<Boolean> manualAuditUser(List<String> mobiles, StatusEnum status, String password,String explanation) {
         BaseResponse<Boolean> response = new BaseResponse<Boolean>();
         if (!password.equals("mo9@2018")) {
             return response.buildFailureResponse(ResCodeEnum.INVALID_SIGN);
@@ -319,8 +319,7 @@ public class OutsideController {
                 try {
                     manualUser(mobiles, status,explanation);
                 } catch (Exception e) {
-                    logger.error("批量人工修改用户状态出现异常");
-                    e.printStackTrace();
+                    logger.error("批量人工修改用户状态出现异常", e);
                 }
             }
         });
@@ -353,6 +352,12 @@ public class OutsideController {
             userEventLauncher.launch(event);
         }
 
+    }
+
+    @GetMapping("/test")
+    @ResponseBody
+    public String test(){
+        return "3333";
     }
 
 }

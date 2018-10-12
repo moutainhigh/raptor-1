@@ -15,7 +15,7 @@ public class MessageNotifyRequestVo {
     /**
      * 系统名 -- 默认 RAPTOR
      */
-    private String systemCode = "RAPTOR" ;
+    private String systemCode;
 
     /**
      * 事件类型 -- 自定义

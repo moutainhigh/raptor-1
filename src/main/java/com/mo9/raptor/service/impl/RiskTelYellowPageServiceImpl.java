@@ -19,12 +19,11 @@ public class RiskTelYellowPageServiceImpl implements RiskTelYellowPageService {
     private RiskTelYellowPageRepository riskTelYellowPageRepository;
     
     @Override
-    public RiskTelYellowPage save(RiskTelYellowPage entity) {
+    public RiskTelYellowPage saveOrUpdate(RiskTelYellowPage entity) {
+        if (entity.getCreateTime() == null){
+            entity.setCreateTime(System.currentTimeMillis());
+        }
         return riskTelYellowPageRepository.save(entity);
     }
 
-    @Override
-    public RiskTelYellowPage update(RiskTelYellowPage updateEntity) {
-        return riskTelYellowPageRepository.saveAndFlush(updateEntity);
-    }
 }
