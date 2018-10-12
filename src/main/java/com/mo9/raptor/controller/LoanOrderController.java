@@ -3,6 +3,7 @@ package com.mo9.raptor.controller;
 import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.bean.BaseResponse;
 import com.mo9.raptor.bean.ReqHeaderParams;
+import com.mo9.raptor.bean.condition.StrategyCondition;
 import com.mo9.raptor.bean.req.OrderAddReq;
 import com.mo9.raptor.bean.res.LoanOrderRes;
 import com.mo9.raptor.engine.entity.LendOrderEntity;
@@ -85,6 +86,9 @@ public class LoanOrderController {
 
     @Autowired
     private BankService bankService;
+
+    @Autowired
+    private StrategyService strategyService;
 
     /**
      * 下单
@@ -186,6 +190,17 @@ public class LoanOrderController {
                 if (bankEntity == null) {
                     return response.buildFailureResponse(ResCodeEnum.NO_LEND_INFO);
                 }
+                //检查银行卡是否支持
+                StrategyCondition condition = new StrategyCondition(true);
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put(StrategyCondition.BANK_NAME_CONDITION, bankEntity.getBankName());
+                condition.setCondition(jsonObject);
+                ResCodeEnum resCodeEnum = strategyService.loanOrderStrategy(condition);
+                if(resCodeEnum != ResCodeEnum.SUCCESS){
+                    logger.warn("借款订单银行卡不支持userCode={}, bankName={}", userCode, bankEntity.getBankName());
+                    return response.buildFailureResponse(resCodeEnum);
+                }
+
                 lendOrder.setUserName(bankEntity.getUserName());
                 lendOrder.setIdCard(bankEntity.getCardId());
                 lendOrder.setBankName(bankEntity.getBankName());
