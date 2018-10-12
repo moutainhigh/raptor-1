@@ -85,7 +85,7 @@ public class DingTalkServiceImpl implements DingTalkService {
 
 
         params.put("mediaType", "text");
-        params.put("hook", "https://oapi.dingtalk.com/robot/send?access_token=a9715f11e0b1f544f8dd5dae788985ccf38a54cec23198a42ab3f1e1b5b31b7c");
+        params.put("hook", "https://oapi.dingtalk.com/robot/send?access_token=51c1205303ab1ea4fb4d1e7d9739d7a0730509795e5218e5766cd21dd267151b");
         params.put("message","【" + environment + "】 + \n" + message);
         params.put("target", "13564546025");
 
