@@ -26,9 +26,6 @@ public class StrategyServiceImpl implements StrategyService {
         if(strategyCondition.isLoanBankSupport()){
             resCodeEnum = ckeckLoanBank(strategyCondition.getCondition().getString(StrategyCondition.BANK_NAME_CONDITION));
         }
-        if(resCodeEnum != ResCodeEnum.SUCCESS){
-            return resCodeEnum;
-        }
         return resCodeEnum;
     }
 

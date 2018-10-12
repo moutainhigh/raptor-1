@@ -28,7 +28,7 @@ public class StrategyServiceTest {
         //检查银行卡是否支持
         StrategyCondition condition = new StrategyCondition(true);
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put(StrategyCondition.BANK_NAME_CONDITION, "中国工商银行");
+        jsonObject.put(StrategyCondition.BANK_NAME_CONDITION, "招商银行");
         condition.setCondition(jsonObject);
         ResCodeEnum resCodeEnum = strategyService.loanOrderStrategy(condition);
         System.out.println(resCodeEnum);
