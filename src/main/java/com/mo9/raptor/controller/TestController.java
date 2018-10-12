@@ -82,6 +82,9 @@ public class TestController {
     @Value("${raptor.sockpuppet}")
     private String sockpuppet;
 
+    @Value("${loan.name.cn}")
+    private String loanNameCn ;
+
     /**
      * 获取短信验证码
      * @param request
@@ -126,6 +129,11 @@ public class TestController {
     @RequestMapping("/test")
     public String test(){
         return "1";
+    }
+
+    @RequestMapping("/getNameCn")
+    public String getNameCn(){
+        return loanNameCn;
     }
 
     private String getRedisKey(String redisKey, String receive, CaptchaBusinessEnum businessCode){
