@@ -197,7 +197,7 @@ public class LoanOrderController {
                 condition.setCondition(jsonObject);
                 ResCodeEnum resCodeEnum = strategyService.loanOrderStrategy(condition);
                 if(resCodeEnum != ResCodeEnum.SUCCESS){
-                    logger.warn("借款订单银行卡不支持userCode={}, bankName={}", userCode, bankEntity.getBankName());
+                    logger.warn("借款订单银行卡不支持userCode={}, bankName={},bankNo={}", userCode, bankEntity.getBankName(), bankEntity.getBankNo());
                     return response.buildFailureResponse(resCodeEnum);
                 }
 
