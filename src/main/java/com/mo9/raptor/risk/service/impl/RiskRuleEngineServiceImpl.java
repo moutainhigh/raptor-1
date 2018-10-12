@@ -107,7 +107,7 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
     public AuditResponseEvent mergencyCallTimesRule(String userCode) {
 
         UserEntity userEntity = userService.findByUserCode(userCode);
-        String mobile = "18672765652";
+        String mobile = userEntity.getMobile();
         
         String reportJson = getReport(mobile);
         if (!checkReportStatus(reportJson)){
