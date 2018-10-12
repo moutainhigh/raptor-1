@@ -213,7 +213,7 @@ public class LoanOrderController {
                 //检查银行卡是否支持
                 StrategyCondition condition = new StrategyCondition(true);
                 JSONObject jsonObject = new JSONObject();
-                jsonObject.put(StrategyCondition.BANK_NAME_CONDITION, bankEntity.getBankName());
+                jsonObject.put(StrategyCondition.BANK_NAME_CONDITION, lendOrder.getBankName());
                 condition.setCondition(jsonObject);
                 ResCodeEnum resCodeEnum = strategyService.loanOrderStrategy(condition);
                 if(resCodeEnum != ResCodeEnum.SUCCESS){
