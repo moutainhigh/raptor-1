@@ -3,6 +3,8 @@ package com.mo9.raptor.service.impl;
 import com.mo9.raptor.entity.RiskMergencyContact;
 import com.mo9.raptor.repository.RiskMergencyContactRepository;
 import com.mo9.raptor.service.RiskMergencyContactService;
+import com.mo9.raptor.utils.log.Log;
+import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -15,6 +17,8 @@ import javax.annotation.Resource;
 
 @Service("RiskMergencyContactService")
 public class RiskMergencyContactServiceImpl implements RiskMergencyContactService {
+    private static Logger logger = Log.get();
+    
     @Resource
     private RiskMergencyContactRepository riskMergencyContactRepository;
     
@@ -38,7 +42,7 @@ public class RiskMergencyContactServiceImpl implements RiskMergencyContactServic
 
             return riskMergencyContactRepository.save(entity);
         }catch (Exception e){
-            e.printStackTrace();
+            logger.warn("保存紧急联系人出错，mobile: {}, contact: {}", entity.getMobile(), entity.getContractTel());
         }
         
         return null;
