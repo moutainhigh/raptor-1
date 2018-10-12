@@ -3,6 +3,8 @@ package com.mo9.raptor.service.impl;
 import com.mo9.raptor.entity.RiskTelYellowPage;
 import com.mo9.raptor.repository.RiskTelYellowPageRepository;
 import com.mo9.raptor.service.RiskTelYellowPageService;
+import com.mo9.raptor.utils.log.Log;
+import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -15,6 +17,8 @@ import javax.annotation.Resource;
 
 @Service("riskTelYellowPageService")
 public class RiskTelYellowPageServiceImpl implements RiskTelYellowPageService {
+    private static Logger logger = Log.get();
+    
     @Resource
     private RiskTelYellowPageRepository riskTelYellowPageRepository;
     
@@ -26,7 +30,7 @@ public class RiskTelYellowPageServiceImpl implements RiskTelYellowPageService {
             }
             return riskTelYellowPageRepository.save(entity);
         }catch (Exception e){
-            e.printStackTrace();
+            logger.warn("保存黄页电话出错，tel: {}", entity.getFormatTel());
         }
         return null;
     }
