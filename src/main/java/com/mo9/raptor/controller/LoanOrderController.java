@@ -198,7 +198,12 @@ public class LoanOrderController {
                 } else {
                     CardBinInfoEntity byCardPrefix = cardBinInfoService.findByCardPrefix(req.getCard().substring(0, 6));
                     lendOrder.setBankCard(req.getCard());
-                    lendOrder.setBankName(byCardPrefix.getCardBank());
+                    if(byCardPrefix == null){
+                        lendOrder.setBankName("银行卡");
+                    }else{
+                        lendOrder.setBankName(byCardPrefix.getCardBank());
+                    }
+
                 }
                 if (StringUtils.isBlank(req.getCardMobile())) {
                     lendOrder.setBankMobile(bankEntity.getMobile());
