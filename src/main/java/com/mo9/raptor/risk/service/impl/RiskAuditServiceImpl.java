@@ -259,10 +259,8 @@ public class RiskAuditServiceImpl implements RiskAuditService {
                                 if (cuishouRiskDetection.containsKey("detection_result") && cuishouRiskDetection.containsKey("yisicuishou")) {
                                     Integer detectionResult = cuishouRiskDetection.getInteger("detection_result");
                                     Integer cuishou30dayTimes = cuishouRiskDetection.getJSONObject("yisicuishou").getInteger("30day_times");
-                                    if (cuishou30dayTimes > 0) {
-                                        return new AuditResponseEvent(userCode, false, "30天内有过催收电话");
-                                    } else if (detectionResult == 2 || detectionResult == 3) {
-                                        return new AuditResponseEvent(userCode, false, "风险检测催收大于等于中度(" + detectionResult + ")");
+                                    if ((cuishou30dayTimes > 0) && (detectionResult == 2 || detectionResult == 3)) {
+                                        return new AuditResponseEvent(userCode, false, "30天内有催收电话并且风险检测催收大于等于中度(" + detectionResult + ")");
                                     } else {
                                         return new AuditResponseEvent(userCode, true, "");
                                     }
