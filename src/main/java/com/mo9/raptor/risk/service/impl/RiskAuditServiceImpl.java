@@ -175,6 +175,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         AuditResponseEvent finalResult = null;
         AuditResponseEvent res = null;
         ArrayList<AuditTask> taskList = new ArrayList<>();
+        taskList.add(new AuditTask((u) -> chaseDebtRule(u), "ChaseDebtRule", false));
         taskList.add(new AuditTask((u) -> blackListRule(u), "BlackListRule", true));
         taskList.add(new AuditTask((u) -> riskWordRule(u), "RiskWordRule", true));
         taskList.add(new AuditTask((u) -> riskRuleEngineService.mergencyCallTimesRule(u), "MergencyCallTimesRule", true));
@@ -224,7 +225,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
                     return new AuditResponseEvent(userCode, "评分出错", AuditResultEnum.MANUAL);
                 }
                 if (score >= riskScoreLimit) {
-                    return new AuditResponseEvent(userCode, "", AuditResultEnum.PASS);
+                    return new AuditResponseEvent(userCode, "通过", AuditResultEnum.PASS);
                 } else {
                     return new AuditResponseEvent(userCode, "评分过低[" + score + "]", AuditResultEnum.MANUAL);
                 }
@@ -237,6 +238,51 @@ public class RiskAuditServiceImpl implements RiskAuditService {
 
     private static final int HTTP_OK = 200;
     private static final int ERROR_SCORE_CODE = -1;
+
+    AuditResponseEvent chaseDebtRule(String userCode) {
+        UserEntity user = userService.findByUserCode(userCode);
+        try {
+            if (user != null && StringUtils.isNotBlank(user.getMobile())) {
+                String url = readEndpoint + "/" + secondDomain + "/" + sockpuppet + "-" + user.getMobile() + "-report.json";
+                logger.info("读取报告" + url);
+                OkHttpClient okHttpClient = new OkHttpClient();
+                Response response = okHttpClient.newCall(new Request.Builder().get().url(url).build()).execute();
+                if (response.code() == HTTP_OK) {
+                    String json = response.body().string();
+                    JSONObject jsonObject = JSON.parseObject(json);
+                    Integer status = jsonObject.getInteger("status");
+                    if (status == 0) {
+                        if (jsonObject.containsKey("data")) {
+                            JSONObject data = jsonObject.getJSONObject("data");
+                            if (data.containsKey("cuishou_risk_detection")) {
+                                JSONObject cuishouRiskDetection = data.getJSONObject("cuishou_risk_detection");
+                                if (cuishouRiskDetection.containsKey("detection_result") && cuishouRiskDetection.containsKey("yisicuishou")) {
+                                    Integer detectionResult = cuishouRiskDetection.getInteger("detection_result");
+                                    Integer cuishou30dayTimes = cuishouRiskDetection.getJSONObject("yisicuishou").getInteger("30day_times");
+                                    if (cuishou30dayTimes > 0) {
+                                        return new AuditResponseEvent(userCode, false, "30天内有过催收电话");
+                                    } else if (detectionResult == 2 || detectionResult == 3) {
+                                        return new AuditResponseEvent(userCode, false, "风险检测催收大于等于中度(" + detectionResult + ")");
+                                    } else {
+                                        return new AuditResponseEvent(userCode, true, "");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    return new AuditResponseEvent(userCode, false, "致命问题！！报告字段不准确");
+
+                } else {
+                    return new AuditResponseEvent(userCode, false, "报告不存在");
+                }
+            } else {
+                return new AuditResponseEvent(userCode, false, "查询不到该用户，或者该用户手机号为空");
+            }
+        } catch (Exception e) {
+            logger.error(userCode + "检查报告出错", e);
+            return new AuditResponseEvent(userCode, false, "致命问题！！检查运营商报告出错");
+        }
+    }
 
     AuditResponseEvent blackListRule(String userCode) {
         UserEntity user = userService.findByUserCodeAndDeleted(userCode, false);
