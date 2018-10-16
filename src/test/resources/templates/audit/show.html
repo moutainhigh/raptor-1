@@ -52,7 +52,7 @@
         </thead>
         <tbody>
         <tr th:if="${#lists.size(resultList)}==0">
-            <td th:text="暂无记录" colspan="8"></td>
+            <td th:text="暂无记录" colspan="9"></td>
         </tr>
         <tr th:each="entries,stat:${resultList}" style="background-color:#F2F2F2">
             <td th:text="${stat.count}" width=100px></td>
@@ -78,12 +78,12 @@
 </div>
 </body>
 <script type="text/javascript">
-    var source = 'channel_1';
     function show_sub(){
-     source = $("#channel_id").find("option:selected").val();
+     var source = source = $("#channel_id").find("option:selected").val();
     window.location.href="./to_login?source="+source;
     };
    function audit_function(userCode,type){
+   var source = source = $("#channel_id").find("option:selected").val();
          if(type == 'passed'){
           var tip = "是否确认通过审核!";
           var url = "./operate?type=PASSED&userCode="+userCode;

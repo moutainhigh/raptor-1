@@ -11,6 +11,7 @@ import com.mo9.raptor.engine.state.launcher.IEventLauncher;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.BankAuthStatusEnum;
 import com.mo9.raptor.enums.DictEnums;
+import com.mo9.raptor.enums.SourceEnum;
 import com.mo9.raptor.redis.RedisParams;
 import com.mo9.raptor.redis.RedisServiceApi;
 import com.mo9.raptor.repository.UserRepository;
@@ -243,6 +244,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserEntity> findManualAuditUser(String source) {
+        if (SourceEnum.NEW.name().equals(source)){
+            return userRepository.findManualAuditUserNew(source);
+        }
      return  userRepository.findManualAuditUser(source);
     }
 

@@ -89,6 +89,9 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
     @Query(value = "SELECT  * from t_raptor_user where source = ?1 and deleted = 0 and status in('MANUAL','PASSED','REJECTED')", nativeQuery = true)
     List<UserEntity> findManualAuditUser(String source);
 
+    @Query(value = "SELECT  * from t_raptor_user where source = ?1 and deleted = 0 and status = 'MANUAL'", nativeQuery = true)
+    List<UserEntity> findManualAuditUserNew(String source);
+
     @Query(value = "SELECT  COUNT(*) audit_num,source,sub_source,FROM_UNIXTIME(create_time / 1000,'%Y-%m-%d ') date from t_raptor_user where source = ?1 and deleted = 0 and status not in('BLACK','COLLECTING')GROUP BY FROM_UNIXTIME(create_time / 1000,'%Y-%m-%d '),sub_source order by id asc", nativeQuery = true)
     List<Map<String,Object>> toAuditUserCount(String source);
 
