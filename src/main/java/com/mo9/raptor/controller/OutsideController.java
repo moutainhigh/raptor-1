@@ -160,7 +160,7 @@ public class OutsideController {
         //非登录状态去登录
         if (spreadChannelUser == null) {
             if (StringUtils.isEmpty(userName) || StringUtils.isEmpty(password)) {
-                model.addAttribute("message", "帐号或密码错误");
+                model.addAttribute("message", "登录已过期");
                 return "channel/login";
             }
             spreadChannelUser = spreadChannelService.findByLoginNameAndPassword(userName, password);
@@ -170,7 +170,7 @@ public class OutsideController {
             }
         }
         //设置登录成功
-        redisServiceApi.set(RedisParams.ACTION_TOKEN_LONG + remoteHost, spreadChannelUser, RedisParams.EXPIRE_30M, raptorRedis);
+        redisServiceApi.set(RedisParams.ACTION_TOKEN_LONG + remoteHost, spreadChannelUser, RedisParams.EXPIRE_1D, raptorRedis);
         logger.info("渠道推广登录接口-------->>>>>渠道[{}]登录成功,ip为[{}]", spreadChannelUser.getSource(), remoteHost);
         Page<Map<String, Object>> registerUser = userService.getRegisterUserNumber(spreadChannelUser.getSource(), new PageReq());
 
