@@ -20,7 +20,7 @@ public class RiskScoreServiceImpl implements RiskScoreService {
         riskScoreEntity.setMobile(mobile);
         riskScoreEntity.setUserCode(userCode);
         riskScoreEntity.setScore(score);
-//        riskScoreEntity.setResult(result);
+        riskScoreEntity.setResult(result);
         riskScoreEntity.setCreateTime(System.currentTimeMillis());
         return riskScoreRepository.save(riskScoreEntity);
     }
