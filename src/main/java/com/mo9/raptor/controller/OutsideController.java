@@ -38,10 +38,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by jyou on 2018/9/29.
@@ -54,7 +51,7 @@ import java.util.Map;
 public class OutsideController {
 
     private static final String salt = "rtsDDcogZcPCu!NYkfgfjQq6O;~2Brtr";
-    public static List<String>  MANUAL_AUDIT_USER = Arrays.asList("LBHM:V0CR8N","DFDF:FVEPA4","WEFE:C9WHMP","HRRG:KVTT6D","YERT:R3VZQ5","EYEH:TGUOAP","JDFG:AU5M1W","SDFG:XA2YES","DFGD:5MAJBH","UTRR:UIJH44","PIUO:0B43LW","IPUI:TSWIKC","YUTY:57AD3Z","RETT:2FFMI9","QWEF:9ZUG2C");
+    public static List<String> MANUAL_AUDIT_USER = Arrays.asList("LBHM:V0CR8N", "DFDF:FVEPA4", "WEFE:C9WHMP", "HRRG:KVTT6D", "YERT:R3VZQ5", "EYEH:TGUOAP", "JDFG:AU5M1W", "SDFG:XA2YES", "DFGD:5MAJBH", "UTRR:UIJH44", "PIUO:0B43LW", "IPUI:TSWIKC", "YUTY:57AD3Z", "RETT:2FFMI9", "QWEF:9ZUG2C");
     private static Logger logger = Log.get();
     private static final String DATE_FORMAT = "yyyy-MM-dd hh:mm:ss";
     //    @Value("${raptor.url}")
@@ -86,6 +83,7 @@ public class OutsideController {
 
     /**
      * 拉黑用户
+     *
      * @param userCode
      * @param desc
      * @param sign
@@ -175,10 +173,53 @@ public class OutsideController {
         redisServiceApi.set(RedisParams.ACTION_TOKEN_LONG + remoteHost, spreadChannelUser, RedisParams.EXPIRE_30M, raptorRedis);
         logger.info("渠道推广登录接口-------->>>>>渠道[{}]登录成功,ip为[{}]", spreadChannelUser.getSource(), remoteHost);
         Page<Map<String, Object>> registerUser = userService.getRegisterUserNumber(spreadChannelUser.getSource(), new PageReq());
+
         List<Map<String, Object>> content = registerUser.getContent();
+
+        //根据渠道和子渠道查询填写资料用户个数
+        List<Map<String, Object>> auditUser = userService.toAuditUserCount(spreadChannelUser.getSource());
+        // 查询去借款的用户数
+        List<Map<String, Object>> channelLoanCount = userService.getChannelLoanCount(spreadChannelUser.getSource());
+        //组装数据
+        content = getResultList(content, auditUser, channelLoanCount);
         model.addAttribute("resultList", content);
         model.addAttribute("code", 0);
         return "channel/show";
+    }
+
+    private List<Map<String, Object>> getResultList(List<Map<String, Object>> content, List<Map<String, Object>> auditUser, List<Map<String, Object>> channelLoanCount) {
+        List<Map<String, Object>> resultList = new ArrayList<>();
+        for (int i = 0; i < content.size(); i++) {
+            Map<String, Object>  map =new HashMap<>();
+            Map<String, Object> cMap = content.get(i);
+            map.putAll(cMap);
+            for (Map<String, Object> auditUserMap : auditUser){
+                if (cMap.get("date").equals(auditUserMap.get("date"))&& cMap.get("source").equals(auditUserMap.get("source"))){
+                    if (cMap.get("sub_source") == null||auditUserMap.get("sub_source")==null) {
+                        map.putAll(auditUserMap);
+                        continue;
+                    }
+                    if (cMap.get("sub_source").equals(auditUserMap.get("sub_source"))) {
+                        map.putAll(auditUserMap);
+                        continue;
+                    }
+                }
+            }
+            for (Map<String, Object> loanMap : channelLoanCount){
+                if (cMap.get("source").equals(loanMap.get("source"))&&cMap.get("date").equals(loanMap.get("date"))){
+                    if (cMap.get("sub_source") == null||loanMap.get("sub_source")==null) {
+                        map.putAll(loanMap);
+                        continue;
+                    }
+                    if (cMap.get("sub_source").equals(loanMap.get("sub_source"))) {
+                        map.putAll(loanMap);
+                        continue;
+                    }
+                }
+            }
+            resultList.add(map);
+        }
+        return resultList;
     }
 
     @GetMapping("/login")
@@ -203,33 +244,34 @@ public class OutsideController {
         }
         return "audit/contacts";
     }
+
     @GetMapping("/update_all_bank_name")
     @ResponseBody
-    public BaseResponse<Boolean> updateAllBankName(String password){
+    public BaseResponse<Boolean> updateAllBankName(String password) {
         BaseResponse<Boolean> response = new BaseResponse<Boolean>();
-        if(!password.equals("mo9@2018")){
+        if (!password.equals("mo9@2018")) {
             return response.buildFailureResponse(ResCodeEnum.INVALID_SIGN);
         }
         Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
                 List<BankEntity> list = bankService.findAll();
-                if(list == null || list.size() == 0){
+                if (list == null || list.size() == 0) {
                     return;
                 }
 
-                for(BankEntity bankEntity : list){
+                for (BankEntity bankEntity : list) {
                     String bankNo = bankEntity.getBankNo();
-                    if(org.apache.commons.lang.StringUtils.isBlank(bankNo) || bankNo.length() < 6){
+                    if (org.apache.commons.lang.StringUtils.isBlank(bankNo) || bankNo.length() < 6) {
                         continue;
                     }
                     CardBinInfoEntity cardBinInfoEntity = cardBinInfoService.findByCardPrefix(bankNo.substring(0, 6));
-                    if(cardBinInfoEntity == null){
+                    if (cardBinInfoEntity == null) {
                         bankEntity.setBankName("未知");
-                    }else{
+                    } else {
                         String bankName = bankEntity.getBankName();
                         String cardBank = cardBinInfoEntity.getCardBank();
-                        if(cardBank.equals(bankName)){
+                        if (cardBank.equals(bankName)) {
                             continue;
                         }
                         bankEntity.setBankName(cardBank);
@@ -314,11 +356,11 @@ public class OutsideController {
         List<String> mobile = new ArrayList<>();
         UserEntity userEntity = userService.findByUserCodeAndDeleted(userCode, false);
         //非人工审核状态禁止
-        if (userEntity == null||!StatusEnum.MANUAL.name().equals(userEntity.getStatus())) {
+        if (userEntity == null || !StatusEnum.MANUAL.name().equals(userEntity.getStatus())) {
             return "-1";
         }
         mobile.add(userEntity.getMobile());
-        manualAuditUser(mobile, StatusEnum.valueOf(type), "mo9@2018","人工审核，操作人:"+username);
+        manualAuditUser(mobile, StatusEnum.valueOf(type), "mo9@2018", "人工审核，操作人:" + username);
         //查询所有需要人工审核的用户
         List<UserEntity> userEntities = userService.findManualAuditUser("channel_1");
         //封装返回参数
@@ -362,9 +404,9 @@ public class OutsideController {
     }
 
 
-//    @GetMapping("/manual_audit_user")
+    //    @GetMapping("/manual_audit_user")
 //    @ResponseBody
-    private BaseResponse<Boolean> manualAuditUser(List<String> mobiles, StatusEnum status, String password,String explanation) {
+    private BaseResponse<Boolean> manualAuditUser(List<String> mobiles, StatusEnum status, String password, String explanation) {
         BaseResponse<Boolean> response = new BaseResponse<Boolean>();
         if (!password.equals("mo9@2018")) {
             return response.buildFailureResponse(ResCodeEnum.INVALID_SIGN);
@@ -373,7 +415,7 @@ public class OutsideController {
             @Override
             public void run() {
                 try {
-                    manualUser(mobiles, status,explanation);
+                    manualUser(mobiles, status, explanation);
                 } catch (Exception e) {
                     logger.error("批量人工修改用户状态出现异常", e);
                 }
@@ -384,7 +426,7 @@ public class OutsideController {
 
     }
 
-    private void manualUser(List<String> mobiles, StatusEnum statusEnum,String explanation) throws Exception {
+    private void manualUser(List<String> mobiles, StatusEnum statusEnum, String explanation) throws Exception {
         List<UserEntity> list = userService.findByMobiles(mobiles);
         if (list == null || list.size() == 0) {
             logger.info("批量人工修改用户状态根据手机号列表查询用户不存在");
@@ -412,7 +454,7 @@ public class OutsideController {
 
     @GetMapping("/test")
     @ResponseBody
-    public String test(){
+    public String test() {
         return "4444";
     }
 
