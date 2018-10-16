@@ -35,9 +35,6 @@ public class SpreadChannelServiceImpl implements SpreadChannelService{
         if(list == null || list.size() == 0){
             return false;
         }
-        if(source.equals("NEW")){
-            return false;
-        }
         for (SpreadChannelEntity entity: list){
             String source1 = entity.getSource();
             if(source.equals(source1)){
