@@ -293,7 +293,7 @@ public class OutsideController {
      * @return
      */
     @RequestMapping("audit/to_login")
-    public String audittoLogin(Model model, HttpServletRequest request, HttpServletResponse response) {
+    public String audittoLogin(Model model, HttpServletRequest request, HttpServletResponse response,@RequestParam(required = false,defaultValue = "channel_1") String source) {
         String userName = request.getParameter("userName");
         String password = request.getParameter("password");
         String remoteHost = IpUtils.getRemoteHost(request);
@@ -325,12 +325,13 @@ public class OutsideController {
         redisServiceApi.set(RedisParams.ACTION_TOKEN_LONG_AUDIT + remoteHost, auditUser, RedisParams.EXPIRE_30M, raptorRedis);
 
         //查询所有需要人工审核的用户
-        List<UserEntity> userEntities = userService.findManualAuditUser("channel_1");
+        List<UserEntity> userEntities = userService.findManualAuditUser(source);
         //封装返回参数
         List<ManualAuditUserRes> resultList = copyUserEntityProperties(userEntities);
 
         model.addAttribute("resultList", resultList);
         model.addAttribute("code", 0);
+        model.addAttribute("source",source);
         return "audit/show";
     }
 

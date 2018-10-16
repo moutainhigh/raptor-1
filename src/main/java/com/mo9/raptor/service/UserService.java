@@ -149,7 +149,6 @@ public interface UserService {
      * @return
      */
     List<Map<String,Object>> getChannelLoanCount(String source);
-}
 
     /**
      * 从审核中状态回退到信息采集中
