@@ -268,7 +268,8 @@ public class RiskAuditServiceImpl implements RiskAuditService {
                             }
                         }
                     }
-                    return new AuditResponseEvent(userCode, false, "致命问题！！报告字段不准确");
+                    logger.info(userCode + "催收字段不存在");
+                    return new AuditResponseEvent(userCode, true, "");
 
                 } else {
                     return new AuditResponseEvent(userCode, false, "报告不存在");

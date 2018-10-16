@@ -15,6 +15,7 @@ import com.mo9.raptor.utils.log.Log;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -54,6 +55,9 @@ public class CaptchaController {
     @Resource
     private SpreadChannelService spreadChannelService;
 
+    @Value("${raptor.app.register.allow}")
+    private String isAppRegisterAllow;
+
 
     /**
      * 发送登录短信验证码
@@ -80,15 +84,17 @@ public class CaptchaController {
                     logger.warn("发送登录验证码-------->>>>>>>>非白名单用户[{}]", mobile);
                     return response.buildFailureResponse(ResCodeEnum.NOT_WHITE_LIST_USER);
                 }
-                if(StringUtils.isBlank(source)){
+                if(StringUtils.isBlank(source) && !Boolean.valueOf(isAppRegisterAllow)){
                     logger.warn("发送登录验证码-------->>>>>>>>来源为空");
                     return response.buildFailureResponse(ResCodeEnum.NOT_WHITE_LIST_USER);
                 }
-                //判断source是否支持
-                boolean b1 = spreadChannelService.checkSourceIsAllow(source);
-                if(!b1){
-                    logger.warn("发送登录验证码-------->>>>>>>>来源不支持source={}", source);
-                    return response.buildFailureResponse(ResCodeEnum.NOT_WHITE_LIST_USER);
+                if(StringUtils.isNotBlank(source)){
+                    //判断source是否支持
+                    boolean b1 = spreadChannelService.checkSourceIsAllow(source);
+                    if(!b1){
+                        logger.warn("发送登录验证码-------->>>>>>>>来源不支持source={}", source);
+                        return response.buildFailureResponse(ResCodeEnum.NOT_WHITE_LIST_USER);
+                    }
                 }
             }
             Boolean sendRes = false;
