@@ -17,8 +17,10 @@ public interface UserService {
 
 
     UserEntity findByUserCode(String userCode);
+
     /**
      * 根据userCode查询是否禁用的用户
+     *
      * @param userCode
      * @param isDelete
      * @return
@@ -147,4 +149,18 @@ public interface UserService {
      * @return
      */
     List<Map<String,Object>> getChannelLoanCount(String source);
+}
+
+    /**
+     * 从审核中状态回退到信息采集中
+     * @param userCode
+     * @return
+     */
+    Boolean backToCollecting(String userCode,String description);
+
+    /**
+     * 审核中直接拒绝
+     * @return
+     */
+    Boolean directRejection(String userCode,String description);
 }
