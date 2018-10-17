@@ -215,9 +215,11 @@ public class RiskController {
                             this.saveCallLogResult(callLogJson, null);
                         }else {
                             logger.info("----通话记录详单不存在或采集失败，mobile: {} , sid: {}", noReportUser.getMobile(), sid);
+                            userService.backToCollecting(noReportUser.getUserCode(), "通话记录采集失败");
                         }
                     }else {
                         logger.info("----未查询到UserCode为 {} ，手机号为 {} 的sid信息，拉取失败", noReportUser.getUserCode(), noReportUser.getMobile());
+                        userService.backToCollecting(noReportUser.getUserCode(), "在电话邦未查询到用户的SID");
                     }
                 }
                 
@@ -278,7 +280,7 @@ public class RiskController {
                 return null;
             }
             
-            if (status != 0){
+            if (status != 0 || report.length() < 100){
                 logger.error("运营商报告获取异常：" + report);
                 return null;
             }
