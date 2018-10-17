@@ -193,30 +193,26 @@ public class OutsideController {
             Map<String, Object>  map =new HashMap<>();
             Map<String, Object> cMap = content.get(i);
             map.putAll(cMap);
-            for (Map<String, Object> auditUserMap : auditUser){
-                if (cMap.get("date").equals(auditUserMap.get("date"))&& cMap.get("source").equals(auditUserMap.get("source"))){
-                    if (cMap.get("sub_source") == null||auditUserMap.get("sub_source")==null) {
-                        map.putAll(auditUserMap);
-                        continue;
-                    }
-                    if (cMap.get("sub_source").equals(auditUserMap.get("sub_source"))) {
-                        map.putAll(auditUserMap);
-                        continue;
-                    }
-                }
+            if (StringUtils.isEmpty(cMap.get("sub_source"))){
+                continue;
             }
             for (Map<String, Object> loanMap : channelLoanCount){
                 if (cMap.get("source").equals(loanMap.get("source"))&&cMap.get("date").equals(loanMap.get("date"))){
-                    if (cMap.get("sub_source") == null||loanMap.get("sub_source")==null) {
-                        map.putAll(loanMap);
-                        continue;
-                    }
                     if (cMap.get("sub_source").equals(loanMap.get("sub_source"))) {
                         map.putAll(loanMap);
                         continue;
                     }
                 }
             }
+            for (Map<String, Object> auditUserMap : auditUser){
+                if (cMap.get("date").equals(auditUserMap.get("date"))&& cMap.get("source").equals(auditUserMap.get("source"))){
+                    if (cMap.get("sub_source").equals(auditUserMap.get("sub_source"))) {
+                        map.putAll(auditUserMap);
+                        continue;
+                    }
+                }
+            }
+
             resultList.add(map);
         }
         return resultList;
