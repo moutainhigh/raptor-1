@@ -63,7 +63,7 @@ public class UserControllerTest {
             JSONObject json = new JSONObject();
             json.put("mobile", mobile);
             String url = "auth/send_login_code";
-            HttpResult resJson = httpClientApi.doPostJson(localHostUrl + url, json.toJSONString());
+            HttpResult resJson = httpClientApi.doPostJson(cloneHostUrl + url, json.toJSONString());
             System.out.println(resJson.getCode());
             System.out.println(resJson.getData());
         } catch (IOException e) {
