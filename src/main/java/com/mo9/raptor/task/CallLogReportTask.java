@@ -113,6 +113,7 @@ public class CallLogReportTask {
                         riskTelInfoService.update(noReportRecord);
                         logger.info("-----运营商报告补偿任务-->定时任务更新用户运营商报告获取状态成功，tel: " + mobile + ", uid: " + uid + ", sid: " + sid);
                     }else {
+                        logger.info("-----运营商报告补偿任务-->用户提交认证后1小时内未获取到有效的运营商报告, 回退用户状态");
                         userService.backToCollecting(noReportRecord.getUid(), "用户提交认证后1小时内未获取到有效的运营商报告");
                     }
                     
