@@ -160,7 +160,7 @@ public class OutsideController {
         //非登录状态去登录
         if (spreadChannelUser == null) {
             if (StringUtils.isEmpty(userName) || StringUtils.isEmpty(password)) {
-                model.addAttribute("message", "帐号或密码错误");
+                model.addAttribute("message", "登录已过期");
                 return "channel/login";
             }
             spreadChannelUser = spreadChannelService.findByLoginNameAndPassword(userName, password);
@@ -170,7 +170,7 @@ public class OutsideController {
             }
         }
         //设置登录成功
-        redisServiceApi.set(RedisParams.ACTION_TOKEN_LONG + remoteHost, spreadChannelUser, RedisParams.EXPIRE_30M, raptorRedis);
+        redisServiceApi.set(RedisParams.ACTION_TOKEN_LONG + remoteHost, spreadChannelUser, RedisParams.EXPIRE_1D, raptorRedis);
         logger.info("渠道推广登录接口-------->>>>>渠道[{}]登录成功,ip为[{}]", spreadChannelUser.getSource(), remoteHost);
         Page<Map<String, Object>> registerUser = userService.getRegisterUserNumber(spreadChannelUser.getSource(), new PageReq());
 
@@ -293,7 +293,7 @@ public class OutsideController {
      * @return
      */
     @RequestMapping("audit/to_login")
-    public String audittoLogin(Model model, HttpServletRequest request, HttpServletResponse response) {
+    public String audittoLogin(Model model, HttpServletRequest request, HttpServletResponse response,@RequestParam(required = false,defaultValue = "channel_1") String source) {
         String userName = request.getParameter("userName");
         String password = request.getParameter("password");
         String remoteHost = IpUtils.getRemoteHost(request);
@@ -325,12 +325,13 @@ public class OutsideController {
         redisServiceApi.set(RedisParams.ACTION_TOKEN_LONG_AUDIT + remoteHost, auditUser, RedisParams.EXPIRE_30M, raptorRedis);
 
         //查询所有需要人工审核的用户
-        List<UserEntity> userEntities = userService.findManualAuditUser("channel_1");
+        List<UserEntity> userEntities = userService.findManualAuditUser(source);
         //封装返回参数
         List<ManualAuditUserRes> resultList = copyUserEntityProperties(userEntities);
 
         model.addAttribute("resultList", resultList);
         model.addAttribute("code", 0);
+        model.addAttribute("source",source);
         return "audit/show";
     }
 
