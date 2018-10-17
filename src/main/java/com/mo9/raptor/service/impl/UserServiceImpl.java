@@ -1,14 +1,17 @@
 package com.mo9.raptor.service.impl;
 
 import com.mo9.raptor.bean.req.PageReq;
+import com.mo9.raptor.engine.enums.AuditResultEnum;
 import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.engine.state.action.impl.user.UserAuditAction;
 import com.mo9.raptor.engine.state.event.impl.AuditLaunchEvent;
+import com.mo9.raptor.engine.state.event.impl.AuditResponseEvent;
 import com.mo9.raptor.engine.state.event.impl.user.BlackEvent;
 import com.mo9.raptor.engine.state.launcher.IEventLauncher;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.BankAuthStatusEnum;
 import com.mo9.raptor.enums.DictEnums;
+import com.mo9.raptor.enums.SourceEnum;
 import com.mo9.raptor.redis.RedisParams;
 import com.mo9.raptor.redis.RedisServiceApi;
 import com.mo9.raptor.repository.UserRepository;
@@ -241,6 +244,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserEntity> findManualAuditUser(String source) {
+        if (SourceEnum.NEW.name().equals(source)){
+            return userRepository.findManualAuditUserNew(source);
+        }
      return  userRepository.findManualAuditUser(source);
     }
 
@@ -252,5 +258,29 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<Map<String, Object>> getChannelLoanCount(String source) {
         return userRepository.getChannelLoanCount(source);
+    }
+
+    @Override
+    public Boolean backToCollecting(String userCode, String description) {
+        AuditResponseEvent responseEvent = new AuditResponseEvent(userCode,description, AuditResultEnum.COLLECTING);
+        try {
+            userEventLauncher.launch(responseEvent);
+        } catch (Exception e) {
+            logger.error("用户审核，从审核中到信息采集中出现异常[{}],[{}]",userCode,description,e);
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public Boolean directRejection(String userCode, String description) {
+        AuditResponseEvent responseEvent = new AuditResponseEvent(userCode,description, AuditResultEnum.REJECTED);
+        try {
+            userEventLauncher.launch(responseEvent);
+        } catch (Exception e) {
+            logger.error("用户审核，直接拒绝服务出现异常[{}],[{}]",userCode,description,e);
+            return false;
+        }
+        return true;
     }
 }

@@ -42,7 +42,11 @@ class AuditingStateHandler implements IStateHandler<UserEntity> {
                 user.setStatus(StatusEnum.REJECTED.name());
                 PushBean pushBean = new PushBean(user.getUserCode(), "审核拒绝", "很遗憾，审核拒绝，请30天后再来吧~");
                 actionExecutor.append(new UserPushAction(user.getUserCode(), pushUtils, pushBean));
-            }else{
+            }else if (auditResultEnum == AuditResultEnum.COLLECTING){
+                user.setCallHistory(false);
+                user.setReceiveCallHistory(false);
+                user.setStatus(StatusEnum.COLLECTING.name());
+            }else {
                 throw new InvalidEventException("用户状态事件类型不匹配，状态：" + user.getStatus() + "，事件：" + event);
             }
             user.setDescription(user.getDescription()  + event.getEventTime() + ":" + auditResponseEvent.getExplanation() + ";");
