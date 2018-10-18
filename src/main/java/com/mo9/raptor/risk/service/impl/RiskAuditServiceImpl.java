@@ -11,6 +11,7 @@ import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.repository.UserRepository;
 import com.mo9.raptor.risk.entity.TRiskCallLog;
 import com.mo9.raptor.risk.repo.RiskCallLogRepository;
+import com.mo9.raptor.risk.repo.RiskContractInfoRepository;
 import com.mo9.raptor.risk.service.LinkFaceService;
 import com.mo9.raptor.risk.service.RiskAuditService;
 import com.mo9.raptor.risk.service.RiskRuleEngineService;
@@ -129,6 +130,9 @@ public class RiskAuditServiceImpl implements RiskAuditService {
 
     @Resource
     private RiskScoreService riskScoreService;
+
+    @Resource
+    private RiskContractInfoRepository riskContractInfoRepository;
 
     private static final String WHITE_LIST = "WHITE";
 
@@ -407,6 +411,12 @@ public class RiskAuditServiceImpl implements RiskAuditService {
                     count++;
                     inListMobiles.add(tRiskCallLog.getCallTel());
                 }
+            }
+
+            /** 匹配通讯录表，修改标识*/
+            if(inListMobiles.size() > 0){
+                List<String> list = new ArrayList<>(inListMobiles);
+                riskContractInfoRepository.updateMatchingMobile(userCode, list);
             }
             StringBuilder stringBuilder = new StringBuilder(userCode + "," + user.getMobile() + "在主叫列表里[");
             for (String inListMobile : inListMobiles) {
