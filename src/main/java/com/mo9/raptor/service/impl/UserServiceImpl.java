@@ -244,7 +244,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserEntity> findManualAuditUser(String source) {
-        if (SourceEnum.NEW.name().equals(source)){
+        if (SourceEnum.NEW.name().equals(source)||SourceEnum.WHITE.name().equals(source)){
             return userRepository.findManualAuditUserNew(source);
         }
      return  userRepository.findManualAuditUser(source);
