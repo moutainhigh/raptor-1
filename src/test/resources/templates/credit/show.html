@@ -86,10 +86,10 @@
    var source = source = $("#channel_id").find("option:selected").val();
          if(type == 'passed'){
           var tip = "是否确认通过审核!";
-          var url = "./operate?type=PASSED&userCode="+userCode+"&source="+source;
+          var url = "./operate?type=PASSED&userCode="+userCode;
          }else{
           var tip = "是否确认拒绝审核!";
-          var url = "./operate?type=REJECTED&userCode="+userCode+"&source="+source;
+          var url = "./operate?type=REJECTED&userCode="+userCode;
          }
          var flag = confirm(tip);
                   if(flag){

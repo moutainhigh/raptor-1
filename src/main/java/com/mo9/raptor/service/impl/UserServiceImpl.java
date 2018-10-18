@@ -249,6 +249,10 @@ public class UserServiceImpl implements UserService {
         }
      return  userRepository.findManualAuditUser(source);
     }
+    @Override
+    public List<UserEntity> findManualAuditUserBuyOperateId(String source,String operateId) {
+     return  userRepository.findManualAuditUserBuyOperateId(source,operateId);
+    }
 
     @Override
     public List<Map<String, Object>> toAuditUserCount(String source) {

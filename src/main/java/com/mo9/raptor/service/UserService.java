@@ -137,6 +137,13 @@ public interface UserService {
     List<UserEntity> findManualAuditUser(String source);
 
     /**
+     * 查询当前操作人待审核的用户
+     * @param source
+     * @param operateId
+     * @return
+     */
+     List<UserEntity> findManualAuditUserBuyOperateId(String source,String operateId);
+    /**
      * 查询填资料的用户数
      * @param source
      * @return
