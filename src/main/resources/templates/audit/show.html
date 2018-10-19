@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://ttyq.mo9.com/static/js/jquery-3.1.1.min.js"></script>
+    <script th:src="@{/js/jquery-3.1.1.min.js}"></script>
     <style type="text/css">
         table {
             border: 1px solid black;
@@ -38,6 +38,7 @@
         <select  id="channel_id" onchange="show_sub()">
             <option th:selected="${source=='channel_1'}" value ="channel_1" selected>channel_1</option>
             <option th:selected="${source=='NEW'}"value="NEW">NEW</option>
+            <option th:selected="${source=='WHITE'}"value="WHITE">WHITE</option>
         </select>
         <thead>
         <th>序号</th>
@@ -86,10 +87,10 @@
    var source = source = $("#channel_id").find("option:selected").val();
          if(type == 'passed'){
           var tip = "是否确认通过审核!";
-          var url = "./operate?type=PASSED&userCode="+userCode;
+          var url = "./operate?type=PASSED&userCode="+userCode+"&source="+source;
          }else{
           var tip = "是否确认拒绝审核!";
-          var url = "./operate?type=REJECTED&userCode="+userCode;
+          var url = "./operate?type=REJECTED&userCode="+userCode+"&source="+source;
          }
          var flag = confirm(tip);
                   if(flag){

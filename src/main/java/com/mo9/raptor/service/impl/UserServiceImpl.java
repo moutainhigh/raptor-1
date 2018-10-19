@@ -244,10 +244,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserEntity> findManualAuditUser(String source) {
-        if (SourceEnum.NEW.name().equals(source)){
+        if (SourceEnum.NEW.name().equals(source)||SourceEnum.WHITE.name().equals(source)){
             return userRepository.findManualAuditUserNew(source);
         }
      return  userRepository.findManualAuditUser(source);
+    }
+    @Override
+    public List<UserEntity> findManualAuditUserBuyOperateId(String source,String operateId) {
+     return  userRepository.findManualAuditUserBuyOperateId(source,operateId);
     }
 
     @Override
@@ -282,5 +286,19 @@ public class UserServiceImpl implements UserService {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public Long countByStatus(StatusEnum status) {
+        Long total = userRepository.countByStatus(status.name());
+        if (total == null){
+            total =0L ;
+        }
+        return total;
+    }
+
+    @Override
+    public List<UserEntity> findManualAuditUserBuyOperateId(String operateId) {
+        return userRepository.findManualAuditUserBuyOperateId(operateId);
     }
 }
