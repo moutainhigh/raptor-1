@@ -60,7 +60,7 @@ public interface LoanOrderRepository extends JpaRepository<LoanOrderEntity,Long>
      * @param statusEnums
      * @return
      */
-    @Query(value = "select * from t_raptor_loan_order where owner_id = 1 status in (?2) and deleted = false", nativeQuery = true)
+    @Query(value = "select * from t_raptor_loan_order where owner_id = 1 and status in (?2) and deleted = false", nativeQuery = true)
     List<LoanOrderEntity> listByUserAndStatus(String userCode, List<String> statusEnums);
 
     /**
