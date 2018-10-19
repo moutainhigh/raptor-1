@@ -240,6 +240,8 @@ public class RiskAuditServiceImpl implements RiskAuditService {
     private static final int ERROR_SCORE_CODE = -1;
 
     AuditResponseEvent chaseDebtRule(String userCode) {
+        return new AuditResponseEvent(userCode, true, "");
+/*        
         UserEntity user = userService.findByUserCode(userCode);
         try {
             if (user != null && StringUtils.isNotBlank(user.getMobile())) {
@@ -281,6 +283,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
             logger.error(userCode + "检查报告出错", e);
             return new AuditResponseEvent(userCode, false, "致命问题！！检查运营商报告出错");
         }
+*/    
     }
 
     AuditResponseEvent blackListRule(String userCode) {
