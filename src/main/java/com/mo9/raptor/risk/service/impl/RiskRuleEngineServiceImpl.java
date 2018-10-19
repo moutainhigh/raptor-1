@@ -121,13 +121,11 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
 
         for (int i = 0; i < mergencyContactArray.size(); i++) {
             JSONObject mergencyContract = mergencyContactArray.getJSONObject(i);
+            
+            logger.info(mergencyContract.toJSONString());
 
             String callTimesStr = mergencyContract.getString("call_times");
-            logger.info("callTimesStr: " + callTimesStr);
-            
             Integer callTimes = Integer.parseInt(callTimesStr);
-            
-            logger.info("callTimes" + callTimes);
             
             if (callTimes >= CALL_MERGENCY_TIMES){
                 return new AuditResponseEvent(userCode, true, "");

@@ -14,10 +14,7 @@ import com.mo9.raptor.engine.service.ILendOrderService;
 import com.mo9.raptor.engine.service.ILoanOrderService;
 import com.mo9.raptor.engine.structure.item.Item;
 import com.mo9.raptor.engine.utils.EngineStaticValue;
-import com.mo9.raptor.entity.BankEntity;
-import com.mo9.raptor.entity.DictDataEntity;
-import com.mo9.raptor.entity.LoanProductEntity;
-import com.mo9.raptor.entity.UserEntity;
+import com.mo9.raptor.entity.*;
 import com.mo9.raptor.enums.DictTypeNoEnum;
 import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.lock.Lock;
@@ -30,10 +27,10 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -90,6 +87,9 @@ public class LoanOrderController {
     @Autowired
     private StrategyService strategyService;
 
+    @Autowired
+    private CardBinInfoService cardBinInfoService;
+
     /**
      * 下单
      *
@@ -97,7 +97,7 @@ public class LoanOrderController {
      * @return
      */
     @PostMapping("/add")
-    public BaseResponse<JSONObject> add(@Valid @RequestBody OrderAddReq req, HttpServletRequest request) {
+    public BaseResponse<JSONObject> add(@Validated @RequestBody OrderAddReq req, HttpServletRequest request) {
         BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
         String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
         String clientId = request.getHeader(ReqHeaderParams.CLIENT_ID);
@@ -190,24 +190,23 @@ public class LoanOrderController {
                 if (bankEntity == null) {
                     return response.buildFailureResponse(ResCodeEnum.NO_LEND_INFO);
                 }
-                //检查银行卡是否支持
-                StrategyCondition condition = new StrategyCondition(true);
-                JSONObject jsonObject = new JSONObject();
-                jsonObject.put(StrategyCondition.BANK_NAME_CONDITION, bankEntity.getBankName());
-                condition.setCondition(jsonObject);
-                ResCodeEnum resCodeEnum = strategyService.loanOrderStrategy(condition);
-                if(resCodeEnum != ResCodeEnum.SUCCESS){
-                    logger.warn("借款订单银行卡不支持userCode={}, bankName={},bankNo={}", userCode, bankEntity.getBankName(), bankEntity.getBankNo());
-                    return response.buildFailureResponse(resCodeEnum);
-                }
-
                 lendOrder.setUserName(bankEntity.getUserName());
                 lendOrder.setIdCard(bankEntity.getCardId());
-                lendOrder.setBankName(bankEntity.getBankName());
                 if (StringUtils.isBlank(req.getCard())) {
                     lendOrder.setBankCard(bankEntity.getBankNo());
+                    lendOrder.setBankName(bankEntity.getBankName());
                 } else {
+                    if(req.getCard().length() < 7){
+                        return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
+                    }
+                    CardBinInfoEntity byCardPrefix = cardBinInfoService.findByCardPrefix(req.getCard().substring(0, 6));
                     lendOrder.setBankCard(req.getCard());
+                    if(byCardPrefix == null){
+                        lendOrder.setBankName("银行卡");
+                    }else{
+                        lendOrder.setBankName(byCardPrefix.getCardBank());
+                    }
+
                 }
                 if (StringUtils.isBlank(req.getCardMobile())) {
                     lendOrder.setBankMobile(bankEntity.getMobile());
@@ -218,6 +217,17 @@ public class LoanOrderController {
                 lendOrder.setType("");
                 lendOrder.setCreateTime(now);
                 lendOrder.setUpdateTime(now);
+
+                //检查银行卡是否支持
+                StrategyCondition condition = new StrategyCondition(true);
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put(StrategyCondition.BANK_NAME_CONDITION, lendOrder.getBankName());
+                condition.setCondition(jsonObject);
+                ResCodeEnum resCodeEnum = strategyService.loanOrderStrategy(condition);
+                if(resCodeEnum != ResCodeEnum.SUCCESS){
+                    logger.warn("借款订单银行卡不支持userCode={}, bankName={},bankNo={}", userCode, lendOrder.getBankName(), lendOrder.getBankCard());
+                    return response.buildFailureResponse(resCodeEnum);
+                }
 
                 // 保存借款订单, 还款订单
                 loanOrderService.saveLendOrder(loanOrder, lendOrder);

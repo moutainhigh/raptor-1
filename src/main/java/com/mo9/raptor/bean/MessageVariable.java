@@ -25,10 +25,6 @@ public interface MessageVariable {
      */
     String SERVICE_MAILBOX = "service@ttyq.com";
     /**
-     * 系统码
-     */
-    String  SYSTEM_CODE = "RAPTOR";
-    /**
      * 主题
      */
     String SUBJECT = "subject";

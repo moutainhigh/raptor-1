@@ -88,4 +88,21 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
     @Query(value = "SELECT  * from t_raptor_user where source = ?1 and deleted = 0 and status in('MANUAL','PASSED','REJECTED')", nativeQuery = true)
     List<UserEntity> findManualAuditUser(String source);
+
+    @Query(value = "SELECT  * from t_raptor_user where source = ?1 and deleted = 0 and status = 'MANUAL'", nativeQuery = true)
+    List<UserEntity> findManualAuditUserNew(String source);
+
+    @Query(value = "select u.* from t_audit_operation_record r JOIN t_raptor_user u ON  r.user_code = u.user_code where u.source = ?1 and r.operate_id = ?2 and u.status = 'MANUAL'", nativeQuery = true)
+    List<UserEntity> findManualAuditUserBuyOperateId(String source,String operateId);
+    @Query(value = "select u.* from t_audit_operation_record r JOIN t_raptor_user u ON  r.user_code = u.user_code where r.operate_id = ?1 and u.status = 'MANUAL' ORDER BY u.auth_time asc", nativeQuery = true)
+    List<UserEntity> findManualAuditUserBuyOperateId(String operateId);
+
+    @Query(value = "SELECT  COUNT(*) audit_num,source,sub_source,FROM_UNIXTIME(create_time / 1000,'%Y-%m-%d ') date from t_raptor_user where source = ?1 and deleted = 0 and status not in('BLACK','COLLECTING')GROUP BY FROM_UNIXTIME(create_time / 1000,'%Y-%m-%d '),sub_source order by id asc", nativeQuery = true)
+    List<Map<String,Object>> toAuditUserCount(String source);
+
+    @Query(value = "SELECT count(*) loan_num,source,sub_source,FROM_UNIXTIME(u.create_time / 1000,'%Y-%m-%d ') date from t_raptor_loan_order o  LEFT JOIN t_raptor_user u on o.owner_id = u.user_code where o.`status` in ('LENT','PAYOFF') and u.source = ?1  GROUP BY FROM_UNIXTIME(u.create_time / 1000,'%Y-%m-%d '),sub_source", nativeQuery = true)
+    List<Map<String,Object>> getChannelLoanCount(String source);
+
+
+    Long countByStatus(String name);
 }

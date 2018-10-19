@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html xmlns="http://www.thymeleaf.org" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8" />
+    <title th:text="${title}"></title>
+    <script th:src="@{/js/jquery-3.1.1.min.js}"></script>
+</head>
+<input id="content" type="hidden"  th:value="${contacts}"/>
+<div id="article"></div>
+<script type="text/javascript">
+    var content = $("#content").val();
+    var html_content = JSON.stringify(JSON.parse(content),null,4);
+    $("#article").html('<pre>'+html_content+'<pre/>');
+</script>
+</html>

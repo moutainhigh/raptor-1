@@ -8,6 +8,8 @@ package com.mo9.raptor.engine.enums;
 public enum  AuditResultEnum {
     PASS("通过"),
     REJECTED("拒绝"),
+    AUDITING("审核中"),
+    COLLECTING("信息采集中"),
     MANUAL("人工");
 
     private String desc;
