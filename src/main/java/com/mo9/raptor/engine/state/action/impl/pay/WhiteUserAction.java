@@ -112,6 +112,7 @@ public class WhiteUserAction implements IAction {
         String res  = null;
         try {
             res  = httpClientApi.doGetByHeader(url, headers);
+            logger.info("白名单发送响应报文：[{}]", res);
         } catch (IOException e) {
             logger.error("白名单发送失败，用户CODE:[{}]，用户手机号MOBILE:[{}]，响应报文：[{}]", userCode, user.getMobile(), res);
         }
