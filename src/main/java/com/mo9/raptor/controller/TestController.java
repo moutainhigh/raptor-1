@@ -208,7 +208,7 @@ public class TestController {
             return response;
         }
 
-        List<LoanOrderEntity> loanOrderEntities = loanOrderService.listByStatus(Arrays.asList(StatusEnum.PAYOFF));
+        List<LoanOrderEntity> loanOrderEntities = loanOrderService.listByStatus(StatusEnum.OLD_PAYOFF);
         if (loanOrderEntities == null || loanOrderEntities.size() == 0) {
             response.setMessage("无订单");
             return response;
