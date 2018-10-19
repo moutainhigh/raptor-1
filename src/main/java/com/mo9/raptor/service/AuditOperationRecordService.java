@@ -1,6 +1,7 @@
 package com.mo9.raptor.service;
 
 
+import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.entity.AuditOperationRecordEntity;
 import org.springframework.stereotype.Service;
 
@@ -48,4 +49,6 @@ public interface AuditOperationRecordService {
     AuditOperationRecordEntity findByOperateIdAndUserCode(Long id, String userCode);
 
     void save(AuditOperationRecordEntity auditOperationRecordEntity);
+
+    Long countByStatus(StatusEnum manual);
 }

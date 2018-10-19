@@ -8,27 +8,29 @@ CREATE TABLE `t_audit_user` (
   `email` varchar(100) DEFAULT NULL,
   `mobile` varchar(20) DEFAULT NULL,
   `level` varchar(20) DEFAULT 'NORMAL' COMMENT '帐号级别，MANAGE 主管，NORMAL 操作员',
-    `deleted` INT(1) NOT NULL  COMMENT '是否逻辑删除',
+  `remark` varchar(1024) DEFAULT NULL,
+  `deleted` int(1) NOT NULL DEFAULT '0' COMMENT '是否逻辑删除',
   `create_time` bigint(20) DEFAULT '0',
   `update_time` bigint(20) DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `login_name` (`login_name`) USING BTREE,
   KEY `password` (`password`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT;
+) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT;
 -- 信审操作记录表
 DROP TABLE IF EXISTS `t_audit_operation_record`;
 CREATE TABLE `t_audit_operation_record` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `user_code` varchar(100) DEFAULT NULL COMMENT '唯一用户标识',
-	`operate_id` varchar(20) DEFAULT NULL COMMENT '操作人id',
-	`distribute_id` varchar(20) DEFAULT NULL COMMENT '主管id',
-	`status` varchar(20) DEFAULT NULL COMMENT '用户状态',
-	`remark` varchar(1024) DEFAULT NULL COMMENT '备注',
-	  `deleted` INT(1) NOT NULL  COMMENT '是否逻辑删除',
-  `create_time` bigint(20) DEFAULT '0',
-  `update_time` bigint(20) DEFAULT '0',
+  `operate_id` varchar(20) DEFAULT NULL COMMENT '操作人id',
+  `distribute_id` varchar(20) DEFAULT NULL COMMENT '主管id',
+  `status` varchar(20) DEFAULT NULL COMMENT '用户状态',
+  `audit_time` bigint(20) DEFAULT NULL COMMENT '人工审核时间',
+  `remark` varchar(1024) DEFAULT NULL COMMENT '备注',
+  `deleted` int(1) NOT NULL DEFAULT '0' COMMENT '是否逻辑删除',
+  `create_time` bigint(20) NOT NULL DEFAULT '0',
+  `update_time` bigint(20) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `user_code` (`user_code`) USING BTREE,
- KEY `operate_id` (`operate_id`),
- KEY `status` (`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT;
+  KEY `operate_id` (`operate_id`),
+  KEY `status` (`status`)
+) ENGINE=InnoDB AUTO_INCREMENT=492 DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT;

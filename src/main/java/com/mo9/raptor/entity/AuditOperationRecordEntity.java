@@ -22,8 +22,8 @@ public class AuditOperationRecordEntity extends BaseEntity {
     @Column(name = "distribute_id")
     private String distributeId;
 
-    @Column(name = "remark")
-    private String remark;
+    @Column(name = "audit_time")
+    private Long auditTime;
 
     public String getUserCode() {
         return userCode;
@@ -57,13 +57,11 @@ public class AuditOperationRecordEntity extends BaseEntity {
         this.distributeId = distributeId;
     }
 
-    @Override
-    public String getRemark() {
-        return remark;
+    public Long getAuditTime() {
+        return auditTime;
     }
 
-    @Override
-    public void setRemark(String remark) {
-        this.remark = remark;
+    public void setAuditTime(Long auditTime) {
+        this.auditTime = auditTime;
     }
 }

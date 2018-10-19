@@ -2,6 +2,7 @@ package com.mo9.raptor.service.impl;
 
 
 
+import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.entity.AuditOperationRecordEntity;
 import com.mo9.raptor.entity.AuditUserEntity;
 import com.mo9.raptor.enums.AuditLevelEnum;
@@ -75,11 +76,20 @@ public class AuditOperationRecordServiceImpl implements AuditOperationRecordServ
 
     @Override
     public AuditOperationRecordEntity findByOperateIdAndUserCode(Long id, String userCode) {
-        return auditOperationRecordRepository.findByOperateIdAndUserCode(id,userCode);
+        return auditOperationRecordRepository.findByOperateIdAndUserCode(id.toString(),userCode);
     }
 
     @Override
     public void save(AuditOperationRecordEntity auditOperationRecordEntity) {
         auditOperationRecordRepository.save(auditOperationRecordEntity);
+    }
+
+    @Override
+    public Long countByStatus(StatusEnum status) {
+        Long total = auditOperationRecordRepository.countByStatus(status.name());
+        if (total == null){
+            total = 0L;
+        }
+        return total;
     }
 }

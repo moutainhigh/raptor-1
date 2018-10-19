@@ -13,6 +13,8 @@ public class ManualAuditUserRes {
 
     private String createTime;
 
+    private String authTime;
+
     private String source;
 
     private String subSource;
@@ -93,5 +95,13 @@ public class ManualAuditUserRes {
 
     public void setUserCode(String userCode) {
         this.userCode = userCode;
+    }
+
+    public String getAuthTime() {
+        return authTime;
+    }
+
+    public void setAuthTime(String authTime) {
+        this.authTime = authTime;
     }
 }

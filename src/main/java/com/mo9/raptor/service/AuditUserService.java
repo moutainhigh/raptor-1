@@ -21,6 +21,7 @@ public interface AuditUserService {
      */
     AuditUserEntity findByLoginNameAndPassword(String userName, String password);
 
-    List<AuditUserEntity> findAll();
+    List<AuditUserEntity> findByDeleted(Boolean b);
 
+    List<AuditUserEntity> findNormalUser();
 }

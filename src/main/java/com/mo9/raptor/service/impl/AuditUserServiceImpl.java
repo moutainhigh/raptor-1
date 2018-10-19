@@ -3,6 +3,7 @@ package com.mo9.raptor.service.impl;
 
 
 import com.mo9.raptor.entity.AuditUserEntity;
+import com.mo9.raptor.enums.AuditLevelEnum;
 import com.mo9.raptor.repository.AuditUserRepository;
 import com.mo9.raptor.service.AuditUserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,11 +25,16 @@ public class AuditUserServiceImpl implements AuditUserService {
 
     @Override
     public AuditUserEntity findByLoginNameAndPassword(String userName, String password) {
-        return auditUserRepository.findByLoginNameAndPassword(userName,password);
+        return auditUserRepository.findByLoginNameAndPasswordAndDeleted(userName,password,false);
     }
 
     @Override
-    public List<AuditUserEntity> findAll() {
-        return auditUserRepository.findAll();
+    public List<AuditUserEntity> findByDeleted(Boolean b) {
+        return auditUserRepository.findByDeleted(false);
+    }
+
+    @Override
+    public List<AuditUserEntity> findNormalUser() {
+        return auditUserRepository.findByLevelAndDeleted(AuditLevelEnum.NORMAL.name(),false);
     }
 }

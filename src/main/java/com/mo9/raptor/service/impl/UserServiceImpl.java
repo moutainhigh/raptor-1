@@ -287,4 +287,18 @@ public class UserServiceImpl implements UserService {
         }
         return true;
     }
+
+    @Override
+    public Long countByStatus(StatusEnum status) {
+        Long total = userRepository.countByStatus(status.name());
+        if (total == null){
+            total =0L ;
+        }
+        return total;
+    }
+
+    @Override
+    public List<UserEntity> findManualAuditUserBuyOperateId(String operateId) {
+        return userRepository.findManualAuditUserBuyOperateId(operateId);
+    }
 }

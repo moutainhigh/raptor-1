@@ -169,4 +169,8 @@ public interface UserService {
      * @return
      */
     Boolean directRejection(String userCode,String description);
+
+    Long countByStatus(StatusEnum status);
+
+    List<UserEntity> findManualAuditUserBuyOperateId(String operateId);
 }
