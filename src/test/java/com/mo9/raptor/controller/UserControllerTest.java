@@ -2,9 +2,11 @@ package com.mo9.raptor.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.RaptorApplicationTest;
+import com.mo9.raptor.bean.ReqHeaderParams;
 import com.mo9.raptor.enums.DictEnums;
 import com.mo9.raptor.service.BankService;
 import com.mo9.raptor.utils.GatewayUtils;
+import com.mo9.raptor.utils.Md5Util;
 import com.mo9.raptor.utils.httpclient.HttpClientApi;
 import com.mo9.raptor.utils.httpclient.bean.HttpResult;
 import org.junit.Before;
@@ -219,6 +221,29 @@ public class UserControllerTest {
             System.out.println(resJson);
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void white () {
+
+        long timeStamp = System.currentTimeMillis();
+
+        String str = "888888" + timeStamp + "01234567890" +  "rtsDDcogZcPCu!NYkfgfjQq6O;~2Brtr";
+        String sign = Md5Util.getMD5(str);
+
+        String url = "http://192.168.6.44/beastsApi" + "/outside/import_white_user?mobile=01234567890";
+
+        Map<String, String> headers = new HashMap<String, String> ();
+        headers.put(ReqHeaderParams.ACCOUNT_CODE, "888888");
+        headers.put(ReqHeaderParams.TIMESTAMP, String.valueOf(timeStamp));
+        headers.put(ReqHeaderParams.SIGN, sign);
+
+        try {
+            String res  = httpClientApi.doGetByHeader(url, headers);
+            System.out.println("响应" + res);
+        } catch (IOException e) {
+//            logger.error("白名单发送失败，用户CODE:[{}]，用户手机号MOBILE:[{}]", "888888", "01234567890");
         }
     }
 }

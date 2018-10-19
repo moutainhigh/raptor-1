@@ -12,6 +12,8 @@ import com.mo9.raptor.engine.service.BillService;
 import com.mo9.raptor.engine.service.CouponService;
 import com.mo9.raptor.engine.service.ILoanOrderService;
 import com.mo9.raptor.engine.service.IPayOrderService;
+import com.mo9.raptor.engine.state.event.impl.loan.LoanEntryEvent;
+import com.mo9.raptor.engine.state.launcher.IEventLauncher;
 import com.mo9.raptor.engine.structure.item.Item;
 import com.mo9.raptor.engine.utils.EngineStaticValue;
 import com.mo9.raptor.engine.utils.TimeUtils;
@@ -77,6 +79,9 @@ public class TestController {
 
     @Autowired
     private BillService billService;
+
+    @Autowired
+    private IEventLauncher loanEventLauncher;
 
     @Autowired
     private IDWorker idWorker;
@@ -216,7 +221,7 @@ public class TestController {
             return response;
         }
 
-        List<LoanOrderEntity> loanOrderEntities = loanOrderService.listByStatus(Arrays.asList(StatusEnum.PAYOFF));
+        List<LoanOrderEntity> loanOrderEntities = loanOrderService.listByStatus(StatusEnum.OLD_PAYOFF);
         if (loanOrderEntities == null || loanOrderEntities.size() == 0) {
             response.setMessage("无订单");
             return response;
@@ -424,5 +429,61 @@ public class TestController {
         loanMo9mqListener.consume(message, null);
         logger.info("offline_repay接口结束");
         return response;
+    }
+
+    /**
+     * 入账中的还款订单再次入账
+     * @param sign
+     * @param payOrderId
+     * @param request
+     * @return
+     */
+    @RequestMapping("/entry_again")
+    public BaseResponse<JSONObject> entryAgain(
+            @RequestParam("sign") String sign,
+            @RequestParam("payOrderId") String payOrderId,
+            HttpServletRequest request){
+        BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
+        if (!"28B21099FBDD85467CC01E7B80146FF0".equals(sign)) {
+            response.setMessage("验签错误");
+            return response;
+        }
+
+        PayOrderEntity payOrder = payOrderService.getByOrderId(payOrderId);
+        if (!StatusEnum.ENTRY_DOING.name().equals(payOrder.getStatus())) {
+            // 只有 ENTRY_DOING 状态的订单才可以再次入账
+            response.setMessage("还款订单状态" + payOrder.getStatus());
+            response.setCode(ResCodeEnum.EXCEPTION_CODE.getCode());
+            return response;
+        }
+        String orderId = payOrder.getLoanOrderId();
+        LoanOrderEntity loanOrder = loanOrderService.getByOrderId(orderId);
+        if (!StatusEnum.LENT.name().equals(loanOrder.getStatus())) {
+            // 只有 ENTRY_DOING 状态的订单才可以再次入账
+            response.setMessage("借款订单状态" + loanOrder.getStatus());
+            response.setCode(ResCodeEnum.EXCEPTION_CODE.getCode());
+            return response;
+        }
+
+        try {
+            PayTypeEnum payTypeEnum = PayTypeEnum.valueOf(payOrder.getType());
+            Item realItem = billService.realItem(loanOrder, payTypeEnum, 7);
+            if (realItem.sum().compareTo(payOrder.getPayNumber()) != 0) {
+                response.setMessage("订单可还金额" + realItem.sum().toPlainString() + "与还款金额" + payOrder.getPayNumber().toPlainString() + "不相等!");
+                response.setCode(ResCodeEnum.EXCEPTION_CODE.getCode());
+                return response;
+            }
+
+            Item entryItem = billService.entryItem(payTypeEnum, payOrder, loanOrder);
+
+            LoanEntryEvent event = new LoanEntryEvent(orderId, payOrderId, payOrder.getType(), entryItem);
+            loanEventLauncher.launch(event);
+            return response;
+        } catch (Exception e) {
+            logger.error("再次入账失败 payOrderId[{}]", payOrderId, e);
+            response.setMessage("再次入账失败 payOrderId" + payOrderId);
+            response.setCode(ResCodeEnum.EXCEPTION_CODE.getCode());
+            return response;
+        }
     }
 }
