@@ -100,4 +100,8 @@ public class TimeUtils {
         }
 
     }
+
+    public static final void main (String[] args) {
+        System.out.println(TimeUtils.dateDiff(1540281061380L,1539941034428L));
+    }
 }
