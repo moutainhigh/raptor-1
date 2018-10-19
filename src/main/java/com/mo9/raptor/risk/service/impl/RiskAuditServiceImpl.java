@@ -330,8 +330,8 @@ public class RiskAuditServiceImpl implements RiskAuditService {
             idCard = IdCardUtils.conver15CardTo18(idCard);
         }
         int age = IdCardUtils.getAgeByIdCard(idCard);
-        boolean pass = age >= 18 && age <= 35;
-        return new AuditResponseEvent(userCode, pass, !pass ? "年龄大于35或者小于18" : "");
+        boolean pass = age >= 18 && age <= 45;
+        return new AuditResponseEvent(userCode, pass, !pass ? "年龄大于45或者小于18" : "");
 
     }
 
