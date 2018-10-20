@@ -357,14 +357,16 @@ public class RiskAuditServiceImpl implements RiskAuditService {
 
 
     /**
-     * 通讯录规则【通讯录数量大于30条，180天内主动拨打通讯录中电话10次及以上】
+     * 通讯录规则【通讯录数量大于15条小于1000条，180天内通讯录中通话3次及以上】
      *
      * @param userCode
      * @return
      */
     AuditResponseEvent contactsRule(String userCode) {
-        int contactsLimit = 30;
-        int orignCallLimit = 10;
+        int contactsLimit = 15;
+        int contactsLimitUpper = 1000;
+        int orignCallLimit = 3;
+        
         Long days180ts = 180 * 24 * 60 * 60 * 1000L;
         long currentTimeMillis = System.currentTimeMillis();
         UserEntity user = userService.findByUserCode(userCode);
@@ -382,13 +384,19 @@ public class RiskAuditServiceImpl implements RiskAuditService {
             HashSet<String> allMobileSet = new HashSet<>();
             for (int i = 0; i < jsonArray.size(); i++) {
                 String mobile = MobileUtil.processMobile(jsonArray.getJSONObject(i).getString("contact_mobile"));
-                if (StringUtils.isNotBlank(mobile)) {
+                String name = jsonArray.getJSONObject(i).getString("contact_name");
+                if (StringUtils.isNotBlank(name) && StringUtils.isNotBlank(mobile) && mobile.length() >= 11) {
                     allMobileSet.add(mobile);
                 }
             }
             if (allMobileSet.size() < contactsLimit) {
-                return new AuditResponseEvent(userCode, false, "通讯录数量小于30个");
+                return new AuditResponseEvent(userCode, false, "通讯录数量小于15个");
             }
+            
+            if (allMobileSet.size() > contactsLimitUpper) {
+                return new AuditResponseEvent(userCode, false, "通讯录数量大于1000个");
+            }
+            
             int count = 0;
             HashSet<String> inListMobiles = new HashSet<>();
             //MYCAI限制1000条 所以这边有个分页
@@ -405,19 +413,19 @@ public class RiskAuditServiceImpl implements RiskAuditService {
             }
             logger.info(user.getMobile() + "拉取到数据" + allCallLog.size());
             for (TRiskCallLog tRiskCallLog : allCallLog) {
-                //主叫 && 在通讯录内
-                if (tRiskCallLog.getCallMethod() != null && tRiskCallLog.getCallMethod().contains("主叫") && allMobileSet.contains(tRiskCallLog.getCallTel())) {
+                // 在通讯录内
+                if (allMobileSet.contains(tRiskCallLog.getCallTel())) {
                     count++;
                     inListMobiles.add(tRiskCallLog.getCallTel());
                 }
             }
-            StringBuilder stringBuilder = new StringBuilder(userCode + "," + user.getMobile() + "在主叫列表里[");
+            StringBuilder stringBuilder = new StringBuilder(userCode + "," + user.getMobile() + "在通话列表里[");
             for (String inListMobile : inListMobiles) {
                 stringBuilder.append(inListMobile + ",");
             }
             stringBuilder.append("]");
             logger.info(stringBuilder.toString());
-            return new AuditResponseEvent(userCode, count >= orignCallLimit, count >= orignCallLimit ? "" : "180天主动拨打通讯录号码小于10次(共" + count + "次)");
+            return new AuditResponseEvent(userCode, count >= orignCallLimit, count >= orignCallLimit ? "" : "180天与通讯录通话号码小于3次(共" + count + "次)");
         } catch (Exception e) {
             logger.error(userCode + "解析联系人出错", e);
             logger.info(userCode + json);
