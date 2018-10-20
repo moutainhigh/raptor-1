@@ -346,7 +346,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         }
         try {
             String province = IdCardUtils.getProvinceByIdCard(idCard);
-            if ("新疆".equals(province) || "西藏".equals(province)) {
+            if ("新疆".equals(province) || "西藏".equals(province) || (province != null && province.contains("内蒙"))) {
                 return new AuditResponseEvent(userCode, false, "西藏-新疆-年龄规则");
             }
             return new AuditResponseEvent(userCode, true, "");
