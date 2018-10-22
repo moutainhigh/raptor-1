@@ -130,6 +130,11 @@ public class LoanOrderServiceImpl implements ILoanOrderService {
     }
 
     @Override
+    public List<LoanOrderEntity> listByUserAndStatus(String userCode, List<String> statusEnums) {
+        return loanOrderRepository.listByUserAndStatus(userCode, statusEnums);
+    }
+
+    @Override
     public List<LoanOrderEntity> listShouldPayOrder() {
         Long today = TimeUtils.extractDateTime(System.currentTimeMillis());
         Long tomorrow = today + EngineStaticValue.DAY_MILLIS;

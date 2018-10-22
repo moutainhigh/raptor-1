@@ -59,7 +59,7 @@ public class WhiteUserAction implements IAction {
     @Override
     public void run() {
 
-        List<LoanOrderEntity> loanOrders = loanOrderService.listByStatus(StatusEnum.EFFECTIVE_LOAN);
+        List<LoanOrderEntity> loanOrders = loanOrderService.listByUserAndStatus(userCode, StatusEnum.EFFECTIVE_LOAN);
         if (loanOrders == null || loanOrders.size() == 0) {
             logger.info("没有借款，不推送！！！用户号：[{}]", userCode);
             //没有借款，不推送
@@ -74,7 +74,7 @@ public class WhiteUserAction implements IAction {
             int overdueDays = TimeUtils.dateDiff(loanOrder.getRepaymentDate(), payoffTime);
             if (overdueDays >= 4) {
                 //判断用户单次借款，历史逾期天数，若大于等于4天不推送
-                logger.info("借款订单判定，历史逾期天数[{}]，不推送！！！用户号：[{}]", overdueDays, userCode);
+                logger.info("借款订单判定，订单号[{}], 历史逾期天数[{}]，不推送！！！用户号：[{}]", overdueDays, userCode);
                 return;
             }
         }
