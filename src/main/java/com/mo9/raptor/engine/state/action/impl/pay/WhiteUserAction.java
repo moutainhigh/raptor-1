@@ -10,6 +10,7 @@ import com.mo9.raptor.engine.state.action.IAction;
 import com.mo9.raptor.engine.utils.TimeUtils;
 import com.mo9.raptor.entity.PayOrderLogEntity;
 import com.mo9.raptor.entity.UserEntity;
+import com.mo9.raptor.enums.PayTypeEnum;
 import com.mo9.raptor.service.PayOrderLogService;
 import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.Md5Util;
@@ -59,7 +60,7 @@ public class WhiteUserAction implements IAction {
     @Override
     public void run() {
 
-        List<LoanOrderEntity> loanOrders = loanOrderService.listByStatus(StatusEnum.EFFECTIVE_LOAN);
+        List<LoanOrderEntity> loanOrders = loanOrderService.listByUserAndStatus(userCode, StatusEnum.EFFECTIVE_LOAN);
         if (loanOrders == null || loanOrders.size() == 0) {
             logger.info("没有借款，不推送！！！用户号：[{}]", userCode);
             //没有借款，不推送
@@ -74,7 +75,7 @@ public class WhiteUserAction implements IAction {
             int overdueDays = TimeUtils.dateDiff(loanOrder.getRepaymentDate(), payoffTime);
             if (overdueDays >= 4) {
                 //判断用户单次借款，历史逾期天数，若大于等于4天不推送
-                logger.info("借款订单判定，历史逾期天数[{}]，不推送！！！用户号：[{}]", overdueDays, userCode);
+                logger.info("借款订单判定，订单号[{}], 历史逾期天数[{}]，不推送！！！用户号：[{}]", overdueDays, userCode);
                 return;
             }
         }
@@ -85,17 +86,19 @@ public class WhiteUserAction implements IAction {
             logger.info("没有还款历史，不推送！用户号：[{}]", userCode);
             return;
         }
-        //判断还款时逾期情况，通过成功还款的订单查询到还款日志，计算逾期天数
+        //判断还款时逾期情况，通过成功延期还款的订单查询到还款日志，计算逾期天数
         for (PayOrderEntity payOrder: payOrders) {
-            PayOrderLogEntity payOrderLog = payOrderLogService.getByPayOrderId(payOrder.getOrderId());
-            if (payOrderLog == null) {
-                logger.info("还款日志异常，还款订单对应日志不存在！！！还款订单号：[{}], 用户号：[{}]", payOrder.getOrderId(), userCode);
-                return;
-            }
-            int overdueDays = TimeUtils.dateDiff(payOrderLog.getFormerRepaymentDate(), payOrderLog.getUpdateTime());
-            if (overdueDays >= 4) {
-                logger.info("还款日志判定，历史逾期天数[{}]，不推送！！！用户号：[{}]", overdueDays, userCode);
-                return;
+            if (payOrder.getType().equals(PayTypeEnum.REPAY_POSTPONE)) {
+                PayOrderLogEntity payOrderLog = payOrderLogService.getByPayOrderId(payOrder.getOrderId());
+                if (payOrderLog == null) {
+                    logger.info("还款日志异常，还款订单对应日志不存在！！！还款订单号：[{}], 用户号：[{}]", payOrder.getOrderId(), userCode);
+                    return;
+                }
+                int overdueDays = TimeUtils.dateDiff(payOrderLog.getFormerRepaymentDate(), payOrderLog.getUpdateTime());
+                if (overdueDays >= 4) {
+                    logger.info("还款日志判定，历史逾期天数[{}]，不推送！！！用户号：[{}]", overdueDays, userCode);
+                    return;
+                }
             }
         }
 

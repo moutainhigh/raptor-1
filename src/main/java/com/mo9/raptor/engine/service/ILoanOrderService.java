@@ -72,6 +72,8 @@ public interface ILoanOrderService {
      */
     List<LoanOrderEntity> listByStatus(List<String> statusEnums);
 
+    List<LoanOrderEntity> listByUserAndStatus (String userCode, List<String> statusEnums);
+
     /**
      * 查询所有今天还款的订单
      * @return
