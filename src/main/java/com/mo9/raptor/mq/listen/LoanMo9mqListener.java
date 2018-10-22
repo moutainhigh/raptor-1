@@ -387,8 +387,7 @@ public class LoanMo9mqListener implements IMqMsgListener{
         lendInfo.setPostponeCount(payOrderEntities.size());
         lendInfo.setRepaymentTime(loanOrderEntity.getRepaymentDate());
         lendInfo.setProductType(sockpuppet);
-
-
+        lendInfo.setCreateTime(lendOrderEntity.getCreateTime());
 
         String ownerId = lendOrderEntity.getOwnerId();
         UserEntity userEntity = userService.findByUserCode(ownerId);
@@ -457,6 +456,7 @@ public class LoanMo9mqListener implements IMqMsgListener{
         BigDecimal totalDeductedAmount = couponService.getTotalDeductedAmount(loanOrderEntity.getOrderId());
         repayInfo.setTotalReliefAmount(totalDeductedAmount);
 		repayInfo.setProductType(sockpuppet);
+		repayInfo.setCreateTime(payOrderEntity.getCreateTime());
 
 
         JSONObject result = new JSONObject();
