@@ -65,7 +65,7 @@ public class UserContactsController {
                 //更新用户表通讯录状态
                 userService.updateMobileContacts(userEntity, true);
             }
-
+            logger.info("手机通讯录更新完毕，开始存放mycat开始，userCode={},data是否为空={}", userEntity.getUserCode(), req.getData() == null ? true : false);
             contractTask.build(req.getData(), userEntity);
             threadPool.execute(contractTask);
             return response.buildSuccessResponse(true);
