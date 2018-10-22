@@ -478,6 +478,11 @@ public class TestController {
 
             LoanEntryEvent event = new LoanEntryEvent(orderId, payOrderId, payOrder.getType(), entryItem);
             loanEventLauncher.launch(event);
+
+            // 通知贷后
+            PayOrderLogEntity payOrderLogEntity = payOrderLogService.getByPayOrderId(payOrder.getOrderId());
+            loanMo9mqListener.notifyMisRepay(payOrderLogEntity, loanOrder.getPostponeCount(), loanOrder);
+
             return response;
         } catch (Exception e) {
             logger.error("再次入账失败 payOrderId[{}]", payOrderId, e);
