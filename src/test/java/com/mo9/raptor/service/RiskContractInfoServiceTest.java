@@ -24,7 +24,7 @@ import java.util.Set;
 @SpringBootTest(classes = {RaptorApplicationTest.class}, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class RiskContractInfoServiceTest {
 
-    private String data = "{\"contact\":[{\"contact_mobile\":\"911\",\"contact_name\":\"面试  大学\"}],\"countryName\":\"CN\",\"buyerMobile\":\"18883968542\"}";
+    private String data = "{\"contact\":[{\"contact_mobile\":\"15952440190\",\"contact_name\":\"?婶婶\"}]}";
 
     @Resource
     private RiskContractInfoService riskContractInfoService;

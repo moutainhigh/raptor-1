@@ -57,6 +57,9 @@ public class RiskContractInfoServiceImpl implements RiskContractInfoService {
         if(jsonArray != null){
             list = parseContractArray(jsonArray, list, userEntity.getMobile(), userEntity.getUserCode());
         }
+        if(list == null || list.size() == 0){
+            return;
+        }
         List<String> contractMobilesList = new ArrayList<>();
         list.forEach(t -> contractMobilesList.add(t.getContractMobile()));
         List<TRiskContractInfo> existContractInfos = riskContractInfoRepository.findByMobileAndContractMobilesList(userEntity.getMobile(), contractMobilesList);
