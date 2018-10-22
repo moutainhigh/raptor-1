@@ -93,6 +93,11 @@ public class LendInfoMqRes {
     /** 渠道响应时间 */
     private Long chanelResponseTime;
 
+    /**
+     * 创建时间
+     */
+    private Long createTime;
+
     public String getLoanOrderId() {
         return loanOrderId;
     }
@@ -307,5 +312,13 @@ public class LendInfoMqRes {
 
     public void setProductType(String productType) {
         this.productType = productType;
+    }
+
+    public Long getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Long createTime) {
+        this.createTime = createTime;
     }
 }
