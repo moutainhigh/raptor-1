@@ -289,16 +289,17 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         UserEntity user = userService.findByUserCode(userCode);
         String idCard = user.getIdCard();
         String realName = user.getRealName();
-        if(user == null || StringUtils.isBlank(idCard) || StringUtils.isBlank(realName) || idCard.length() < 8){
+        if(user == null || StringUtils.isBlank(idCard) || StringUtils.isBlank(realName)){
             logger.warn("用户不存在，或身份证姓名不存在，userCode={}", userCode);
             return new AuditResponseEvent(userCode, false, "用户不存在，或身份证姓名不存在");
         }
-        StringBuffer buffer = new StringBuffer();
-        int length = idCard.length();
-        String cardStart = idCard.substring(0, length - 8);
-        String cardEnd = idCard.substring(cardStart.length() + 4, length);
-        idCard = buffer.append(cardStart).append("****").append(cardEnd).toString();
-
+        if(idCard.length() == 18){
+            StringBuffer buffer = new StringBuffer();
+            int length = idCard.length();
+            String cardStart = idCard.substring(0, length - 7);
+            String cardEnd = idCard.substring(cardStart.length() + 3, length);
+            idCard = buffer.append(cardStart).append("****").append(cardEnd).toString();
+        }
         long count = shixinService.findByCardNumAndIname(idCard, realName);
         if(count > 0){
             logger.warn("用户存在失信列表中，userCode={}", userCode);
@@ -476,7 +477,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
                     inListMobiles.add(tRiskCallLog.getCallTel());
                 }
             }
-
+            logger.info("开始进行通讯录表的匹配修改，需要更改的数据条数userCode={},num={}", userCode, inListMobiles == null ? 0 : inListMobiles.size());
             /** 匹配通讯录表，修改标识*/
             if(inListMobiles.size() > 0){
                 List<String> list = new ArrayList<>(inListMobiles);

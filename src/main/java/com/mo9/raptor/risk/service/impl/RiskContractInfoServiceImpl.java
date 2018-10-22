@@ -64,6 +64,7 @@ public class RiskContractInfoServiceImpl implements RiskContractInfoService {
         List<String> contractMobilesList = new ArrayList<>();
         list.forEach(t -> contractMobilesList.add(t.getContractMobile()));
         List<TRiskContractInfo> existContractInfos = riskContractInfoRepository.findByMobileAndContractMobilesList(userEntity.getMobile(), contractMobilesList);
+        logger.info("手机通讯存放mycat,已存在条数size={}", existContractInfos == null ? 0 : existContractInfos.size());
         if(existContractInfos != null && existContractInfos.size() > 0){
             list = list.stream().filter(t -> isNotExist(t.getContractMobile(), existContractInfos)).collect(Collectors.toList());
         }
