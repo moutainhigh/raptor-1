@@ -34,6 +34,7 @@ public class RiskContractInfoServiceImpl implements RiskContractInfoService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void createAll(String contractData, UserEntity userEntity) {
+        logger.info("手机通讯录，存放mycat开始，userCode={},data是否为空={}", userEntity.getUserCode(), contractData == null ? true : false);
         if(StringUtils.isBlank(contractData)){
             logger.warn("手机通讯录数据获取为空，userCode={}", userEntity.getUserCode());
             return;
@@ -66,6 +67,7 @@ public class RiskContractInfoServiceImpl implements RiskContractInfoService {
         if(existContractInfos != null && existContractInfos.size() > 0){
             list = list.stream().filter(t -> isNotExist(t.getContractMobile(), existContractInfos)).collect(Collectors.toList());
         }
+        logger.info("手机通讯存放mycat数据条数={}", list.size());
         riskContractInfoRepository.saveAll(list);
     }
 
