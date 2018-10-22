@@ -5,11 +5,12 @@ import com.mo9.raptor.bean.ReqHeaderParams;
 import com.mo9.raptor.bean.req.UserContactsReq;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.ResCodeEnum;
+import com.mo9.raptor.pool.RiskContractTask;
+import com.mo9.raptor.pool.ThreadPool;
 import com.mo9.raptor.service.UserContactsService;
 import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.log.Log;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,6 +34,12 @@ public class UserContactsController {
 
     @Resource
     private UserContactsService userContactsService;
+
+    @Resource
+    private ThreadPool threadPool;
+
+    @Resource
+    private RiskContractTask contractTask;
 
     /**
      * 提交手机通讯录
@@ -58,6 +65,9 @@ public class UserContactsController {
                 //更新用户表通讯录状态
                 userService.updateMobileContacts(userEntity, true);
             }
+
+            contractTask.build(req.getData(), userEntity);
+            threadPool.execute(contractTask);
             return response.buildSuccessResponse(true);
         }catch (Exception e){
             Log.error(logger, e, "提交通讯录-->系统内部异常");

@@ -5,12 +5,14 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.engine.enums.AuditResultEnum;
 import com.mo9.raptor.engine.state.event.impl.AuditResponseEvent;
+import com.mo9.raptor.entity.IpEntity;
 import com.mo9.raptor.entity.UserCertifyInfoEntity;
 import com.mo9.raptor.entity.UserContactsEntity;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.repository.UserRepository;
 import com.mo9.raptor.risk.entity.TRiskCallLog;
 import com.mo9.raptor.risk.repo.RiskCallLogRepository;
+import com.mo9.raptor.risk.repo.RiskContractInfoRepository;
 import com.mo9.raptor.risk.service.LinkFaceService;
 import com.mo9.raptor.risk.service.RiskAuditService;
 import com.mo9.raptor.risk.service.RiskRuleEngineService;
@@ -18,7 +20,9 @@ import com.mo9.raptor.risk.service.RiskWordService;
 import com.mo9.raptor.riskdb.repo.RiskThirdBlackListRepository;
 import com.mo9.raptor.service.*;
 import com.mo9.raptor.utils.IdCardUtils;
+import com.mo9.raptor.utils.IpUtils;
 import com.mo9.raptor.utils.MobileUtil;
+import com.mo9.raptor.utils.RegexUtils;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -30,9 +34,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 import java.util.function.Function;
 
 /**
@@ -130,10 +132,20 @@ public class RiskAuditServiceImpl implements RiskAuditService {
     @Resource
     private RiskScoreService riskScoreService;
 
+    @Resource
+    private RiskContractInfoRepository riskContractInfoRepository;
+
+    @Resource
+    private IpService ipService;
+
+    @Resource
+    private ShixinService shixinService;
+
     private static final String WHITE_LIST = "WHITE";
 
     private static final String ORIGN_CALL = "%主叫%";
 
+    private static final  List<String> ipLimit = Arrays.asList("广西南宁", "福建莆田", "山东潍坊", "甘肃酒泉", "广东汕尾");
 
     private Double score(String userCode, String mobile) throws IOException {
         try {
@@ -175,6 +187,8 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         AuditResponseEvent finalResult = null;
         AuditResponseEvent res = null;
         ArrayList<AuditTask> taskList = new ArrayList<>();
+        taskList.add(new AuditTask((u) -> ipCheckRule(u), "IpCheckRule", true));
+        taskList.add(new AuditTask((u) -> shixinCheckRule(u), "ShixinCheckRule", true));
         taskList.add(new AuditTask((u) -> chaseDebtRule(u), "ChaseDebtRule", true));
         taskList.add(new AuditTask((u) -> blackListRule(u), "BlackListRule", true));
         taskList.add(new AuditTask((u) -> riskWordRule(u), "RiskWordRule", true));
@@ -192,6 +206,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         taskList.add(new AuditTask((u) -> antiHackRule(u), "AntiHackRule", false));
         taskList.add(new AuditTask((u) -> livePicCompareRule(u), "LivePicCompareRule", false));
         taskList.add(new AuditTask((u) -> idPicCompareRule(u), "IdPicCompareRule", false));
+
 
         boolean isWhiteListUser = WHITE_LIST.equals(user.getSource());
 
@@ -238,6 +253,59 @@ public class RiskAuditServiceImpl implements RiskAuditService {
 
     private static final int HTTP_OK = 200;
     private static final int ERROR_SCORE_CODE = -1;
+
+    /**
+     * ip范围检查
+     * @param userCode
+     * @return
+     */
+    private AuditResponseEvent ipCheckRule(String userCode) {
+        UserEntity user = userService.findByUserCode(userCode);
+        if(user == null || StringUtils.isBlank(user.getUserIp())){
+            logger.warn("用户不存在，或ip不存在，userCode={}", userCode);
+            return new AuditResponseEvent(userCode, false, "用户不存在，或ip不存在");
+        }
+        List<IpEntity> list=  ipService.findByIpNum(IpUtils.ipToLong(user.getUserIp()));
+        if(list == null){
+            return new AuditResponseEvent(userCode, true, "");
+        }
+        IpEntity ipEntity = list.get(0);
+        String province = ipEntity.getProvince();
+        String city = ipEntity.getCity();
+        boolean contains = ipLimit.contains(province + city);
+        if(contains){
+            logger.warn("用户包含在不允许ip中，userCode={},ip={}", userCode);
+            return new AuditResponseEvent(userCode, false, "用户包含在不允许ip中");
+        }
+        return new AuditResponseEvent(userCode, true, "");
+    }
+
+    /**
+     * 失信记录检查
+     * @param userCode
+     * @return
+     */
+    private AuditResponseEvent shixinCheckRule(String userCode) {
+        UserEntity user = userService.findByUserCode(userCode);
+        String idCard = user.getIdCard();
+        String realName = user.getRealName();
+        if(user == null || StringUtils.isBlank(idCard) || StringUtils.isBlank(realName) || idCard.length() < 8){
+            logger.warn("用户不存在，或身份证姓名不存在，userCode={}", userCode);
+            return new AuditResponseEvent(userCode, false, "用户不存在，或身份证姓名不存在");
+        }
+        StringBuffer buffer = new StringBuffer();
+        int length = idCard.length();
+        String cardStart = idCard.substring(0, length - 8);
+        String cardEnd = idCard.substring(cardStart.length() + 4, length);
+        idCard = buffer.append(cardStart).append("****").append(cardEnd).toString();
+
+        long count = shixinService.findByCardNumAndIname(idCard, realName);
+        if(count > 0){
+            logger.warn("用户存在失信列表中，userCode={}", userCode);
+            return new AuditResponseEvent(userCode, false, "用户存在失信列表中");
+        }
+        return new AuditResponseEvent(userCode, true, "");
+    }
 
     AuditResponseEvent chaseDebtRule(String userCode) {
         UserEntity user = userService.findByUserCode(userCode);
@@ -407,6 +475,12 @@ public class RiskAuditServiceImpl implements RiskAuditService {
                     count++;
                     inListMobiles.add(tRiskCallLog.getCallTel());
                 }
+            }
+
+            /** 匹配通讯录表，修改标识*/
+            if(inListMobiles.size() > 0){
+                List<String> list = new ArrayList<>(inListMobiles);
+                riskContractInfoRepository.updateMatchingMobile(userCode, list);
             }
             StringBuilder stringBuilder = new StringBuilder(userCode + "," + user.getMobile() + "在主叫列表里[");
             for (String inListMobile : inListMobiles) {

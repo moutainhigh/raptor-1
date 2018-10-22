@@ -83,6 +83,9 @@ public class DataSourceConfig {
         dataSource.setUsername(riskUsername);
         dataSource.setPassword(riskPassword);
         dataSource.setUrl(riskUrl);
+        List<String> connectionInitSqls = new ArrayList<>();
+        connectionInitSqls.add("SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci");
+        dataSource.setConnectionInitSqls(connectionInitSqls);
         return dataSource;
     }
 
