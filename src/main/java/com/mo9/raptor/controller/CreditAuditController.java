@@ -336,7 +336,7 @@ public class CreditAuditController {
         if (userContactsEntity != null) {
             model.addAttribute("contacts", userContactsEntity.getContactsList());
         }
-        return "audit/contacts";
+        return "credit/contacts";
     }
 
     private AuditUserEntity authLoginStatus(HttpServletRequest request){
