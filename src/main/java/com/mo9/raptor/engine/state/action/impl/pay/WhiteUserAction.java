@@ -75,7 +75,7 @@ public class WhiteUserAction implements IAction {
             int overdueDays = TimeUtils.dateDiff(loanOrder.getRepaymentDate(), payoffTime);
             if (overdueDays >= 4) {
                 //判断用户单次借款，历史逾期天数，若大于等于4天不推送
-                logger.info("借款订单判定，订单号[{}], 历史逾期天数[{}]，不推送！！！用户号：[{}]", overdueDays, userCode);
+                logger.info("借款订单判定，订单号[{}], 历史逾期天数[{}]，不推送！！！用户号：[{}]", loanOrder.getOrderId(), overdueDays, userCode);
                 return;
             }
         }

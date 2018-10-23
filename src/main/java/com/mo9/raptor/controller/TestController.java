@@ -4,16 +4,17 @@ import com.alibaba.fastjson.JSONObject;
 import com.mo9.mqclient.MqMessage;
 import com.mo9.raptor.bean.BaseResponse;
 import com.mo9.raptor.bean.ReqHeaderParams;
+import com.mo9.raptor.bean.res.RepayDetailRes;
+import com.mo9.raptor.bean.res.RepayInfoMqRes;
 import com.mo9.raptor.engine.entity.CouponEntity;
 import com.mo9.raptor.engine.entity.LoanOrderEntity;
 import com.mo9.raptor.engine.entity.PayOrderEntity;
 import com.mo9.raptor.engine.enums.StatusEnum;
-import com.mo9.raptor.engine.service.BillService;
-import com.mo9.raptor.engine.service.CouponService;
-import com.mo9.raptor.engine.service.ILoanOrderService;
-import com.mo9.raptor.engine.service.IPayOrderService;
+import com.mo9.raptor.engine.service.*;
 import com.mo9.raptor.engine.state.event.impl.loan.LoanEntryEvent;
 import com.mo9.raptor.engine.state.launcher.IEventLauncher;
+import com.mo9.raptor.engine.structure.Unit;
+import com.mo9.raptor.engine.structure.field.FieldTypeEnum;
 import com.mo9.raptor.engine.structure.item.Item;
 import com.mo9.raptor.engine.utils.EngineStaticValue;
 import com.mo9.raptor.engine.utils.TimeUtils;
@@ -25,6 +26,7 @@ import com.mo9.raptor.enums.CurrencyEnum;
 import com.mo9.raptor.enums.PayTypeEnum;
 import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.mq.listen.LoanMo9mqListener;
+import com.mo9.raptor.mq.producer.RabbitProducer;
 import com.mo9.raptor.redis.RedisParams;
 import com.mo9.raptor.redis.RedisServiceApi;
 import com.mo9.raptor.service.PayOrderLogService;
@@ -34,6 +36,7 @@ import com.mo9.raptor.utils.IDWorker;
 import com.mo9.raptor.utils.Md5Encrypt;
 import com.mo9.raptor.utils.log.Log;
 import org.slf4j.Logger;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -82,6 +85,12 @@ public class TestController {
 
     @Autowired
     private IEventLauncher loanEventLauncher;
+
+    @Autowired
+    private IPayOrderDetailService payOrderDetailService;
+
+    @Autowired
+    private RabbitProducer rabbitProducer;
 
     @Autowired
     private IDWorker idWorker;
@@ -478,6 +487,11 @@ public class TestController {
 
             LoanEntryEvent event = new LoanEntryEvent(orderId, payOrderId, payOrder.getType(), entryItem);
             loanEventLauncher.launch(event);
+
+            // 通知贷后
+            PayOrderLogEntity payOrderLogEntity = payOrderLogService.getByPayOrderId(payOrder.getOrderId());
+            loanMo9mqListener.notifyMisRepay(payOrderLogEntity, loanOrder.getPostponeCount(), loanOrder);
+
             return response;
         } catch (Exception e) {
             logger.error("再次入账失败 payOrderId[{}]", payOrderId, e);
@@ -486,4 +500,65 @@ public class TestController {
             return response;
         }
     }
+
+
+    /**
+     * 通知贷后还款
+     * @param payOrderId
+     * @param loanOrderId
+     * @param request
+     */
+    @RequestMapping("/notify_mis_repay")
+    public BaseResponse notifyMisRepay(
+            @RequestParam("payOrderId") String payOrderId,
+            @RequestParam("loanOrderId") String loanOrderId,
+            HttpServletRequest request) {
+        logger.info("手动mq补漏还款传递贷后开始 payOrderId : " + payOrderId + " - loanOrderId : " + loanOrderId);
+        PayOrderLogEntity payOrderLog = payOrderLogService.getByPayOrderId(payOrderId) ;
+        LoanOrderEntity loanOrderEntity = loanOrderService.getByOrderId(loanOrderId) ;
+
+        RepayInfoMqRes repayInfo = new RepayInfoMqRes();
+        BeanUtils.copyProperties(payOrderLog, repayInfo);
+
+        PayOrderEntity payOrderEntity = payOrderService.getByOrderId(payOrderLog.getPayOrderId());
+        repayInfo.setPostponeDays(payOrderEntity.getPostponeDays());
+        String status = payOrderEntity.getStatus();
+        repayInfo.setEntryDone(StatusEnum.ENTRY_DONE.name().equals(status));
+        repayInfo.setPayType(payOrderEntity.getType());
+        repayInfo.setPostponeCount(loanOrderEntity.getPostponeCount());
+        repayInfo.setPostponeDays(payOrderEntity.getPostponeDays());
+
+        List<RepayDetailRes> repayDetail = payOrderDetailService.getRepayDetail(payOrderEntity.getOrderId());
+        repayInfo.setRepayDetail(repayDetail);
+
+        Item realItem = billService.payoffRealItem(loanOrderEntity);
+        List<RepayDetailRes> shouldPay = new ArrayList<RepayDetailRes>();
+
+        for (Map.Entry<FieldTypeEnum, Unit> entry : realItem.entrySet()) {
+            BigDecimal number = entry.getValue().sum();
+            if (BigDecimal.ZERO.compareTo(number) < 0) {
+                RepayDetailRes res = new RepayDetailRes();
+                res.setFieldType(entry.getKey().name());
+                res.setNumber(number);
+                shouldPay.add(res);
+            }
+        }
+        repayInfo.setShouldPay(shouldPay);
+        repayInfo.setRepaymentDate(loanOrderEntity.getRepaymentDate());
+        repayInfo.setPayoffTime(loanOrderEntity.getPayoffTime());
+
+        // 设置减免金额
+        BigDecimal totalDeductedAmount = couponService.getTotalDeductedAmount(loanOrderEntity.getOrderId());
+        repayInfo.setTotalReliefAmount(totalDeductedAmount);
+        repayInfo.setProductType(sockpuppet);
+
+
+        JSONObject result = new JSONObject();
+        result.put("repayInfo", repayInfo);
+        logger.info(result.toJSONString());
+        rabbitProducer.sendMessageRepay(payOrderLog.getPayOrderId(), result.toJSONString());
+        logger.info("手动mq补漏还款传递贷后结束 payOrderId : " + payOrderId + " - loanOrderId : " + loanOrderId);
+        return new BaseResponse();
+    }
+
 }

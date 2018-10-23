@@ -5,12 +5,14 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.engine.enums.AuditResultEnum;
 import com.mo9.raptor.engine.state.event.impl.AuditResponseEvent;
+import com.mo9.raptor.entity.IpEntity;
 import com.mo9.raptor.entity.UserCertifyInfoEntity;
 import com.mo9.raptor.entity.UserContactsEntity;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.repository.UserRepository;
 import com.mo9.raptor.risk.entity.TRiskCallLog;
 import com.mo9.raptor.risk.repo.RiskCallLogRepository;
+import com.mo9.raptor.risk.repo.RiskContractInfoRepository;
 import com.mo9.raptor.risk.service.LinkFaceService;
 import com.mo9.raptor.risk.service.RiskAuditService;
 import com.mo9.raptor.risk.service.RiskRuleEngineService;
@@ -18,6 +20,7 @@ import com.mo9.raptor.risk.service.RiskWordService;
 import com.mo9.raptor.riskdb.repo.RiskThirdBlackListRepository;
 import com.mo9.raptor.service.*;
 import com.mo9.raptor.utils.IdCardUtils;
+import com.mo9.raptor.utils.IpUtils;
 import com.mo9.raptor.utils.MobileUtil;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -31,6 +34,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.function.Function;
@@ -130,10 +134,20 @@ public class RiskAuditServiceImpl implements RiskAuditService {
     @Resource
     private RiskScoreService riskScoreService;
 
+    @Resource
+    private RiskContractInfoRepository riskContractInfoRepository;
+
+    @Resource
+    private IpService ipService;
+
+    @Resource
+    private ShixinService shixinService;
+
     private static final String WHITE_LIST = "WHITE";
 
     private static final String ORIGN_CALL = "%主叫%";
 
+    private static final  List<String> ipLimit = Arrays.asList("广西南宁", "福建莆田", "山东潍坊", "甘肃酒泉", "广东汕尾");
 
     private Double score(String userCode, String mobile) throws IOException {
         try {
@@ -175,6 +189,8 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         AuditResponseEvent finalResult = null;
         AuditResponseEvent res = null;
         ArrayList<AuditTask> taskList = new ArrayList<>();
+        taskList.add(new AuditTask((u) -> ipCheckRule(u), "IpCheckRule", true));
+        taskList.add(new AuditTask((u) -> shixinCheckRule(u), "ShixinCheckRule", true));
         taskList.add(new AuditTask((u) -> chaseDebtRule(u), "ChaseDebtRule", true));
         taskList.add(new AuditTask((u) -> blackListRule(u), "BlackListRule", true));
         taskList.add(new AuditTask((u) -> riskWordRule(u), "RiskWordRule", true));
@@ -192,6 +208,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         taskList.add(new AuditTask((u) -> antiHackRule(u), "AntiHackRule", false));
         taskList.add(new AuditTask((u) -> livePicCompareRule(u), "LivePicCompareRule", false));
         taskList.add(new AuditTask((u) -> idPicCompareRule(u), "IdPicCompareRule", false));
+
 
         boolean isWhiteListUser = WHITE_LIST.equals(user.getSource());
 
@@ -239,7 +256,63 @@ public class RiskAuditServiceImpl implements RiskAuditService {
     private static final int HTTP_OK = 200;
     private static final int ERROR_SCORE_CODE = -1;
 
+    /**
+     * ip范围检查
+     * @param userCode
+     * @return
+     */
+    private AuditResponseEvent ipCheckRule(String userCode) {
+        UserEntity user = userService.findByUserCode(userCode);
+        if(user == null || StringUtils.isBlank(user.getUserIp())){
+            logger.warn("用户不存在，或ip不存在，userCode={}", userCode);
+            return new AuditResponseEvent(userCode, false, "用户不存在，或ip不存在");
+        }
+        List<IpEntity> list=  ipService.findByIpNum(IpUtils.ipToLong(user.getUserIp()));
+        if(list == null){
+            return new AuditResponseEvent(userCode, true, "");
+        }
+        IpEntity ipEntity = list.get(0);
+        String province = ipEntity.getProvince();
+        String city = ipEntity.getCity();
+        boolean contains = ipLimit.contains(province + city);
+        if(contains){
+            logger.warn("用户包含在不允许ip中，userCode={},ip={}", userCode);
+            return new AuditResponseEvent(userCode, false, "用户包含在不允许ip中");
+        }
+        return new AuditResponseEvent(userCode, true, "");
+    }
+
+    /**
+     * 失信记录检查
+     * @param userCode
+     * @return
+     */
+    private AuditResponseEvent shixinCheckRule(String userCode) {
+        UserEntity user = userService.findByUserCode(userCode);
+        String idCard = user.getIdCard();
+        String realName = user.getRealName();
+        if(user == null || StringUtils.isBlank(idCard) || StringUtils.isBlank(realName)){
+            logger.warn("用户不存在，或身份证姓名不存在，userCode={}", userCode);
+            return new AuditResponseEvent(userCode, false, "用户不存在，或身份证姓名不存在");
+        }
+        if(idCard.length() == 18){
+            StringBuffer buffer = new StringBuffer();
+            int length = idCard.length();
+            String cardStart = idCard.substring(0, length - 7);
+            String cardEnd = idCard.substring(cardStart.length() + 3, length);
+            idCard = buffer.append(cardStart).append("****").append(cardEnd).toString();
+        }
+        long count = shixinService.findByCardNumAndIname(idCard, realName);
+        if(count > 0){
+            logger.warn("用户存在失信列表中，userCode={}", userCode);
+            return new AuditResponseEvent(userCode, false, "用户存在失信列表中");
+        }
+        return new AuditResponseEvent(userCode, true, "");
+    }
+
     AuditResponseEvent chaseDebtRule(String userCode) {
+        return new AuditResponseEvent(userCode, true, "");
+/*
         UserEntity user = userService.findByUserCode(userCode);
         try {
             if (user != null && StringUtils.isNotBlank(user.getMobile())) {
@@ -281,6 +354,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
             logger.error(userCode + "检查报告出错", e);
             return new AuditResponseEvent(userCode, false, "致命问题！！检查运营商报告出错");
         }
+*/
     }
 
     AuditResponseEvent blackListRule(String userCode) {
@@ -327,8 +401,8 @@ public class RiskAuditServiceImpl implements RiskAuditService {
             idCard = IdCardUtils.conver15CardTo18(idCard);
         }
         int age = IdCardUtils.getAgeByIdCard(idCard);
-        boolean pass = age >= 18 && age <= 30;
-        return new AuditResponseEvent(userCode, pass, !pass ? "年龄大于30或者小于18" : "");
+        boolean pass = age >= 18 && age <= 45;
+        return new AuditResponseEvent(userCode, pass, !pass ? "年龄大于45或者小于18" : "");
 
     }
 
@@ -343,7 +417,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         }
         try {
             String province = IdCardUtils.getProvinceByIdCard(idCard);
-            if ("新疆".equals(province) || "西藏".equals(province)) {
+            if ("新疆".equals(province) || "西藏".equals(province) || (province != null && province.contains("内蒙"))) {
                 return new AuditResponseEvent(userCode, false, "西藏-新疆-年龄规则");
             }
             return new AuditResponseEvent(userCode, true, "");
@@ -354,14 +428,16 @@ public class RiskAuditServiceImpl implements RiskAuditService {
 
 
     /**
-     * 通讯录规则【通讯录数量大于30条，180天内主动拨打通讯录中电话10次及以上】
+     * 通讯录规则【通讯录数量大于15条小于1000条，180天内通讯录中通话3次及以上】
      *
      * @param userCode
      * @return
      */
     AuditResponseEvent contactsRule(String userCode) {
-        int contactsLimit = 30;
-        int orignCallLimit = 10;
+        int contactsLimit = 15;
+        int contactsLimitUpper = 1000;
+        int orignCallLimit = 3;
+
         Long days180ts = 180 * 24 * 60 * 60 * 1000L;
         long currentTimeMillis = System.currentTimeMillis();
         UserEntity user = userService.findByUserCode(userCode);
@@ -379,13 +455,19 @@ public class RiskAuditServiceImpl implements RiskAuditService {
             HashSet<String> allMobileSet = new HashSet<>();
             for (int i = 0; i < jsonArray.size(); i++) {
                 String mobile = MobileUtil.processMobile(jsonArray.getJSONObject(i).getString("contact_mobile"));
-                if (StringUtils.isNotBlank(mobile)) {
+                String name = jsonArray.getJSONObject(i).getString("contact_name");
+                if (StringUtils.isNotBlank(name) && StringUtils.isNotBlank(mobile) && mobile.length() >= 11) {
                     allMobileSet.add(mobile);
                 }
             }
             if (allMobileSet.size() < contactsLimit) {
-                return new AuditResponseEvent(userCode, false, "通讯录数量小于30个");
+                return new AuditResponseEvent(userCode, false, "通讯录数量小于15个");
             }
+
+            if (allMobileSet.size() > contactsLimitUpper) {
+                return new AuditResponseEvent(userCode, false, "通讯录数量大于1000个");
+            }
+
             int count = 0;
             HashSet<String> inListMobiles = new HashSet<>();
             //MYCAI限制1000条 所以这边有个分页
@@ -402,11 +484,17 @@ public class RiskAuditServiceImpl implements RiskAuditService {
             }
             logger.info(user.getMobile() + "拉取到数据" + allCallLog.size());
             for (TRiskCallLog tRiskCallLog : allCallLog) {
-                //主叫 && 在通讯录内
-                if (tRiskCallLog.getCallMethod() != null && tRiskCallLog.getCallMethod().contains("主叫") && allMobileSet.contains(tRiskCallLog.getCallTel())) {
+                // 在通讯录内
+                if (allMobileSet.contains(tRiskCallLog.getCallTel())) {
                     count++;
                     inListMobiles.add(tRiskCallLog.getCallTel());
                 }
+            }
+            logger.info("开始进行通讯录表的匹配修改，需要更改的数据条数userCode={},num={}", userCode, inListMobiles == null ? 0 : inListMobiles.size());
+            /** 匹配通讯录表，修改标识*/
+            if(inListMobiles.size() > 0){
+                List<String> list = new ArrayList<>(inListMobiles);
+                riskContractInfoRepository.updateMatchingMobile(userCode, list);
             }
             StringBuilder stringBuilder = new StringBuilder(userCode + "," + user.getMobile() + "在主叫列表里[");
             for (String inListMobile : inListMobiles) {
@@ -414,7 +502,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
             }
             stringBuilder.append("]");
             logger.info(stringBuilder.toString());
-            return new AuditResponseEvent(userCode, count >= orignCallLimit, count >= orignCallLimit ? "" : "180天主动拨打通讯录号码小于10次(共" + count + "次)");
+            return new AuditResponseEvent(userCode, count >= orignCallLimit, count >= orignCallLimit ? "" : "180天与通讯录通话号码小于3次(共" + count + "次)");
         } catch (Exception e) {
             logger.error(userCode + "解析联系人出错", e);
             logger.info(userCode + json);
