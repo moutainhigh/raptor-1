@@ -5,7 +5,7 @@
 	 */
 	var defaults = {
 		//每页显示记录数
-        "pageSize"       : 1,
+        "pageSize"       : 10,
         //当前页号
         "pageNumber"     : 1,
         //总记录个数
@@ -15,7 +15,7 @@
         //显示页码个数，建议使用奇数
         "pageBarSize"    : 5,
         //每页显示记录数设置
-        "pageSizeMenu"   : [1,10,20,50,200],
+        "pageSizeMenu"   : [50,100,200,500,1000],
         //业务参数集，参数为function，function的返回值必须为Object格式：{a:1,b:2,……}
         "params"         : undefined,
         //自定义样式
