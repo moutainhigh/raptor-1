@@ -28,4 +28,11 @@ public interface CouponService {
      * @return
      */
     BigDecimal getTotalDeductedAmount(String orderId);
+
+    /**
+     * 根据还款订单号查询优惠券
+     * @param payOrderId
+     * @return
+     */
+    List<CouponEntity> getByPayOrderId(String payOrderId);
 }

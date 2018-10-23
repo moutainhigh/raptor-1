@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.engine.entity.PayOrderDetailEntity;
 import com.mo9.raptor.engine.service.IPayOrderDetailService;
 import com.mo9.raptor.engine.state.action.IAction;
+import com.mo9.raptor.engine.state.event.impl.coupon.CouponEntryResponseEvent;
 import com.mo9.raptor.engine.state.event.impl.pay.EntryResponseEvent;
 import com.mo9.raptor.engine.state.launcher.IEventLauncher;
 import com.mo9.raptor.engine.structure.Unit;
@@ -103,7 +104,7 @@ public class EntryResponseAction implements IAction {
             logger.error("还款入账事件异常，事件：[{}]", JSONObject.toJSONString(event), e);
         }
         if (StringUtils.isNotBlank(couponId)) {
-            EntryResponseEvent couponEvent = new EntryResponseEvent(couponId, entryItem.sum(SourceTypeEnum.COUPON));
+            CouponEntryResponseEvent couponEvent = new CouponEntryResponseEvent(couponId, entryItem.sum(SourceTypeEnum.COUPON), payOrderId);
             try {
                 couponEventLauncher.launch(couponEvent);
             } catch (Exception e) {

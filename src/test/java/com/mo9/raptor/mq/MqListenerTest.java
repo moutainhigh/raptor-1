@@ -48,7 +48,7 @@ public class MqListenerTest {
     @Test
     public void mockLend () {
 
-        LoanOrderEntity order = loanOrderService.getLastIncompleteOrder("AA20A480E526D644D13D9AC5593D2602", StatusEnum.PROCESSING);
+        LoanOrderEntity order = loanOrderService.getLastIncompleteOrder("123", StatusEnum.PROCESSING);
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("orderId", order.getOrderId());
         params.put("lendAmount", order.getLoanNumber().subtract(order.getChargeValue()));

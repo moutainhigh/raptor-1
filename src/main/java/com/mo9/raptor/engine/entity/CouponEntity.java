@@ -30,6 +30,12 @@ public class CouponEntity extends AbstractStateEntity {
     private String boundOrderId;
 
     /**
+     * 还款订单号
+     */
+    @Column(name = "pay_order_id")
+    private String payOrderId;
+
+    /**
      * 优惠券面值
      */
     @Column(name = "apply_amount")
@@ -80,6 +86,14 @@ public class CouponEntity extends AbstractStateEntity {
 
     public void setBoundOrderId(String boundOrderId) {
         this.boundOrderId = boundOrderId;
+    }
+
+    public String getPayOrderId() {
+        return payOrderId;
+    }
+
+    public void setPayOrderId(String payOrderId) {
+        this.payOrderId = payOrderId;
     }
 
     public BigDecimal getApplyAmount() {
