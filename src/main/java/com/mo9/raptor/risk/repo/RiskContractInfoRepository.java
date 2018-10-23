@@ -19,7 +19,7 @@ public interface RiskContractInfoRepository extends JpaRepository<TRiskContractI
     List<TRiskContractInfo> findByMobileAndContractMobilesList(String mobile, List<String> contractMobilesList);
 
     @Modifying
-    @Query(value = "update t_risk_contract_info set is_matching = 1 where user_code = ?1 and  contact_mobile in ?2", nativeQuery = true)
+    @Query(value = "update t_risk_contract_info set is_matching = 1 where mobile = ?1 and  contact_mobile in ?2", nativeQuery = true)
     @Transactional
     void updateMatchingMobile(String userCode, List<String> inListMobiles);
 }

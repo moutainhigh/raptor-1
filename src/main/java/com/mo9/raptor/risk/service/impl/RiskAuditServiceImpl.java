@@ -490,11 +490,11 @@ public class RiskAuditServiceImpl implements RiskAuditService {
                     inListMobiles.add(tRiskCallLog.getCallTel());
                 }
             }
-            logger.info("开始进行通讯录表的匹配修改，需要更改的数据条数userCode={},num={}", userCode, inListMobiles == null ? 0 : inListMobiles.size());
-            /** 匹配通讯录表，修改标识*/
+            logger.info("开始进行通讯录表的匹配修改，需要更改的数据条数mobile={},num={}", user.getMobile(), inListMobiles == null ? 0 : inListMobiles.size());
+            /** 匹配通讯录表，修改标识,注意用mobile修改，不要用usercode*/
             if(inListMobiles.size() > 0){
                 List<String> list = new ArrayList<>(inListMobiles);
-                riskContractInfoRepository.updateMatchingMobile(userCode, list);
+                riskContractInfoRepository.updateMatchingMobile(user.getMobile(), list);
             }
             StringBuilder stringBuilder = new StringBuilder(userCode + "," + user.getMobile() + "在主叫列表里[");
             for (String inListMobile : inListMobiles) {
