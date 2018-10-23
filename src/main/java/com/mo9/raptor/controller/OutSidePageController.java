@@ -84,19 +84,7 @@ public class OutSidePageController {
             redisServiceApi.set(RedisParams.ACTION_TOKEN_LONG + remoteHost + CookieUtils.addLoginCookie(response), spreadChannelUser, RedisParams.EXPIRE_1D, raptorRedis);
         }
         logger.info("渠道推广登录接口-------->>>>>渠道[{}]登录成功,ip为[{}]", spreadChannelUser.getSource(), remoteHost);
-        Page<Map<String, Object>> registerUser = userService.getRegisterUserNumber(spreadChannelUser.getSource(), new PageReq());
-
-        List<Map<String, Object>> content = registerUser.getContent();
-
-        //根据渠道和子渠道查询填写资料用户个数
-        List<Map<String, Object>> auditUser = userService.toAuditUserCount(spreadChannelUser.getSource());
-        // 查询去借款的用户数
-        List<Map<String, Object>> channelLoanCount = userService.getChannelLoanCount(spreadChannelUser.getSource());
-        //组装数据
-        content = getResultList(content, auditUser, channelLoanCount);
-        model.addAttribute("resultList", content);
-        model.addAttribute("code", 0);
-        return "channel/show";
+        return "channel/page_show";
     }
 
     @RequestMapping("/pageLoadJson")

@@ -114,7 +114,7 @@ public class CreditAuditController {
                 return "credit/login";
             }
             //设置登录成功
-            redisServiceApi.set(RedisParams.ACTION_TOKEN_LONG_AUDIT + remoteHost + CookieUtils.addLoginCookie(response), auditUserEntity, RedisParams.EXPIRE_30M, raptorRedis);
+            redisServiceApi.set(RedisParams.ACTION_TOKEN_LONG_AUDIT + remoteHost + CookieUtils.addLoginCookie(response), auditUserEntity, RedisParams.EXPIRE_1D, raptorRedis);
             logger.info("人工审核登录接口-------->>>>>用户[{}]登录成功,ip为[{}]", auditUserEntity.getName(), remoteHost);
         }
         if (AuditLevelEnum.MANAGE.name().equals(auditUserEntity.getLevel())) {
@@ -325,7 +325,7 @@ public class CreditAuditController {
         //非登录状态去登录
         if (auditUser == null) {
             model.addAttribute("message", "登录已过期");
-            return "audit/login";
+            return "credit/login";
         }
         UserContactsEntity userContactsEntity = userContactsService.getByUserCode(userCode);
         if (userContactsEntity != null) {
