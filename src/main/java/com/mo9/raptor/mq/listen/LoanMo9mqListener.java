@@ -10,10 +10,7 @@ import com.mo9.raptor.bean.res.LendInfoMqRes;
 import com.mo9.raptor.bean.res.RepayDetailRes;
 import com.mo9.raptor.bean.res.RepayInfoMqRes;
 import com.mo9.raptor.bean.res.UserInfoMqRes;
-import com.mo9.raptor.engine.entity.LendOrderEntity;
-import com.mo9.raptor.engine.entity.LoanOrderEntity;
-import com.mo9.raptor.engine.entity.PayOrderDetailEntity;
-import com.mo9.raptor.engine.entity.PayOrderEntity;
+import com.mo9.raptor.engine.entity.*;
 import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.engine.service.*;
 import com.mo9.raptor.engine.state.event.impl.lend.LendResponseEvent;
@@ -457,12 +454,12 @@ public class LoanMo9mqListener implements IMqMsgListener{
         // 设置减免金额
         BigDecimal totalDeductedAmount = couponService.getTotalDeductedAmount(loanOrderEntity.getOrderId());
         repayInfo.setTotalReliefAmount(totalDeductedAmount);
-		List<PayOrderDetailEntity> payOrderDetailEntities = payOrderDetailService.listByPayOrderId(payOrderLog.getPayOrderId());
+
+		List<CouponEntity> couponEntities = couponService.getByPayOrderId(payOrderLog.getPayOrderId());
 		BigDecimal reliefAmount = BigDecimal.ZERO;
-		for (PayOrderDetailEntity payOrderDetailEntity : payOrderDetailEntities) {
-			String sourceType = payOrderDetailEntity.getSourceType();
-			if (SourceTypeEnum.COUPON.name().equals(sourceType)) {
-				reliefAmount = reliefAmount.add(payOrderDetailEntity.getPaid());
+		if (couponEntities != null && couponEntities.size() > 0) {
+			for (CouponEntity couponEntity : couponEntities) {
+				reliefAmount = reliefAmount.add(couponEntity.getEntryAmount());
 			}
 		}
 		repayInfo.setReliefAmount(reliefAmount);
