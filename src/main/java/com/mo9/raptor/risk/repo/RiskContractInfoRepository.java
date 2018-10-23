@@ -15,11 +15,11 @@ import java.util.List;
  */
 public interface RiskContractInfoRepository extends JpaRepository<TRiskContractInfo, Long> {
 
-    @Query(value = "select * from t_risk_contract_info where mobile = ?1 and contract_mobile in ?2 and is_deleted = 0", nativeQuery = true)
+    @Query(value = "select * from t_risk_contract_info where mobile = ?1 and contact_mobile in ?2 and is_deleted = 0", nativeQuery = true)
     List<TRiskContractInfo> findByMobileAndContractMobilesList(String mobile, List<String> contractMobilesList);
 
     @Modifying
-    @Query(value = "update t_risk_contract_info set is_matching = 1 where user_code = ?1 and  contract_mobile in ?2", nativeQuery = true)
+    @Query(value = "update t_risk_contract_info set is_matching = 1 where user_code = ?1 and  contact_mobile in ?2", nativeQuery = true)
     @Transactional
     void updateMatchingMobile(String userCode, List<String> inListMobiles);
 }
