@@ -97,6 +97,8 @@ public class RiskContractInfoServiceImpl implements RiskContractInfoService {
             t.setContractName(json.containsKey("contact_name") ? json.getString("contact_name") : null);
             t.setMobile(mobile);
             t.setUserCode(userCode);
+            t.setCreateTime(System.currentTimeMillis());
+            t.setUpdateTime(System.currentTimeMillis());
             list.add(t);
         });
         return list;
