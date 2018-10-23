@@ -5,12 +5,14 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.engine.enums.AuditResultEnum;
 import com.mo9.raptor.engine.state.event.impl.AuditResponseEvent;
+import com.mo9.raptor.entity.IpEntity;
 import com.mo9.raptor.entity.UserCertifyInfoEntity;
 import com.mo9.raptor.entity.UserContactsEntity;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.repository.UserRepository;
 import com.mo9.raptor.risk.entity.TRiskCallLog;
 import com.mo9.raptor.risk.repo.RiskCallLogRepository;
+import com.mo9.raptor.risk.repo.RiskContractInfoRepository;
 import com.mo9.raptor.risk.service.LinkFaceService;
 import com.mo9.raptor.risk.service.RiskAuditService;
 import com.mo9.raptor.risk.service.RiskRuleEngineService;
@@ -18,6 +20,7 @@ import com.mo9.raptor.risk.service.RiskWordService;
 import com.mo9.raptor.riskdb.repo.RiskThirdBlackListRepository;
 import com.mo9.raptor.service.*;
 import com.mo9.raptor.utils.IdCardUtils;
+import com.mo9.raptor.utils.IpUtils;
 import com.mo9.raptor.utils.MobileUtil;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -31,6 +34,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.function.Function;
@@ -486,7 +490,6 @@ public class RiskAuditServiceImpl implements RiskAuditService {
                     inListMobiles.add(tRiskCallLog.getCallTel());
                 }
             }
-            StringBuilder stringBuilder = new StringBuilder(userCode + "," + user.getMobile() + "在通话列表里[");
             logger.info("开始进行通讯录表的匹配修改，需要更改的数据条数userCode={},num={}", userCode, inListMobiles == null ? 0 : inListMobiles.size());
             /** 匹配通讯录表，修改标识*/
             if(inListMobiles.size() > 0){
