@@ -21,16 +21,16 @@ public class TRiskContractInfo {
     @Column(name = "user_code")
     private String userCode;
 
-    @Column(name = "contract_name")
+    @Column(name = "contact_name")
     private String contractName;
 
-    @Column(name = "contract_mobile")
+    @Column(name = "contact_mobile")
     private String contractMobile;
 
-    @Column(name = "contract_relationship")
+    @Column(name = "contact_relationship")
     private String contractRelationship;
 
-    @Column(name = "contract_type")
+    @Column(name = "contact_type")
     private String contractType;
 
     @Column(name = "remark")
