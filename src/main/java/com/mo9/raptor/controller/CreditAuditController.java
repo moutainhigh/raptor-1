@@ -89,21 +89,19 @@ public class CreditAuditController {
         String userName = request.getParameter("userName");
         String password = request.getParameter("password");
         String remoteHost = IpUtils.getRemoteHost(request);
+        String loginToken = CookieUtils.getLoginValue(request);
         //只有公司 ip允许登录
          if (!IpUtils.ips.contains(remoteHost)) {
             logger.warn("非公司ip禁止登录，ip为[{}]", remoteHost);
             model.addAttribute("message", "登录失败");
             return "credit/login";
         }
-        String loginName = userName;
-        String cookieName = CookieUtils.getValueFromCookies(request, "loginName");
-        if (StringUtils.isEmpty(loginName)&&!StringUtils.isEmpty(cookieName)) {
-            loginName = cookieName;
-        }else if (StringUtils.isEmpty(cookieName)||!cookieName.equals(loginName)){
-            CookieUtils.addCookie(response,"loginName",loginName,24 * 60 * 60);
+        AuditUserEntity auditUserEntity = null;
+        if (StringUtils.isEmpty(userName)&&!StringUtils.isEmpty(loginToken)) {
+            //验证登录状态
+            auditUserEntity = (AuditUserEntity) redisServiceApi.get(RedisParams.ACTION_TOKEN_LONG_AUDIT + remoteHost + loginToken, raptorRedis);
         }
-        //查看是否在登录状态
-        AuditUserEntity auditUserEntity = (AuditUserEntity) redisServiceApi.get(RedisParams.ACTION_TOKEN_LONG_AUDIT + remoteHost + loginName, raptorRedis);
+
         //非登录状态去登录
         if (auditUserEntity == null) {
             if (StringUtils.isEmpty(userName) || StringUtils.isEmpty(password)) {
@@ -116,12 +114,9 @@ public class CreditAuditController {
                 return "credit/login";
             }
             //设置登录成功
-            CookieUtils.addCookie(response, "loginName", loginName, 24 * 60 * 60);
-            loginName = auditUserEntity.getLoginName();
-            logger.info("人工审核登录接口-------->>>>>用户[{}]登录成功,ip为[{}]", loginName, remoteHost);
+            redisServiceApi.set(RedisParams.ACTION_TOKEN_LONG_AUDIT + remoteHost + CookieUtils.addLoginCookie(response), auditUserEntity, RedisParams.EXPIRE_1D, raptorRedis);
+            logger.info("人工审核登录接口-------->>>>>用户[{}]登录成功,ip为[{}]", auditUserEntity.getName(), remoteHost);
         }
-
-        redisServiceApi.set(RedisParams.ACTION_TOKEN_LONG_AUDIT + remoteHost + auditUserEntity.getLoginName(), auditUserEntity, RedisParams.EXPIRE_30M, raptorRedis);
         if (AuditLevelEnum.MANAGE.name().equals(auditUserEntity.getLevel())) {
             return "credit/manage";
         }
@@ -238,17 +233,12 @@ public class CreditAuditController {
         if (auditUser == null) {
             return "-1";
         }
-        logger.info("人工审核操作接口-------->>>>>操作人[{}]，userCode=[{}],type=[{}]", auditUser.getName(),  userCode, type);
+        logger.info("人工审核操作接口-------->>>>>操作人[{}]，userCode=[{}],type=[{}]", auditUser.getLoginName(),  userCode, type);
         List<String> mobile = new ArrayList<>();
-        UserEntity userEntity = userService.findByUserCodeAndDeleted(userCode, false);
-        //非人工审核状态禁止
-        if (userEntity == null || !StatusEnum.MANUAL.name().equals(userEntity.getStatus())) {
-            return "-1";
-        }
-        mobile.add(userEntity.getMobile());
-        manualAuditUser(mobile, StatusEnum.valueOf(type), "mo9@2018", "人工审核，操作人:" + auditUser.getName());
+
         AuditOperationRecordEntity auditOperationRecordEntity = auditOperationRecordService.findByOperateIdAndUserCode(auditUser.getId(),userCode);
-        if (auditOperationRecordEntity==null){
+        //非人工审核状态直接返回
+        if (auditOperationRecordEntity==null||!StatusEnum.MANUAL.name().equals(auditOperationRecordEntity.getStatus())){
             return "-1";
         }
         auditOperationRecordEntity.setUpdateTime(System.currentTimeMillis());
@@ -256,6 +246,13 @@ public class CreditAuditController {
         auditOperationRecordEntity.setStatus(type);
         auditOperationRecordEntity.setAuditTime(System.currentTimeMillis());
         auditOperationRecordService.save(auditOperationRecordEntity);
+        //非人工审核状态禁止
+        UserEntity userEntity = userService.findByUserCodeAndDeleted(userCode, false);
+        if (userEntity == null || !StatusEnum.MANUAL.name().equals(userEntity.getStatus())) {
+            return "-1";
+        }
+        mobile.add(userEntity.getMobile());
+        manualAuditUser(mobile, StatusEnum.valueOf(type), "mo9@2018", "人工审核，操作人:" + auditUser.getLoginName());
         return "0";
     }
 
@@ -317,7 +314,7 @@ public class CreditAuditController {
     }
     @GetMapping("audit/login")
     public String loginIndex(Model model, HttpServletRequest request) {
-        String loginName = CookieUtils.getValueFromCookies(request, "loginName");
+        String loginName = CookieUtils.getLoginValue(request);
         redisServiceApi.remove(RedisParams.ACTION_TOKEN_LONG + IpUtils.getRemoteHost(request)+loginName, raptorRedis);
         return "credit/login";
     }
@@ -328,20 +325,20 @@ public class CreditAuditController {
         //非登录状态去登录
         if (auditUser == null) {
             model.addAttribute("message", "登录已过期");
-            return "audit/login";
+            return "credit/login";
         }
         UserContactsEntity userContactsEntity = userContactsService.getByUserCode(userCode);
         if (userContactsEntity != null) {
             model.addAttribute("contacts", userContactsEntity.getContactsList());
         }
-        return "audit/contacts";
+        return "credit/contacts";
     }
 
     private AuditUserEntity authLoginStatus(HttpServletRequest request){
         String remoteHost = IpUtils.getRemoteHost(request);
-        String loginName = CookieUtils.getValueFromCookies(request, "loginName");
+        String loginToken = CookieUtils.getLoginValue(request);
         //查看是否在登录状态
-        return (AuditUserEntity) redisServiceApi.get(RedisParams.ACTION_TOKEN_LONG_AUDIT + remoteHost + loginName, raptorRedis);
+        return (AuditUserEntity) redisServiceApi.get(RedisParams.ACTION_TOKEN_LONG_AUDIT + remoteHost + loginToken, raptorRedis);
     }
 
 }
