@@ -5,7 +5,7 @@
 	 */
 	var defaults = {
 		//每页显示记录数
-        "pageSize"       : 10,
+        "pageSize"       : 50,
         //当前页号
         "pageNumber"     : 1,
         //总记录个数
