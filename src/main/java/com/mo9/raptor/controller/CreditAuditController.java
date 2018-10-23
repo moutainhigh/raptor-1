@@ -238,17 +238,12 @@ public class CreditAuditController {
         if (auditUser == null) {
             return "-1";
         }
-        logger.info("人工审核操作接口-------->>>>>操作人[{}]，userCode=[{}],type=[{}]", auditUser.getName(),  userCode, type);
+        logger.info("人工审核操作接口-------->>>>>操作人[{}]，userCode=[{}],type=[{}]", auditUser.getLoginName(),  userCode, type);
         List<String> mobile = new ArrayList<>();
-        UserEntity userEntity = userService.findByUserCodeAndDeleted(userCode, false);
-        //非人工审核状态禁止
-        if (userEntity == null || !StatusEnum.MANUAL.name().equals(userEntity.getStatus())) {
-            return "-1";
-        }
-        mobile.add(userEntity.getMobile());
-        manualAuditUser(mobile, StatusEnum.valueOf(type), "mo9@2018", "人工审核，操作人:" + auditUser.getName());
+
         AuditOperationRecordEntity auditOperationRecordEntity = auditOperationRecordService.findByOperateIdAndUserCode(auditUser.getId(),userCode);
-        if (auditOperationRecordEntity==null){
+        //非人工审核状态直接返回
+        if (auditOperationRecordEntity==null||!StatusEnum.MANUAL.name().equals(auditOperationRecordEntity.getStatus())){
             return "-1";
         }
         auditOperationRecordEntity.setUpdateTime(System.currentTimeMillis());
@@ -256,6 +251,13 @@ public class CreditAuditController {
         auditOperationRecordEntity.setStatus(type);
         auditOperationRecordEntity.setAuditTime(System.currentTimeMillis());
         auditOperationRecordService.save(auditOperationRecordEntity);
+        //非人工审核状态禁止
+        UserEntity userEntity = userService.findByUserCodeAndDeleted(userCode, false);
+        if (userEntity == null || !StatusEnum.MANUAL.name().equals(userEntity.getStatus())) {
+            return "-1";
+        }
+        mobile.add(userEntity.getMobile());
+        manualAuditUser(mobile, StatusEnum.valueOf(type), "mo9@2018", "人工审核，操作人:" + auditUser.getLoginName());
         return "0";
     }
 

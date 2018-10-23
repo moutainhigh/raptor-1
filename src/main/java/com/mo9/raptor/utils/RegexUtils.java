@@ -127,4 +127,14 @@ public class RegexUtils {
         }
         return flag;
     }
+
+    public static void main(String[] args) {
+        String idCard = "91150693793aaa885N";
+        StringBuffer buffer = new StringBuffer();
+        int length = idCard.length();
+        String cardStart = idCard.substring(0, length - 7);
+        String cardEnd = idCard.substring(cardStart.length() + 3, length);
+        idCard = buffer.append(cardStart).append("****").append(cardEnd).toString();
+        System.out.println(idCard);
+    }
 }

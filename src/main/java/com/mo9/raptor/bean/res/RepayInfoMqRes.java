@@ -124,6 +124,10 @@ public class RepayInfoMqRes {
      */
     private Long payoffTime;
 
+    /**
+     * 创建时间
+     */
+    private Long createTime;
 
     public String getOrderId() {
         return orderId;
@@ -307,5 +311,13 @@ public class RepayInfoMqRes {
 
     public void setProductType(String productType) {
         this.productType = productType;
+    }
+
+    public Long getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Long createTime) {
+        this.createTime = createTime;
     }
 }
