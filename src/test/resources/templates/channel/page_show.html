@@ -56,6 +56,9 @@
 	    			$(tr).append('<td>'+row.source+'</td>');
 	    			$(tr).append('<td>'+row.sub_source+'</td>');
 	    			$(tr).append('<td>'+row.num+'</td>');
+	    			if(!row.audit_num){
+	    			    row.audit_num =0;
+	    			}
 	    			$(tr).append('<td>'+row.audit_num+'</td>');
 	    			if(!row.loan_num){
 	    			    row.loan_num =0;
