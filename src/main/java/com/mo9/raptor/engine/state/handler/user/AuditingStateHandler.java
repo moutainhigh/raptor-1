@@ -10,8 +10,10 @@ import com.mo9.raptor.engine.state.event.impl.AuditResponseEvent;
 import com.mo9.raptor.engine.state.handler.IStateHandler;
 import com.mo9.raptor.engine.state.handler.StateHandler;
 import com.mo9.raptor.entity.UserEntity;
+import com.mo9.raptor.utils.log.Log;
 import com.mo9.raptor.utils.push.PushBean;
 import com.mo9.raptor.utils.push.PushUtils;
+import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -22,13 +24,14 @@ import javax.annotation.Resource;
 @Component("userAuditingState")
 @StateHandler(name = StatusEnum.AUDITING)
 class AuditingStateHandler implements IStateHandler<UserEntity> {
+    private static Logger logger = Log.get();
 
     @Resource
     private PushUtils pushUtils;
 
     @Override
     public UserEntity handle(UserEntity user, IEvent event, IActionExecutor actionExecutor) throws InvalidEventException {
-
+        logger.info("用户状态基开始" + user.getUserCode());
         if (event instanceof AuditResponseEvent) {
             AuditResponseEvent auditResponseEvent = (AuditResponseEvent) event;
             AuditResultEnum auditResultEnum = auditResponseEvent.getAuditResultEnum();

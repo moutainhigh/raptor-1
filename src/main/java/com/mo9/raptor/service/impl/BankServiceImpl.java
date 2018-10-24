@@ -87,7 +87,7 @@ public class BankServiceImpl implements BankService {
         if(bankEntity != null){
             //判断本地数据四要素正确情况
             if(!(cardId.equals(bankEntity.getCardId()) && userName.equals(bankEntity.getUserName()) && mobile.equals(bankEntity.getMobile()))){
-                logger.error("本地 四要素验证失败" + bankNo + " - " + cardId + " - " + userName + " - " + mobile);
+                logger.error("本地 四要素验证失败"+ userCode + " - " + bankNo + " - " + cardId + " - " + userName + " - " + mobile);
                 //存储log
                 bankLogService.create(bankNo , cardId , userName , mobile , bankName , userCode ,
                         cardStartCount , cardSuccessCount ,cardFailCount , CommonValues.FAILED);
@@ -96,7 +96,7 @@ public class BankServiceImpl implements BankService {
                 try {
                     userService.updateBankAuthStatus(userEntity,BankAuthStatusEnum.SUCCESS);
                 } catch (Exception e) {
-                    Log.error(logger , e ,"更新银行卡状态,系统内部异常");
+                    Log.error(logger , e ,"更新银行卡状态,系统内部异常"+ userCode + " - " + bankNo + " - " + cardId + " - " + userName + " - " + mobile);
                     return ResCodeEnum.EXCEPTION_CODE;
                 }
                 //存储log
@@ -117,7 +117,7 @@ public class BankServiceImpl implements BankService {
             try {
                 userService.updateBankAuthStatus(userEntity,BankAuthStatusEnum.SUCCESS);
             } catch (Exception e) {
-                Log.error(logger , e ,"更新银行卡状态,系统内部异常"+ mobile);
+                Log.error(logger , e ,"更新银行卡状态,系统内部异常"+ userCode + " - " + bankNo + " - " + cardId + " - " + userName + " - " + mobile);
                 return ResCodeEnum.EXCEPTION_CODE;
             }
             return ResCodeEnum.SUCCESS ;
@@ -132,7 +132,7 @@ public class BankServiceImpl implements BankService {
             try {
                 userService.updateBankAuthStatus(userEntity,BankAuthStatusEnum.SUCCESS);
             } catch (Exception e) {
-                Log.error(logger , e ,"更新银行卡状态,系统内部异常"+ mobile);
+                Log.error(logger , e ,"更新银行卡状态,系统内部异常"+ userCode + " - " + bankNo + " - " + cardId + " - " + userName + " - " + mobile);
                 return ResCodeEnum.EXCEPTION_CODE;
             }
         }else if(ResCodeEnum.BANK_VERIFY_EXCEPTION == resCodeEnum){
