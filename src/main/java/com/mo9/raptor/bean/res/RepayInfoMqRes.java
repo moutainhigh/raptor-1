@@ -35,6 +35,11 @@ public class RepayInfoMqRes {
     private BigDecimal totalReliefAmount;
 
     /**
+     * 本次减免金额
+     */
+    private BigDecimal reliefAmount;
+
+    /**
      * 还款类型
      */
     private String payType;
@@ -319,5 +324,13 @@ public class RepayInfoMqRes {
 
     public void setCreateTime(Long createTime) {
         this.createTime = createTime;
+    }
+
+    public BigDecimal getReliefAmount() {
+        return reliefAmount;
+    }
+
+    public void setReliefAmount(BigDecimal reliefAmount) {
+        this.reliefAmount = reliefAmount;
     }
 }

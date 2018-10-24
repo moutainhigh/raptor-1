@@ -14,6 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -83,6 +84,32 @@ public class offlineRepayTest {
             } catch (Exception e) {
                 logger.error("错误 ", e);
             }
+        }
+    }
+
+    @Test
+    public void offlineRepay2() {
+        String userCode = "123";
+         String type = "REPAY";
+        //String type = "POSTPONE";
+        BigDecimal amount = new BigDecimal("1000.1");
+        String accessUserCode = "0E85007DC2B3852AD5EF198763049E83";
+
+        Map<String, String> signParams = new HashMap<String, String>();
+        signParams.put("userCode", userCode);
+        signParams.put("type", type);
+        signParams.put("amount", amount.toPlainString());
+        signParams.put("accessUserCode", accessUserCode);
+        String resultSign = Md5Encrypt.sign(signParams, "mo9123456");
+        signParams.put("sign", resultSign);
+
+        //String url = "https://www.mo9.com/raptorApi/test/offline_repay";
+        String url = "http://localhost/raptorApi/test/offline_repay";
+        try {
+            String result = httpClientApi.doGet(url, signParams);
+            logger.info(result);
+        } catch (Exception e) {
+            logger.error("错误 ", e);
         }
     }
 }

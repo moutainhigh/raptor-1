@@ -27,6 +27,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
@@ -160,6 +161,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateBankAuthStatus(UserEntity userEntity, BankAuthStatusEnum statusEnum) throws Exception {
+        logger.info("用户更新银行卡状态 : " + userEntity.getUserCode());
         userEntity.setBankAuthStatus(statusEnum.name());
         if (BankAuthStatusEnum.SUCCESS == statusEnum){
             userEntity.setBankCardSet(true);
@@ -172,7 +174,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
+    @Transactional(rollbackFor = Exception.class )
     public void checkAuditStatus(UserEntity userEntity) throws Exception {
         Boolean certifyInfo = userEntity.getCertifyInfo();
         Boolean mobileContacts = userEntity.getMobileContacts();

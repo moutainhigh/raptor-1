@@ -32,4 +32,12 @@ public interface CouponRespository extends JpaRepository<CouponEntity,Long> {
      */
     @Query(value = "select sum(entry_amount) as 'totalEntryAmount' from t_raptor_coupon where bound_order_id = ?1 and status = 'ENTRY_DONE' and deleted = false", nativeQuery = true)
     Map<String , BigDecimal> getTotalDeductedAmount(String orderId);
+
+    /**
+     * 根据还款订单号查询优惠券
+     * @param payOrderId
+     * @return
+     */
+    @Query(value = "select * from t_raptor_coupon where pay_order_id = ?1 and deleted = false", nativeQuery = true)
+    List<CouponEntity> getByPayOrderId(String payOrderId);
 }
