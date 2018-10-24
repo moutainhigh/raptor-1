@@ -161,6 +161,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateBankAuthStatus(UserEntity userEntity, BankAuthStatusEnum statusEnum) throws Exception {
+        logger.info("用户更新银行卡状态 : " + userEntity.getUserCode());
         userEntity.setBankAuthStatus(statusEnum.name());
         if (BankAuthStatusEnum.SUCCESS == statusEnum){
             userEntity.setBankCardSet(true);
@@ -173,7 +174,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class,propagation= Propagation.SUPPORTS)
+    @Transactional(rollbackFor = Exception.class )
     public void checkAuditStatus(UserEntity userEntity) throws Exception {
         Boolean certifyInfo = userEntity.getCertifyInfo();
         Boolean mobileContacts = userEntity.getMobileContacts();
