@@ -71,6 +71,7 @@ public class KeMi implements BlackChannel{
                     JSONObject obj = (JSONObject) o;
                     String historyDueTime = obj.getString("historyDueTime");
                     if(historyDueTime != null){
+                        logger.info("调用kemi命中黑名单，拒绝,userCode={},historyDueTime={}", userEntity.getUserCode(), historyDueTime);
                         return new AuditResponseEvent(userEntity.getUserCode(), false, "用户历史逾期不符合要求，直接拒绝");
                     }
                 }
