@@ -188,11 +188,6 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         AuditResponseEvent res = null;
         ArrayList<AuditTask> taskList = new ArrayList<>();
 
-        /**调用第三方黑名单检查  todo 待放到最后*/
-        taskList.add(new AuditTask((u) -> blaceExecute(u), "BlaceExecute", true));
-
-
-
         taskList.add(new AuditTask((u) -> ipCheckRule(u), "IpCheckRule", true));
         taskList.add(new AuditTask((u) -> shixinCheckRule(u), "ShixinCheckRule", true));
         taskList.add(new AuditTask((u) -> chaseDebtRule(u), "ChaseDebtRule", true));
@@ -213,6 +208,8 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         taskList.add(new AuditTask((u) -> livePicCompareRule(u), "LivePicCompareRule", false));
         taskList.add(new AuditTask((u) -> idPicCompareRule(u), "IdPicCompareRule", false));
         taskList.add(new AuditTask((u) -> idPicCompareRule(u), "IdPicCompareRule", false));
+        /**调用第三方黑名单检查 */
+        taskList.add(new AuditTask((u) -> blaceExecute(u), "BlaceExecute", true));
 
         boolean isWhiteListUser = WHITE_LIST.equals(user.getSource());
 
@@ -273,6 +270,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         }
         try{
             AuditResponseEvent execute = new BlackExecute(user).execute();
+            logger.info("用户第三方黑名单检查, userCode={},返回结果isPass={}, res={}", userCode, execute.isPass(), execute.getExplanation());
             return execute;
         }catch (Exception e){
             return new AuditResponseEvent(user.getUserCode(), true, "");
