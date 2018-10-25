@@ -101,10 +101,12 @@ public class SystemController {
      * 苹果获取强更url
      */
     @GetMapping("/update")
-    public JSONObject getUpdateUrl(){
+    public BaseResponse<JSONObject> getUpdateUrl(){
+        BaseResponse<JSONObject> response = new BaseResponse<>();
         JSONObject resultJson = new JSONObject();
         resultJson.put("url",iosUpdateUrl);
-        return resultJson;
+        response.buildSuccessResponse(resultJson);
+        return response;
     }
 
 
