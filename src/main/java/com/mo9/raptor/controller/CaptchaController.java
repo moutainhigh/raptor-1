@@ -85,14 +85,18 @@ public class CaptchaController {
                     return response.buildFailureResponse(ResCodeEnum.NOT_WHITE_LIST_USER);
                 }
                 if(StringUtils.isBlank(source) && !Boolean.valueOf(isAppRegisterAllow)){
-                    logger.warn("发送登录验证码-------->>>>>>>>来源为空");
+                    logger.warn("发送登录验证码-------->>>>>>>>来源为空mobile={}", mobile);
                     return response.buildFailureResponse(ResCodeEnum.NOT_WHITE_LIST_USER);
                 }
                 if(StringUtils.isNotBlank(source)){
+                    if(source.equals("WHITE")){
+                        logger.warn("发送登录验证码-------->>>>>>>>不允许指定WHITE的source，mobile={}", mobile);
+                        return response.buildFailureResponse(ResCodeEnum.NOT_WHITE_LIST_USER);
+                    }
                     //判断source是否支持
                     boolean b1 = spreadChannelService.checkSourceIsAllow(source);
                     if(!b1){
-                        logger.warn("发送登录验证码-------->>>>>>>>来源不支持source={}", source);
+                        logger.warn("发送登录验证码-------->>>>>>>>来源不支持mobile={}, source={}", mobile, source);
                         return response.buildFailureResponse(ResCodeEnum.NOT_WHITE_LIST_USER);
                     }
                 }
