@@ -134,6 +134,11 @@ public class RepayInfoMqRes {
      */
     private Long createTime;
 
+    /**
+     * 用入账时间
+     */
+    private Long postponeTime;
+
     public String getOrderId() {
         return orderId;
     }
@@ -332,5 +337,13 @@ public class RepayInfoMqRes {
 
     public void setReliefAmount(BigDecimal reliefAmount) {
         this.reliefAmount = reliefAmount;
+    }
+
+    public Long getPostponeTime() {
+        return postponeTime;
+    }
+
+    public void setPostponeTime(Long postponeTime) {
+        this.postponeTime = postponeTime;
     }
 }
