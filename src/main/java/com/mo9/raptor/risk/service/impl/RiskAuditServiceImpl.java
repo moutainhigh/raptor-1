@@ -10,6 +10,7 @@ import com.mo9.raptor.entity.UserCertifyInfoEntity;
 import com.mo9.raptor.entity.UserContactsEntity;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.repository.UserRepository;
+import com.mo9.raptor.risk.black.BlackExecute;
 import com.mo9.raptor.risk.entity.TRiskCallLog;
 import com.mo9.raptor.risk.repo.RiskCallLogRepository;
 import com.mo9.raptor.risk.repo.RiskContractInfoRepository;
@@ -33,10 +34,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 import java.util.function.Function;
 
 /**
@@ -189,6 +187,12 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         AuditResponseEvent finalResult = null;
         AuditResponseEvent res = null;
         ArrayList<AuditTask> taskList = new ArrayList<>();
+
+        /**调用第三方黑名单检查  todo 待放到最后*/
+        taskList.add(new AuditTask((u) -> blaceExecute(u), "BlaceExecute", true));
+
+
+
         taskList.add(new AuditTask((u) -> ipCheckRule(u), "IpCheckRule", true));
         taskList.add(new AuditTask((u) -> shixinCheckRule(u), "ShixinCheckRule", true));
         taskList.add(new AuditTask((u) -> chaseDebtRule(u), "ChaseDebtRule", true));
@@ -208,7 +212,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         taskList.add(new AuditTask((u) -> antiHackRule(u), "AntiHackRule", false));
         taskList.add(new AuditTask((u) -> livePicCompareRule(u), "LivePicCompareRule", false));
         taskList.add(new AuditTask((u) -> idPicCompareRule(u), "IdPicCompareRule", false));
-
+        taskList.add(new AuditTask((u) -> idPicCompareRule(u), "IdPicCompareRule", false));
 
         boolean isWhiteListUser = WHITE_LIST.equals(user.getSource());
 
@@ -255,6 +259,25 @@ public class RiskAuditServiceImpl implements RiskAuditService {
 
     private static final int HTTP_OK = 200;
     private static final int ERROR_SCORE_CODE = -1;
+
+    /**
+     * 第三方黑名单检查
+     * @param userCode
+     * @return
+     */
+    private AuditResponseEvent blaceExecute(String userCode) {
+        UserEntity user = userService.findByUserCode(userCode);
+        if(user == null){
+            logger.warn("用户不存在,userCode={}", userCode);
+            return new AuditResponseEvent(userCode, false, "用户不存在");
+        }
+        try{
+            AuditResponseEvent execute = new BlackExecute(user).execute();
+            return execute;
+        }catch (Exception e){
+            return new AuditResponseEvent(user.getUserCode(), true, "");
+        }
+    }
 
     /**
      * ip范围检查
