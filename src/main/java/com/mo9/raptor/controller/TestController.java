@@ -505,22 +505,24 @@ public class TestController {
     /**
      * 通知贷后还款
      * @param payOrderId
-     * @param loanOrderId
      * @param request
      */
     @RequestMapping("/notify_mis_repay")
     public BaseResponse notifyMisRepay(
-            @RequestParam("payOrderId") String payOrderId,
-            @RequestParam("loanOrderId") String loanOrderId,
+            @RequestParam("payOrderId") String payOrderId ,
             HttpServletRequest request) {
-        logger.info("手动mq补漏还款传递贷后开始 payOrderId : " + payOrderId + " - loanOrderId : " + loanOrderId);
+        logger.info("手动mq补漏还款传递贷后开始 payOrderId : " + payOrderId );
         PayOrderLogEntity payOrderLog = payOrderLogService.getByPayOrderId(payOrderId) ;
-        LoanOrderEntity loanOrderEntity = loanOrderService.getByOrderId(loanOrderId) ;
+        PayOrderEntity payOrderEntity = payOrderService.getByOrderId(payOrderLog.getPayOrderId());
+        if(!StatusEnum.ENTRY_DONE.name().equals(payOrderEntity.getStatus())){
+            logger.info("手动mq补漏还款传递贷后开始 payOrderId : " + payOrderId + "状态不正确");
+            return new BaseResponse();
+        }
+        LoanOrderEntity loanOrderEntity = loanOrderService.getByOrderId(payOrderEntity.getLoanOrderId()) ;
 
         RepayInfoMqRes repayInfo = new RepayInfoMqRes();
         BeanUtils.copyProperties(payOrderLog, repayInfo);
 
-        PayOrderEntity payOrderEntity = payOrderService.getByOrderId(payOrderLog.getPayOrderId());
         repayInfo.setPostponeDays(payOrderEntity.getPostponeDays());
         String status = payOrderEntity.getStatus();
         repayInfo.setEntryDone(StatusEnum.ENTRY_DONE.name().equals(status));
@@ -551,13 +553,13 @@ public class TestController {
         BigDecimal totalDeductedAmount = couponService.getTotalDeductedAmount(loanOrderEntity.getOrderId());
         repayInfo.setTotalReliefAmount(totalDeductedAmount);
         repayInfo.setProductType(sockpuppet);
-
+        repayInfo.setPostponeTime(payOrderEntity.getEntryOverTime());
 
         JSONObject result = new JSONObject();
         result.put("repayInfo", repayInfo);
         logger.info(result.toJSONString());
         rabbitProducer.sendMessageRepay(payOrderLog.getPayOrderId(), result.toJSONString());
-        logger.info("手动mq补漏还款传递贷后结束 payOrderId : " + payOrderId + " - loanOrderId : " + loanOrderId);
+        logger.info("手动mq补漏还款传递贷后结束 payOrderId : " + payOrderId );
         return new BaseResponse();
     }
 
