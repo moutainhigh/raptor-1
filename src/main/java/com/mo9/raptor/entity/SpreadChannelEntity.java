@@ -37,6 +37,9 @@ public class SpreadChannelEntity {
     @Column(name = "update_time")
     private Long updateTime;
 
+    @Column(name = "is_delete")
+    private Boolean isDelete;
+
     public Long getId() {
         return id;
     }
@@ -108,5 +111,13 @@ public class SpreadChannelEntity {
 
     public void setUpdateTime(Long updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public Boolean getDelete() {
+        return isDelete;
+    }
+
+    public void setDelete(Boolean delete) {
+        isDelete = delete;
     }
 }

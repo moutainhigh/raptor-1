@@ -20,12 +20,12 @@ public class SpreadChannelServiceImpl implements SpreadChannelService{
 
     @Override
     public SpreadChannelEntity findByLoginNameAndPassword(String userName, String password) {
-        return spreadChannelRepository.findByLoginNameAndPassword(userName,password);
+        return spreadChannelRepository.findByLoginNameAndPasswordNotDelete(userName,password);
     }
 
     @Override
     public List<SpreadChannelEntity> findAll() {
-        List<SpreadChannelEntity> all = spreadChannelRepository.findAll();
+        List<SpreadChannelEntity> all = spreadChannelRepository.findAllNotDelete();
         return all;
     }
 
