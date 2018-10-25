@@ -465,6 +465,7 @@ public class LoanMo9mqListener implements IMqMsgListener{
 		repayInfo.setReliefAmount(reliefAmount);
 		repayInfo.setProductType(sockpuppet);
 		repayInfo.setCreateTime(payOrderEntity.getCreateTime());
+		repayInfo.setPostponeTime(payOrderEntity.getEntryOverTime());
 
 
         JSONObject result = new JSONObject();
