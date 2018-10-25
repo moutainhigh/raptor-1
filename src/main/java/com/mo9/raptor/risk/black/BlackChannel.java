@@ -14,6 +14,10 @@ public interface BlackChannel {
 
     int HTTP_OK = 200;
 
+    String success = "SUCCESS";
+
+    String failed = "FAILED";
+
     AuditResponseEvent doBlackCheck(UserEntity userEntity);
 
     boolean channelIsOpen();
