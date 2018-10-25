@@ -40,7 +40,6 @@ public class SpreadChannelServiceImpl implements SpreadChannelService{
         }
         for (SpreadChannelEntity entity: list){
             String source1 = entity.getSource();
-            logger.info("支持渠道" + source1 + "进入渠道" + source);
             if(source.equals(source1)){
                 return true;
             }
