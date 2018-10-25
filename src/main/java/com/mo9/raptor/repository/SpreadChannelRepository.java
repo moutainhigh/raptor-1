@@ -11,6 +11,6 @@ public interface SpreadChannelRepository extends JpaRepository<SpreadChannelEnti
     @Query(value = "select t from SpreadChannelEntity t where t.loginName=?1 and t.password = ?2 and t.isDelete = false")
     SpreadChannelEntity findByLoginNameAndPasswordNotDelete(String userName, String password);
 
-    @Query(value = "select t from SpreadChannelEntity t where t.loginName=?1 and t.password = ?2 and t.isDelete = false")
+    @Query(value = "select t from SpreadChannelEntity t where  t.isDelete = false")
     List<SpreadChannelEntity> findAllNotDelete();
 }
