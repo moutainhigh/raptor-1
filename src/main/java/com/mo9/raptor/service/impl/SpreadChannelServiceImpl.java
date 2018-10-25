@@ -23,7 +23,7 @@ public class SpreadChannelServiceImpl implements SpreadChannelService{
 
     @Override
     public SpreadChannelEntity findByLoginNameAndPassword(String userName, String password) {
-        return spreadChannelRepository.findByLoginNameAndPasswordNotDelete(userName,password);
+        return spreadChannelRepository.findByLoginNameAndPassword(userName,password);
     }
 
     @Override

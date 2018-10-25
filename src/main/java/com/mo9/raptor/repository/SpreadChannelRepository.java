@@ -8,9 +8,8 @@ import java.util.List;
 
 public interface SpreadChannelRepository extends JpaRepository<SpreadChannelEntity, Long> {
 
-    @Query(value = "select t from SpreadChannelEntity t where t.loginName=?1 and t.password = ?2 and t.isDelete = false")
-    SpreadChannelEntity findByLoginNameAndPasswordNotDelete(String userName, String password);
+    SpreadChannelEntity findByLoginNameAndPassword(String userName, String password);
 
-    @Query(value = "select t from SpreadChannelEntity t where  t.isDelete = false")
+    @Query(value = "select t from SpreadChannelEntity t where t.isDelete = false")
     List<SpreadChannelEntity> findAllNotDelete();
 }
