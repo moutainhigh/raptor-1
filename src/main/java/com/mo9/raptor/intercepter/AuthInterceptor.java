@@ -90,9 +90,9 @@ public class AuthInterceptor extends HandlerInterceptorAdapter {
      * @return
      */
     private Boolean validateClientVersion(HttpServletRequest request) {
-        //安卓不判断，客户端标识 安卓901 苹果902
+        //安卓不判断，客户端标识 安卓902 苹果901
         String clientId = getClientId(request);
-        if ("901".equals(clientId)){
+        if ("902".equals(clientId)){
             return true;
         }
         String clientVersion = getClientVersion(request);
