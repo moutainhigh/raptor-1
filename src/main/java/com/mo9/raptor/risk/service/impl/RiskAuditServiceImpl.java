@@ -211,7 +211,6 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         taskList.add(new AuditTask((u) -> antiHackRule(u), "AntiHackRule", false));
         taskList.add(new AuditTask((u) -> livePicCompareRule(u), "LivePicCompareRule", false));
         taskList.add(new AuditTask((u) -> idPicCompareRule(u), "IdPicCompareRule", false));
-        taskList.add(new AuditTask((u) -> idPicCompareRule(u), "IdPicCompareRule", false));
         /**调用第三方黑名单检查 */
         taskList.add(new AuditTask((u) -> blaceExecute(u), "BlaceExecute", true));
 
