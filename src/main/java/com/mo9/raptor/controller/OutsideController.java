@@ -159,7 +159,7 @@ public class OutsideController {
                 boolean boo = true;
                 int count = 0;
                 int errorCount = 0;
-                do{
+                while(boo){
                     List<UserContactsEntity> userContactsList = userContactsService.findByLimit(startLimit, limit);
                     logger.info("用户通讯录重新执行，查询开始条数{}，每页条数{}, 当前集合长度size={}", startLimit, limit, userContactsList == null ? 0 : userContactsList.size());
                     if(userContactsList != null && userContactsList.size() > 0){
@@ -182,7 +182,7 @@ public class OutsideController {
                         boo = false;
                     }
                     LIMIT = count;
-                } while (boo);
+                }
                 logger.info("用户通讯录重新执行，执行完毕,共执行{}条", count);
             }
         });
