@@ -139,14 +139,13 @@ public class CouponController {
                     effectiveCoupon.setBoundOrderId(req.getBundleId());
                     effectiveCoupon.setApplyAmount(req.getNumber());
                 } else {
-                    BigDecimal number = req.getNumber();
                     logger.info("操作者[{}]将优惠券[{}]由于[{}]原因将金额由[{}]更改为[{}]", req.getCreator(), effectiveCoupon.getCouponId(), req.getReason(), effectiveCoupon.getApplyAmount(), req.getNumber());
-                    /**
-                     * 仅仅可以更新金额
-                     */
-                    effectiveCoupon.setApplyAmount(number);
                 }
-
+                /**
+                 * 仅仅可以更新金额
+                 */
+                BigDecimal number = req.getNumber();
+                effectiveCoupon.setApplyAmount(number);
                 couponService.save(effectiveCoupon);
 
                 response.setCode(0);
