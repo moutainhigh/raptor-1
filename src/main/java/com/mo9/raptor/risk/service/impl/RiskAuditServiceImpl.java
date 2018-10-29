@@ -192,8 +192,8 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         AuditResponseEvent finalResult = null;
         AuditResponseEvent res = null;
         ArrayList<AuditTask> taskList = new ArrayList<>();
-        taskList.add(new AuditTask((u) -> ipCheckRule(u), "IpCheckRule", true));
-        taskList.add(new AuditTask((u) -> shixinCheckRule(u), "ShixinCheckRule", true));
+        taskList.add(new AuditTask((u) -> ipCheckRule(u), "IpCheckRule", false));
+        taskList.add(new AuditTask((u) -> shixinCheckRule(u), "ShixinCheckRule", false));
         taskList.add(new AuditTask((u) -> chaseDebtRule(u), "ChaseDebtRule", true));
         taskList.add(new AuditTask((u) -> blackListRule(u), "BlackListRule", true));
         taskList.add(new AuditTask((u) -> riskWordRule(u), "RiskWordRule", true));
@@ -212,7 +212,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         taskList.add(new AuditTask((u) -> livePicCompareRule(u), "LivePicCompareRule", false));
         taskList.add(new AuditTask((u) -> idPicCompareRule(u), "IdPicCompareRule", false));
         /**调用第三方黑名单检查 */
-        taskList.add(new AuditTask((u) -> blaceExecute(u), "BlaceExecute", true));
+        taskList.add(new AuditTask((u) -> blaceExecute(u), "BlaceExecute", false));
 
         boolean isWhiteListUser = WHITE_LIST.equals(user.getSource());
 
