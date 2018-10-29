@@ -161,7 +161,7 @@ public class OutsideController {
                 int errorCount = 0;
                 do{
                     List<UserContactsEntity> userContactsList = userContactsService.findByLimit(startLimit, limit);
-                    logger.info("用户通讯录重新执行，查询开始条数{}，每页条数{}", startLimit, limit);
+                    logger.info("用户通讯录重新执行，查询开始条数{}，每页条数{}, 当前集合长度size={}", startLimit, limit, userContactsList == null ? 0 : userContactsList.size());
                     if(userContactsList != null && userContactsList.size() > 0){
                         for(UserContactsEntity entity : userContactsList){
                             UserEntity userEntity = userService.findByUserCode(entity.getUserCode());
