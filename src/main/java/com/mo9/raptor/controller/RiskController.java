@@ -226,8 +226,7 @@ public class RiskController {
             }
             
         } catch (Exception e) {
-            e.printStackTrace();
-            return e.getMessage();
+            logger.error("处理没有sid的用户时出现错误", e);
         }
         return "ok";
     }
