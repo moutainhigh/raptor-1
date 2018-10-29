@@ -19,6 +19,7 @@ import com.mo9.raptor.engine.utils.EngineStaticValue;
 import com.mo9.raptor.entity.PayOrderLogEntity;
 import com.mo9.raptor.enums.PayTypeEnum;
 import com.mo9.raptor.exception.LoanEntryException;
+import com.mo9.raptor.exception.NumberModeException;
 import com.mo9.raptor.service.PayOrderLogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -50,7 +51,7 @@ public class LentStateHandler implements IStateHandler<LoanOrderEntity> {
 
     @Override
     public LoanOrderEntity handle (LoanOrderEntity loanOrder, IEvent event, IActionExecutor actionExecutor)
-            throws InvalidEventException, LoanEntryException {
+            throws InvalidEventException, LoanEntryException, NumberModeException {
 
         if (event instanceof LoanEntryEvent) {
             LoanEntryEvent loanEntryEvent = (LoanEntryEvent) event;
