@@ -192,6 +192,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         AuditResponseEvent finalResult = null;
         AuditResponseEvent res = null;
         ArrayList<AuditTask> taskList = new ArrayList<>();
+        taskList.add(new AuditTask((u) -> contactsRule(u), "ContactsRule", false));
         taskList.add(new AuditTask((u) -> ipCheckRule(u), "IpCheckRule", false));
         taskList.add(new AuditTask((u) -> shixinCheckRule(u), "ShixinCheckRule", false));
         taskList.add(new AuditTask((u) -> chaseDebtRule(u), "ChaseDebtRule", true));
@@ -463,7 +464,8 @@ public class RiskAuditServiceImpl implements RiskAuditService {
             if (allMobileList.size() > contactsLimitUpper) {
                 return new AuditResponseEvent(userCode, false, "通讯录数量大于1000个");
             }
-
+            HashSet<String> allMobileSet = new HashSet<>();
+            allMobileList.forEach(t -> allMobileSet.add(t.getContractMobile()));
             int count = 0;
             HashSet<String> inListMobiles = new HashSet<>();
             //MYCAI限制1000条 所以这边有个分页
@@ -481,7 +483,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
             logger.info(user.getMobile() + "拉取到数据" + allCallLog.size());
             for (TRiskCallLog tRiskCallLog : allCallLog) {
                 // 在通讯录内
-                if (allMobileList.contains(tRiskCallLog.getCallTel())) {
+                if (allMobileSet.contains(tRiskCallLog.getCallTel())) {
                     count++;
                     inListMobiles.add(tRiskCallLog.getCallTel());
                 }
