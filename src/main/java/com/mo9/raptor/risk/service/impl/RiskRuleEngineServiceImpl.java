@@ -126,11 +126,11 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
             String callTimesStr = mergencyContract.getString("call_times");
             Integer callTimes = Integer.parseInt(callTimesStr);
             
-            if (callTimes < CALL_MERGENCY_TIMES){
-                return new AuditResponseEvent(userCode, false, "6个月内与紧急联系人通话次数少于" + CALL_MERGENCY_TIMES);
+            if (callTimes >= CALL_MERGENCY_TIMES){
+                return new AuditResponseEvent(userCode, true, "");
             }
         }
-        return new AuditResponseEvent(userCode, true, "");
+        return new AuditResponseEvent(userCode, false, "6个月内与紧急联系人通话次数少于" + CALL_MERGENCY_TIMES);
         
     }
 
