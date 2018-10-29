@@ -13,4 +13,10 @@ import java.math.BigDecimal;
 public class SingleLoanCalculator extends AbstractLoanCalculator implements ILoanCalculator {
 
     private static final Logger logger = LoggerFactory.getLogger(SingleLoanCalculator.class);
+
+    @Override
+    public BigDecimal minRepay(LoanOrderEntity loanOrder) {
+
+        return loanOrder.getLoanNumber();
+    }
 }
