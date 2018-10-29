@@ -95,7 +95,7 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
         Long openDateMillions = Long.parseLong(openDate);
         
         //当前时间 - 开户时间  > 150天
-        if (Calendar.getInstance().getTimeInMillis() - openDateMillions > ONLINE_LENGTH_LIMIT){
+        if (Calendar.getInstance().getTimeInMillis()/1000 - openDateMillions > ONLINE_LENGTH_LIMIT){
             return new AuditResponseEvent(userCode, true, "");
         }
 
