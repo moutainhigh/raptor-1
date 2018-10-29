@@ -93,9 +93,8 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
         }
         
         Long openDateMillions = Long.parseLong(openDate);
-        
         //当前时间 - 开户时间  > 150天
-        if (Calendar.getInstance().getTimeInMillis() - openDateMillions > ONLINE_LENGTH_LIMIT){
+        if (Calendar.getInstance().getTimeInMillis()/1000 - openDateMillions > ONLINE_LENGTH_LIMIT){
             return new AuditResponseEvent(userCode, true, "");
         }
 
@@ -127,12 +126,12 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
             String callTimesStr = mergencyContract.getString("call_times");
             Integer callTimes = Integer.parseInt(callTimesStr);
             
-            if (callTimes >= CALL_MERGENCY_TIMES){
-                return new AuditResponseEvent(userCode, true, "");
+            if (callTimes < CALL_MERGENCY_TIMES){
+                return new AuditResponseEvent(userCode, false, "6个月内与紧急联系人通话次数少于" + CALL_MERGENCY_TIMES);
             }
         }
+        return new AuditResponseEvent(userCode, true, "");
         
-        return new AuditResponseEvent(userCode, false, "6个月内与紧急联系人通话次数少于" + CALL_MERGENCY_TIMES);
     }
 
     @Override

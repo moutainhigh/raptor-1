@@ -35,6 +35,11 @@ public class RepayInfoMqRes {
     private BigDecimal totalReliefAmount;
 
     /**
+     * 本次减免金额
+     */
+    private BigDecimal reliefAmount;
+
+    /**
      * 还款类型
      */
     private String payType;
@@ -124,6 +129,15 @@ public class RepayInfoMqRes {
      */
     private Long payoffTime;
 
+    /**
+     * 创建时间
+     */
+    private Long createTime;
+
+    /**
+     * 用入账时间
+     */
+    private Long postponeTime;
 
     public String getOrderId() {
         return orderId;
@@ -307,5 +321,29 @@ public class RepayInfoMqRes {
 
     public void setProductType(String productType) {
         this.productType = productType;
+    }
+
+    public Long getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Long createTime) {
+        this.createTime = createTime;
+    }
+
+    public BigDecimal getReliefAmount() {
+        return reliefAmount;
+    }
+
+    public void setReliefAmount(BigDecimal reliefAmount) {
+        this.reliefAmount = reliefAmount;
+    }
+
+    public Long getPostponeTime() {
+        return postponeTime;
+    }
+
+    public void setPostponeTime(Long postponeTime) {
+        this.postponeTime = postponeTime;
     }
 }

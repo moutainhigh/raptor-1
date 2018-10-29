@@ -79,13 +79,13 @@ public class CallLogReportTask {
                 sid = noReportRecord.getSid();
                 uid = noReportRecord.getUid();
                 mobile = noReportRecord.getMobile();
-                if (userEntity.getReceiveCallHistory()){
-                    noReportRecord.setReportReceived(true);
-                    riskTelInfoService.update(noReportRecord);
-
-                    logger.info("-----运营商报告补偿任务-->用户表已更新报告状态，跳过。mobile: {}, userCode: {}", mobile, uid);
-                    continue;
-                }
+//                if (userEntity.getReceiveCallHistory()){
+//                    noReportRecord.setReportReceived(true);
+//                    riskTelInfoService.update(noReportRecord);
+//
+//                    logger.info("-----运营商报告补偿任务-->用户表已更新报告状态，跳过。mobile: {}, userCode: {}", mobile, uid);
+//                    continue;
+//                }
                 
                 //入库不到一小时的跳过
                 if (nowTime - noReportRecord.getUpdatedAt().getTime() < 60 * 60 * 1000){
@@ -112,6 +112,9 @@ public class CallLogReportTask {
                         noReportRecord.setReportReceived(true);
                         riskTelInfoService.update(noReportRecord);
                         logger.info("-----运营商报告补偿任务-->定时任务更新用户运营商报告获取状态成功，tel: " + mobile + ", uid: " + uid + ", sid: " + sid);
+                    }else {
+                        logger.info("-----运营商报告补偿任务-->用户提交认证后1小时内未获取到有效的运营商报告, 回退用户状态");
+                        userService.backToCollecting(noReportRecord.getUid(), "用户提交认证后1小时内未获取到有效的运营商报告");
                     }
                     
                 } catch (Exception e) {

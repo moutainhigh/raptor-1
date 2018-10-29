@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://ttyq.mo9.com/static/js/jquery-3.1.1.min.js"></script>
+    <script th:src="@{/js/jquery-3.1.1.min.js}"></script>
     <style type="text/css">
         table {
             border: 1px solid black;
@@ -21,10 +21,10 @@
         }
 
         body {
-            width: 100%;
+            width: 95%;
             height: 100%;
             font-family: 'Open Sans', sans-serif;
-            background: #3e7492;
+            background: #c9ddec;
             filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#3E1D6D', endColorstr='#3e7492', GradientType=1);
         }
     </style>
@@ -43,12 +43,12 @@
         <th>当前认证状态</th>
         <th>渠道</th>
         <th>子渠道</th>
-        <th>注册时间</th>
+        <th>提交时间</th>
         <th>审核</th>
         </thead>
         <tbody>
         <tr th:if="${#lists.size(resultList)}==0">
-            <td th:text="暂无记录" colspan="8"></td>
+            <td th:text="暂无记录" colspan="9"></td>
         </tr>
         <tr th:each="entries,stat:${resultList}" style="background-color:#F2F2F2">
             <td th:text="${stat.count}" width=100px></td>
@@ -59,7 +59,7 @@
             <td th:text="${entries['status']}" width=100px></td>
             <td th:text="${entries['source']}" width=100px></td>
             <td th:text="${entries['subSource']}" width=100px></td>
-            <td th:text="${entries['createTime']}" width=180px></td>
+            <td th:text="${entries['authTime']}" width=180px></td>
             <td  th:if="${entries['status']}=='人工审核'" width=200px>
                 <button th:value="${entries['userCode']}" onclick="audit_function(this.value,'passed')">通过</button>
                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button th:value="${entries['userCode']}"
@@ -75,6 +75,7 @@
 </body>
 <script type="text/javascript">
    function audit_function(userCode,type){
+         var inputData = prompt('审核备注', "");
          if(type == 'passed'){
           var tip = "是否确认通过审核!";
           var url = "./operate?type=PASSED&userCode="+userCode;
@@ -82,12 +83,13 @@
           var tip = "是否确认拒绝审核!";
           var url = "./operate?type=REJECTED&userCode="+userCode;
          }
+         url = url + "&remark="+inputData;
          var flag = confirm(tip);
                   if(flag){
                     var code =$.ajax({url:url,async:false});
                     if(code.responseText == '0'){
                        alert("操作成功");
-                        window.location.reload();
+                        window.location.href="./to_login";
                     }else{
                         alert("非法操作");
                     }

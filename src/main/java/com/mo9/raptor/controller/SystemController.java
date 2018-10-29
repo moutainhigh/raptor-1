@@ -29,6 +29,9 @@ public class SystemController {
     @Value("${system.switch}")
     private String systemSwitch ;
 
+    @Value("${raptor.ios-update-url}")
+    private String iosUpdateUrl ;
+
     /**
      * 临时添加默认值为空，防止线上启动报错
      */
@@ -93,5 +96,18 @@ public class SystemController {
 
         return response.buildSuccessResponse(returnJson) ;
     }
+
+    /**
+     * 苹果获取强更url
+     */
+    @GetMapping("/update")
+    public BaseResponse<JSONObject> getUpdateUrl(){
+        BaseResponse<JSONObject> response = new BaseResponse<>();
+        JSONObject resultJson = new JSONObject();
+        resultJson.put("url",iosUpdateUrl);
+        response.buildSuccessResponse(resultJson);
+        return response;
+    }
+
 
 }

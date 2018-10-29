@@ -132,7 +132,7 @@ public class UserController {
             if(isNewUser){
                 userService.addAllowNewUserNum();
             }
-            logger.info("用户登录成功----->>>>手机号=[{}]",mobile);
+            logger.info("用户登录成功----->>>>手机号={},source={},subSource={}",mobile, source, subSource);
         } catch (IOException e) {
             Log.error(logger,e,"用户登录----->>>>验证码发送发生异常,手机号={}",mobile);
             return response.buildFailureResponse(ResCodeEnum.CAPTCHA_SEND_FAILED);

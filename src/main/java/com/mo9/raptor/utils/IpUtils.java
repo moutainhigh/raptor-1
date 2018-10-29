@@ -36,4 +36,39 @@ public class IpUtils {
         }
         return localIp.equals(ip) ? "127.0.0.1" : ip;
     }
+
+    /**
+     * ip转long
+     * @param ip
+     * @return
+     */
+    public static Long ipToLong(String ip) {
+        Long ips = 0L;
+        String[] numbers = ip.split("\\.");
+        //等价上面
+        for (int i = 0; i < 4; ++i) {
+            ips = ips << 8 | Integer.parseInt(numbers[i]);
+        }
+        return ips;
+    }
+
+    /**
+     * long 转ip
+     * @param number
+     * @return
+     */
+    public static String longToIp(Long number) {
+        String ip = "";
+        for (int i = 3; i >= 0; i--) {
+            ip  += String.valueOf((number & 0xff));
+            if(i != 0){
+                ip += ".";
+            }
+            number = number >> 8;
+        }
+
+        return ip;
+    }
+
+
 }

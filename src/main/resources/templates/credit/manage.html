@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.thymeleaf.org" xmlns:th="http://www.w3.org/1999/xhtml">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script th:src="@{/js/jquery-3.1.1.min.js}"></script>
+    <style type="text/css">
+        table {
+            border: 1px solid black;
+            text-align: center;
+            border-collapse: collapse;
+        }
+
+        table thead th {
+            border: 1px solid black;
+        }
+
+        table tbody td {
+            border: 1px solid black;
+        }
+
+        body {
+            width: 95%;
+            height: 100%;
+            font-family: 'Open Sans', sans-serif;
+            background: #c9ddec;
+            filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#3E1D6D', endColorstr='#3e7492', GradientType=1);
+        }
+    </style>
+</head>
+
+<body>
+<div align="right"><a href="./login">退出登录 </a></div>
+<div align="center">
+    <h2>案件分配表</h2>
+    <div>待审核用户总数:<span id="un_audit"></span>，
+    剩余未分配案件总数:<span id="un_distribute"></span></div>
+    <table cellpadding="0" cellspacing="0" style="margin-top: 20px;">
+        <thead>
+        <th width=100px>序号</th>
+        <th width=100px>登录名</th>
+        <th width=100px>已分配案件</th>
+        <th width=100px>待审核案件</th>
+        <th width=100px>分配案件</th>
+        </thead>
+        <tbody id="content">
+        </tbody>
+    </table>
+
+</div>
+</body>
+<script type="text/javascript">
+   $(document).ready(function () {
+      var data=$.ajax({url:"get_audit_record",async:false});
+         var tb = $('#content');
+            data = data.responseJSON;
+           if(data && data.list && data.list.length > 0){
+	    		$.each(data.list,function(i,row){
+	    			var tr = $('<tr>');
+	    			$(tr).append('<td>'+(i+1) +'</td>');
+	    			$(tr).append('<td>'+row.login_name+'</td>');
+	    			$(tr).append('<td>'+row.all_audit_num+'</td>');
+	    			$(tr).append('<td>'+row.manual_audit_num+'</td>');
+	    			$(tr).append('<td><button value="' + row.operate_id+ '" onclick="distribute_function(this.value,\''+row.login_name+'\')">分配</button></td>');
+	    			$(tb).append(tr);
+	    		});
+	       }
+	        var totality=$.ajax({url:"get_manual_totality",async:false});
+	         $("#un_audit").html(totality.responseJSON.total+'个');
+	         $("#un_distribute").html(totality.responseJSON.un_distribute+'个');
+   });
+    function distribute_function(operate_id,login_name){
+    var inputData = prompt('请输入要分配给用户'+login_name+'的数量', "");
+    if(inputData==null){
+        return;
+    }else if (parseFloat(inputData).toString() == "NaN") {
+　　　　alert("请输入数字");
+　　　　return;
+　　}else if(parseFloat(inputData) > 500){
+　       alert("最多单次分配500每人");
+         return;
+    }
+     $.ajax({
+        url:"distribute",
+        dataType:"json",
+        type:"get",
+        async:true,
+        data:"limit="+inputData+"&operateId="+operate_id,
+        success:function(data){
+            if(data.code===0){
+                 alert("分配成功");
+            }else{
+                alert("分配失败");
+            }
+             window.location.reload();
+        }
+    });
+    };
+</script>
+</html>

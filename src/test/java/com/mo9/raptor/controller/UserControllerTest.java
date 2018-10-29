@@ -2,9 +2,11 @@ package com.mo9.raptor.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.RaptorApplicationTest;
+import com.mo9.raptor.bean.ReqHeaderParams;
 import com.mo9.raptor.enums.DictEnums;
 import com.mo9.raptor.service.BankService;
 import com.mo9.raptor.utils.GatewayUtils;
+import com.mo9.raptor.utils.Md5Util;
 import com.mo9.raptor.utils.httpclient.HttpClientApi;
 import com.mo9.raptor.utils.httpclient.bean.HttpResult;
 import org.junit.Before;
@@ -40,12 +42,12 @@ public class UserControllerTest {
 
     private static final String localUrl = "http://192.168.14.114:8010/raptorApi/";
 
-    private static final String localHostUrl = "http://localhost/raptorApi/";
+    private static final String localHostUrl = "http://localhost:8081/raptorApi/";
 
     private static final String cloneHostUrl = "https://riskclone.mo9.com/raptorApi/";
 
     Map<String, String> headers = new HashMap<>();
-    String mobile = "13213173517";
+    String mobile = "13000000000";
     @Before
     public void before() {
         headers.put("Account-Code", "123");
@@ -63,7 +65,7 @@ public class UserControllerTest {
             JSONObject json = new JSONObject();
             json.put("mobile", mobile);
             String url = "auth/send_login_code";
-            HttpResult resJson = httpClientApi.doPostJson(localHostUrl + url, json.toJSONString());
+            HttpResult resJson = httpClientApi.doPostJson(cloneHostUrl + url, json.toJSONString());
             System.out.println(resJson.getCode());
             System.out.println(resJson.getData());
         } catch (IOException e) {
@@ -94,7 +96,7 @@ public class UserControllerTest {
         try {
             JSONObject json = new JSONObject();
             json.put("mobile", mobile);
-            json.put("code", "820566");
+            json.put("code", "872134");
 //            json.put("captcha", "F5YJS");
 //            json.put("source", "TEST");
 //            json.put("subSource", "TEST_SUB");
@@ -219,6 +221,29 @@ public class UserControllerTest {
             System.out.println(resJson);
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void white () {
+
+        long timeStamp = System.currentTimeMillis();
+
+        String str = "888888" + timeStamp + "01234567890" +  "rtsDDcogZcPCu!NYkfgfjQq6O;~2Brtr";
+        String sign = Md5Util.getMD5(str);
+
+        String url = "http://192.168.6.44/beastsApi" + "/outside/import_white_user?mobile=01234567890";
+
+        Map<String, String> headers = new HashMap<String, String> ();
+        headers.put(ReqHeaderParams.ACCOUNT_CODE, "888888");
+        headers.put(ReqHeaderParams.TIMESTAMP, String.valueOf(timeStamp));
+        headers.put(ReqHeaderParams.SIGN, sign);
+
+        try {
+            String res  = httpClientApi.doGetByHeader(url, headers);
+            System.out.println("响应" + res);
+        } catch (IOException e) {
+//            logger.error("白名单发送失败，用户CODE:[{}]，用户手机号MOBILE:[{}]", "888888", "01234567890");
         }
     }
 }

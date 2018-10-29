@@ -1,14 +1,17 @@
 package com.mo9.raptor.service.impl;
 
 import com.mo9.raptor.bean.req.PageReq;
+import com.mo9.raptor.engine.enums.AuditResultEnum;
 import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.engine.state.action.impl.user.UserAuditAction;
 import com.mo9.raptor.engine.state.event.impl.AuditLaunchEvent;
+import com.mo9.raptor.engine.state.event.impl.AuditResponseEvent;
 import com.mo9.raptor.engine.state.event.impl.user.BlackEvent;
 import com.mo9.raptor.engine.state.launcher.IEventLauncher;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.BankAuthStatusEnum;
 import com.mo9.raptor.enums.DictEnums;
+import com.mo9.raptor.enums.SourceEnum;
 import com.mo9.raptor.redis.RedisParams;
 import com.mo9.raptor.redis.RedisServiceApi;
 import com.mo9.raptor.repository.UserRepository;
@@ -24,6 +27,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
@@ -157,6 +161,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateBankAuthStatus(UserEntity userEntity, BankAuthStatusEnum statusEnum) throws Exception {
+        logger.info("用户更新银行卡状态 : " + userEntity.getUserCode());
         userEntity.setBankAuthStatus(statusEnum.name());
         if (BankAuthStatusEnum.SUCCESS == statusEnum){
             userEntity.setBankCardSet(true);
@@ -169,7 +174,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
+    @Transactional(rollbackFor = Exception.class )
     public void checkAuditStatus(UserEntity userEntity) throws Exception {
         Boolean certifyInfo = userEntity.getCertifyInfo();
         Boolean mobileContacts = userEntity.getMobileContacts();
@@ -241,7 +246,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserEntity> findManualAuditUser(String source) {
+        if (SourceEnum.NEW.name().equals(source)||SourceEnum.WHITE.name().equals(source)){
+            return userRepository.findManualAuditUserNew(source);
+        }
      return  userRepository.findManualAuditUser(source);
+    }
+    @Override
+    public List<UserEntity> findManualAuditUserBuyOperateId(String source,String operateId) {
+     return  userRepository.findManualAuditUserBuyOperateId(source,operateId);
     }
 
     @Override
@@ -252,5 +264,43 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<Map<String, Object>> getChannelLoanCount(String source) {
         return userRepository.getChannelLoanCount(source);
+    }
+
+    @Override
+    public Boolean backToCollecting(String userCode, String description) {
+        AuditResponseEvent responseEvent = new AuditResponseEvent(userCode,description, AuditResultEnum.COLLECTING);
+        try {
+            userEventLauncher.launch(responseEvent);
+        } catch (Exception e) {
+            logger.error("用户审核，从审核中到信息采集中出现异常[{}],[{}]",userCode,description,e);
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public Boolean directRejection(String userCode, String description) {
+        AuditResponseEvent responseEvent = new AuditResponseEvent(userCode,description, AuditResultEnum.REJECTED);
+        try {
+            userEventLauncher.launch(responseEvent);
+        } catch (Exception e) {
+            logger.error("用户审核，直接拒绝服务出现异常[{}],[{}]",userCode,description,e);
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public Long countByStatus(StatusEnum status) {
+        Long total = userRepository.countByStatus(status.name());
+        if (total == null){
+            total =0L ;
+        }
+        return total;
+    }
+
+    @Override
+    public List<UserEntity> findManualAuditUserBuyOperateId(String operateId) {
+        return userRepository.findManualAuditUserBuyOperateId(operateId);
     }
 }

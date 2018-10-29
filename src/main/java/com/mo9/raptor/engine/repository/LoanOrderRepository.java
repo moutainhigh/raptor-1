@@ -56,6 +56,14 @@ public interface LoanOrderRepository extends JpaRepository<LoanOrderEntity,Long>
     List<LoanOrderEntity> listByStatus(List<String> statusEnums);
 
     /**
+     * 根据用户和状态查询订单
+     * @param statusEnums
+     * @return
+     */
+    @Query(value = "select * from t_raptor_loan_order where owner_id = ?1 and status in (?2) and deleted = false", nativeQuery = true)
+    List<LoanOrderEntity> listByUserAndStatus(String userCode, List<String> statusEnums);
+
+    /**
      * 查询所有今天还款的订单
      * @param today    今天0点
      * @param tomorrow 明天0点

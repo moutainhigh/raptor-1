@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -28,6 +29,11 @@ public class CouponServiceImpl implements CouponService {
     public BigDecimal getTotalDeductedAmount(String orderId) {
         Map<String, BigDecimal> totalDeductedAmount = couponRespository.getTotalDeductedAmount(orderId);
         return totalDeductedAmount.get("totalEntryAmount");
+    }
+
+    @Override
+    public List<CouponEntity> getByPayOrderId(String payOrderId) {
+        return couponRespository.getByPayOrderId(payOrderId);
     }
 
     @Override
