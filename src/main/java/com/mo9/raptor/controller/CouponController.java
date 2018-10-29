@@ -140,17 +140,11 @@ public class CouponController {
                     effectiveCoupon.setApplyAmount(req.getNumber());
                 } else {
                     BigDecimal number = req.getNumber();
-                    if (BigDecimal.ZERO.compareTo(number) == 0) {
-                        logger.info("操作者[{}]将优惠券[{}]由于[{}]原因将金额由[{}]更改为[{}], 删除优惠券", req.getCreator(), effectiveCoupon.getCouponId(), req.getReason(), effectiveCoupon.getApplyAmount(), req.getNumber());
-                        // 传0代表删除优惠券
-                        effectiveCoupon.setDeleted(true);
-                    } else {
-                        logger.info("操作者[{}]将优惠券[{}]由于[{}]原因将金额由[{}]更改为[{}]", req.getCreator(), effectiveCoupon.getCouponId(), req.getReason(), effectiveCoupon.getApplyAmount(), req.getNumber());
-                        /**
-                         * 仅仅可以更新金额
-                         */
-                        effectiveCoupon.setApplyAmount(number);
-                    }
+                    logger.info("操作者[{}]将优惠券[{}]由于[{}]原因将金额由[{}]更改为[{}]", req.getCreator(), effectiveCoupon.getCouponId(), req.getReason(), effectiveCoupon.getApplyAmount(), req.getNumber());
+                    /**
+                     * 仅仅可以更新金额
+                     */
+                    effectiveCoupon.setApplyAmount(number);
                 }
 
                 couponService.save(effectiveCoupon);
