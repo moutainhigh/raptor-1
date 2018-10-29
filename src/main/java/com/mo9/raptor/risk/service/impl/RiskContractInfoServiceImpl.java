@@ -7,6 +7,7 @@ import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.risk.entity.TRiskContractInfo;
 import com.mo9.raptor.risk.repo.RiskContractInfoRepository;
 import com.mo9.raptor.risk.service.RiskContractInfoService;
+import com.mo9.raptor.utils.MobileUtil;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +16,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -90,16 +93,21 @@ public class RiskContractInfoServiceImpl implements RiskContractInfoService {
         if(jsonArray == null || jsonArray.size() == 0){
             return list;
         }
+        Set<String> mobileSet = new HashSet<>();
         jsonArray.forEach(obj ->{
             JSONObject json = (JSONObject) obj;
-            TRiskContractInfo t = new TRiskContractInfo();
-            t.setContractMobile(json.containsKey("contact_mobile") ? json.getString("contact_mobile") : null);
-            t.setContractName(json.containsKey("contact_name") ? json.getString("contact_name") : null);
-            t.setMobile(mobile);
-            t.setUserCode(userCode);
-            t.setCreateTime(System.currentTimeMillis());
-            t.setUpdateTime(System.currentTimeMillis());
-            list.add(t);
+            String contractMobile = MobileUtil.processMobile(json.containsKey("contact_mobile") ? json.getString("contact_mobile") : null);
+            if(StringUtils.isNotBlank(contractMobile) && !mobileSet.contains(contractMobile)){
+                TRiskContractInfo t = new TRiskContractInfo();
+                t.setContractMobile(MobileUtil.processMobile(json.containsKey("contact_mobile") ? json.getString("contact_mobile") : null));
+                t.setContractName(json.containsKey("contact_name") ? json.getString("contact_name") : null);
+                t.setMobile(mobile);
+                t.setUserCode(userCode);
+                t.setCreateTime(System.currentTimeMillis());
+                t.setUpdateTime(System.currentTimeMillis());
+                list.add(t);
+                mobileSet.add(contractMobile);
+            }
         });
         return list;
     }
