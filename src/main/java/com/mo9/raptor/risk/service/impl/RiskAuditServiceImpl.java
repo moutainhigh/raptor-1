@@ -3,6 +3,7 @@ package com.mo9.raptor.risk.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.mo9.raptor.bean.req.risk.CallLog;
 import com.mo9.raptor.engine.enums.AuditResultEnum;
 import com.mo9.raptor.engine.state.event.impl.AuditResponseEvent;
 import com.mo9.raptor.entity.IpEntity;
@@ -10,7 +11,9 @@ import com.mo9.raptor.entity.UserCertifyInfoEntity;
 import com.mo9.raptor.entity.UserContactsEntity;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.repository.UserRepository;
+import com.mo9.raptor.risk.black.BlackExecute;
 import com.mo9.raptor.risk.entity.TRiskCallLog;
+import com.mo9.raptor.risk.entity.TRiskContractInfo;
 import com.mo9.raptor.risk.repo.RiskCallLogRepository;
 import com.mo9.raptor.risk.repo.RiskContractInfoRepository;
 import com.mo9.raptor.risk.service.LinkFaceService;
@@ -33,10 +36,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 import java.util.function.Function;
 
 /**
@@ -92,6 +92,9 @@ public class RiskAuditServiceImpl implements RiskAuditService {
 
     @Value("${risk.calllog.limit}")
     private int callLogLimit;
+
+    @Value("${risk.calllog.open}")
+    private Boolean calllogOpen;
 
     @Value("${risk.score.url}")
     private String scoreUrl;
@@ -189,8 +192,8 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         AuditResponseEvent finalResult = null;
         AuditResponseEvent res = null;
         ArrayList<AuditTask> taskList = new ArrayList<>();
-        taskList.add(new AuditTask((u) -> ipCheckRule(u), "IpCheckRule", true));
-        taskList.add(new AuditTask((u) -> shixinCheckRule(u), "ShixinCheckRule", true));
+        taskList.add(new AuditTask((u) -> ipCheckRule(u), "IpCheckRule", false));
+        taskList.add(new AuditTask((u) -> shixinCheckRule(u), "ShixinCheckRule", false));
         taskList.add(new AuditTask((u) -> chaseDebtRule(u), "ChaseDebtRule", true));
         taskList.add(new AuditTask((u) -> blackListRule(u), "BlackListRule", true));
         taskList.add(new AuditTask((u) -> riskWordRule(u), "RiskWordRule", true));
@@ -208,7 +211,8 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         taskList.add(new AuditTask((u) -> antiHackRule(u), "AntiHackRule", false));
         taskList.add(new AuditTask((u) -> livePicCompareRule(u), "LivePicCompareRule", false));
         taskList.add(new AuditTask((u) -> idPicCompareRule(u), "IdPicCompareRule", false));
-
+        /**调用第三方黑名单检查 */
+        taskList.add(new AuditTask((u) -> blaceExecute(u), "BlaceExecute", false));
 
         boolean isWhiteListUser = WHITE_LIST.equals(user.getSource());
 
@@ -255,6 +259,26 @@ public class RiskAuditServiceImpl implements RiskAuditService {
 
     private static final int HTTP_OK = 200;
     private static final int ERROR_SCORE_CODE = -1;
+
+    /**
+     * 第三方黑名单检查
+     * @param userCode
+     * @return
+     */
+    private AuditResponseEvent blaceExecute(String userCode) {
+        UserEntity user = userService.findByUserCode(userCode);
+        if(user == null){
+            logger.warn("用户不存在,userCode={}", userCode);
+            return new AuditResponseEvent(userCode, false, "用户不存在");
+        }
+        try{
+            AuditResponseEvent execute = new BlackExecute(user).execute();
+            logger.info("用户第三方黑名单检查, userCode={},返回结果isPass={}, res={}", userCode, execute.isPass(), execute.getExplanation());
+            return execute;
+        }catch (Exception e){
+            return new AuditResponseEvent(user.getUserCode(), true, "");
+        }
+    }
 
     /**
      * ip范围检查
@@ -368,22 +392,11 @@ public class RiskAuditServiceImpl implements RiskAuditService {
 
     AuditResponseEvent riskWordRule(String userCode) {
         int limit = 15;
-        UserContactsEntity userContacts = userContactsService.getByUserCode(userCode);
-        String json = userContacts.getContactsList();
-        JSONArray jsonArray;
-        //有2种JSON格式...
-        if (json.startsWith("{")) {
-            JSONObject jsonObject = JSON.parseObject(json);
-            if (!jsonObject.containsKey("contact")) {
-                return new AuditResponseEvent(userCode, false, "没有通讯录");
-            }
-            jsonArray = jsonObject.getJSONArray("contact");
-        } else {
-            jsonArray = JSON.parseArray(json);
-        }
+        UserEntity user = userService.findByUserCode(userCode);
+        List<TRiskContractInfo> list = riskContractInfoRepository.findByMobile(user.getMobile());
         StringBuilder stringBuilder = new StringBuilder();
-        for (int i = 0; i < jsonArray.size(); i++) {
-            String name = jsonArray.getJSONObject(i).getString("contact_name");
+        for (int i = 0; i < list.size(); i++) {
+            String name = list.get(i).getContractName();
             stringBuilder.append(name + "|");
         }
         int hitCount = riskWordService.filter(stringBuilder.toString());
@@ -441,30 +454,13 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         Long days180ts = 180 * 24 * 60 * 60 * 1000L;
         long currentTimeMillis = System.currentTimeMillis();
         UserEntity user = userService.findByUserCode(userCode);
-        UserContactsEntity userContacts = userContactsService.getByUserCode(userCode);
-        String json = userContacts.getContactsList();
         try {
-            JSONArray jsonArray;
-            //有2种JSON格式...
-            if (json.startsWith("{")) {
-                jsonArray = JSON.parseObject(json).getJSONArray("contact");
-            } else {
-                jsonArray = JSON.parseArray(json);
-            }
-            //通讯录电话HASHSET
-            HashSet<String> allMobileSet = new HashSet<>();
-            for (int i = 0; i < jsonArray.size(); i++) {
-                String mobile = MobileUtil.processMobile(jsonArray.getJSONObject(i).getString("contact_mobile"));
-                String name = jsonArray.getJSONObject(i).getString("contact_name");
-                if (StringUtils.isNotBlank(name) && StringUtils.isNotBlank(mobile) && mobile.length() >= 11) {
-                    allMobileSet.add(mobile);
-                }
-            }
-            if (allMobileSet.size() < contactsLimit) {
+            List<TRiskContractInfo> allMobileList = riskContractInfoRepository.findByMobile(user.getMobile());
+            if (allMobileList.size() < contactsLimit) {
                 return new AuditResponseEvent(userCode, false, "通讯录数量小于15个");
             }
 
-            if (allMobileSet.size() > contactsLimitUpper) {
+            if (allMobileList.size() > contactsLimitUpper) {
                 return new AuditResponseEvent(userCode, false, "通讯录数量大于1000个");
             }
 
@@ -485,7 +481,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
             logger.info(user.getMobile() + "拉取到数据" + allCallLog.size());
             for (TRiskCallLog tRiskCallLog : allCallLog) {
                 // 在通讯录内
-                if (allMobileSet.contains(tRiskCallLog.getCallTel())) {
+                if (allMobileList.contains(tRiskCallLog.getCallTel())) {
                     count++;
                     inListMobiles.add(tRiskCallLog.getCallTel());
                 }
@@ -505,7 +501,6 @@ public class RiskAuditServiceImpl implements RiskAuditService {
             return new AuditResponseEvent(userCode, count >= orignCallLimit, count >= orignCallLimit ? "" : "180天与通讯录通话号码小于3次(共" + count + "次)");
         } catch (Exception e) {
             logger.error(userCode + "解析联系人出错", e);
-            logger.info(userCode + json);
             return new AuditResponseEvent(userCode, false, "解析联系人出错！");
         }
     }
@@ -574,18 +569,119 @@ public class RiskAuditServiceImpl implements RiskAuditService {
     }
 
     /**
-     * 通话记录规则 【用户最近180天通话记录大于100条】
-     *
+     * 通话记录规则
+     * 1：用户最近180天通话记录少于100条，拒绝
+     * 2：最近一个月通话时长小于30min，拒绝
+     * 3：最近一个月通话次数小于10次，拒绝
+     * 4：最近一个月接听次数大于600次，拒绝
+     * 5：最近一个月呼出次数大于600次，拒绝
+     * 6：近三个月互通号码小于8个，拒绝
+     * 7：通话记录前10和通讯录（去重）匹配数小于3个，拒绝
      * @param userCode
      * @return
      */
+    private int limitCallLong = 30 * 60;//最近一个月通话时长
+    private int limitCallCounts = 10;//最近一个月通话次数
+    private int limitZjCounts = 600;//最近一个月呼出次数
+    private int limitBjCounts = 600;//最近一个月接听次数
+    private int limitCallEachCounts = 8;//近三个月互通号码个数,主叫被叫都要存在
+    private int limitContactMatchCounts = 3;//通话记录前10和通讯录（去重）匹配数，按照通话时长排序前十
+
     AuditResponseEvent callLogRule(String userCode) {
         Long days180ts = 180 * 24 * 60 * 60 * 1000L;
+        Long days30ts = 30 * 24 * 60 * 60 * 1000L;
         long currentTimeMillis = System.currentTimeMillis();
-        UserEntity user = userService.findByUserCode(userCode);
-        int count = riskCallLogRepository.getCallLogCountAfterTimestamp(user.getMobile(), (currentTimeMillis - days180ts) / 1000);
-        int limit = callLogLimit;
-        return new AuditResponseEvent(userCode, count >= limit, count >= limit ? "" : "用户最近180天通话记录少于" + limit);
+        try{
+            UserEntity user = userService.findByUserCode(userCode);
+            if(!calllogOpen){
+                logger.warn("通话记录规则-->未开启直接通过,mobile={}", user.getMobile());
+                return new AuditResponseEvent(userCode, true, "通话记录规则未开启，直接通过");
+            }
+            int count = riskCallLogRepository.getCallLogCountAfterTimestamp(user.getMobile(), (currentTimeMillis - days180ts) / 1000);
+            if(count < callLogLimit){
+                logger.warn("通话记录规则-->查询最近3个月通话记录少于180条,mobile={}", user.getMobile());
+                return new AuditResponseEvent(userCode, false, "最近3个月通话记录少于180条");
+            }
+            //查询近一个月所有通话记录
+            List<TRiskCallLog> list = riskCallLogRepository.getCallLogByMobileAfterTimestamp(user.getMobile(), (currentTimeMillis - days30ts) / 1000);
+            if(list == null || list.size() < 0){
+                logger.warn("通话记录规则-->查询最近一个月通话记录为空,mobile={}", user.getMobile());
+                return new AuditResponseEvent(userCode, false, "最近一个月通话记录不存在");
+            }
+            int callLong = 0;
+            int callCounts = 0;
+            int zjCounts = 0;
+            int bjCounts = 0;
+            for(TRiskCallLog callLog : list){
+                String callDuration = callLog.getCallDuration();
+                if(StringUtils.isNotBlank(callDuration)){
+                    callLong = callLong + Integer.valueOf(callDuration);
+                }
+                String callMethod = callLog.getCallMethod();
+                if("被叫".equals(callMethod)){
+                    bjCounts = bjCounts + 1;
+                }
+                if("主叫".equals(callMethod)){
+                    zjCounts = zjCounts + 1;
+                }
+            }
+            callCounts = list.size();
+            if(callLong < limitCallLong){
+                logger.warn("通话记录规则-->查询最近一个月通话时长小于30min,mobile={},callLong={}", user.getMobile(), callLong);
+                return new AuditResponseEvent(userCode, false, "最近一个月通话时长小于30min");
+            }
+            if(callCounts < limitCallCounts){
+                logger.warn("通话记录规则-->查询最近一个月通话时长小于10次,mobile={},callCounts={}", user.getMobile(), callCounts);
+                return new AuditResponseEvent(userCode, false, "最近一个月通话时长小于10次");
+            }
+            if(zjCounts > limitZjCounts){
+                logger.warn("通话记录规则-->查询最近一个月接听次数大于600次,mobile={},zjCounts={}", user.getMobile(), zjCounts);
+                return new AuditResponseEvent(userCode, false, "最近一个月接听次数大于600次");
+            }
+            if(bjCounts > limitBjCounts){
+                logger.warn("通话记录规则-->查询最近一个月被叫次数大于600次,mobile={},bjCounts={}", user.getMobile(), bjCounts);
+                return new AuditResponseEvent(userCode, false, "最近一个月被叫次数大于600次");
+            }
+
+            //查询最近三个月通话号码个数，主叫被叫都要存在,是否少于8个
+            List<Object[]> days180List = riskCallLogRepository.getDistinctCallLogByMobileAfterTimestamp(user.getMobile(), (currentTimeMillis - days180ts) / 1000);
+            Map<String, Integer> map = new HashMap<>();
+            int callEachCounts = 0;
+            if(days180List == null || days180List.size() == 0){
+                logger.warn("通话记录规则-->查询最近三个月通话记录为空,mobile={}", user.getMobile());
+                return new AuditResponseEvent(userCode, false, "最近三个月通话记录不存在");
+            }
+            for(Object[] arr : days180List){
+                String callTel = (String) arr[0];
+                if(map.get(callTel) == null){
+                    map.put(callTel, 1);
+                }else{
+                    map.put(callTel, map.get(callTel) + 1);
+                    callEachCounts += 1;
+                }
+            }
+            if(callEachCounts < limitCallEachCounts){
+                logger.warn("通话记录规则-->近三个月互通号码小于8个,mobile={},callEachCounts={}", user.getMobile(), callEachCounts);
+                return new AuditResponseEvent(userCode, false, "近三个月互通号码小于8个");
+            }
+            //查询最近10个通话记录号码，和通讯录匹配比对
+            List<String> callDurationList  = riskCallLogRepository.getDistinctCallLogBySumCallDuration(user.getMobile(), 10);
+            if(callDurationList == null || callDurationList.size() < limitContactMatchCounts){
+                logger.warn("通话记录规则-->最近通话记录不足3个,mobile={},contactMatchCounts={}", user.getMobile(), callDurationList.size());
+                return new AuditResponseEvent(userCode, false, "最近通话记录不足3个");
+            }
+            List<String> contractInfoList = riskContractInfoRepository.findDistinctByContractMobilesList(user.getMobile(), callDurationList);
+            if(contractInfoList == null || contractInfoList.size() < limitContactMatchCounts){
+                logger.warn("通话记录规则-->最近前10通话记录和通讯录匹配少于3个,mobile={},contactMatchCounts={}", user.getMobile(), contractInfoList.size());
+                return new AuditResponseEvent(userCode, false, "最近通话记录不足3个");
+            }
+            logger.info("通话记录规则-->通话记录匹配通过,mobile={}", user.getMobile());
+            return new AuditResponseEvent(userCode, true, "");
+        }catch (Exception e){
+            logger.error("通话记录规则-->检查报告出错,userCode={}", userCode, e);
+            return new AuditResponseEvent(userCode, false, "通话记录规则出现异常");
+        }
+
     }
 
     AuditResponseEvent threeElementCheck(String userCode) {
