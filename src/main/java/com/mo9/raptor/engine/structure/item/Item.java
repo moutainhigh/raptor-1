@@ -1,6 +1,7 @@
 package com.mo9.raptor.engine.structure.item;
 
 import com.mo9.raptor.engine.structure.Unit;
+import com.mo9.raptor.engine.structure.field.DestinationTypeEnum;
 import com.mo9.raptor.engine.structure.field.Field;
 import com.mo9.raptor.engine.structure.field.FieldTypeEnum;
 import com.mo9.raptor.engine.structure.field.SourceTypeEnum;
@@ -90,13 +91,26 @@ public class Item extends HashMap<FieldTypeEnum, Unit> {
         return sum;
     }
 
-
     public BigDecimal getFieldNumber(FieldTypeEnum fieldType) {
         Unit unit = this.get(fieldType);
         if (unit == null) {
             return BigDecimal.ZERO;
         }
         return unit.sum();
+    }
+
+    public BigDecimal getOrderFieldNumber(FieldTypeEnum fieldType) {
+        BigDecimal orderSum = BigDecimal.ZERO;
+        Unit unit = this.get(fieldType);
+        if (unit == null) {
+            return orderSum;
+        }
+        for (Field field : unit) {
+            if (DestinationTypeEnum.LOAN_ORDER.equals(field.getDestinationType())) {
+                orderSum = orderSum.add(field.getNumber());
+            }
+        }
+        return orderSum;
     }
 
     /**
