@@ -1,10 +1,13 @@
 package com.mo9.raptor.utils;
 
+import com.mo9.raptor.utils.log.Log;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import okhttp3.OkHttpClient;
+import org.slf4j.Logger;
+
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -18,16 +21,17 @@ import java.util.GregorianCalendar;
  */
 public class CallLogUtils {
     private static OkHttpClient okHttpClient;
+    
+    Logger logger = Log.get();
 
 //    public static void main(String[] args) {
+//        CallLogUtils utils = new CallLogUtils();
+//        
 //        okHttpClient = new OkHttpClient();
-//        String sessId = "5jomophlia5k1l22fcj781b225";
-//        String phoneNumber = "18357534013";
-//        String url = "http://bmp.dianhua.cn/report/list?cid=317&begin=2018-09-25&end=2018-09-27&status=&status_report=&reportNo=&telNo=" + phoneNumber;
-//        String value = getSidByMobile(sessId, phoneNumber, okHttpClient);
-////        Document doc = Jsoup.parse(str);
-////        String value = doc.select("table.table").select("tbody").select("input.item-checkbox").attr("value");
-//        System.out.println("---------> "+value);
+//        String sessId = "ovv9q2ebg61c4a379g6gic1p51";
+//        String phoneNumber = "18616297200";
+//        String value = utils.getSidByMobile(sessId, phoneNumber, okHttpClient);
+//        System.out.println("---------> " + value);
 //    }
 
     public String getSidByMobile(String sessId, String phoneNumber, OkHttpClient okHttpClient) {
@@ -41,12 +45,21 @@ public class CallLogUtils {
 
         String url = "http://bmp.dianhua.cn/report/list?cid=317&begin=" + begin + "&end=" + end + "&status=&status_report=&reportNo=&telNo=" + phoneNumber;
 
-        String str = doGetHttp(url, sessId, okHttpClient);
-//        System.out.println(str);
-        Document doc = Jsoup.parse(str);
-        String value = doc.select("table.table > tbody")
-                .select("tr > td").first().select("span")
-                .text();
+        String value = null ;
+        try {
+            String str = doGetHttp(url, sessId, okHttpClient);
+            if (str.indexOf("请登录") != -1){
+                logger.error("电话邦SessionId失效，请在数据字典中更新SessionId");
+                return null;
+            }
+            
+            Document doc = Jsoup.parse(str);
+            value = doc.select("table.table > tbody")
+                    .select("tr > td").first().select("span")
+                    .text();
+        } catch (Exception e) {
+            logger.error("sid爬虫失败", e);
+        }
         return value;
     }
 
