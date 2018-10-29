@@ -158,6 +158,7 @@ public class OutsideController {
                 int limit = 100;
                 boolean boo = true;
                 int count = 0;
+                int errorCount = 0;
                 do{
                     List<UserContactsEntity> userContactsList = userContactsService.findByLimit(startLimit, limit);
                     if(userContactsList != null && userContactsList.size() > 0){
@@ -166,7 +167,7 @@ public class OutsideController {
                             try{
                                 riskContractInfoService.createAll(entity.getContactsList(), userEntity);
                             }catch (Exception e){
-                                logger.error("用户通讯录重新执行,用户执行出现异常userCode={}", userEntity.getUserCode(), e);
+                                logger.error("用户通讯录重新执行,用户执行出现异常,当前第{}条，userCode={}", errorCount++, userEntity.getUserCode(), e);
                             }
                             logger.info("用户通讯录重新执行，当前执行到第{}条,userCode={}", count++, userEntity.getUserCode());
                         }
