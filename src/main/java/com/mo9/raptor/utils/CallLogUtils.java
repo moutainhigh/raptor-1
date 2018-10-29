@@ -48,7 +48,11 @@ public class CallLogUtils {
         String value = null ;
         try {
             String str = doGetHttp(url, sessId, okHttpClient);
-            System.out.println(str);
+            if (str.indexOf("请登录") != -1){
+                logger.error("电话邦SessionId失效，请在数据字典中更新SessionId");
+                return null;
+            }
+            
             Document doc = Jsoup.parse(str);
             value = doc.select("table.table > tbody")
                     .select("tr > td").first().select("span")
