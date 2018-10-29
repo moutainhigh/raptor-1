@@ -34,7 +34,7 @@ public class NoCallLogReportSidTask {
     @Value("${task.open}")
     private String taskOpen;
     
-    @Scheduled(cron = "0 0/1 * * * ?")
+    @Scheduled(cron = "0 0 0/2 * * ?")
     public void run(){
         if(CommonValues.TRUE.equals(taskOpen)){
             logger.info("------开始处理未获取到通话记录SID的用户数据---");
