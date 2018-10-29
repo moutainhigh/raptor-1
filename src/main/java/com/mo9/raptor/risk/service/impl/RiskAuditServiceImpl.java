@@ -192,7 +192,6 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         AuditResponseEvent finalResult = null;
         AuditResponseEvent res = null;
         ArrayList<AuditTask> taskList = new ArrayList<>();
-        taskList.add(new AuditTask((u) -> contactsRule(u), "ContactsRule", false));
         taskList.add(new AuditTask((u) -> ipCheckRule(u), "IpCheckRule", false));
         taskList.add(new AuditTask((u) -> shixinCheckRule(u), "ShixinCheckRule", false));
         taskList.add(new AuditTask((u) -> chaseDebtRule(u), "ChaseDebtRule", true));
