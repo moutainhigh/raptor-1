@@ -5,6 +5,7 @@ import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.engine.exception.InvalidEventException;
 import com.mo9.raptor.engine.state.action.IActionExecutor;
 import com.mo9.raptor.engine.state.event.IEvent;
+import com.mo9.raptor.engine.state.event.impl.coupon.CouponCancelEvent;
 import com.mo9.raptor.engine.state.event.impl.coupon.CouponEntryResponseEvent;
 
 import com.mo9.raptor.engine.state.handler.IStateHandler;
@@ -32,7 +33,11 @@ public class BundledStateHandler implements IStateHandler<CouponEntity> {
             coupon.setStatus(StatusEnum.ENTRY_DONE.name());
             coupon.setEndTime(entryResponseEvent.getEventTime());
             coupon.setDescription(coupon.getDescription() + ";" + event.getEventTime() + ":" + StatusEnum.valueOf(coupon.getStatus()).getExplanation());
-        }  else {
+        } else if (event instanceof CouponCancelEvent) {
+            CouponCancelEvent cancelEvent = (CouponCancelEvent) event;
+            coupon.setStatus(StatusEnum.CANCELLED.name());
+            coupon.setDescription(coupon.getDescription() + ";" + event.getEventTime() + ":" + "由[" + cancelEvent.getOperator() + "]取消");
+        } else {
             throw new InvalidEventException("优惠券状态与事件类型不匹配，状态：" + coupon.getStatus() + "，事件：" + event);
         }
         return coupon;
