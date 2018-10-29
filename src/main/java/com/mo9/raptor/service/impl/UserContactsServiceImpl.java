@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * Created by jyou on 2018/9/17.
@@ -47,5 +48,10 @@ public class UserContactsServiceImpl implements UserContactsService {
     @Override
     public UserContactsEntity getByUserCode(String userCode) {
         return userContactsRepository.getByUserCode(userCode);
+    }
+
+    @Override
+    public List<UserContactsEntity> findByLimit(int startLimit, int endLimit) {
+        return userContactsRepository.findByLimit(startLimit, endLimit);
     }
 }
