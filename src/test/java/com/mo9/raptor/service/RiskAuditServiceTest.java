@@ -21,7 +21,7 @@ public class RiskAuditServiceTest {
     @Resource
     private RiskAuditService riskAuditService;
 
-    String userCode = "AA20A480E526D644D13D9AC5593D2686";
+    String userCode = "DD73904B9D39FD45CD7AC4E54F9576A8";
 
     @Test
     public void test(){
