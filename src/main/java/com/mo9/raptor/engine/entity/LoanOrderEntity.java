@@ -84,14 +84,6 @@ public class LoanOrderEntity extends AbstractOrderEntity {
     @Column(name = "paid_charge")
     private BigDecimal paidCharge;
 
-    /** 已还延期服务费 */
-    @Column(name = "paid_postpone_charge")
-    private BigDecimal paidPostponeCharge;
-
-    /** 已还延期利息 */
-    @Column(name = "paid_postpone_interest")
-    private BigDecimal paidPostponeInterest;
-
     /** 订单审核方式 */
     @Column(name = "audit_mode")
     private String auditMode = AuditModeEnum.AUTO.name();
@@ -336,21 +328,5 @@ public class LoanOrderEntity extends AbstractOrderEntity {
 
     public void setLastPaidPrincipalDate(Long lastPaidPrincipalDate) {
         this.lastPaidPrincipalDate = lastPaidPrincipalDate;
-    }
-
-    public BigDecimal getPaidPostponeCharge() {
-        return paidPostponeCharge;
-    }
-
-    public void setPaidPostponeCharge(BigDecimal paidPostponeCharge) {
-        this.paidPostponeCharge = paidPostponeCharge;
-    }
-
-    public BigDecimal getPaidPostponeInterest() {
-        return paidPostponeInterest;
-    }
-
-    public void setPaidPostponeInterest(BigDecimal paidPostponeInterest) {
-        this.paidPostponeInterest = paidPostponeInterest;
     }
 }
