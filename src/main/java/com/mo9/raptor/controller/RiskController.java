@@ -293,7 +293,7 @@ public class RiskController {
                 return report;
             }
         } catch (Exception e) {
-            logger.error("获取");
+            logger.error("获取电话邦数据出现致命错误", e);
         }
         return null;
     }
