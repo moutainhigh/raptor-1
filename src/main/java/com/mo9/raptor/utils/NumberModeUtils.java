@@ -21,7 +21,7 @@ public class NumberModeUtils {
      * @param loanOrder
      * @return
      */
-    public static BigDecimal getShouldPayPenalty(Long date, LoanOrderEntity loanOrder) throws NumberModeException {
+    public static BigDecimal getShouldPayPenalty(Long date, LoanOrderEntity loanOrder) {
         BigDecimal shouldPayPenalty = BigDecimal.ZERO;
         if (!StatusEnum.LENT.name().equals(loanOrder.getStatus())) {
             return shouldPayPenalty;
@@ -38,7 +38,7 @@ public class NumberModeUtils {
             String penaltyMode = loanOrder.getPenaltyMode();
             if (penaltyMode.equals(NumberMode.QUANTITY.name())) {
                 shouldPayPenalty = loanOrder.getPenaltyValue().multiply(new BigDecimal(overDueDate)).subtract(loanOrder.getPaidPenalty());
-            } else if (penaltyMode.equals(NumberMode.PERCENT.name())) {
+            } else {
                 /**
                  * 以1000元一天30元逾期费为比例计算罚息
                  * TODO: 计算罚息基准可能变化, 如果变化, 则入账的地方也需要变化
@@ -46,8 +46,6 @@ public class NumberModeUtils {
                 BigDecimal penaltyPercent = loanOrder.getPenaltyValue().divide(loanOrder.getLentNumber().add(loanOrder.getChargeValue()), EngineStaticValue.RESULT_SCALE, BigDecimal.ROUND_UP);
                 BigDecimal restPrincipal = loanOrder.getLentNumber().add(loanOrder.getChargeValue()).subtract(loanOrder.getPaidPrincipal()).subtract(loanOrder.getPaidCharge());
                 shouldPayPenalty = restPrincipal.multiply(penaltyPercent).multiply(new BigDecimal(overDueDate)).subtract(loanOrder.getPaidPenalty()).setScale(EngineStaticValue.DATABASE_SCALE, BigDecimal.ROUND_UP);
-            } else {
-                throw new NumberModeException("不支持的NumberMode类型:" + penaltyMode);
             }
         } else {
             shouldPayPenalty = BigDecimal.ZERO;

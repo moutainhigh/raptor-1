@@ -120,7 +120,7 @@ public abstract class AbstractLoanCalculator implements ILoanCalculator {
      * 实时账单
      */
     @Override
-    public Item realItem(Long date, LoanOrderEntity loanOrder, String payType, Integer postponeDays) throws NumberModeException {
+    public Item realItem(Long date, LoanOrderEntity loanOrder, String payType, Integer postponeDays) {
 
         Item item = originItem(loanOrder);
         if (item.size() == 0) {
