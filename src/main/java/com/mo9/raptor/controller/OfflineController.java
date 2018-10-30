@@ -118,6 +118,13 @@ public class OfflineController {
             Integer postponeDays = 0;
             String channel = "manual_pay";
 
+            // 获得当前减免金额
+            CouponEntity effectiveBundledCoupon = couponService.getEffectiveBundledCoupon(loanOrder.getOrderId());
+            BigDecimal currentCouponAmount = BigDecimal.ZERO;
+            if (effectiveBundledCoupon != null) {
+                currentCouponAmount = effectiveBundledCoupon.getApplyAmount();
+            }
+
             // 计算还款信息
             if (type.equals("REPAY")) {
                 // 最小应还款  LentNumber
@@ -138,6 +145,11 @@ public class OfflineController {
                     return response;
                 }
                 couponAmount = payoffSum.subtract(amount);
+                if (currentCouponAmount.compareTo(couponAmount) > 0) {
+                    response.setCode(ResCodeEnum.ILLEGAL_COUPON_AMOUNT.getCode());
+                    response.setMessage("最大减免[" + couponAmount.toPlainString() + "]元, 请更新优惠券金额.");
+                    return response;
+                }
             } else if (type.equals("POSTPONE")) {
                 BigDecimal postponeUnitCharge = loanOrder.getPostponeUnitCharge();
                 if (amount.compareTo(postponeUnitCharge) < 0) {
@@ -156,21 +168,13 @@ public class OfflineController {
                     return response;
                 }
                 couponAmount = postponeSum.subtract(amount);
+                if (currentCouponAmount.compareTo(couponAmount) != 0) {
+                    response.setCode(ResCodeEnum.ILLEGAL_COUPON_AMOUNT.getCode());
+                    response.setMessage("本次还款应减免[" + couponAmount.toPlainString() + "]元, 请更新优惠券金额.");
+                    return response;
+                }
             } else {
                 return response.buildFailureResponse(ResCodeEnum.UNSUPPORTED_TYPE);
-            }
-
-            // 制作优惠券
-            CouponEntity effectiveBundledCoupon = couponService.getEffectiveBundledCoupon(loanOrder.getOrderId());
-            BigDecimal currentCouponAmount = BigDecimal.ZERO;
-            if (effectiveBundledCoupon != null) {
-                // 获得当前减免金额
-                currentCouponAmount = effectiveBundledCoupon.getApplyAmount();
-            }
-            if (currentCouponAmount.compareTo(couponAmount) > 0) {
-                response.setCode(ResCodeEnum.EXCEPTION_CODE.getCode());
-                response.setMessage("最大减免[" + couponAmount.toPlainString() + "]元, 请更新优惠券金额.");
-                return response;
             }
 
             // 创建还款
