@@ -167,9 +167,9 @@ public class OfflineController {
                 // 获得当前减免金额
                 currentCouponAmount = effectiveBundledCoupon.getApplyAmount();
             }
-            if (currentCouponAmount.compareTo(couponAmount) != 0) {
-                response.setCode(ResCodeEnum.ILLEGAL_COUPON_AMOUNT.getCode());
-                response.setMessage("本次还款应减免[" + couponAmount.toPlainString() + "]元, 请更新优惠券金额.");
+            if (currentCouponAmount.compareTo(couponAmount) > 0) {
+                response.setCode(ResCodeEnum.EXCEPTION_CODE.getCode());
+                response.setMessage("最大减免[" + couponAmount.toPlainString() + "]元, 请更新优惠券金额.");
                 return response;
             }
 
