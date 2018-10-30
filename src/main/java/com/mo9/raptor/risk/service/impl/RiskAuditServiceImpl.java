@@ -218,7 +218,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
 
         for (AuditTask auditTask : taskList) {
             if (auditTask.whiteListUserSkip && isWhiteListUser) {
-                ruleLogService.create(userCode, auditTask.ruleName, null, false, "");
+                ruleLogService.create(userCode, auditTask.ruleName, null, false, "白名单用户跳过该规则");
             } else {
                 if (finalResult == null) {
                     logger.info(userCode + "开始运行规则[" + auditTask.ruleName + "]");
@@ -228,7 +228,9 @@ public class RiskAuditServiceImpl implements RiskAuditService {
                         finalResult = res;
                     }
                 } else {
-                    ruleLogService.create(userCode, auditTask.ruleName, null, false, "");
+                    logger.info(userCode + "开始运行规则[" + auditTask.ruleName + "],只做记录，不做最终结果处理");
+                    AuditResponseEvent res2 = auditTask.callFunc.apply(userCode);
+                    ruleLogService.create(userCode, auditTask.ruleName, res2.isPass(), true, res2.getExplanation());
                 }
             }
         }
@@ -489,10 +491,10 @@ public class RiskAuditServiceImpl implements RiskAuditService {
             }
             logger.info("开始进行通讯录表的匹配修改，需要更改的数据条数mobile={},num={}", user.getMobile(), inListMobiles == null ? 0 : inListMobiles.size());
             /** 匹配通讯录表，修改标识,注意用mobile修改，不要用usercode*/
-            if(inListMobiles.size() > 0){
-                List<String> list = new ArrayList<>(inListMobiles);
-                riskContractInfoRepository.updateMatchingMobile(user.getMobile(), list);
-            }
+//            if(inListMobiles.size() > 0){
+//                List<String> list = new ArrayList<>(inListMobiles);
+//                riskContractInfoRepository.updateMatchingMobile(user.getMobile(), list);
+//            }
             StringBuilder stringBuilder = new StringBuilder(userCode + "," + user.getMobile() + "在主叫列表里[");
             for (String inListMobile : inListMobiles) {
                 stringBuilder.append(inListMobile + ",");
@@ -619,12 +621,21 @@ public class RiskAuditServiceImpl implements RiskAuditService {
                     callLong = callLong + Integer.valueOf(callDuration);
                 }
                 String callMethod = callLog.getCallMethod();
-                if("被叫".equals(callMethod)){
+                if(StringUtils.isBlank(callMethod)){
+                    continue;
+                }
+                if(callMethod.equals("被叫")){
                     bjCounts = bjCounts + 1;
                 }
-                if("主叫".equals(callMethod)){
+                if(callMethod.equals("主叫")){
                     zjCounts = zjCounts + 1;
                 }
+//                if(callMethod.contains("被叫")){
+//                    bjCounts = bjCounts + 1;
+//                }
+//                if(callMethod.contains("主叫")){
+//                    zjCounts = zjCounts + 1;
+//                }
             }
             callCounts = list.size();
             if(callLong < limitCallLong){
