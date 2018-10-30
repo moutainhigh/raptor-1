@@ -50,9 +50,9 @@ public class UserLogAction implements IAction {
             userLogEntity.setPreStatus(preStatus);
             userLogEntity.setPostStatus(entity.getStatus());
             userLogReprsitory.save(userLogEntity);
-            logger.info("报存用户状态修改记录日志成功，userCode={}", this.entity.getUserCode());
+            logger.info("保存用户状态修改记录日志成功，userCode={}处理前状态preStatus={},处理后状态postStatus={}", this.entity.getUserCode(), preStatus, entity.getStatus());
         }catch (Exception e){
-            logger.error("报存用户状态修改记录日志出现异常，userCode={}", this.entity.getUserCode(), e);
+            logger.error("保存用户状态修改记录日志出现异常，userCode={}", this.entity.getUserCode(), e);
         }
 
 

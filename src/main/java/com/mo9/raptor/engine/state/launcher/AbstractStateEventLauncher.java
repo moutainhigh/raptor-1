@@ -90,6 +90,7 @@ public abstract class AbstractStateEventLauncher<E extends IStateEntity, V exten
                     logger.info("还款订单[{}]处理后状态为[{}], 当前时间[{}]", payOrderEntity.getOrderId(), entity.getStatus(), System.currentTimeMillis());
                 }else if(stateEntity instanceof UserEntity){
                     UserEntity postEntity = (UserEntity) stateEntity;
+                    logger.info("用户状态处理完毕，userCode={},处理前状态preStatus={},处理后状态postStatus={}", postEntity.getUserCode(), preStatus, postEntity.getStatus());
                     UserLogAction userLogAction = new UserLogAction(userLogReprsitory, postEntity, preStatus);
                     actionExecutor.append(userLogAction);
                 }
