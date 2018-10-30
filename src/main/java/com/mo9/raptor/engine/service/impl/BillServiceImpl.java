@@ -39,17 +39,17 @@ public class BillServiceImpl implements BillService {
 
 
     @Override
-    public Item realItem(LoanOrderEntity loanOrder, PayTypeEnum payType, Integer postponeDays) {
+    public Item realItem(LoanOrderEntity loanOrder, PayTypeEnum payType, Integer postponeDays) throws NumberModeException {
         return loanCalculator.realItem(System.currentTimeMillis(), loanOrder, payType.name(), postponeDays);
     }
 
     @Override
-    public Item payoffRealItem(LoanOrderEntity loanOrder) {
+    public Item payoffRealItem(LoanOrderEntity loanOrder) throws NumberModeException {
         return loanCalculator.realItem(System.currentTimeMillis(), loanOrder, PayTypeEnum.REPAY_AS_PLAN.name(), 0);
     }
 
     @Override
-    public Item shouldPayItem(LoanOrderEntity loanOrder, PayTypeEnum payType, Integer postponeDays) {
+    public Item shouldPayItem(LoanOrderEntity loanOrder, PayTypeEnum payType, Integer postponeDays) throws NumberModeException {
         Item realItem = this.realItem(loanOrder, payType, postponeDays);
         CouponEntity couponEntity = couponService.getEffectiveBundledCoupon(loanOrder.getOrderId());
         BigDecimal couponAmount = BigDecimal.ZERO;
@@ -64,12 +64,12 @@ public class BillServiceImpl implements BillService {
     }
 
     @Override
-    public Item payoffShouldPayItem(LoanOrderEntity loanOrder) {
+    public Item payoffShouldPayItem(LoanOrderEntity loanOrder) throws NumberModeException {
         return shouldPayItem(loanOrder, PayTypeEnum.REPAY_AS_PLAN, 0);
     }
 
     @Override
-    public Item entryItem(PayTypeEnum payType, PayOrderEntity payOrder, LoanOrderEntity loanOrder) throws LoanEntryException {
+    public Item entryItem(PayTypeEnum payType, PayOrderEntity payOrder, LoanOrderEntity loanOrder) throws LoanEntryException, NumberModeException {
         // 入账的Item
         Item entryItem = new Item();
 
