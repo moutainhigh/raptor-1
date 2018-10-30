@@ -24,7 +24,7 @@ public interface ILoanCalculator {
      * @param loanOrder
      * @return
      */
-    Item realItem(Long date, LoanOrderEntity loanOrder, String payType, Integer postponeDays);
+    Item realItem(Long date, LoanOrderEntity loanOrder, String payType, Integer postponeDays) throws NumberModeException;
 
     /**
      * 获得入账item

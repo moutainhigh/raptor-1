@@ -2,7 +2,6 @@ package com.mo9.raptor.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.bean.BaseResponse;
-import com.mo9.raptor.bean.req.CouponCancelReq;
 import com.mo9.raptor.bean.req.CouponCreateReq;
 import com.mo9.raptor.bean.req.CouponUpdateReq;
 import com.mo9.raptor.engine.entity.CouponEntity;
@@ -11,8 +10,7 @@ import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.engine.service.BillService;
 import com.mo9.raptor.engine.service.CouponService;
 import com.mo9.raptor.engine.service.ILoanOrderService;
-import com.mo9.raptor.engine.state.event.impl.coupon.CouponCancelEvent;
-import com.mo9.raptor.engine.state.launcher.IEventLauncher;
+import com.mo9.raptor.engine.service.IPayOrderService;
 import com.mo9.raptor.engine.structure.field.FieldTypeEnum;
 import com.mo9.raptor.engine.structure.item.Item;
 import com.mo9.raptor.engine.utils.EngineStaticValue;
@@ -60,10 +58,10 @@ public class CouponController {
     private CouponService couponService;
 
     @Autowired
-    private BillService billService;
+    private IPayOrderService payOrderService;
 
     @Autowired
-    private IEventLauncher couponEventLauncher;
+    private BillService billService;
 
     @Value("${raptor.sign.key.coupon}")
     private String signKey ;
@@ -170,53 +168,6 @@ public class CouponController {
     public BaseResponse<JSONObject> update(@Valid @RequestBody CouponUpdateReq req, HttpServletRequest request) {
         BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
 
-        return response;
-    }
-
-    /**
-     * 取消优惠券
-     * @param req
-     * @return
-     */
-    @PostMapping("/cancel")
-    public BaseResponse<JSONObject> cancel(@Valid @RequestBody CouponCancelReq req, HttpServletRequest request) {
-        BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
-
-        /** 验证签名 */
-        Map<String, String> couponParams = new  HashMap<String, String> ();
-        Field[] fields = req.getClass().getDeclaredFields();
-        try {
-            for (Field field: fields) {
-                field.setAccessible(true);
-                couponParams.put(field.getName(), field.get(req).toString());
-            }
-        } catch (IllegalAccessException e) {
-            return response.buildFailureResponse(ResCodeEnum.SIGN_PARAMS_EXTRACT_ERROR);
-        }
-        String originSign = couponParams.remove("sign");
-        String sign = Md5Encrypt.sign(couponParams, signKey);
-
-        if (!originSign.equalsIgnoreCase(sign)) {
-            return response.buildFailureResponse(ResCodeEnum.INVALID_SIGN);
-        }
-
-        CouponEntity effectiveBundledCoupon = couponService.getEffectiveBundledCoupon(req.getBundleId());
-        if (effectiveBundledCoupon == null) {
-            return response;
-        }
-        if (!effectiveBundledCoupon.getStatus().equals(StatusEnum.BUNDLED.name())) {
-            response.setCode(ResCodeEnum.EXCEPTION_CODE.getCode());
-            response.setMessage("只有已绑定状态优惠券可取消");
-            return response;
-        }
-
-        try {
-            CouponCancelEvent event = new CouponCancelEvent(effectiveBundledCoupon.getCouponId(), req.getOperator());
-            couponEventLauncher.launch(event);
-        } catch (Exception e) {
-            Log.error(logger , e ,"优惠券[{}]取消异常", effectiveBundledCoupon.getCouponId());
-            return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
-        }
         return response;
     }
 }
