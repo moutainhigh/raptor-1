@@ -85,10 +85,11 @@ public class offlineRepayTest {
 //        }
 
         Map<String, String> map = new HashMap<String, String>();
-        map.put("orderId", "TTYQ-240108078131974144");
-        map.put("userCode", "AA20A480E526D644D13D9AC5593D47222");
-        map.put("type", "REPAY");
-        map.put("amount", "500");
+        map.put("orderId", "TTYQ-251304105744666624");
+        map.put("userCode", "123");
+        //map.put("type", "REPAY");
+        map.put("type", "POSTPONE");
+        map.put("amount", "7");
         map.put("creator", "xzhang");
         map.put("reliefReason", "xzhang");
         String resultSign = Md5Encrypt.sign(map, "TWlBfbVtgmJb6tlYeWuTl2N26xtKT5SX");
