@@ -4,7 +4,6 @@ import com.mo9.raptor.engine.state.action.ActionExecutorImpl;
 import com.mo9.raptor.engine.state.action.IActionExecutor;
 import com.mo9.raptor.engine.entity.IStateEntity;
 import com.mo9.raptor.engine.entity.PayOrderEntity;
-import com.mo9.raptor.engine.state.action.impl.user.UserLogAction;
 import com.mo9.raptor.engine.state.event.IStateEvent;
 import com.mo9.raptor.engine.exception.InvalidEventException;
 import com.mo9.raptor.engine.exception.LockException;
@@ -12,6 +11,7 @@ import com.mo9.raptor.engine.exception.NotExistException;
 import com.mo9.raptor.engine.state.handler.IStateHandler;
 import com.mo9.raptor.engine.state.handler.StateHandlerFactory;
 import com.mo9.raptor.entity.UserEntity;
+import com.mo9.raptor.entity.UserLogEntity;
 import com.mo9.raptor.lock.Lock;
 import com.mo9.raptor.lock.RedisService;
 import com.mo9.raptor.repository.UserLogReprsitory;
@@ -91,8 +91,7 @@ public abstract class AbstractStateEventLauncher<E extends IStateEntity, V exten
                 }else if(stateEntity instanceof UserEntity){
                     UserEntity postEntity = (UserEntity) stateEntity;
                     logger.info("用户状态处理完毕，userCode={},处理前状态preStatus={},处理后状态postStatus={}", postEntity.getUserCode(), preStatus, postEntity.getStatus());
-                    UserLogAction userLogAction = new UserLogAction(userLogReprsitory, postEntity, preStatus);
-                    actionExecutor.append(userLogAction);
+                    saveUserLog(postEntity, preStatus);
                 }
             } else {
                 throw new LockException("事件为目标状态实体请求锁时，竞争失败，事件：" + event.toString() + "，实体：" + event.getEntityUniqueId());
@@ -106,5 +105,20 @@ public abstract class AbstractStateEventLauncher<E extends IStateEntity, V exten
          */
         actionExecutor.execute();
 
+    }
+
+    private void saveUserLog(UserEntity entity, String preStatus){
+        try{
+            UserLogEntity userLogEntity = new  UserLogEntity();
+            userLogEntity.setUserCode(entity.getUserCode());
+            userLogEntity.setCreateTime(System.currentTimeMillis());
+            userLogEntity.setDescribe(entity.getDescription());
+            userLogEntity.setPreStatus(preStatus);
+            userLogEntity.setPostStatus(entity.getStatus());
+            userLogReprsitory.save(userLogEntity);
+            logger.info("保存用户状态修改记录日志成功，userCode={}处理前状态preStatus={},处理后状态postStatus={}", entity.getUserCode(), preStatus, entity.getStatus());
+        }catch (Exception e){
+            logger.error("保存用户状态修改记录日志出现异常，userCode={}", entity.getUserCode(), e);
+        }
     }
 }
