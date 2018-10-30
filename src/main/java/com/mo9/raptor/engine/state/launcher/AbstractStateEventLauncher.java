@@ -4,14 +4,17 @@ import com.mo9.raptor.engine.state.action.ActionExecutorImpl;
 import com.mo9.raptor.engine.state.action.IActionExecutor;
 import com.mo9.raptor.engine.entity.IStateEntity;
 import com.mo9.raptor.engine.entity.PayOrderEntity;
+import com.mo9.raptor.engine.state.action.impl.user.UserLogAction;
 import com.mo9.raptor.engine.state.event.IStateEvent;
 import com.mo9.raptor.engine.exception.InvalidEventException;
 import com.mo9.raptor.engine.exception.LockException;
 import com.mo9.raptor.engine.exception.NotExistException;
 import com.mo9.raptor.engine.state.handler.IStateHandler;
 import com.mo9.raptor.engine.state.handler.StateHandlerFactory;
+import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.lock.Lock;
 import com.mo9.raptor.lock.RedisService;
+import com.mo9.raptor.repository.UserLogReprsitory;
 import com.mo9.raptor.utils.IDWorker;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -41,6 +44,9 @@ public abstract class AbstractStateEventLauncher<E extends IStateEntity, V exten
     @Autowired
     private StateHandlerFactory stateHandlerFactory;
 
+    @Autowired
+    private UserLogReprsitory userLogReprsitory;
+
     public abstract E selectEntity (String entityUniqueId);
 
     public abstract void saveEntity (E entity);
@@ -52,6 +58,7 @@ public abstract class AbstractStateEventLauncher<E extends IStateEntity, V exten
             throw new InvalidEventException("事件传递的状态实体ID为空，事件：" + event.toString());
         }
         IActionExecutor actionExecutor = new ActionExecutorImpl();
+
         Lock lock = new Lock(event.getEntityUniqueId(), idWorker.nextId()+"");
         try {
             /**
@@ -60,6 +67,7 @@ public abstract class AbstractStateEventLauncher<E extends IStateEntity, V exten
              */
             if (redisService.lock(lock.getName(), lock.getValue(), 5000, TimeUnit.MILLISECONDS)) {
                 E entity = selectEntity(event.getEntityUniqueId());
+                String preStatus = entity.getStatus();
                 if (entity == null) {
                     throw new NotExistException("事件的目标状态实体不存在，事件：" + event.toString() + "，实体：" + event.getEntityUniqueId());
                 }
@@ -75,12 +83,15 @@ public abstract class AbstractStateEventLauncher<E extends IStateEntity, V exten
                 }
 
                 IStateEntity stateEntity = stateHandler.handle(entity, event, actionExecutor);
-
                 this.saveEntity((E) stateEntity);
                 // TODO: 临时代码
                 if (stateEntity instanceof PayOrderEntity) {
                     PayOrderEntity payOrderEntity = (PayOrderEntity) stateEntity;
                     logger.info("还款订单[{}]处理后状态为[{}], 当前时间[{}]", payOrderEntity.getOrderId(), entity.getStatus(), System.currentTimeMillis());
+                }else if(stateEntity instanceof UserEntity){
+                    UserEntity postEntity = (UserEntity) stateEntity;
+                    UserLogAction userLogAction = new UserLogAction(userLogReprsitory, postEntity, preStatus);
+                    actionExecutor.append(userLogAction);
                 }
             } else {
                 throw new LockException("事件为目标状态实体请求锁时，竞争失败，事件：" + event.toString() + "，实体：" + event.getEntityUniqueId());

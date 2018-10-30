@@ -27,9 +27,15 @@ public class RuleLogEntity {
     @Column(name = "`create_time`")
     private Long createTime;
 
+    /**
+     * 规则是否回调
+     */
     @Column(name = "`call`")
     private Boolean call;
 
+    /**
+     * 规则是否通过
+     */
     @Column(name = "`hit`")
     private Boolean hit;
 
