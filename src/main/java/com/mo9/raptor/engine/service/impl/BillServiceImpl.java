@@ -16,6 +16,7 @@ import com.mo9.raptor.engine.structure.field.SourceTypeEnum;
 import com.mo9.raptor.engine.structure.item.Item;
 import com.mo9.raptor.enums.PayTypeEnum;
 import com.mo9.raptor.exception.LoanEntryException;
+import com.mo9.raptor.exception.NumberModeException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -73,6 +74,7 @@ public class BillServiceImpl implements BillService {
         Item entryItem = new Item();
 
         Item orderRealItem = this.realItem(loanOrder, payType, payOrder.getPostponeDays());
+        BigDecimal shouldPay = orderRealItem.sum();
 
         CouponEntity couponEntity = couponService.getEffectiveBundledCoupon(loanOrder.getOrderId());
         BigDecimal couponAmount = BigDecimal.ZERO;
@@ -119,9 +121,6 @@ public class BillServiceImpl implements BillService {
         if (entryItem.sum(SourceTypeEnum.PAY_ORDER).compareTo(payOrder.getPayNumber()) < 0) {
             throw new LoanEntryException("订单" + loanOrder.getOrderId() + payType.getExplanation() + payOrder.getPayNumber() + ", 优惠" + couponAmount + ", 与可入账金额: " + entryItem.sum() + "不匹配!");
         }
-        if (payType.equals(PayTypeEnum.REPAY_POSTPONE)) {
-            entryItem.setPostponeDays(payOrder.getPostponeDays());
-        }
         return entryItem;
     }
 
@@ -131,7 +130,7 @@ public class BillServiceImpl implements BillService {
     }
 
     @Override
-    public List<RenewVo> getRenewInfo(LoanOrderEntity loanOrder) {
+    public List<RenewVo> getRenewInfo(LoanOrderEntity loanOrder) throws NumberModeException {
         if (!StatusEnum.LENT.name().equals(loanOrder.getStatus())) {
             return null;
         }
@@ -174,8 +173,7 @@ public class BillServiceImpl implements BillService {
      * @param item
      * @return
      */
-    @Override
-    public BigDecimal getRelievableAmount(Item item) {
+    private BigDecimal getRelievableAmount (Item item) {
         BigDecimal relievableAmount = BigDecimal.ZERO;
         for (FieldTypeEnum fieldTypeEnum : FieldTypeEnum.RELIEVABLE) {
             relievableAmount = relievableAmount.add(item.getFieldNumber(fieldTypeEnum));
