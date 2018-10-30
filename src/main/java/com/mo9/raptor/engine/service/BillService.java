@@ -6,6 +6,7 @@ import com.mo9.raptor.engine.entity.PayOrderEntity;
 import com.mo9.raptor.engine.structure.item.Item;
 import com.mo9.raptor.enums.PayTypeEnum;
 import com.mo9.raptor.exception.LoanEntryException;
+import com.mo9.raptor.exception.NumberModeException;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -69,4 +70,18 @@ public interface BillService {
      * @return
      */
     List<RenewVo> getRenewInfo(LoanOrderEntity loanOrderEntity);
+
+    /**
+     * 最少应还
+     * @param loanOrder
+     * @return
+     */
+    BigDecimal minRepay (LoanOrderEntity loanOrder);
+
+    /**
+     * 获取可减免金额
+     * @param item
+     * @return
+     */
+    BigDecimal getRelievableAmount(Item item);
 }

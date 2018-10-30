@@ -5,6 +5,7 @@ import com.mo9.raptor.engine.calculator.ILoanCalculator;
 import com.mo9.raptor.engine.entity.CouponEntity;
 import com.mo9.raptor.engine.entity.LoanOrderEntity;
 import com.mo9.raptor.engine.entity.PayOrderEntity;
+import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.engine.service.BillService;
 import com.mo9.raptor.engine.service.CouponService;
 import com.mo9.raptor.engine.structure.Unit;
@@ -19,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -49,12 +51,14 @@ public class BillServiceImpl implements BillService {
     public Item shouldPayItem(LoanOrderEntity loanOrder, PayTypeEnum payType, Integer postponeDays) {
         Item realItem = this.realItem(loanOrder, payType, postponeDays);
         CouponEntity couponEntity = couponService.getEffectiveBundledCoupon(loanOrder.getOrderId());
-        BigDecimal applyAmount = BigDecimal.ZERO;
+        BigDecimal couponAmount = BigDecimal.ZERO;
         if (couponEntity != null && couponEntity.getApplyAmount() != null) {
-            applyAmount = couponEntity.getApplyAmount();
+            BigDecimal relievableAmount = getRelievableAmount(realItem);
+            couponAmount = couponEntity.getApplyAmount().compareTo(relievableAmount) > 0 ? relievableAmount : couponEntity.getApplyAmount();
         }
+
         Item entryItem = new Item();
-        loanCalculator.entryItem(System.currentTimeMillis(), payType.name(), applyAmount, entryItem, realItem);
+        loanCalculator.entryItem(System.currentTimeMillis(), payType.name(), couponAmount, entryItem, realItem);
         return realItem;
     }
 
@@ -69,13 +73,13 @@ public class BillServiceImpl implements BillService {
         Item entryItem = new Item();
 
         Item orderRealItem = this.realItem(loanOrder, payType, payOrder.getPostponeDays());
-        BigDecimal shouldPay = orderRealItem.sum();
 
         CouponEntity couponEntity = couponService.getEffectiveBundledCoupon(loanOrder.getOrderId());
-        BigDecimal applyAmount = BigDecimal.ZERO;
+        BigDecimal couponAmount = BigDecimal.ZERO;
         if (couponEntity != null && couponEntity.getApplyAmount() != null) {
-            applyAmount = couponEntity.getApplyAmount();
-            entryItem = loanCalculator.entryItem(System.currentTimeMillis(), payType.name(), couponEntity.getApplyAmount(), entryItem, orderRealItem);
+            BigDecimal relievableAmount = getRelievableAmount(orderRealItem);
+            couponAmount = couponEntity.getApplyAmount().compareTo(relievableAmount) > 0 ? relievableAmount : couponEntity.getApplyAmount();
+            entryItem = loanCalculator.entryItem(System.currentTimeMillis(), payType.name(), couponAmount, entryItem, orderRealItem);
             for (Map.Entry<FieldTypeEnum, Unit> entry : entryItem.entrySet()) {
                 Unit unit = entry.getValue();
                 for (Field field : unit) {
@@ -102,15 +106,21 @@ public class BillServiceImpl implements BillService {
         }
         /**
          * 只有少于应还金额的时候会报错
+         * 为支持部分还款, 还款金额比应还金额要少时不抛异常
          */
-        if (entryItem.sum().compareTo(shouldPay) != 0) {
-            throw new LoanEntryException("订单" + loanOrder.getOrderId() + payType.getExplanation() + payOrder.getPayNumber() + ", 优惠" + applyAmount + ", 与应还: " + shouldPay + "不匹配!");
-        }
+//        if (entryItem.sum().compareTo(shouldPay) != 0) {
+//            throw new LoanEntryException("订单" + loanOrder.getOrderId() + payType.getExplanation() + payOrder.getPayNumber() + ", 优惠" + applyAmount + ", 与应还: " + shouldPay + "不匹配!");
+//        }
         /**
          *  超额还款控制
+         *  优惠券随便它入了多少
+         *  这么改是为了实现   延期还款时减免砍头息
          */
-        if (entryItem.sum().compareTo(payOrder.getPayNumber().add(applyAmount)) != 0) {
-            throw new LoanEntryException("订单" + loanOrder.getOrderId() + payType.getExplanation() + payOrder.getPayNumber() + ", 优惠" + applyAmount + ", 与可入账金额: " + entryItem.sum() + "不匹配!");
+        if (entryItem.sum(SourceTypeEnum.PAY_ORDER).compareTo(payOrder.getPayNumber()) < 0) {
+            throw new LoanEntryException("订单" + loanOrder.getOrderId() + payType.getExplanation() + payOrder.getPayNumber() + ", 优惠" + couponAmount + ", 与可入账金额: " + entryItem.sum() + "不匹配!");
+        }
+        if (payType.equals(PayTypeEnum.REPAY_POSTPONE)) {
+            entryItem.setPostponeDays(payOrder.getPostponeDays());
         }
         return entryItem;
     }
@@ -121,20 +131,56 @@ public class BillServiceImpl implements BillService {
     }
 
     @Override
-    public List<RenewVo> getRenewInfo(LoanOrderEntity loanOrderEntity) {
-        List<RenewVo> renews = loanCalculator.getRenew(loanOrderEntity);
-        if (renews != null && renews.size() > 0) {
-            CouponEntity couponEntity = couponService.getEffectiveBundledCoupon(loanOrderEntity.getOrderId());
-            BigDecimal applyAmount = BigDecimal.ZERO;
-            if (couponEntity != null && couponEntity.getApplyAmount() != null) {
-                applyAmount = couponEntity.getApplyAmount();
+    public List<RenewVo> getRenewInfo(LoanOrderEntity loanOrder) {
+        if (!StatusEnum.LENT.name().equals(loanOrder.getStatus())) {
+            return null;
+        }
+        CouponEntity couponEntity = couponService.getEffectiveBundledCoupon(loanOrder.getOrderId());
+        BigDecimal couponAmount = BigDecimal.ZERO;
+        if (couponEntity != null && couponEntity.getApplyAmount() != null) {
+            couponAmount = couponEntity.getApplyAmount();
+        }
+        List<RenewVo> renews = new ArrayList<RenewVo>();
+        for (int i = 1; i <= 2; i++) {
+            Item item = loanCalculator.realItem(System.currentTimeMillis(), loanOrder, PayTypeEnum.REPAY_POSTPONE.name(), loanOrder.getLoanTerm() * i);
+            RenewVo vo = new RenewVo();
+            vo.setPeriod(loanOrder.getLoanTerm() * i);
+
+            if (couponAmount.compareTo(BigDecimal.ZERO) != 0) {
+                BigDecimal relievableAmount = getRelievableAmount(item);
+                if (relievableAmount.compareTo(couponAmount) >= 0) {
+                    vo.setAmount(item.sum().subtract(couponAmount));
+                } else {
+                    vo.setAmount(item.sum().subtract(relievableAmount));
+                }
+            } else {
+                vo.setAmount(item.sum());
             }
 
-            // 减去减免金额
-            for (RenewVo renew : renews) {
-                renew.setAmount(renew.getAmount().subtract(applyAmount));
-            }
+            renews.add(vo);
         }
+
         return renews;
     }
+
+    @Override
+    public BigDecimal minRepay(LoanOrderEntity loanOrder) {
+        // return loanOrder.getLoanNumber();
+        return loanOrder.getLentNumber();
+    }
+
+    /**
+     * 获取可减免金额
+     * @param item
+     * @return
+     */
+    @Override
+    public BigDecimal getRelievableAmount(Item item) {
+        BigDecimal relievableAmount = BigDecimal.ZERO;
+        for (FieldTypeEnum fieldTypeEnum : FieldTypeEnum.RELIEVABLE) {
+            relievableAmount = relievableAmount.add(item.getFieldNumber(fieldTypeEnum));
+        }
+        return relievableAmount;
+    }
+
 }
