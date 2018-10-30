@@ -10,6 +10,7 @@ CREATE TABLE `t_raptor_user_log` (
   `pre_status` VARCHAR(64) DEFAULT NULL COMMENT '用户修改前状态',
   `post_status` VARCHAR(64) DEFAULT NULL COMMENT '用户修改后状态',
   `describe` text DEFAULT NULL COMMENT '描述信息',
-  `create_time` BIGINT NOT NULL COMMENT '创建时间'
+  `create_time` BIGINT NOT NULL COMMENT '创建时间',
+  PRIMARY KEY `id`,
   INDEX `user_code` (`user_code`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户状态修改日志记录表';
