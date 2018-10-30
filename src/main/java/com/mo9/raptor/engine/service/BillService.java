@@ -69,7 +69,7 @@ public interface BillService {
      * @param loanOrderEntity
      * @return
      */
-    List<RenewVo> getRenewInfo(LoanOrderEntity loanOrderEntity) throws NumberModeException;
+    List<RenewVo> getRenewInfo(LoanOrderEntity loanOrderEntity);
 
     /**
      * 最少应还
@@ -77,4 +77,11 @@ public interface BillService {
      * @return
      */
     BigDecimal minRepay (LoanOrderEntity loanOrder);
+
+    /**
+     * 获取可减免金额
+     * @param item
+     * @return
+     */
+    BigDecimal getRelievableAmount(Item item);
 }

@@ -165,7 +165,7 @@ public abstract class AbstractLoanCalculator implements ILoanCalculator {
 
             Integer multiplyPower = postponeDays / loanOrder.getLoanTerm();
 
-            chargeField.setNumber(loanOrder.getPostponeUnitCharge().multiply(new BigDecimal(multiplyPower)));
+            chargeField.setNumber(loanOrder.getPostponeUnitCharge().multiply(new BigDecimal(multiplyPower)).subtract(loanOrder.getPaidPostponeCharge()));
             Unit chargeUnit = new Unit(FieldTypeEnum.ALL_CHARGE);
             chargeUnit.add(chargeField);
             item.put(FieldTypeEnum.ALL_CHARGE, chargeUnit);
@@ -174,7 +174,7 @@ public abstract class AbstractLoanCalculator implements ILoanCalculator {
             item.setPostponeDays(postponeDays);
             // 利息也要翻倍
             Field interestField = item.get(FieldTypeEnum.INTEREST).get(0);
-            interestField.setNumber(interestField.getNumber().multiply(new BigDecimal(multiplyPower)));
+            interestField.setNumber(interestField.getNumber().multiply(new BigDecimal(multiplyPower)).subtract(loanOrder.getPaidPostponeInterest()));
         } else {
             // 修正本金
             Field principalField = item.get(FieldTypeEnum.PRINCIPAL).get(0);
@@ -201,16 +201,35 @@ public abstract class AbstractLoanCalculator implements ILoanCalculator {
             BigDecimal entryPenalty = entryItem.getFieldNumber(FieldTypeEnum.PENALTY);
             BigDecimal paidAmount = entryItem.sum();
             BigDecimal baseAmount = realItem.sum();
-            if (paidAmount.compareTo(baseAmount) != 0) {
-                throw new LoanEntryException("订单" + loanOrder.getOrderId() + "还款" + entryItemSum + ", 延期" + days + ", 不合法!");
-            }
-            if (entryPenalty.compareTo(BigDecimal.ZERO) > 0) {
-                // 有罚息
-                int penaltyPostponeDays = entryPenalty.divide(loanOrder.getPenaltyValue(), 0, BigDecimal.ROUND_DOWN).intValue();
-                loanOrder.setRepaymentDate(loanOrder.getRepaymentDate() + (days + penaltyPostponeDays) * EngineStaticValue.DAY_MILLIS);
+            if (paidAmount.compareTo(baseAmount) == 0) {
+                if (entryPenalty.compareTo(BigDecimal.ZERO) > 0) {
+                    // 有罚息
+                    int penaltyPostponeDays = entryPenalty.divide(loanOrder.getPenaltyValue(), 0, BigDecimal.ROUND_DOWN).intValue();
+                    loanOrder.setRepaymentDate(loanOrder.getRepaymentDate() + (days + penaltyPostponeDays) * EngineStaticValue.DAY_MILLIS);
+                } else {
+                    // 无罚息
+                    loanOrder.setRepaymentDate(loanOrder.getRepaymentDate() + days * EngineStaticValue.DAY_MILLIS);
+                }
+                loanOrder.setPaidPostponeInterest(BigDecimal.ZERO);
+                loanOrder.setPaidPostponeCharge(BigDecimal.ZERO);
+            } else if (paidAmount.compareTo(baseAmount) < 0) {
+                // 部分还款
+                BigDecimal paidPostponeInterest = entryItem.getOrderFieldNumber(FieldTypeEnum.INTEREST);
+                if (paidPostponeInterest.compareTo(BigDecimal.ZERO) > 0) {
+                    loanOrder.setPaidPostponeInterest(loanOrder.getPaidPostponeInterest().add(paidPostponeInterest));
+                }
+
+                BigDecimal paidPenalty = entryItem.getOrderFieldNumber(FieldTypeEnum.PENALTY);
+                if (paidPenalty.compareTo(BigDecimal.ZERO) > 0) {
+                    loanOrder.setPaidPenalty(loanOrder.getPaidPenalty().add(paidPenalty));
+                }
+
+                BigDecimal paidPostponeCharge = entryItem.getOrderFieldNumber(FieldTypeEnum.ALL_CHARGE);
+                if (paidPostponeCharge.compareTo(BigDecimal.ZERO) > 0) {
+                    loanOrder.setPaidPostponeCharge(loanOrder.getPaidPostponeCharge().add(paidPostponeCharge));
+                }
             } else {
-                // 无罚息
-                loanOrder.setRepaymentDate(loanOrder.getRepaymentDate() + days * EngineStaticValue.DAY_MILLIS);
+                throw new LoanEntryException("订单" + loanOrder.getOrderId() + "还款" + entryItemSum + ", 延期" + days + ", 不合法!");
             }
         } else {
             if (realItemSum.compareTo(entryItemSum) == 0) {

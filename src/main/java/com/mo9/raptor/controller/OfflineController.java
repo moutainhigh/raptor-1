@@ -114,27 +114,21 @@ public class OfflineController {
             }
 
             BigDecimal couponAmount = BigDecimal.ZERO;
+            BigDecimal relievableAmount = BigDecimal.ZERO;
             String payType = null;
             Integer postponeDays = 0;
             String channel = "manual_pay";
-
-            // 获得当前减免金额
-            CouponEntity effectiveBundledCoupon = couponService.getEffectiveBundledCoupon(loanOrder.getOrderId());
-            BigDecimal currentCouponAmount = BigDecimal.ZERO;
-            if (effectiveBundledCoupon != null) {
-                currentCouponAmount = effectiveBundledCoupon.getApplyAmount();
-            }
 
             // 计算还款信息
             if (type.equals("REPAY")) {
                 // 最小应还款  LentNumber
                 BigDecimal lentNumber = loanOrder.getLentNumber();
-                if (amount.compareTo(lentNumber) < 0) {
-                    // 还的钱比放款的要少
-                    response.setCode(ResCodeEnum.EXCEPTION_CODE.getCode());
-                    response.setMessage("至少应还" + lentNumber.toPlainString());
-                    return response;
-                }
+//                if (amount.compareTo(lentNumber) < 0) {
+//                    // 还的钱比放款的要少
+//                    response.setCode(ResCodeEnum.EXCEPTION_CODE.getCode());
+//                    response.setMessage("至少应还" + lentNumber.toPlainString());
+//                    return response;
+//                }
                 Item payoffRealItem = billService.payoffRealItem(loanOrder);
                 payType = payoffRealItem.getRepaymentType().name();
                 BigDecimal payoffSum = payoffRealItem.sum();
@@ -145,19 +139,15 @@ public class OfflineController {
                     return response;
                 }
                 couponAmount = payoffSum.subtract(amount);
-                if (currentCouponAmount.compareTo(couponAmount) > 0) {
-                    response.setCode(ResCodeEnum.ILLEGAL_COUPON_AMOUNT.getCode());
-                    response.setMessage("最大减免[" + couponAmount.toPlainString() + "]元, 请更新优惠券金额.");
-                    return response;
-                }
+                relievableAmount = billService.getRelievableAmount(payoffRealItem);
             } else if (type.equals("POSTPONE")) {
-                BigDecimal postponeUnitCharge = loanOrder.getPostponeUnitCharge();
-                if (amount.compareTo(postponeUnitCharge) < 0) {
-                    // 还的钱比放款的要少
-                    response.setCode(ResCodeEnum.EXCEPTION_CODE.getCode());
-                    response.setMessage("至少应还" + postponeUnitCharge.toPlainString());
-                    return response;
-                }
+//                BigDecimal postponeUnitCharge = loanOrder.getPostponeUnitCharge();
+//                if (amount.compareTo(postponeUnitCharge) < 0) {
+//                    // 还的钱比放款的要少
+//                    response.setCode(ResCodeEnum.EXCEPTION_CODE.getCode());
+//                    response.setMessage("至少应还" + postponeUnitCharge.toPlainString());
+//                    return response;
+//                }
                 postponeDays = 7;
                 Item postponeRealItem = billService.realItem(loanOrder, PayTypeEnum.REPAY_POSTPONE, postponeDays);
                 payType = PayTypeEnum.REPAY_POSTPONE.name();
@@ -168,13 +158,27 @@ public class OfflineController {
                     return response;
                 }
                 couponAmount = postponeSum.subtract(amount);
-                if (currentCouponAmount.compareTo(couponAmount) != 0) {
-                    response.setCode(ResCodeEnum.ILLEGAL_COUPON_AMOUNT.getCode());
-                    response.setMessage("本次还款应减免[" + couponAmount.toPlainString() + "]元, 请更新优惠券金额.");
-                    return response;
-                }
+                relievableAmount = billService.getRelievableAmount(postponeRealItem);
             } else {
                 return response.buildFailureResponse(ResCodeEnum.UNSUPPORTED_TYPE);
+            }
+
+            // 获得当前减免金额
+            CouponEntity effectiveBundledCoupon = couponService.getEffectiveBundledCoupon(loanOrder.getOrderId());
+            BigDecimal currentCouponAmount = BigDecimal.ZERO;
+            if (effectiveBundledCoupon != null) {
+                currentCouponAmount = effectiveBundledCoupon.getApplyAmount();
+            }
+
+            // 获得当前最大可减免金额
+            if (couponAmount.compareTo(relievableAmount) > 0) {
+                couponAmount = relievableAmount;
+            }
+
+            if (currentCouponAmount.compareTo(couponAmount) > 0) {
+                response.setCode(ResCodeEnum.ILLEGAL_COUPON_AMOUNT.getCode());
+                response.setMessage("最大减免[" + couponAmount.toPlainString() + "]元, 请更新优惠券金额.");
+                return response;
             }
 
             // 创建还款
