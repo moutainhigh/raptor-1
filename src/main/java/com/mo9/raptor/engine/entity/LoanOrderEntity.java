@@ -64,6 +64,34 @@ public class LoanOrderEntity extends AbstractOrderEntity {
     @Column(name = "postpone_unit_charge")
     private BigDecimal postponeUnitCharge;
 
+    /** 已还本金 */
+    @Column(name = "paid_principal")
+    private BigDecimal paidPrincipal;
+
+    /** 上一次还本金的日期 */
+    @Column(name = "last_paid_principal_date")
+    private Long lastPaidPrincipalDate;
+
+    /** 已还利息 */
+    @Column(name = "paid_interest")
+    private BigDecimal paidInterest;
+
+    /** 已还罚息 */
+    @Column(name = "paid_penalty")
+    private BigDecimal paidPenalty;
+
+    /** 已还砍头息 */
+    @Column(name = "paid_charge")
+    private BigDecimal paidCharge;
+
+    /** 已还延期服务费 */
+    @Column(name = "paid_postpone_charge")
+    private BigDecimal paidPostponeCharge;
+
+    /** 已还延期利息 */
+    @Column(name = "paid_postpone_interest")
+    private BigDecimal paidPostponeInterest;
+
     /** 订单审核方式 */
     @Column(name = "audit_mode")
     private String auditMode = AuditModeEnum.AUTO.name();
@@ -268,5 +296,61 @@ public class LoanOrderEntity extends AbstractOrderEntity {
 
     public void setPayoffTime(Long payoffTime) {
         this.payoffTime = payoffTime;
+    }
+
+    public BigDecimal getPaidPrincipal() {
+        return paidPrincipal;
+    }
+
+    public void setPaidPrincipal(BigDecimal paidPrincipal) {
+        this.paidPrincipal = paidPrincipal;
+    }
+
+    public BigDecimal getPaidInterest() {
+        return paidInterest;
+    }
+
+    public void setPaidInterest(BigDecimal paidInterest) {
+        this.paidInterest = paidInterest;
+    }
+
+    public BigDecimal getPaidPenalty() {
+        return paidPenalty;
+    }
+
+    public void setPaidPenalty(BigDecimal paidPenalty) {
+        this.paidPenalty = paidPenalty;
+    }
+
+    public BigDecimal getPaidCharge() {
+        return paidCharge;
+    }
+
+    public void setPaidCharge(BigDecimal paidCharge) {
+        this.paidCharge = paidCharge;
+    }
+
+    public Long getLastPaidPrincipalDate() {
+        return lastPaidPrincipalDate;
+    }
+
+    public void setLastPaidPrincipalDate(Long lastPaidPrincipalDate) {
+        this.lastPaidPrincipalDate = lastPaidPrincipalDate;
+    }
+
+    public BigDecimal getPaidPostponeCharge() {
+        return paidPostponeCharge;
+    }
+
+    public void setPaidPostponeCharge(BigDecimal paidPostponeCharge) {
+        this.paidPostponeCharge = paidPostponeCharge;
+    }
+
+    public BigDecimal getPaidPostponeInterest() {
+        return paidPostponeInterest;
+    }
+
+    public void setPaidPostponeInterest(BigDecimal paidPostponeInterest) {
+        this.paidPostponeInterest = paidPostponeInterest;
     }
 }

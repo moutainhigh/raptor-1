@@ -40,4 +40,9 @@ public interface EngineStaticValue {
      * 结果保留位数
      */
     int RESULT_SCALE = 8;
+
+    /**
+     * 最终保存使用2位小数
+     */
+    int DATABASE_SCALE = 2;
 }
