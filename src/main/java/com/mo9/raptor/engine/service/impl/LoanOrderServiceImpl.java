@@ -140,4 +140,9 @@ public class LoanOrderServiceImpl implements ILoanOrderService {
         Long tomorrow = today + EngineStaticValue.DAY_MILLIS;
         return loanOrderRepository.listShouldPayOrder(today, tomorrow);
     }
+
+    @Override
+    public List<LoanOrderEntity> listByOverDueOrder(long time) {
+        return loanOrderRepository.listByOverDueOrder(time);
+    }
 }
