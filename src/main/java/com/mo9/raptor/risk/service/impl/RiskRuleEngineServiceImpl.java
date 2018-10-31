@@ -255,8 +255,6 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
         Integer cuishouCallMaxTimes = cuishou == null ? 0 : cuishou.getInteger("call_in_times");
         Integer yisicuishouCallMaxTimes = yisicuishou == null ? 0 : yisicuishou.getInteger("call_in_times");
 
-        System.out.println(cuishouCallMaxTimes);
-        System.out.println(yisicuishouCallMaxTimes);
 
         if (cuishouCallMaxTimes < DIFFERENT_LOAN_COMPANY_CALL_TIMES
                 && yisicuishouCallMaxTimes < DIFFERENT_LOAN_COMPANY_CALL_TIMES){
