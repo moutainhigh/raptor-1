@@ -224,6 +224,7 @@ public class RiskController {
                     }
                 }else if (hasCallLogUser != null && hasCallLogUser.isReportReceived()){
                     try {
+                        logger.info("----没有sid的用户补偿任务---已收到有效的运营商报告，通知userService更改状态, {}", hasCallLogUser.getMobile());
                         userService.updateReceiveCallHistory(hasCallLogUser.getUid(), true);
                     } catch (Exception e) {
                         logger.error("运行calllog补偿任务，通知userService收到通话记录时出错", e);
