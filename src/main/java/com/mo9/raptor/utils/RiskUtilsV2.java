@@ -80,7 +80,7 @@ public class RiskUtilsV2 {
         //修改本地黑名单
         try {
             UserEntity userEntity = userService.findByUserCode(loanOrderEntity.getOwnerId()) ;
-            if(StatusEnum.BLACK.equals(userEntity.getStatus())){
+            if(StatusEnum.BLACK.name().equals(userEntity.getStatus())){
                 return ;
             }
             BlackEvent event = new BlackEvent(loanOrderEntity.getOwnerId(), "订单逾期7天黑名单 - "+ loanOrderEntity.getOrderId());
