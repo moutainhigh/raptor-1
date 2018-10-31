@@ -212,9 +212,13 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
 
 
         JSONObject jsonObject = JSON.parseObject(reportJson).getJSONObject("data");
+        JSONObject cuishouDetectionJson = jsonObject.getJSONObject("cuishou_risk_detection");
+        if (cuishouDetectionJson == null){
+            return new AuditResponseEvent(userCode, true, "");
+        }
 
-        JSONObject cuishou = jsonObject.getJSONObject("cuishou");
-        JSONObject yisicuishou = jsonObject.getJSONObject("yisicuishou");
+        JSONObject cuishou = cuishouDetectionJson.getJSONObject("cuishou");
+        JSONObject yisicuishou = cuishouDetectionJson.getJSONObject("yisicuishou");
         
         
         Integer cuishouOneCallMaxTimes = cuishou == null ? 0 : cuishou.getInteger("most_times_by_tel");
@@ -240,12 +244,17 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
         }
 
         JSONObject jsonObject = JSON.parseObject(reportJson).getJSONObject("data");
+        JSONObject cuishouDetectionJson = jsonObject.getJSONObject("cuishou_risk_detection");
+        if (cuishouDetectionJson == null){
+            return new AuditResponseEvent(userCode, true, "");
+        }
 
-        JSONObject cuishou = jsonObject.getJSONObject("cuishou");
-        JSONObject yisicuishou = jsonObject.getJSONObject("yisicuishou");
+        JSONObject cuishou = cuishouDetectionJson.getJSONObject("cuishou");
+        JSONObject yisicuishou = cuishouDetectionJson.getJSONObject("yisicuishou");
 
         Integer cuishouCallMaxTimes = cuishou == null ? 0 : cuishou.getInteger("call_in_times");
         Integer yisicuishouCallMaxTimes = yisicuishou == null ? 0 : yisicuishou.getInteger("call_in_times");
+
 
         if (cuishouCallMaxTimes < DIFFERENT_LOAN_COMPANY_CALL_TIMES
                 && yisicuishouCallMaxTimes < DIFFERENT_LOAN_COMPANY_CALL_TIMES){
