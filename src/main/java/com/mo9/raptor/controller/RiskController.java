@@ -201,11 +201,9 @@ public class RiskController {
             
             logger.info("----共有{}个没有SID的用户记录。", noReportUsers.size());
             for (UserEntity noReportUser : noReportUsers) {
-                logger.info("开始查询手机号{}的TelInfo。", noReportUser.getMobile());
                 TRiskTelInfo hasCallLogUser = riskTelInfoService.findByMobile(noReportUser.getMobile());
-                logger.info("结束查询手机号{}的TelInfo。", noReportUser.getMobile());
                 
-                if (hasCallLogUser == null){ 
+                if (hasCallLogUser == null){
                     logger.info("-----手机号为 {} 的用户未查询到有通话记录，现在重新拉取。", noReportUser.getMobile());
                     //没有通话记录，则先查找sid，然后主动拉取callLog
                     String sid = callLogUtils.getSidByMobile(sessionId, noReportUser.getMobile(), httpClient);
@@ -224,8 +222,12 @@ public class RiskController {
                         logger.info("----未查询到UserCode为 {} ，手机号为 {} 的sid信息，拉取失败，回退用户状态。", noReportUser.getUserCode(), noReportUser.getMobile());
                         userService.backToCollecting(noReportUser.getUserCode(), "在电话邦未查询到用户的SID");
                     }
-                }else {
-                    logger.info(hasCallLogUser.getUid());
+                }else if (hasCallLogUser != null && hasCallLogUser.isReportReceived()){
+                    try {
+                        userService.updateReceiveCallHistory(hasCallLogUser.getUid(), true);
+                    } catch (Exception e) {
+                        logger.error("运行calllog补偿任务，通知userService收到通话记录时出错", e);
+                    }
                 }
                 
             }
