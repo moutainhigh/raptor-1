@@ -167,11 +167,13 @@ public class LoanOrderController {
 
                 //查询最后一笔订单
                 LoanOrderEntity lastLoanOrder = loanOrderService.getLastIncompleteOrder(userCode);
-                if(StatusEnum.PAYOFF.name().equals(lastLoanOrder.getStatus()) || StatusEnum.LENT.name().equals(lastLoanOrder.getStatus())){
-                    Boolean canLoan = riskUtilsV2.verifyNeedToBlack(lastLoanOrder) ;
-                    if(canLoan){
-                        //黑名单
-                        return response.buildFailureResponse(ResCodeEnum.NOT_WHITE_LIST_USER);
+                if(lastLoanOrder != null){
+                    if(StatusEnum.PAYOFF.name().equals(lastLoanOrder.getStatus()) || StatusEnum.LENT.name().equals(lastLoanOrder.getStatus())){
+                        Boolean canLoan = riskUtilsV2.verifyNeedToBlack(lastLoanOrder) ;
+                        if(canLoan){
+                            //黑名单
+                            return response.buildFailureResponse(ResCodeEnum.NOT_WHITE_LIST_USER);
+                        }
                     }
                 }
 
