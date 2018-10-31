@@ -65,9 +65,8 @@ public class RiskUtilsV2 {
         }
 
         if(betweenDays >= overLoanOrderBlackDays){
-            logger.info("用户 "+ loanOrderEntity.getOwnerId() + " 订单 " + loanOrderEntity.getOrderId() + " 状态 : " + loanOrderEntity.getStatus() + " 逾期 " + betweenDays + " 天 ");
             //黑名单拉黑
-            setUserBlack(loanOrderEntity) ;
+            setUserBlack(loanOrderEntity , betweenDays) ;
             return true ;
         }
         return false ;
@@ -76,13 +75,14 @@ public class RiskUtilsV2 {
     /**
      * 处理用户黑名单
      */
-    private void setUserBlack(LoanOrderEntity loanOrderEntity){
+    private void setUserBlack(LoanOrderEntity loanOrderEntity , Integer betweenDays){
         //修改本地黑名单
         try {
             UserEntity userEntity = userService.findByUserCode(loanOrderEntity.getOwnerId()) ;
             if(StatusEnum.BLACK.name().equals(userEntity.getStatus())){
                 return ;
             }
+            logger.info("用户 "+ loanOrderEntity.getOwnerId() + " 订单 " + loanOrderEntity.getOrderId() + " 状态 : " + loanOrderEntity.getStatus() + " 逾期 " + betweenDays + " 天 ");
             BlackEvent event = new BlackEvent(loanOrderEntity.getOwnerId(), "订单逾期7天黑名单 - "+ loanOrderEntity.getOrderId());
             userEventLauncher.launch(event);
             //修改江湖救急黑名单 异步线程
