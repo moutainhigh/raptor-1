@@ -79,4 +79,11 @@ public interface ILoanOrderService {
      * @return
      */
     List<LoanOrderEntity> listShouldPayOrder();
+
+    /**
+     * 查询所有逾期订单
+     * @param time
+     * @return
+     */
+    List<LoanOrderEntity> listByOverDueOrder(long time);
 }
