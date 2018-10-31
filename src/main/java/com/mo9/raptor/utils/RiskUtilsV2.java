@@ -2,13 +2,9 @@ package com.mo9.raptor.utils;
 
 import com.mo9.raptor.engine.entity.LoanOrderEntity;
 import com.mo9.raptor.engine.enums.StatusEnum;
-import com.mo9.raptor.engine.service.ILoanOrderService;
 import com.mo9.raptor.engine.state.event.impl.user.BlackEvent;
 import com.mo9.raptor.engine.state.launcher.IEventLauncher;
 import com.mo9.raptor.entity.UserEntity;
-import com.mo9.raptor.pool.DingTalkNoticeThreadTask;
-import com.mo9.raptor.pool.RiskPortalBlackTask;
-import com.mo9.raptor.pool.ThreadPool;
 import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.httpclient.HttpClientApi;
 import com.mo9.raptor.utils.log.Log;
@@ -17,11 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -37,28 +31,19 @@ public class RiskUtilsV2 {
     private CommonUtils commonUtils ;
     @Value("${over.loan.order.black.days}")
     private Integer overLoanOrderBlackDays ;
+    @Value("${risk.portal.black.url}")
+    private String riskPortalBlackUrl ;
+    @Value("${loan.name.en}")
+    private String loanNameEn ;
 
     @Autowired
     private IEventLauncher userEventLauncher;
 
     @Autowired
-    private RiskPortalBlackTask riskPortalBlackTask ;
-
-    @Autowired
-    private ThreadPool threadPool;
-
-    @Autowired
     private UserService userService ;
 
-    private static RiskUtilsV2 riskStatic;
-
-    @PostConstruct
-    public void init() {
-        riskStatic = this;
-        riskStatic.threadPool = this.threadPool;
-        riskStatic.riskPortalBlackTask = this.riskPortalBlackTask;
-
-    }
+    @Autowired
+    private HttpClientApi httpClientApi ;
 
     /**
      * 判断是否需要进行黑名单处理
@@ -94,15 +79,46 @@ public class RiskUtilsV2 {
     private void setUserBlack(LoanOrderEntity loanOrderEntity){
         //修改本地黑名单
         try {
+            UserEntity userEntity = userService.findByUserCode(loanOrderEntity.getOwnerId()) ;
+            if(StatusEnum.BLACK.equals(userEntity.getStatus())){
+                return ;
+            }
             BlackEvent event = new BlackEvent(loanOrderEntity.getOwnerId(), "订单逾期7天黑名单 - "+ loanOrderEntity.getOrderId());
             userEventLauncher.launch(event);
             //修改江湖救急黑名单 异步线程
-            UserEntity userEntity = userService.findByUserCode(loanOrderEntity.getOwnerId()) ;
-            riskStatic.riskPortalBlackTask.setMobile(userEntity.getMobile());
-            riskStatic.riskPortalBlackTask.setOrderId(loanOrderEntity.getOrderId());
-            riskStatic.threadPool.execute(riskStatic.riskPortalBlackTask);
+            Map<String , String> param = new HashMap<String , String>();
+            param.put("mobile" , userEntity.getMobile()) ;
+            param.put("orderId" , loanOrderEntity.getOrderId()) ;
+            param.put("channel" , loanNameEn) ;
+            int num = 0 ;
+            this.toBlack(num , param);
+
         } catch (Exception e) {
             Log.error(logger,e,"黑名单修改执行异常 - "+ loanOrderEntity.getOwnerId()+ " -- " + loanOrderEntity.getOrderId());
+        }
+    }
+
+    /**
+     * 执行黑名单
+     * @param num
+     * @return
+     */
+    private void toBlack(int num , Map<String , String> param) {
+        //输入 0 默认加 1 最大循环三次
+        num++ ;
+        try {
+            if(num < 4){
+                String result = httpClientApi.doGet(riskPortalBlackUrl , param) ;
+                if("success".equals(result)){
+                    logger.error("手机号 " + param.get("mobile") + "江湖救急黑名单执行成功 " + param.get("orderId"));
+                }else{
+                    logger.error("手机号 " + param.get("mobile") + "江湖救急黑名单执行失败 第"+ num + "次" +param.get("orderId"));
+                    this.toBlack(num , param);
+                }
+            }
+        } catch (Exception e) {
+            logger.error("手机号 " + param.get("mobile") + "江湖救急黑名单执行异常 第"+ num + "次"+param.get("orderId"));
+            this.toBlack(num , param);
         }
     }
 
