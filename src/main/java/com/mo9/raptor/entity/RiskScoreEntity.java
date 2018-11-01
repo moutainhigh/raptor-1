@@ -21,6 +21,9 @@ public class RiskScoreEntity {
     @Column(name = "score")
     private Double score;
 
+    @Column(name = "`version`")
+    private String version;
+
     @Column(name = "`create_time`")
     private Long createTime;
 
@@ -70,5 +73,13 @@ public class RiskScoreEntity {
 
     public void setResult(String result) {
         this.result = result;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
     }
 }
