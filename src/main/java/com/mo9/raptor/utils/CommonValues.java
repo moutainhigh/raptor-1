@@ -31,5 +31,9 @@ public class CommonValues {
      */
     public static final String TIMEOUT = "TIMEOUT" ;
 
+    /**
+     * 现金账户专用
+     */
+    public static final String CASH_ACCOUNT = "cashAccount" ;
 
 }

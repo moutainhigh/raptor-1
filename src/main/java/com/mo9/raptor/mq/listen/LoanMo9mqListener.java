@@ -25,6 +25,7 @@ import com.mo9.raptor.engine.utils.TimeUtils;
 import com.mo9.raptor.entity.*;
 import com.mo9.raptor.enums.CreditStatusEnum;
 import com.mo9.raptor.enums.PayTypeEnum;
+import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.mq.producer.RabbitProducer;
 import com.mo9.raptor.service.*;
 import com.mo9.raptor.utils.log.Log;
@@ -96,6 +97,9 @@ public class LoanMo9mqListener implements IMqMsgListener{
 	@Autowired
     private CouponService couponService;
 
+	@Autowired
+	private CashAccountService cashAccountService ;
+
 	@Value("${raptor.sockpuppet}")
 	private String sockpuppet;
 
@@ -154,16 +158,24 @@ public class LoanMo9mqListener implements IMqMsgListener{
 		// 发送还款扣款成功事件
 		try {
 			try {
-                Boolean offline = bodyJson.getBoolean("offline");
-			    if (offline == null || !offline) {
-                    CardBinInfoEntity cardBinInfoEntity = cardBinInfoService.findByCardPrefix(payOrderLog.getBankCard());
-                    String bankName = "银行卡" ;
-                    if(cardBinInfoEntity != null){
-                        bankName = cardBinInfoEntity.getCardBank() ;
-                    }
-                    bankService.createOrUpdateBank( payOrderLog.getBankCard() ,  payOrderLog.getIdCard() ,  payOrderLog.getUserName() ,
-                            payOrderLog.getBankMobile() ,  bankName ,  payOrderLog.getUserCode());
-                }
+				if("success".equals(status)){
+					//保存 用户流水
+					ResCodeEnum resCodeEnum = cashAccountService.repay(payOrderLog.getUserCode() , payOrderLog.getChannelRepayNumber(), payOrderLog.getPayOrderId());
+					if(ResCodeEnum.SUCCESS != resCodeEnum){
+						logger.error("用户" + payOrderLog.getUserCode() +  " 还款现金账户处理" + payOrderLog.getPayOrderId()  + "异常 : " + resCodeEnum );
+					}
+					Boolean offline = bodyJson.getBoolean("offline");
+					if (offline == null || !offline) {
+						CardBinInfoEntity cardBinInfoEntity = cardBinInfoService.findByCardPrefix(payOrderLog.getBankCard());
+						String bankName = "银行卡" ;
+						if(cardBinInfoEntity != null){
+							bankName = cardBinInfoEntity.getCardBank() ;
+						}
+						bankService.createOrUpdateBank( payOrderLog.getBankCard() ,  payOrderLog.getIdCard() ,  payOrderLog.getUserName() ,
+								payOrderLog.getBankMobile() ,  bankName ,  payOrderLog.getUserCode());
+					}
+				}
+
 			} catch (Exception e) {
 				Log.error(logger , e , "还款成功保存银行卡异常 orderId : " + orderId);
 			}
@@ -181,6 +193,11 @@ public class LoanMo9mqListener implements IMqMsgListener{
 			String payOrderStatus = payOrderEntity.getStatus();
 			// 入账成功才向贷后发消息
 			if (StatusEnum.ENTRY_DONE.name().equals(payOrderStatus)) {
+				//保存 用户流水
+				ResCodeEnum resCodeEnum = cashAccountService.entry(payOrderLog.getUserCode() , payOrderLog.getChannelRepayNumber(), payOrderLog.getPayOrderId());
+				if(ResCodeEnum.SUCCESS != resCodeEnum){
+					logger.error("用户" + payOrderLog.getUserCode() +  " 入账现金账户处理" + payOrderLog.getPayOrderId()  + "异常 : " + resCodeEnum );
+				}
 				// 增加延期次数
 				List<FetchPayOrderCondition.Type> type = new ArrayList<FetchPayOrderCondition.Type>();
 				type.add(FetchPayOrderCondition.Type.REPAY_POSTPONE);
