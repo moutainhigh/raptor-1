@@ -85,7 +85,17 @@ public enum ResCodeEnum {
     EFFECTIVE_COUPON_EXISTED(11158000, "已存在可用优惠券", "已存在可用优惠券"),
     INVALID_COUPON_NUMBER(11158001, "优惠额度不合法", "优惠额度不合法"),
     INVALID_SIGN(11158002, "签名非法", "签名非法"),
-    SIGN_PARAMS_EXTRACT_ERROR(11158003, "签名参数获取", "签名参数获取")
+    SIGN_PARAMS_EXTRACT_ERROR(11158003, "签名参数获取", "签名参数获取"),
+
+
+    /**
+     * xx=90, 现金账户
+     */
+    CASH_ACCOUNT_LOCK_FAILED(11159000, "现金账户获取锁失败", "现金账户获取锁失败"),
+    CASH_ACCOUNT_BALANCE_LACK(11159001, "现金账户可用金额不够", "现金账户可用金额不够"),
+    CASH_ACCOUNT_BUSINESS_NO_IS_EXIST(11159002, "现金账户业务流水号已经处理", "现金账户业务流水号已经处理"),
+    CASH_ACCOUNT_EXCEPTION(11159003, "现金账户异常", "现金账户异常"),
+
   ;
 
 
