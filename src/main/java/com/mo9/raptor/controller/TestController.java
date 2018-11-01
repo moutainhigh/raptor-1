@@ -142,6 +142,7 @@ public class TestController {
 
     /**
      * 推送mq
+     * 已过期
      */
     @RequestMapping("/mq")
     public BaseResponse<JSONObject> mq(@RequestParam("sign") String sign, HttpServletRequest request){
@@ -157,7 +158,7 @@ public class TestController {
 
             PayOrderLogEntity payOrderLogEntity = payOrderLogService.getByPayOrderId(payOrderEntity.getOrderId());
 
-            loanMo9mqListener.notifyMisRepay(payOrderLogEntity, loanOrderEntity.getPostponeCount(), loanOrderEntity);
+            //loanMo9mqListener.notifyMisRepay(payOrderLogEntity, loanOrderEntity.getPostponeCount(), loanOrderEntity);
         }
 
 //        List<LoanOrderEntity> loanOrderEntities = loanOrderService.listByStatus(Arrays.asList(StatusEnum.LENT));

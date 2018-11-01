@@ -1,19 +1,15 @@
 package com.mo9.raptor.engine.calculator;
 
-import com.mo9.raptor.bean.vo.RenewVo;
 import com.mo9.raptor.engine.entity.LoanOrderEntity;
 import com.mo9.raptor.engine.exception.MergeException;
 import com.mo9.raptor.engine.exception.UnSupportTimeDiffException;
 import com.mo9.raptor.engine.structure.item.Item;
 import com.mo9.raptor.exception.LoanEntryException;
+import com.mo9.raptor.exception.NumberModeException;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 public interface ILoanCalculator {
-
-    /** 最少应还 */
-    BigDecimal minRepay (LoanOrderEntity loanOrder);
 
     /**
      * 计算订单原始分期明细
@@ -28,7 +24,7 @@ public interface ILoanCalculator {
      * @param loanOrder
      * @return
      */
-    Item realItem(Long date, LoanOrderEntity loanOrder, String payType, Integer postponeDays);
+    Item realItem(Long date, LoanOrderEntity loanOrder, String payType, Integer postponeDays) throws NumberModeException;
 
     /**
      * 获得入账item
@@ -49,11 +45,4 @@ public interface ILoanCalculator {
      * @return
      */
     LoanOrderEntity itemEntry(LoanOrderEntity loanOrder, String payType, Integer days, Item realItem, Item entryItem) throws LoanEntryException;
-
-    /**
-     * 延期还款列表
-     * @param loanOrder
-     * @return
-     */
-    List<RenewVo> getRenew (LoanOrderEntity loanOrder);
 }

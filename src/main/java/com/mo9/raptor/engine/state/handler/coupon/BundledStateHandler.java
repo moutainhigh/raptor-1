@@ -31,6 +31,9 @@ public class BundledStateHandler implements IStateHandler<CouponEntity> {
         if (event instanceof EntryResponseEvent) {
             EntryResponseEvent entryResponseEvent = (EntryResponseEvent) event;
             coupon.setEntryAmount(coupon.getEntryAmount().add(entryResponseEvent.getActualEntry()));
+            /**
+             * 无论入账了多少钱, 都是一次性使用完
+             */
             coupon.setStatus(StatusEnum.ENTRY_DONE.name());
             coupon.setEndTime(entryResponseEvent.getEventTime());
             coupon.setDescription(coupon.getDescription() + ";" + event.getEventTime() + ":" + StatusEnum.valueOf(coupon.getStatus()).getExplanation());

@@ -6,6 +6,7 @@ import com.mo9.raptor.engine.entity.PayOrderEntity;
 import com.mo9.raptor.engine.structure.item.Item;
 import com.mo9.raptor.enums.PayTypeEnum;
 import com.mo9.raptor.exception.LoanEntryException;
+import com.mo9.raptor.exception.NumberModeException;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -21,28 +22,28 @@ public interface BillService {
      * @param loanOrder
      * @return
      */
-    Item realItem(LoanOrderEntity loanOrder, PayTypeEnum payType, Integer postponeDays);
+    Item realItem(LoanOrderEntity loanOrder, PayTypeEnum payType, Integer postponeDays) throws NumberModeException;
 
     /**
      * 还清订单的应还
      * @param loanOrder
      * @return
      */
-    Item payoffRealItem(LoanOrderEntity loanOrder);
+    Item payoffRealItem(LoanOrderEntity loanOrder) throws NumberModeException;
 
     /**
      * 延期订单的实际应还 - 减免
      * @param loanOrder
      * @return
      */
-    Item shouldPayItem(LoanOrderEntity loanOrder, PayTypeEnum payType, Integer postponeDays);
+    Item shouldPayItem(LoanOrderEntity loanOrder, PayTypeEnum payType, Integer postponeDays) throws NumberModeException;
 
     /**
      * 还清订单的实际应还 - 减免
      * @param loanOrder
      * @return
      */
-    Item payoffShouldPayItem(LoanOrderEntity loanOrder);
+    Item payoffShouldPayItem(LoanOrderEntity loanOrder) throws NumberModeException;
 
     /**
      * 获得入账Item
@@ -50,7 +51,7 @@ public interface BillService {
      * @param loanOrder
      * @return
      */
-    Item entryItem (PayTypeEnum payType, PayOrderEntity payOrder, LoanOrderEntity loanOrder) throws LoanEntryException;
+    Item entryItem (PayTypeEnum payType, PayOrderEntity payOrder, LoanOrderEntity loanOrder) throws LoanEntryException, NumberModeException;
 
     /**
      * 入账处理
@@ -68,5 +69,12 @@ public interface BillService {
      * @param loanOrderEntity
      * @return
      */
-    List<RenewVo> getRenewInfo(LoanOrderEntity loanOrderEntity);
+    List<RenewVo> getRenewInfo(LoanOrderEntity loanOrderEntity) throws NumberModeException;
+
+    /**
+     * 最少应还
+     * @param loanOrder
+     * @return
+     */
+    BigDecimal minRepay (LoanOrderEntity loanOrder);
 }

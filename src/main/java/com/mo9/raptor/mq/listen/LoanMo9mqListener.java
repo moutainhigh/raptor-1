@@ -26,6 +26,7 @@ import com.mo9.raptor.engine.utils.TimeUtils;
 import com.mo9.raptor.entity.*;
 import com.mo9.raptor.enums.CreditStatusEnum;
 import com.mo9.raptor.enums.PayTypeEnum;
+import com.mo9.raptor.exception.NumberModeException;
 import com.mo9.raptor.mq.producer.RabbitProducer;
 import com.mo9.raptor.service.*;
 import com.mo9.raptor.utils.log.Log;
@@ -422,7 +423,7 @@ public class LoanMo9mqListener implements IMqMsgListener{
      * 通知贷后还款
 	 * @param payOrderLog  还款log
 	 */
-    public void notifyMisRepay(PayOrderLogEntity payOrderLog, Integer postponeCount, LoanOrderEntity loanOrderEntity) {
+    public void notifyMisRepay(PayOrderLogEntity payOrderLog, Integer postponeCount, LoanOrderEntity loanOrderEntity) throws NumberModeException {
         RepayInfoMqRes repayInfo = new RepayInfoMqRes();
         BeanUtils.copyProperties(payOrderLog, repayInfo);
 
