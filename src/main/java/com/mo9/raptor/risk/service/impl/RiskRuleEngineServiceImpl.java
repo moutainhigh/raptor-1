@@ -10,6 +10,7 @@ import com.mo9.raptor.engine.state.event.impl.AuditResponseEvent;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.repository.UserRepository;
 import com.mo9.raptor.risk.entity.TRiskTelInfo;
+import com.mo9.raptor.risk.rule.IRuleEntity;
 import com.mo9.raptor.risk.service.RiskRuleEngineService;
 import com.mo9.raptor.risk.service.RiskTelInfoService;
 import com.mo9.raptor.riskdb.repo.RiskThirdBlackListRepository;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
@@ -83,22 +85,27 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
         TRiskTelInfo telInfo = riskTelInfoService.findByMobile(mobile);
         if (telInfo == null){
             logger.warn("规则引擎未找到用户的通话记录详单信息，mobile：{}", mobile);
-            return new AuditResponseEvent(userCode, false, "规则引擎未找到用户的通话记录详单信息");
+            return new AuditResponseEvent(userCode, false, "规则引擎未找到用户的通话记录详单信息", null);
         }
         
         String openDate = telInfo.getOpenDate();
         if (StringUtils.isBlank(openDate)){
             logger.warn("手机号码 {} 的开户时间为空, 校验通过", mobile);
-            return new AuditResponseEvent(userCode, true, "");
+            return new AuditResponseEvent(userCode, true, "", null);
         }
-        
+        List<IRuleEntity> ruleList = new ArrayList<>();
         Long openDateMillions = Long.parseLong(openDate);
         //当前时间 - 开户时间  > 150天
         if (Calendar.getInstance().getTimeInMillis()/1000 - openDateMillions > ONLINE_LENGTH_LIMIT){
-            return new AuditResponseEvent(userCode, true, "");
+            IRuleEntity ruleEntity = new IRuleEntity().buildHit(true).buildVersion("V1.0.1").buildActualVal(String.valueOf(Calendar.getInstance().getTimeInMillis()/1000 - openDateMillions))
+                    .buildExpectedVal(String.valueOf(ONLINE_LENGTH_LIMIT)).buildCnName("开户时间不能低于预期值").buildEnName("open_time");
+            ruleList.add(ruleEntity);
+            return new AuditResponseEvent(userCode, true, "", JSON.toJSONString(ruleList));
         }
-
-        return new AuditResponseEvent(userCode, false, "手机号码开户时间不足150天");
+        IRuleEntity ruleEntity = new IRuleEntity().buildVersion("V1.0.1").buildActualVal(String.valueOf(Calendar.getInstance().getTimeInMillis()/1000 - openDateMillions))
+                .buildExpectedVal(String.valueOf(150)).buildCnName("开户时间不能少于预期值").buildEnName("open_time");
+        ruleList.add(ruleEntity);
+        return new AuditResponseEvent(userCode, false, "手机号码开户时间不足150天", JSON.toJSONString(ruleList));
         
     }
 
@@ -111,13 +118,14 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
         String reportJson = getReport(mobile);
         if (!checkReportStatus(reportJson)){
             logger.info("运营商报告状态不正常，校验失败，规则：mergencyCallTimesRule");
-            return new AuditResponseEvent(userCode, false, "运营商报告状态不正常");
+            return new AuditResponseEvent(userCode, false, "运营商报告状态不正常", null);
         }
-
+        List<IRuleEntity> ruleList = new ArrayList<>();
         JSONObject jsonObject = JSON.parseObject(reportJson).getJSONObject("data");
 
         JSONArray mergencyContactArray = jsonObject.getJSONArray("mergency_contact");
 
+        Integer lastCallTimes = 0;
         for (int i = 0; i < mergencyContactArray.size(); i++) {
             JSONObject mergencyContract = mergencyContactArray.getJSONObject(i);
             
@@ -125,12 +133,20 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
 
             String callTimesStr = mergencyContract.getString("call_times");
             Integer callTimes = Integer.parseInt(callTimesStr);
-            
+            lastCallTimes = callTimes;
             if (callTimes >= CALL_MERGENCY_TIMES){
-                return new AuditResponseEvent(userCode, true, "");
+                IRuleEntity ruleEntity = new IRuleEntity().buildVersion("V1.0.2").buildActualVal(String.valueOf(callTimes))
+                        .buildExpectedVal(String.valueOf(CALL_MERGENCY_TIMES)).buildCnName("6个月内与紧急联系人通话次数不能少于预期值").buildEnName("call_times")
+                        .buildHit(true);
+                ruleList.add(ruleEntity);
+                return new AuditResponseEvent(userCode, true, "", JSON.toJSONString(ruleList));
             }
         }
-        return new AuditResponseEvent(userCode, false, "6个月内与紧急联系人通话次数少于" + CALL_MERGENCY_TIMES);
+        IRuleEntity ruleEntity = new IRuleEntity().buildVersion("V1.0.2").buildActualVal(String.valueOf(lastCallTimes))
+                .buildExpectedVal(String.valueOf(CALL_MERGENCY_TIMES)).buildCnName("6个月内与紧急联系人通话次数不能少于预期值").buildEnName("call_times")
+                .buildHit(true);
+        ruleList.add(ruleEntity);
+        return new AuditResponseEvent(userCode, false, "6个月内与紧急联系人通话次数少于" + CALL_MERGENCY_TIMES, JSON.toJSONString(ruleList));
         
     }
 
@@ -142,9 +158,8 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
         String reportJson = getReport(mobile);
         if (!checkReportStatus(reportJson)){
             logger.info("运营商报告状态不正常，校验失败，规则：mergencyHadNoDoneOrderRule");
-            return new AuditResponseEvent(userCode, false, "运营商报告状态不正常" );
+            return new AuditResponseEvent(userCode, false, "运营商报告状态不正常", null);
         }
-
         JSONObject jsonObject = JSON.parseObject(reportJson).getJSONObject("data");
 
         JSONArray mergencyContactArray = jsonObject.getJSONArray("mergency_contact");
@@ -160,14 +175,14 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
                 List<String> LEND = Arrays.asList(StatusEnum.LENDING.name());
                 LoanOrderEntity lendOrder = loanOrderService.getLastIncompleteOrder(mergency.getUserCode(), LEND);
                 if (lendOrder != null){
-                    return new AuditResponseEvent(userCode, false, "紧急联系人有未完成的订单，联系人电话 " + mergencyTel );
+                    return new AuditResponseEvent(userCode, false, "紧急联系人有未完成的订单，联系人电话 " + mergencyTel, null);
                 }
             }
             
         }
         
         
-        return new AuditResponseEvent(userCode, true, "" );
+        return new AuditResponseEvent(userCode, true, "" , null);
     }
 
     @Override
@@ -178,7 +193,7 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
         String reportJson = getReport(mobile);
         if (!checkReportStatus(reportJson)){
             logger.info("运营商报告状态不正常，校验失败，规则：mergencyInJHJJBlackListRule");
-            return new AuditResponseEvent(userCode, false, "运营商报告状态不正常" );
+            return new AuditResponseEvent(userCode, false, "运营商报告状态不正常" ,null);
         }
 
         JSONObject jsonObject = JSON.parseObject(reportJson).getJSONObject("data");
@@ -191,12 +206,12 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
             String mergencyTel = mergencyContract.getString("format_tel");
 
             if(riskThirdBlackListRepository.isInBlackList(mergencyTel) > 0 || userRepository.inBlackList(mergencyTel) > 0){
-                return new AuditResponseEvent(userCode, false, "紧急联系人电话命中江湖救急黑名单, mobile: " + mergencyTel );
+                return new AuditResponseEvent(userCode, false, "紧急联系人电话命中江湖救急黑名单, mobile: " + mergencyTel ,null);
             }
 
         }
         
-        return new AuditResponseEvent(userCode, true, "" );
+        return new AuditResponseEvent(userCode, true, "" , null);
     }
 
     @Override
@@ -207,14 +222,18 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
         String reportJson = getReport(mobile);
         if (!checkReportStatus(reportJson)){
             logger.info("运营商报告状态不正常，校验失败，规则：calledTimesByOneLoanCompanyRule");
-            return new AuditResponseEvent(userCode, false, "运营商报告状态不正常" );
+            return new AuditResponseEvent(userCode, false, "运营商报告状态不正常", null);
         }
 
 
         JSONObject jsonObject = JSON.parseObject(reportJson).getJSONObject("data");
+        JSONObject cuishouDetectionJson = jsonObject.getJSONObject("cuishou_risk_detection");
+        if (cuishouDetectionJson == null){
+            return new AuditResponseEvent(userCode, true, "");
+        }
 
-        JSONObject cuishou = jsonObject.getJSONObject("cuishou");
-        JSONObject yisicuishou = jsonObject.getJSONObject("yisicuishou");
+        JSONObject cuishou = cuishouDetectionJson.getJSONObject("cuishou");
+        JSONObject yisicuishou = cuishouDetectionJson.getJSONObject("yisicuishou");
         
         
         Integer cuishouOneCallMaxTimes = cuishou == null ? 0 : cuishou.getInteger("most_times_by_tel");
@@ -222,10 +241,10 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
         
         if (cuishouOneCallMaxTimes < ONE_LOAN_COMPANY_CALL_TIMES
                 && yisicuishouOneCallMaxTimes < ONE_LOAN_COMPANY_CALL_TIMES){
-            return new AuditResponseEvent(userCode, true, "");
+            return new AuditResponseEvent(userCode, true, "", null);
         }
         
-        return new AuditResponseEvent(userCode, false, "被同一贷款机构呼叫次数大于 " + ONE_LOAN_COMPANY_CALL_TIMES);
+        return new AuditResponseEvent(userCode, false, "被同一贷款机构呼叫次数大于 " + ONE_LOAN_COMPANY_CALL_TIMES, null);
     }
 
     @Override
@@ -236,23 +255,28 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
         String reportJson = getReport(mobile);
         if (!checkReportStatus(reportJson)){
             logger.info("运营商报告状态不正常，校验失败，规则：calledTimesByDifferentLoanCompanyRule");
-            return new AuditResponseEvent(userCode, false, "运营商报告状态不正常" );
+            return new AuditResponseEvent(userCode, false, "运营商报告状态不正常" ,null);
         }
 
         JSONObject jsonObject = JSON.parseObject(reportJson).getJSONObject("data");
+        JSONObject cuishouDetectionJson = jsonObject.getJSONObject("cuishou_risk_detection");
+        if (cuishouDetectionJson == null){
+            return new AuditResponseEvent(userCode, true, "");
+        }
 
-        JSONObject cuishou = jsonObject.getJSONObject("cuishou");
-        JSONObject yisicuishou = jsonObject.getJSONObject("yisicuishou");
+        JSONObject cuishou = cuishouDetectionJson.getJSONObject("cuishou");
+        JSONObject yisicuishou = cuishouDetectionJson.getJSONObject("yisicuishou");
 
         Integer cuishouCallMaxTimes = cuishou == null ? 0 : cuishou.getInteger("call_in_times");
         Integer yisicuishouCallMaxTimes = yisicuishou == null ? 0 : yisicuishou.getInteger("call_in_times");
 
+
         if (cuishouCallMaxTimes < DIFFERENT_LOAN_COMPANY_CALL_TIMES
                 && yisicuishouCallMaxTimes < DIFFERENT_LOAN_COMPANY_CALL_TIMES){
-            return new AuditResponseEvent(userCode, true, "");
+            return new AuditResponseEvent(userCode, true, "", null);
         }
         
-        return new AuditResponseEvent(userCode, false, "被不同贷款机构呼叫次数大于 " + DIFFERENT_LOAN_COMPANY_CALL_TIMES);
+        return new AuditResponseEvent(userCode, false, "被不同贷款机构呼叫次数大于 " + DIFFERENT_LOAN_COMPANY_CALL_TIMES, null);
     }
 
 

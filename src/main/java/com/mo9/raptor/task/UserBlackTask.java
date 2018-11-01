@@ -34,13 +34,13 @@ public class UserBlackTask {
     @Value("${task.open}")
     private String taskOpen ;
 
-    @Scheduled(cron = "0 0 15 * * ?")
+    @Scheduled(cron = "0 0 0 * * ?")
     public void verifyOverdueOrder(){
         if(CommonValues.TRUE.equals(taskOpen)){
             logger.info("定时器检索处理黑名单用户开始");
             Calendar calendar = Calendar.getInstance();
             calendar.setTime(new Date());
-            calendar.add(Calendar.DAY_OF_YEAR , -7);
+            calendar.add(Calendar.DAY_OF_YEAR , -6);
             calendar.set(Calendar.HOUR_OF_DAY , 0);
             calendar.set(Calendar.MINUTE , 0);
             calendar.set(Calendar.SECOND , 0);

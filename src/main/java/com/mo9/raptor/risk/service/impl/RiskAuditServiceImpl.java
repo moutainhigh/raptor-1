@@ -16,6 +16,7 @@ import com.mo9.raptor.risk.entity.TRiskCallLog;
 import com.mo9.raptor.risk.entity.TRiskContractInfo;
 import com.mo9.raptor.risk.repo.RiskCallLogRepository;
 import com.mo9.raptor.risk.repo.RiskContractInfoRepository;
+import com.mo9.raptor.risk.rule.IRuleEntity;
 import com.mo9.raptor.risk.service.LinkFaceService;
 import com.mo9.raptor.risk.service.RiskAuditService;
 import com.mo9.raptor.risk.service.RiskRuleEngineService;
@@ -24,7 +25,6 @@ import com.mo9.raptor.riskdb.repo.RiskThirdBlackListRepository;
 import com.mo9.raptor.service.*;
 import com.mo9.raptor.utils.IdCardUtils;
 import com.mo9.raptor.utils.IpUtils;
-import com.mo9.raptor.utils.MobileUtil;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -49,11 +49,13 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         private Function<String, AuditResponseEvent> callFunc;
         private String ruleName;
         private boolean whiteListUserSkip;
+        private String version;
 
-        public AuditTask(Function<String, AuditResponseEvent> callFunc, String ruleName, boolean whiteListUserSkip) {
+        public AuditTask(Function<String, AuditResponseEvent> callFunc, String ruleName, boolean whiteListUserSkip, String version) {
             this.callFunc = callFunc;
             this.ruleName = ruleName;
             this.whiteListUserSkip = whiteListUserSkip;
+            this.version = version;
         }
 
         public Function<String, AuditResponseEvent> getCallFunc() {
@@ -157,16 +159,17 @@ public class RiskAuditServiceImpl implements RiskAuditService {
             OkHttpClient okHttpClient = new OkHttpClient();
             String jsonResult = okHttpClient.newCall(new Request.Builder().url(scoreUrl + "?mobile=" + mobile).build()).execute().body().string();
             JSONObject jsonObject = JSONObject.parseObject(jsonResult);
+            String version = jsonObject.getString("version");
             if (jsonObject.getInteger("status") != 1) {
-                riskScoreService.create(userCode, mobile, null, jsonResult);
+                riskScoreService.create(userCode, mobile, null, version, jsonResult);
                 return null;
             } else {
                 Double d = jsonObject.getDouble("score");
-                riskScoreService.create(userCode, mobile, d, jsonResult);
+                riskScoreService.create(userCode, mobile, d, version, jsonResult);
                 return d;
             }
         } catch (Exception e) {
-            riskScoreService.create(userCode, mobile, -1d, "");
+            riskScoreService.create(userCode, mobile, -1d, null, "");
             throw e;
         }
     }
@@ -192,45 +195,45 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         AuditResponseEvent finalResult = null;
         AuditResponseEvent res = null;
         ArrayList<AuditTask> taskList = new ArrayList<>();
-        taskList.add(new AuditTask((u) -> ipCheckRule(u), "IpCheckRule", false));
-        taskList.add(new AuditTask((u) -> shixinCheckRule(u), "ShixinCheckRule", false));
-        taskList.add(new AuditTask((u) -> chaseDebtRule(u), "ChaseDebtRule", true));
-        taskList.add(new AuditTask((u) -> blackListRule(u), "BlackListRule", true));
-        taskList.add(new AuditTask((u) -> riskWordRule(u), "RiskWordRule", true));
-        taskList.add(new AuditTask((u) -> riskRuleEngineService.mergencyCallTimesRule(u), "MergencyCallTimesRule", true));
-        taskList.add(new AuditTask((u) -> riskRuleEngineService.mergencyHadNoDoneOrderRule(u), "MergencyHadNoDoneOrderRule", true));
-        taskList.add(new AuditTask((u) -> riskRuleEngineService.calledTimesByOneLoanCompanyRule(u), "CalledTimesByOneLoanCompanyRule", true));
-        taskList.add(new AuditTask((u) -> riskRuleEngineService.calledTimesByDifferentLoanCompanyRule(u), "CalledTimesByDifferentLoanCompanyRule", true));
-        taskList.add(new AuditTask((u) -> riskRuleEngineService.mergencyInJHJJBlackListRule(u), "MergencyInJHJJBlackListRule", true));
-        taskList.add(new AuditTask((u) -> riskRuleEngineService.openDateRule(u), "OpenDateRule", true));
-        taskList.add(new AuditTask((u) -> idCardRule(u), "IdCardRule", true));
-        taskList.add(new AuditTask((u) -> ageRule(u), "AgeRule", true));
-        taskList.add(new AuditTask((u) -> contactsRule(u), "ContactsRule", true));
-        taskList.add(new AuditTask((u) -> callLogRule(u), "CallLogRule", false));
-        taskList.add(new AuditTask((u) -> threeElementCheck(u), "ThreeElementCheck", false));
-        taskList.add(new AuditTask((u) -> antiHackRule(u), "AntiHackRule", false));
-        taskList.add(new AuditTask((u) -> livePicCompareRule(u), "LivePicCompareRule", false));
-        taskList.add(new AuditTask((u) -> idPicCompareRule(u), "IdPicCompareRule", false));
+        taskList.add(new AuditTask((u) -> ipCheckRule(u), "IpCheckRule", false, "V1.0.1"));
+        taskList.add(new AuditTask((u) -> shixinCheckRule(u), "ShixinCheckRule", false, "V1.0.1"));
+        taskList.add(new AuditTask((u) -> chaseDebtRule(u), "ChaseDebtRule", true, "V1.0.1"));
+        taskList.add(new AuditTask((u) -> blackListRule(u), "BlackListRule", true, "V1.0.1"));
+        taskList.add(new AuditTask((u) -> riskWordRule(u), "RiskWordRule", true, "V1.0.1"));
+        taskList.add(new AuditTask((u) -> riskRuleEngineService.mergencyCallTimesRule(u), "MergencyCallTimesRule", true, "V1.0.2"));
+        taskList.add(new AuditTask((u) -> riskRuleEngineService.mergencyHadNoDoneOrderRule(u), "MergencyHadNoDoneOrderRule", true, "V1.0.1"));
+        taskList.add(new AuditTask((u) -> riskRuleEngineService.calledTimesByOneLoanCompanyRule(u), "CalledTimesByOneLoanCompanyRule", true, "V1.0.1"));
+        taskList.add(new AuditTask((u) -> riskRuleEngineService.calledTimesByDifferentLoanCompanyRule(u), "CalledTimesByDifferentLoanCompanyRule", true, "V1.0.1"));
+        taskList.add(new AuditTask((u) -> riskRuleEngineService.mergencyInJHJJBlackListRule(u), "MergencyInJHJJBlackListRule", true, "V1.0.1"));
+        taskList.add(new AuditTask((u) -> riskRuleEngineService.openDateRule(u), "OpenDateRule", true, "V1.0.1"));
+        taskList.add(new AuditTask((u) -> idCardRule(u), "IdCardRule", true, "V1.0.1"));
+        taskList.add(new AuditTask((u) -> ageRule(u), "AgeRule", true, "V1.0.1"));
+        taskList.add(new AuditTask((u) -> contactsRule(u), "ContactsRule", true, "V1.0.1"));
+        taskList.add(new AuditTask((u) -> callLogRule(u), "CallLogRule", false, "V1.0.2"));
+        taskList.add(new AuditTask((u) -> threeElementCheck(u), "ThreeElementCheck", false, "V1.0.1"));
+        taskList.add(new AuditTask((u) -> antiHackRule(u), "AntiHackRule", false, "V1.0.1"));
+        taskList.add(new AuditTask((u) -> livePicCompareRule(u), "LivePicCompareRule", false, "V1.0.1"));
+        taskList.add(new AuditTask((u) -> idPicCompareRule(u), "IdPicCompareRule", false, "V1.0.1"));
         /**调用第三方黑名单检查 */
-        taskList.add(new AuditTask((u) -> blaceExecute(u), "BlaceExecute", false));
+        taskList.add(new AuditTask((u) -> blaceExecute(u), "BlaceExecute", false, "V1.0.2"));
 
         boolean isWhiteListUser = WHITE_LIST.equals(user.getSource());
 
         for (AuditTask auditTask : taskList) {
             if (auditTask.whiteListUserSkip && isWhiteListUser) {
-                ruleLogService.create(userCode, auditTask.ruleName, null, false, "白名单用户跳过该规则");
+                ruleLogService.create(userCode, auditTask.ruleName, null, false, "白名单用户跳过该规则", auditTask.version, null);
             } else {
                 if (finalResult == null) {
                     logger.info(userCode + "开始运行规则[" + auditTask.ruleName + "]");
                     res = auditTask.callFunc.apply(userCode);
-                    ruleLogService.create(userCode, auditTask.ruleName, res.isPass(), true, res.getExplanation());
+                    ruleLogService.create(userCode, auditTask.ruleName, res.isPass(), true, res.getExplanation(),auditTask.version, res.getSubRule());
                     if (!res.isPass()) {
                         finalResult = res;
                     }
                 } else {
                     logger.info(userCode + "开始运行规则[" + auditTask.ruleName + "],只做记录，不做最终结果处理");
                     AuditResponseEvent res2 = auditTask.callFunc.apply(userCode);
-                    ruleLogService.create(userCode, auditTask.ruleName, res2.isPass(), true, res2.getExplanation());
+                    ruleLogService.create(userCode, auditTask.ruleName, res2.isPass(), true, res2.getExplanation(),auditTask.version, res2.getSubRule());
                 }
             }
         }
@@ -269,16 +272,12 @@ public class RiskAuditServiceImpl implements RiskAuditService {
      */
     private AuditResponseEvent blaceExecute(String userCode) {
         UserEntity user = userService.findByUserCode(userCode);
-        if(user == null){
-            logger.warn("用户不存在,userCode={}", userCode);
-            return new AuditResponseEvent(userCode, false, "用户不存在");
-        }
         try{
             AuditResponseEvent execute = new BlackExecute(user).execute();
             logger.info("用户第三方黑名单检查, userCode={},返回结果isPass={}, res={}", userCode, execute.isPass(), execute.getExplanation());
             return execute;
         }catch (Exception e){
-            return new AuditResponseEvent(user.getUserCode(), true, "");
+            return new AuditResponseEvent(user.getUserCode(), true, "", null);
         }
     }
 
@@ -291,21 +290,21 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         UserEntity user = userService.findByUserCode(userCode);
         if(user == null || StringUtils.isBlank(user.getUserIp())){
             logger.warn("用户不存在，或ip不存在，userCode={}", userCode);
-            return new AuditResponseEvent(userCode, false, "用户不存在，或ip不存在");
+            return new AuditResponseEvent(userCode, false, "用户不存在，或ip不存在", null);
         }
         List<IpEntity> list=  ipService.findByIpNum(IpUtils.ipToLong(user.getUserIp()));
         if(list == null){
-            return new AuditResponseEvent(userCode, true, "");
+            return new AuditResponseEvent(userCode, true, "", null);
         }
         IpEntity ipEntity = list.get(0);
         String province = ipEntity.getProvince();
         String city = ipEntity.getCity();
         boolean contains = ipLimit.contains(province + city);
         if(contains){
-            logger.warn("用户包含在不允许ip中，userCode={},ip={}", userCode);
-            return new AuditResponseEvent(userCode, false, "用户包含在不允许ip中");
+            logger.warn("用户包含在不允许ip中，userCode={},ip={}", userCode, user.getUserIp());
+            return new AuditResponseEvent(userCode, false, "用户包含在不允许ip中", null);
         }
-        return new AuditResponseEvent(userCode, true, "");
+        return new AuditResponseEvent(userCode, true, "", null);
     }
 
     /**
@@ -319,7 +318,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         String realName = user.getRealName();
         if(user == null || StringUtils.isBlank(idCard) || StringUtils.isBlank(realName)){
             logger.warn("用户不存在，或身份证姓名不存在，userCode={}", userCode);
-            return new AuditResponseEvent(userCode, false, "用户不存在，或身份证姓名不存在");
+            return new AuditResponseEvent(userCode, false, "用户不存在，或身份证姓名不存在", null);
         }
         if(idCard.length() == 18){
             StringBuffer buffer = new StringBuffer();
@@ -331,13 +330,13 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         long count = shixinService.findByCardNumAndIname(idCard, realName);
         if(count > 0){
             logger.warn("用户存在失信列表中，userCode={}", userCode);
-            return new AuditResponseEvent(userCode, false, "用户存在失信列表中");
+            return new AuditResponseEvent(userCode, false, "用户存在失信列表中", null);
         }
-        return new AuditResponseEvent(userCode, true, "");
+        return new AuditResponseEvent(userCode, true, "", null);
     }
 
     AuditResponseEvent chaseDebtRule(String userCode) {
-        return new AuditResponseEvent(userCode, true, "");
+        return new AuditResponseEvent(userCode, true, "", null);
 /*
         UserEntity user = userService.findByUserCode(userCode);
         try {
@@ -389,11 +388,12 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         String mobile = user.getMobile();
         Boolean isIn = userRepository.inBlackList(idCard) > 0 || userRepository.inBlackList(mobile) > 0 ||
                 riskThirdBlackListRepository.isInBlackList(idCard) > 0 || riskThirdBlackListRepository.isInBlackList(mobile) > 0;
-        return new AuditResponseEvent(userCode, !isIn, isIn ? "用户手机号或者身份证在黑名单中" : "");
+        return new AuditResponseEvent(userCode, !isIn, isIn ? "用户手机号或者身份证在黑名单中" : "", null);
     }
 
     AuditResponseEvent riskWordRule(String userCode) {
         int limit = 15;
+        List<IRuleEntity> ruleList = new ArrayList<>();
         UserEntity user = userService.findByUserCode(userCode);
         List<TRiskContractInfo> list = riskContractInfoRepository.findByMobile(user.getMobile());
         StringBuilder stringBuilder = new StringBuilder();
@@ -402,7 +402,10 @@ public class RiskAuditServiceImpl implements RiskAuditService {
             stringBuilder.append(name + "|");
         }
         int hitCount = riskWordService.filter(stringBuilder.toString());
-        return new AuditResponseEvent(userCode, hitCount <= limit, !(hitCount <= limit) ? "通信录风险词大于15" : "");
+        IRuleEntity ruleEntity = new IRuleEntity().buildHit(hitCount <= limit ? true : false).buildVersion("V1.0.1").buildActualVal(String.valueOf(hitCount))
+                .buildExpectedVal(String.valueOf(limit)).buildCnName("通信录风险词要少于预期值").buildEnName("contact_risk_word");
+        ruleList.add(ruleEntity);
+        return new AuditResponseEvent(userCode, hitCount <= limit, !(hitCount <= limit) ? "通信录风险词大于15" : "", JSON.toJSONString(ruleList));
 
     }
 
@@ -410,14 +413,18 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         UserEntity user = userService.findByUserCode(userCode);
         String idCard = user.getIdCard();
         if (idCard == null) {
-            return new AuditResponseEvent(userCode, false, "获取身份证失败！");
+            return new AuditResponseEvent(userCode, false, "获取身份证失败！", null);
         }
         if (idCard.length() == 15) {
             idCard = IdCardUtils.conver15CardTo18(idCard);
         }
+        List<IRuleEntity> ruleList = new ArrayList<>();
         int age = IdCardUtils.getAgeByIdCard(idCard);
         boolean pass = age >= 18 && age <= 45;
-        return new AuditResponseEvent(userCode, pass, !pass ? "年龄大于45或者小于18" : "");
+        IRuleEntity ruleEntity = new IRuleEntity().buildHit(pass).buildVersion("V1.0.1").buildActualVal(String.valueOf(age))
+                .buildExpectedVal(String.valueOf("18到45之间")).buildCnName("年龄在预期值之内").buildEnName("age");
+        ruleList.add(ruleEntity);
+        return new AuditResponseEvent(userCode, pass, !pass ? "年龄大于45或者小于18" : "", JSON.toJSONString(ruleList));
 
     }
 
@@ -425,19 +432,24 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         UserEntity user = userService.findByUserCode(userCode);
         String idCard = user.getIdCard();
         if (idCard == null) {
-            return new AuditResponseEvent(userCode, false, "获取身份证失败！");
+            return new AuditResponseEvent(userCode, false, "获取身份证失败！", null);
         }
         if (idCard.length() == 15) {
             idCard = IdCardUtils.conver15CardTo18(idCard);
         }
         try {
+            List<IRuleEntity> ruleList = new ArrayList<>();
             String province = IdCardUtils.getProvinceByIdCard(idCard);
+            IRuleEntity ruleEntity = new IRuleEntity().buildVersion("V1.0.1").buildActualVal(province)
+                    .buildExpectedVal("新疆,西藏,内蒙").buildCnName("身份证不允许出现在预期省内").buildEnName("id_card");
             if ("新疆".equals(province) || "西藏".equals(province) || (province != null && province.contains("内蒙"))) {
-                return new AuditResponseEvent(userCode, false, "西藏-新疆-年龄规则");
+                ruleList.add(ruleEntity);
+                return new AuditResponseEvent(userCode, false, "西藏-新疆-年龄规则", JSON.toJSONString(ruleList));
             }
-            return new AuditResponseEvent(userCode, true, "");
+            ruleList.add(ruleEntity.buildHit(true));
+            return new AuditResponseEvent(userCode, true, "", JSON.toJSONString(ruleList));
         } catch (Exception e) {
-            return new AuditResponseEvent(userCode, false, "身份证非法");
+            return new AuditResponseEvent(userCode, false, "身份证非法", null);
         }
     }
 
@@ -456,15 +468,34 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         Long days180ts = 180 * 24 * 60 * 60 * 1000L;
         long currentTimeMillis = System.currentTimeMillis();
         UserEntity user = userService.findByUserCode(userCode);
+        List<IRuleEntity> ruleList = new ArrayList<>();
+        boolean stop = false;
+        String desc = null;
         try {
             List<TRiskContractInfo> allMobileList = riskContractInfoRepository.findByMobile(user.getMobile());
+            if(allMobileList == null){
+                return new AuditResponseEvent(userCode, false, "通讯录不存在", null);
+            }
             if (allMobileList.size() < contactsLimit) {
-                return new AuditResponseEvent(userCode, false, "通讯录数量小于15个");
+                if(!stop){
+                    stop = true;
+                    desc = "通讯录数量小于15个";
+                }
+//                return new AuditResponseEvent(userCode, false, "通讯录数量小于15个");
             }
 
             if (allMobileList.size() > contactsLimitUpper) {
-                return new AuditResponseEvent(userCode, false, "通讯录数量大于1000个");
+                if(!stop){
+                    stop = true;
+                    desc = "通讯录数量大于1000个";
+                }
+//                return new AuditResponseEvent(userCode, false, "通讯录数量大于1000个");
             }
+            boolean b = allMobileList.size() > contactsLimit && allMobileList.size() < contactsLimitUpper;
+            IRuleEntity ruleEntity = new IRuleEntity().buildVersion("V1.0.1").buildActualVal(String.valueOf(allMobileList.size()))
+                    .buildExpectedVal("15到1000条").buildCnName("通讯录个数在预期值范围内").buildEnName("contact_num")
+                    .buildHit(b);
+            ruleList.add(ruleEntity);
             HashSet<String> allMobileSet = new HashSet<>();
             allMobileList.forEach(t -> allMobileSet.add(t.getContractMobile()));
             int count = 0;
@@ -489,22 +520,23 @@ public class RiskAuditServiceImpl implements RiskAuditService {
                     inListMobiles.add(tRiskCallLog.getCallTel());
                 }
             }
-            logger.info("开始进行通讯录表的匹配修改，需要更改的数据条数mobile={},num={}", user.getMobile(), inListMobiles == null ? 0 : inListMobiles.size());
-            /** 匹配通讯录表，修改标识,注意用mobile修改，不要用usercode*/
-//            if(inListMobiles.size() > 0){
-//                List<String> list = new ArrayList<>(inListMobiles);
-//                riskContractInfoRepository.updateMatchingMobile(user.getMobile(), list);
-//            }
             StringBuilder stringBuilder = new StringBuilder(userCode + "," + user.getMobile() + "在主叫列表里[");
             for (String inListMobile : inListMobiles) {
                 stringBuilder.append(inListMobile + ",");
             }
             stringBuilder.append("]");
             logger.info(stringBuilder.toString());
-            return new AuditResponseEvent(userCode, count >= orignCallLimit, count >= orignCallLimit ? "" : "180天与通讯录通话号码小于3次(共" + count + "次)");
+            IRuleEntity ruleEntity2 = new IRuleEntity().buildVersion("V1.0.1").buildActualVal(String.valueOf(count))
+                    .buildExpectedVal(String.valueOf(orignCallLimit)).buildCnName("180天与通讯录通话号码数不能少于预期值").buildEnName("convers_num")
+                    .buildHit(count >= orignCallLimit);
+            ruleList.add(ruleEntity2);
+            if(stop){
+                return new AuditResponseEvent(userCode, false, desc ,JSON.toJSONString(ruleList));
+            }
+            return new AuditResponseEvent(userCode, count >= orignCallLimit, count >= orignCallLimit ? "" : "180天与通讯录通话号码小于3次(共" + count + "次)",JSON.toJSONString(ruleList));
         } catch (Exception e) {
             logger.error(userCode + "解析联系人出错", e);
-            return new AuditResponseEvent(userCode, false, "解析联系人出错！");
+            return new AuditResponseEvent(userCode, false, "解析联系人出错！", null);
         }
     }
 
@@ -521,12 +553,17 @@ public class RiskAuditServiceImpl implements RiskAuditService {
             String url = userCertifyInfo.getAccountOcr();
             double score = linkFaceService.judgeOnePerson(userCode, url, userCertifyInfo.getIdCard(), userCertifyInfo.getRealName());
             if (score == ERROR_SCORE_CODE) {
-                return new AuditResponseEvent(userCode, false, "调用LINKFACE出错");
+                return new AuditResponseEvent(userCode, false, "调用LINKFACE出错", null);
             } else {
-                return new AuditResponseEvent(userCode, score >= limit, score >= limit ? "" : "活体照与公安库身份证照比对,相似度低于" + limit);
+                List<IRuleEntity> ruleList = new ArrayList<>();
+                IRuleEntity ruleEntity = new IRuleEntity().buildVersion("V1.0.1").buildActualVal(String.valueOf(score))
+                        .buildExpectedVal(String.valueOf(limit)).buildCnName("身份证照片与公安照比对得分不能低于预期值").buildEnName("id_card_similarity_degree")
+                        .buildHit(score >= limit);
+                ruleList.add(ruleEntity);
+                return new AuditResponseEvent(userCode, score >= limit, score >= limit ? "" : "活体照与公安库身份证照比对,相似度低于" + limit, JSON.toJSONString(ruleList));
             }
         }
-        return new AuditResponseEvent(userCode, false, "查询不到用户" + userCode + "数据");
+        return new AuditResponseEvent(userCode, false, "查询不到用户" + userCode + "数据", null);
     }
 
     /**
@@ -542,12 +579,17 @@ public class RiskAuditServiceImpl implements RiskAuditService {
             String url = userCertifyInfo.getAccountFrontImg();
             double score = linkFaceService.judgeIdCardPolice(userCode, url, userCertifyInfo.getIdCard(), userCertifyInfo.getRealName());
             if (score == ERROR_SCORE_CODE) {
-                return new AuditResponseEvent(userCode, false, "调用LINKFACE出错");
+                return new AuditResponseEvent(userCode, false, "调用LINKFACE出错", null);
             } else {
-                return new AuditResponseEvent(userCode, score >= limit, score >= limit ? "" : "身份证正面与公安照正面对比,相似度低于" + limit);
+                List<IRuleEntity> ruleList = new ArrayList<>();
+                IRuleEntity ruleEntity = new IRuleEntity().buildVersion("V1.0.1").buildActualVal(String.valueOf(score))
+                        .buildExpectedVal(String.valueOf(limit)).buildCnName("活体照与公安照片对比得分不能低于预期值").buildEnName("living_similarity_degree")
+                        .buildHit(score >= limit);
+                ruleList.add(ruleEntity);
+                return new AuditResponseEvent(userCode, score >= limit, score >= limit ? "" : "身份证正面与公安照正面对比,相似度低于" + limit, JSON.toJSONString(ruleList));
             }
         }
-        return new AuditResponseEvent(userCode, false, "查询不到用户" + userCode + "数据");
+        return new AuditResponseEvent(userCode, false, "查询不到用户" + userCode + "数据", null);
     }
 
     /**
@@ -563,12 +605,17 @@ public class RiskAuditServiceImpl implements RiskAuditService {
             String url = userCertifyInfo.getAccountOcr();
             double score = linkFaceService.preventHack(userCode, url);
             if (score == ERROR_SCORE_CODE) {
-                return new AuditResponseEvent(userCode, false, "调用LINKFACE出错");
+                return new AuditResponseEvent(userCode, false, "调用LINKFACE出错", null);
             } else {
-                return new AuditResponseEvent(userCode, score <= limit, score <= limit ? "" : "验证用户照片是否为活体照片,HACK可能性高于" + limit);
+                List<IRuleEntity> ruleList = new ArrayList<>();
+                IRuleEntity ruleEntity = new IRuleEntity().buildVersion("V1.0.1").buildActualVal(String.valueOf(score))
+                        .buildExpectedVal(String.valueOf(limit)).buildCnName("照片防HACK得分不能低于预期值").buildEnName("ant_hack")
+                        .buildHit(score <= limit);
+                ruleList.add(ruleEntity);
+                return new AuditResponseEvent(userCode, score <= limit, score <= limit ? "" : "验证用户照片是否为活体照片,HACK可能性高于" + limit, JSON.toJSONString(ruleList));
             }
         }
-        return new AuditResponseEvent(userCode, false, "查询不到用户" + userCode + "数据");
+        return new AuditResponseEvent(userCode, false, "查询不到用户" + userCode + "数据", null);
     }
 
     /**
@@ -595,21 +642,32 @@ public class RiskAuditServiceImpl implements RiskAuditService {
         Long days30ts = 30 * 24 * 60 * 60 * 1000L;
         long currentTimeMillis = System.currentTimeMillis();
         try{
+            boolean stop = false;
+            String desc = null;
             UserEntity user = userService.findByUserCode(userCode);
             if(!calllogOpen){
                 logger.warn("通话记录规则-->未开启直接通过,mobile={}", user.getMobile());
-                return new AuditResponseEvent(userCode, true, "通话记录规则未开启，直接通过");
+                return new AuditResponseEvent(userCode, true, "通话记录规则未开启，直接通过", null);
             }
+            List<IRuleEntity> ruleList = new ArrayList<>();
             int count = riskCallLogRepository.getCallLogCountAfterTimestamp(user.getMobile(), (currentTimeMillis - days180ts) / 1000);
             if(count < callLogLimit){
                 logger.warn("通话记录规则-->查询最近3个月通话记录少于180条,mobile={}", user.getMobile());
-                return new AuditResponseEvent(userCode, false, "最近3个月通话记录少于180条");
+                if(!stop){
+                    stop = true;
+                    desc = "最近3个月通话记录少于180条,实际条数=" + count;
+                }
+//                return new AuditResponseEvent(userCode, false, "最近3个月通话记录少于180条");
             }
+            IRuleEntity ruleEntity1 = new IRuleEntity().buildVersion("V1.0.1").buildActualVal(String.valueOf(count))
+                    .buildExpectedVal(String.valueOf(callLogLimit)).buildCnName("最近3个月通话记录数不能少于预期值").buildEnName("call_count")
+                    .buildHit(count < callLogLimit ? false : true);
+            ruleList.add(ruleEntity1);
             //查询近一个月所有通话记录
             List<TRiskCallLog> list = riskCallLogRepository.getCallLogByMobileAfterTimestamp(user.getMobile(), (currentTimeMillis - days30ts) / 1000);
             if(list == null || list.size() < 0){
                 logger.warn("通话记录规则-->查询最近一个月通话记录为空,mobile={}", user.getMobile());
-                return new AuditResponseEvent(userCode, false, "最近一个月通话记录不存在");
+                return new AuditResponseEvent(userCode, false, "最近一个月通话记录不存在", JSON.toJSONString(ruleList));
             }
             int callLong = 0;
             int callCounts = 0;
@@ -640,20 +698,52 @@ public class RiskAuditServiceImpl implements RiskAuditService {
             callCounts = list.size();
             if(callLong < limitCallLong){
                 logger.warn("通话记录规则-->查询最近一个月通话时长小于30min,mobile={},callLong={}", user.getMobile(), callLong);
-                return new AuditResponseEvent(userCode, false, "最近一个月通话时长小于30min");
+                if(!stop){
+                    stop = true;
+                    desc = "最近一个月通话时长小于30min,实际时长=" + callLong;
+                }
+//                return new AuditResponseEvent(userCode, false, "最近一个月通话时长小于30min");
             }
+            IRuleEntity ruleEntity2 = new IRuleEntity().buildVersion("V1.0.2").buildActualVal(String.valueOf(callLong))
+                    .buildExpectedVal(String.valueOf(limitCallLong)).buildCnName("最近一个月通话时长不能少于预期值，单位秒").buildEnName("call_long")
+                    .buildHit(callLong < limitCallLong ? false : true);
+            ruleList.add(ruleEntity2);
             if(callCounts < limitCallCounts){
                 logger.warn("通话记录规则-->查询最近一个月通话时长小于10次,mobile={},callCounts={}", user.getMobile(), callCounts);
-                return new AuditResponseEvent(userCode, false, "最近一个月通话时长小于10次");
+                if(!stop){
+                    stop = true;
+                    desc = "最近一个月通话时长小于10次,实际次数=" + callCounts;
+                }
+//                return new AuditResponseEvent(userCode, false, "最近一个月通话时长小于10次");
             }
+            IRuleEntity ruleEntity3 = new IRuleEntity().buildVersion("V1.0.2").buildActualVal(String.valueOf(callCounts))
+                    .buildExpectedVal(String.valueOf(limitCallCounts)).buildCnName("最近一个月通话不能少于预期值").buildEnName("call_times")
+                    .buildHit(callCounts < limitCallCounts ? false : true);
+            ruleList.add(ruleEntity3);
             if(zjCounts > limitZjCounts){
-                logger.warn("通话记录规则-->查询最近一个月接听次数大于600次,mobile={},zjCounts={}", user.getMobile(), zjCounts);
-                return new AuditResponseEvent(userCode, false, "最近一个月接听次数大于600次");
+                logger.warn("通话记录规则-->查询最近一个月主叫次数大于600次,mobile={},zjCounts={}", user.getMobile(), zjCounts);
+                if(!stop){
+                    stop = true;
+                    desc = "最近一个月呼叫次数大于600次,实际次数=" + zjCounts;
+                }
+//                return new AuditResponseEvent(userCode, false, "最近一个月接呼叫数大于600次");
             }
+            IRuleEntity ruleEntity4 = new IRuleEntity().buildVersion("V1.0.2").buildActualVal(String.valueOf(zjCounts))
+                    .buildExpectedVal(String.valueOf(limitZjCounts)).buildCnName("近一个月主叫次数不能多于预期值").buildEnName("zj_times")
+                    .buildHit(zjCounts > limitZjCounts ? false : true);
+            ruleList.add(ruleEntity4);
             if(bjCounts > limitBjCounts){
                 logger.warn("通话记录规则-->查询最近一个月被叫次数大于600次,mobile={},bjCounts={}", user.getMobile(), bjCounts);
-                return new AuditResponseEvent(userCode, false, "最近一个月被叫次数大于600次");
+                if(!stop){
+                    stop = true;
+                    desc = "最近一个月被叫次数大于600次,实际次数=" + bjCounts;
+                }
+//                return new AuditResponseEvent(userCode, false, "最近一个月被叫次数大于600次");
             }
+            IRuleEntity ruleEntity5 = new IRuleEntity().buildVersion("V1.0.2").buildActualVal(String.valueOf(bjCounts))
+                    .buildExpectedVal(String.valueOf(limitBjCounts)).buildCnName("近一个月被叫次数不能多于预期值").buildEnName("bj_times")
+                    .buildHit(bjCounts > limitBjCounts ? false : true);
+            ruleList.add(ruleEntity5);
 
             //查询最近三个月通话号码个数，主叫被叫都要存在,是否少于8个
             List<Object[]> days180List = riskCallLogRepository.getDistinctCallLogByMobileAfterTimestamp(user.getMobile(), (currentTimeMillis - days180ts) / 1000);
@@ -661,7 +751,11 @@ public class RiskAuditServiceImpl implements RiskAuditService {
             int callEachCounts = 0;
             if(days180List == null || days180List.size() == 0){
                 logger.warn("通话记录规则-->查询最近三个月通话记录为空,mobile={}", user.getMobile());
-                return new AuditResponseEvent(userCode, false, "最近三个月通话记录不存在");
+                if(!stop){
+                    stop = true;
+                    desc = "最近三个月通话记录不存在";
+                }
+                return new AuditResponseEvent(userCode, false, "最近三个月通话记录不存在", JSON.toJSONString(ruleList));
             }
             for(Object[] arr : days180List){
                 String callTel = (String) arr[0];
@@ -674,24 +768,48 @@ public class RiskAuditServiceImpl implements RiskAuditService {
             }
             if(callEachCounts < limitCallEachCounts){
                 logger.warn("通话记录规则-->近三个月互通号码小于8个,mobile={},callEachCounts={}", user.getMobile(), callEachCounts);
-                return new AuditResponseEvent(userCode, false, "近三个月互通号码小于8个");
+                if(!stop){
+                    stop = true;
+                    desc = "近三个月互通号码小于8个,实际个数=" + callEachCounts;
+                }
+//                return new AuditResponseEvent(userCode, false, "近三个月互通号码小于8个");
             }
+            IRuleEntity ruleEntity6 = new IRuleEntity().buildVersion("V1.0.2").buildActualVal(String.valueOf(callEachCounts))
+                    .buildExpectedVal(String.valueOf(limitCallEachCounts)).buildCnName("近三个月互通号码不能少于预期值").buildEnName("call_each_num")
+                    .buildHit(callEachCounts < limitCallEachCounts ? false : true);
+            ruleList.add(ruleEntity6);
             //查询最近10个通话记录号码，和通讯录匹配比对
             List<String> callDurationList  = riskCallLogRepository.getDistinctCallLogBySumCallDuration(user.getMobile(), 10);
             if(callDurationList == null || callDurationList.size() < limitContactMatchCounts){
                 logger.warn("通话记录规则-->最近通话记录不足3个,mobile={},contactMatchCounts={}", user.getMobile(), callDurationList.size());
-                return new AuditResponseEvent(userCode, false, "最近通话记录不足3个");
+                if(!stop){
+                    stop = true;
+                    desc = "最近通话记录不足3个,实际个数=" + callDurationList == null ? "0" : callDurationList.size() + "";
+                }
+//                return new AuditResponseEvent(userCode, false, "最近通话记录不足3个");
             }
             List<String> contractInfoList = riskContractInfoRepository.findDistinctByContractMobilesList(user.getMobile(), callDurationList);
             if(contractInfoList == null || contractInfoList.size() < limitContactMatchCounts){
                 logger.warn("通话记录规则-->最近前10通话记录和通讯录匹配少于3个,mobile={},contactMatchCounts={}", user.getMobile(), contractInfoList.size());
-                return new AuditResponseEvent(userCode, false, "最近通话记录不足3个");
+                if(!stop){
+                    stop = true;
+                    desc = "最近前10通话记录和通讯录匹配少于3个,实际个数=" + (contractInfoList == null ? "0" : contractInfoList.size() + "");
+                }
+//                return new AuditResponseEvent(userCode, false, "最近前10通话记录和通讯录匹配少于3个");
+            }
+            int i = contractInfoList == null ? 0 : contractInfoList.size();
+            IRuleEntity ruleEntity7 = new IRuleEntity().buildVersion("V1.0.2").buildActualVal(String.valueOf(i))
+                    .buildExpectedVal(String.valueOf(limitContactMatchCounts)).buildCnName("最近10个通话记录和通讯录匹配不能少于预期值").buildEnName("call_duration")
+                    .buildHit(contractInfoList == null || contractInfoList.size() < limitContactMatchCounts ? false : true);
+            ruleList.add(ruleEntity7);
+            if(stop){
+                return new AuditResponseEvent(userCode, false, desc ,JSON.toJSONString(ruleList));
             }
             logger.info("通话记录规则-->通话记录匹配通过,mobile={}", user.getMobile());
-            return new AuditResponseEvent(userCode, true, "");
+            return new AuditResponseEvent(userCode, true, "", JSON.toJSONString(ruleList));
         }catch (Exception e){
             logger.error("通话记录规则-->检查报告出错,userCode={}", userCode, e);
-            return new AuditResponseEvent(userCode, false, "通话记录规则出现异常");
+            return new AuditResponseEvent(userCode, false, "通话记录规则出现异常", null);
         }
 
     }
@@ -727,25 +845,25 @@ public class RiskAuditServiceImpl implements RiskAuditService {
                         }
                     }
                     if (checkResult == null) {
-                        return new AuditResponseEvent(userCode, false, userCode + "[" + user.getMobile() + "]报告出错");
+                        return new AuditResponseEvent(userCode, false, userCode + "[" + user.getMobile() + "]报告出错", null);
                     } else {
                         //1代表匹配
                         if (checkResult == 1) {
                             if (user.getIdCard() == null || reportIdcard == null || !user.getIdCard().toLowerCase().equals(reportIdcard.toLowerCase())) {
-                                return new AuditResponseEvent(userCode, false, "用户填的身份证号码与报告匹配不上");
+                                return new AuditResponseEvent(userCode, false, "用户填的身份证号码与报告匹配不上", null);
                             }
                         }
-                        return new AuditResponseEvent(userCode, checkResult == 1 || checkResult == 5 || checkResult == 6, (checkResult == 1 || checkResult == 5 || checkResult == 6) ? "" : "实名三要素未通过");
+                        return new AuditResponseEvent(userCode, checkResult == 1 || checkResult == 5 || checkResult == 6, (checkResult == 1 || checkResult == 5 || checkResult == 6) ? "" : "实名三要素未通过", null);
                     }
                 } else {
-                    return new AuditResponseEvent(userCode, false, "报告不存在");
+                    return new AuditResponseEvent(userCode, false, "报告不存在", null);
                 }
             } else {
-                return new AuditResponseEvent(userCode, false, "查询不到该用户，或者该用户手机号为空");
+                return new AuditResponseEvent(userCode, false, "查询不到该用户，或者该用户手机号为空", null);
             }
         } catch (Exception e) {
             logger.error(userCode + "检查报告出错", e);
-            return new AuditResponseEvent(userCode, false, "致命问题！！检查运营商报告出错");
+            return new AuditResponseEvent(userCode, false, "致命问题！！检查运营商报告出错", null);
         }
     }
 }
