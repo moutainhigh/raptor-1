@@ -22,6 +22,7 @@ import com.mo9.raptor.lock.RedisService;
 import com.mo9.raptor.redis.RedisLockKeySuffix;
 import com.mo9.raptor.service.*;
 import com.mo9.raptor.utils.IDWorker;
+import com.mo9.raptor.utils.RiskUtilsV2;
 import com.mo9.raptor.utils.log.Log;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -89,6 +90,9 @@ public class LoanOrderController {
 
     @Autowired
     private CardBinInfoService cardBinInfoService;
+
+    @Autowired
+    private RiskUtilsV2 riskUtilsV2 ;
 
     /**
      * 下单
@@ -159,6 +163,18 @@ public class LoanOrderController {
                 LoanOrderEntity loanOrderEntity = loanOrderService.getLastIncompleteOrder(userCode, StatusEnum.PROCESSING);
                 if (loanOrderEntity != null) {
                     return response.buildFailureResponse(ResCodeEnum.ONLY_ONE_ORDER);
+                }
+
+                //查询最后一笔订单
+                LoanOrderEntity lastLoanOrder = loanOrderService.getLastIncompleteOrder(userCode);
+                if(lastLoanOrder != null){
+                    if(StatusEnum.PAYOFF.name().equals(lastLoanOrder.getStatus()) || StatusEnum.LENT.name().equals(lastLoanOrder.getStatus())){
+                        Boolean canLoan = riskUtilsV2.verifyNeedToBlack(lastLoanOrder) ;
+                        if(canLoan){
+                            //黑名单
+                            return response.buildFailureResponse(ResCodeEnum.NOT_WHITE_LIST_USER);
+                        }
+                    }
                 }
 
                 LoanOrderEntity loanOrder = new LoanOrderEntity();

@@ -50,7 +50,7 @@ public class CallLogUtils {
             String str = doGetHttp(url, sessId, okHttpClient);
             if (str.indexOf("请登录") != -1){
                 logger.error("电话邦SessionId失效，请在数据字典中更新SessionId");
-                return null;
+                throw new RuntimeException("电话邦SessionId失效，请在数据字典中更新SessionId");
             }
             
             Document doc = Jsoup.parse(str);
