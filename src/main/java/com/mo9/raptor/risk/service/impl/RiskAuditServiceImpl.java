@@ -159,16 +159,17 @@ public class RiskAuditServiceImpl implements RiskAuditService {
             OkHttpClient okHttpClient = new OkHttpClient();
             String jsonResult = okHttpClient.newCall(new Request.Builder().url(scoreUrl + "?mobile=" + mobile).build()).execute().body().string();
             JSONObject jsonObject = JSONObject.parseObject(jsonResult);
+            String version = jsonObject.getString("version");
             if (jsonObject.getInteger("status") != 1) {
-                riskScoreService.create(userCode, mobile, null, jsonResult);
+                riskScoreService.create(userCode, mobile, null, version, jsonResult);
                 return null;
             } else {
                 Double d = jsonObject.getDouble("score");
-                riskScoreService.create(userCode, mobile, d, jsonResult);
+                riskScoreService.create(userCode, mobile, d, version, jsonResult);
                 return d;
             }
         } catch (Exception e) {
-            riskScoreService.create(userCode, mobile, -1d, "");
+            riskScoreService.create(userCode, mobile, -1d, null, "");
             throw e;
         }
     }
@@ -792,7 +793,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
                 logger.warn("通话记录规则-->最近前10通话记录和通讯录匹配少于3个,mobile={},contactMatchCounts={}", user.getMobile(), contractInfoList.size());
                 if(!stop){
                     stop = true;
-                    desc = "最近前10通话记录和通讯录匹配少于3个,实际个数=" + contractInfoList == null ? "0" : contractInfoList.size() + "";
+                    desc = "最近前10通话记录和通讯录匹配少于3个,实际个数=" + (contractInfoList == null ? "0" : contractInfoList.size() + "");
                 }
 //                return new AuditResponseEvent(userCode, false, "最近前10通话记录和通讯录匹配少于3个");
             }

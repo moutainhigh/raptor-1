@@ -5,6 +5,6 @@ import com.mo9.raptor.entity.RuleLogEntity;
 
 public interface RiskScoreService {
 
-    RiskScoreEntity create(String userCode, String mobile, Double score, String result);
+    RiskScoreEntity create(String userCode, String mobile, Double score, String version, String result);
 
 }
