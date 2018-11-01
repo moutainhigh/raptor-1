@@ -39,6 +39,17 @@ public class RuleLogEntity {
     @Column(name = "`hit`")
     private Boolean hit;
 
+    /**
+     * 规则版本
+     */
+    @Column(name = "`version`")
+    private String version;
+    /**
+     * 子规则运行情况
+     */
+    @Column(name = "`sub_rule`")
+    private String subRule;
+
     public Long getId() {
         return id;
     }
@@ -94,5 +105,21 @@ public class RuleLogEntity {
 
     public void setUid(String uid) {
         this.uid = uid;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    public String getSubRule() {
+        return subRule;
+    }
+
+    public void setSubRule(String subRule) {
+        this.subRule = subRule;
     }
 }
