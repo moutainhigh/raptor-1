@@ -1,6 +1,5 @@
 package com.mo9.raptor.service;
 
-import com.mo9.raptor.entity.LinkfaceLogEntity;
 import com.mo9.raptor.entity.RuleLogEntity;
 
 public interface RuleLogService {
@@ -16,4 +15,5 @@ public interface RuleLogService {
      */
     RuleLogEntity create(String userCode, String ruleName, Boolean hit,Boolean call,String remark);
 
+    RuleLogEntity create(String userCode, String ruleName, Boolean hit,Boolean call,String remark, String version, String subRule);
 }

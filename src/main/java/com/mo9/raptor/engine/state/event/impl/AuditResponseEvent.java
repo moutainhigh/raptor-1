@@ -16,6 +16,8 @@ public class AuditResponseEvent extends AbstractStateEvent implements IStateEven
 
     private AuditResultEnum auditResultEnum;
 
+    private String subRule;
+
     /**
      * 订单状态机专业
      * @param orderId
@@ -26,6 +28,19 @@ public class AuditResponseEvent extends AbstractStateEvent implements IStateEven
         super(orderId);
         this.isPass = isPass;
         this.explanation = explanation;
+    }
+
+    /**
+     * 订单状态机专业,用于记录子规则
+     * @param orderId
+     * @param isPass
+     * @param explanation
+     */
+    public AuditResponseEvent(String orderId, boolean isPass, String explanation, String subRule) {
+        super(orderId);
+        this.isPass = isPass;
+        this.explanation = explanation;
+        this.subRule = subRule;
     }
 
     /**
@@ -50,6 +65,10 @@ public class AuditResponseEvent extends AbstractStateEvent implements IStateEven
 
     public AuditResultEnum getAuditResultEnum() {
         return auditResultEnum;
+    }
+
+    public String getSubRule() {
+        return subRule;
     }
 
     @Override
