@@ -236,9 +236,17 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
         JSONObject yisicuishou = cuishouDetectionJson.getJSONObject("yisicuishou");
         
         
-        Integer cuishouOneCallMaxTimes = cuishou == null ? 0 : cuishou.getInteger("most_times_by_tel");
-        Integer yisicuishouOneCallMaxTimes = yisicuishou == null ? 0 : yisicuishou.getInteger("most_times_by_tel");
-        
+        Integer cuishouOneCallMaxTimes = cuishou == null ? Integer.valueOf(0) : cuishou.getInteger("most_times_by_tel");
+        Integer yisicuishouOneCallMaxTimes = yisicuishou == null ? Integer.valueOf(0) : yisicuishou.getInteger("most_times_by_tel");
+
+        if(cuishouOneCallMaxTimes == null){
+            cuishouOneCallMaxTimes = 0;
+        }
+
+        if(yisicuishouOneCallMaxTimes == null){
+            yisicuishouOneCallMaxTimes = 0;
+        }
+
         if (cuishouOneCallMaxTimes < ONE_LOAN_COMPANY_CALL_TIMES
                 && yisicuishouOneCallMaxTimes < ONE_LOAN_COMPANY_CALL_TIMES){
             return new AuditResponseEvent(userCode, true, "", null);
@@ -267,9 +275,15 @@ public class RiskRuleEngineServiceImpl implements RiskRuleEngineService {
         JSONObject cuishou = cuishouDetectionJson.getJSONObject("cuishou");
         JSONObject yisicuishou = cuishouDetectionJson.getJSONObject("yisicuishou");
 
-        Integer cuishouCallMaxTimes = cuishou == null ? 0 : cuishou.getInteger("call_in_times");
-        Integer yisicuishouCallMaxTimes = yisicuishou == null ? 0 : yisicuishou.getInteger("call_in_times");
+        Integer cuishouCallMaxTimes = cuishou == null ? Integer.valueOf(0) : cuishou.getInteger("call_in_times");
+        Integer yisicuishouCallMaxTimes = yisicuishou == null ? Integer.valueOf(0) : yisicuishou.getInteger("call_in_times");
 
+        if(cuishouCallMaxTimes == null){
+            cuishouCallMaxTimes = 0;
+        }
+        if(yisicuishouCallMaxTimes == null){
+            yisicuishouCallMaxTimes = 0;
+        }
 
         if (cuishouCallMaxTimes < DIFFERENT_LOAN_COMPANY_CALL_TIMES
                 && yisicuishouCallMaxTimes < DIFFERENT_LOAN_COMPANY_CALL_TIMES){
