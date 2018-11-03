@@ -903,6 +903,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
             /**调用第三方黑名单检查 */
             taskList.add(new AuditTask((u) -> blaceExecute(u), "BlaceExecute", false, "V1.0.2"));
             for (AuditTask auditTask : taskList) {
+                logger.info("用户userCode={},手动触发，开始执行规则[{}],",userCode, auditTask.getRuleName());
                 AuditResponseEvent res = auditTask.callFunc.apply(userCode);
                 boolean pass = res.isPass();
                 if(isPass == null && !pass){
