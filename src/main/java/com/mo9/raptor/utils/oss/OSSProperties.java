@@ -33,6 +33,9 @@ public class OSSProperties {
     @Value("${raptor.oss.catalog.callLogReport}")
     private String catalogCallLog;
 
+    @Value("${raptor.oss.catalog.callLogRule}")
+    private String catalogCallRule;
+
     @Value("${raptor.oss.expire-time}")
     private String expireTime;
 
@@ -106,5 +109,13 @@ public class OSSProperties {
 
     public void setExpireTime(String expireTime) {
         this.expireTime = expireTime;
+    }
+
+    public String getCatalogCallRule() {
+        return catalogCallRule;
+    }
+
+    public void setCatalogCallRule(String catalogCallRule) {
+        this.catalogCallRule = catalogCallRule;
     }
 }

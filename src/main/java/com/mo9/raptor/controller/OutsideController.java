@@ -245,14 +245,14 @@ public class OutsideController {
                     }
                     if(list.size() % limitNum == 0){
                         //上传到oss
-                        String fileName = ossProperties.getCatalog() + "/" + sockpuppet + "-" + dateStr + "-" + System.currentTimeMillis() + ".json";
+                        String fileName = ossProperties.getCatalogCallRule() + "/" + sockpuppet + "-" + dateStr + "-" + System.currentTimeMillis() + ".json";
                         uploadFile2Oss(JSON.toJSONString(list), fileName);
                         list = new ArrayList();
                     }
                 }
                 if(list.size() > 0){
                     //上传到oss
-                    String fileName = ossProperties.getCatalog() + "/" + sockpuppet + "-" + dateStr + "-" + System.currentTimeMillis() + ".json";
+                    String fileName = ossProperties.getCatalogCallRule() + "/" + sockpuppet + "-" + dateStr + "-" + System.currentTimeMillis() + ".json";
                     uploadFile2Oss(JSON.toJSONString(list), fileName);
                 }
             } catch (IOException e) {
