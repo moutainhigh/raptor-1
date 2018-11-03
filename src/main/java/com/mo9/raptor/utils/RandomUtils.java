@@ -153,15 +153,16 @@ public class RandomUtils {
 		return sb.toString();
 	}
 
-	// public static void main(String[] args) {
-	// System.out.println(generateString(15));
-	// System.out.println(generateMixString(15));
-	// System.out.println(generateLowerString(15));
-	// System.out.println(generateUpperString(15));
-	// System.out.println(generateZeroString(15));
-	// System.out.println(toFixdLengthString(123, 15));
-	// System.out.println(toFixdLengthString(123L, 15));
-	// }
+	 public static void main(String[] args) {
+//	 System.out.println(generateString(15));
+//	 System.out.println(generateMixString(15));
+//	 System.out.println(generateLowerString(15));
+//	 System.out.println(generateUpperString(15));
+//	 System.out.println(generateZeroString(15));
+//	 System.out.println(toFixdLengthString(123, 15));
+//	 System.out.println(toFixdLengthString(123L, 15));
+	 System.out.println(generateNumString(3));
+	 }
 	/** 生成邀请码 */
 	public static String getInvitationCode(String mobile) {
 
