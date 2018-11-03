@@ -217,8 +217,13 @@ public class OutsideController {
 
     @RequestMapping("/manual_audit")
     @ResponseBody
-    public BaseResponse<Boolean> manualAudit(@RequestParam("file") MultipartFile file, @RequestParam(value = "limit", required = false, defaultValue = "1000")String limit){
+    public BaseResponse<Boolean> manualAudit(@RequestParam("file") MultipartFile file, @RequestParam("password")String password,
+                                             @RequestParam(value = "limit", required = false, defaultValue = "1000")String limit){
         BaseResponse<Boolean> response = new BaseResponse<Boolean>();
+        if (!password.equals("mo9@2018")) {
+            return response.buildFailureResponse(ResCodeEnum.INVALID_SIGN);
+        }
+
         if(file.getSize() == 0){
             return response.buildSuccessResponse(true);
         }
