@@ -904,6 +904,7 @@ public class RiskAuditServiceImpl implements RiskAuditService {
             taskList.add(new AuditTask((u) -> blaceExecute(u), "BlaceExecute", false, "V1.0.2"));
             for (AuditTask auditTask : taskList) {
                 AuditResponseEvent res = auditTask.callFunc.apply(userCode);
+                logger.info("用户userCode={},手动触发，开始执行规则[{}],",userCode, auditTask.getRuleName());
                 boolean pass = res.isPass();
                 if(isPass == null && !pass){
                     isPass = pass;
