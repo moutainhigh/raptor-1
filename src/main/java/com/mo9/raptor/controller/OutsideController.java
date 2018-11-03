@@ -1,25 +1,36 @@
 package com.mo9.raptor.controller;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.aliyun.oss.OSSClient;
 import com.mo9.raptor.bean.BaseResponse;
 import com.mo9.raptor.engine.enums.StatusEnum;
+import com.mo9.raptor.engine.state.event.impl.AuditResponseEvent;
 import com.mo9.raptor.entity.BankEntity;
 import com.mo9.raptor.entity.CardBinInfoEntity;
 import com.mo9.raptor.entity.UserContactsEntity;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.ResCodeEnum;
+import com.mo9.raptor.risk.service.RiskAuditService;
 import com.mo9.raptor.risk.service.RiskContractInfoService;
 import com.mo9.raptor.service.BankService;
 import com.mo9.raptor.service.CardBinInfoService;
 import com.mo9.raptor.service.UserContactsService;
 import com.mo9.raptor.service.UserService;
+import com.mo9.raptor.utils.DateUtils;
 import com.mo9.raptor.utils.Md5Util;
+import com.mo9.raptor.utils.RandomUtils;
 import com.mo9.raptor.utils.log.Log;
+import com.mo9.raptor.utils.oss.OSSProperties;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import java.io.*;
 import java.util.*;
 
 /**
@@ -51,6 +62,15 @@ public class OutsideController {
 
     @Resource
     private UserContactsService userContactsService;
+
+    @Resource
+    private RiskAuditService riskAuditService;
+
+    @Resource
+    private OSSProperties ossProperties;
+
+    @Value("${raptor.sockpuppet}")
+    private String sockpuppet;
 
     private int LIMIT = 0;
     /**
@@ -195,10 +215,81 @@ public class OutsideController {
         return response;
     }
 
+    @RequestMapping("/manual_audit")
+    @ResponseBody
+    public BaseResponse<Boolean> manualAudit(@RequestParam("file") MultipartFile file, @RequestParam("password")String password,
+                                             @RequestParam(value = "limit", required = false, defaultValue = "1000")String limit){
+        BaseResponse<Boolean> response = new BaseResponse<Boolean>();
+        if (!password.equals("mo9@2018")) {
+            return response.buildFailureResponse(ResCodeEnum.INVALID_SIGN);
+        }
+
+        if(file.getSize() == 0){
+            return response.buildSuccessResponse(true);
+        }
+        Integer limitNum = Integer.valueOf(limit);
+        Thread t = new Thread(() -> {
+            List<JSONObject> list = new ArrayList<>();
+            try {
+                InputStream inputStream = file.getInputStream();
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+                String userCode = null;
+                String dateStr = DateUtils.formartDate(new Date());
+                while((userCode = bufferedReader.readLine()) != null){
+                    userCode = userCode.trim();
+                    JSONObject res = riskAuditService.manualAudit(userCode);
+                    if(res != null){
+                        JSONObject json = new JSONObject();
+                        json.put(userCode, res);
+                        list.add(json);
+                    }
+                    if(list.size() % limitNum == 0){
+                        //上传到oss
+                        String fileName = ossProperties.getCatalogCallRule() + "/" + sockpuppet + "-" + dateStr + "-" + System.currentTimeMillis() + ".json";
+                        uploadFile2Oss(JSON.toJSONString(list), fileName);
+                        list = new ArrayList();
+                    }
+                }
+                if(list.size() > 0){
+                    //上传到oss
+                    String fileName = ossProperties.getCatalogCallRule() + "/" + sockpuppet + "-" + dateStr + "-" + System.currentTimeMillis() + ".json";
+                    uploadFile2Oss(JSON.toJSONString(list), fileName);
+                }
+            } catch (IOException e) {
+                logger.error("手动触发风控规则-->获取文件流出现异常", e);
+            }
+        });
+
+
+        t.start();
+        return response.buildSuccessResponse(true);
+    }
+
     @GetMapping("/test")
     @ResponseBody
     public String test() {
         return String.valueOf(LIMIT);
     }
 
+    private void uploadFile2Oss(String str, String fileName){
+
+        try {
+            OSSClient ossClient = new OSSClient(ossProperties.getWriteEndpoint(), ossProperties.getAccessKeyId(), ossProperties.getAccessKeySecret());
+            ossClient
+                    .putObject(
+                            ossProperties.getBucketName(),
+                            fileName,
+                            new ByteArrayInputStream(str.getBytes())
+                    );
+            ossClient.shutdown();
+
+            StringBuilder sb = new StringBuilder();
+            sb.append(ossProperties.getHttpPrefix())
+                    .append(ossProperties.getReadEndpoint().substring(ossProperties.getHttpPrefix().length()))
+                    .append("/").append(fileName);
+            logger.info("手动触发风控规则-->上传oss,日期：{}，返回地址：{}" ,DateUtils.formartDate(new Date()) ,sb.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

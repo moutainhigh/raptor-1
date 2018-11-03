@@ -866,4 +866,65 @@ public class RiskAuditServiceImpl implements RiskAuditService {
             return new AuditResponseEvent(userCode, false, "致命问题！！检查运营商报告出错", null);
         }
     }
+
+
+
+    @Override
+    public JSONObject manualAudit(String userCode){
+        JSONObject jsonObject = new JSONObject();
+        List<JSONObject> objs = new ArrayList<>();
+        Boolean isPass = null;
+        try{
+            UserEntity user = userService.findByUserCodeAndDeleted(userCode, false);
+            //没收到通话记录则先跳过
+            if (!user.getReceiveCallHistory()) {
+                return null;
+            }
+            ArrayList<AuditTask> taskList = new ArrayList<>();
+            taskList.add(new AuditTask((u) -> ipCheckRule(u), "IpCheckRule", false, "V1.0.1"));
+            taskList.add(new AuditTask((u) -> shixinCheckRule(u), "ShixinCheckRule", false, "V1.0.1"));
+            taskList.add(new AuditTask((u) -> chaseDebtRule(u), "ChaseDebtRule", true, "V1.0.1"));
+            taskList.add(new AuditTask((u) -> blackListRule(u), "BlackListRule", true, "V1.0.1"));
+            taskList.add(new AuditTask((u) -> riskWordRule(u), "RiskWordRule", true, "V1.0.1"));
+            taskList.add(new AuditTask((u) -> riskRuleEngineService.mergencyCallTimesRule(u), "MergencyCallTimesRule", true, "V1.0.2"));
+            taskList.add(new AuditTask((u) -> riskRuleEngineService.mergencyHadNoDoneOrderRule(u), "MergencyHadNoDoneOrderRule", true, "V1.0.1"));
+            taskList.add(new AuditTask((u) -> riskRuleEngineService.calledTimesByOneLoanCompanyRule(u), "CalledTimesByOneLoanCompanyRule", true, "V1.0.1"));
+            taskList.add(new AuditTask((u) -> riskRuleEngineService.calledTimesByDifferentLoanCompanyRule(u), "CalledTimesByDifferentLoanCompanyRule", true, "V1.0.1"));
+            taskList.add(new AuditTask((u) -> riskRuleEngineService.mergencyInJHJJBlackListRule(u), "MergencyInJHJJBlackListRule", true, "V1.0.1"));
+            taskList.add(new AuditTask((u) -> riskRuleEngineService.openDateRule(u), "OpenDateRule", true, "V1.0.1"));
+            taskList.add(new AuditTask((u) -> idCardRule(u), "IdCardRule", true, "V1.0.1"));
+            taskList.add(new AuditTask((u) -> ageRule(u), "AgeRule", true, "V1.0.1"));
+            taskList.add(new AuditTask((u) -> contactsRule(u), "ContactsRule", true, "V1.0.1"));
+            taskList.add(new AuditTask((u) -> callLogRule(u), "CallLogRule", false, "V1.0.2"));
+            taskList.add(new AuditTask((u) -> threeElementCheck(u), "ThreeElementCheck", false, "V1.0.1"));
+            taskList.add(new AuditTask((u) -> antiHackRule(u), "AntiHackRule", false, "V1.0.1"));
+            taskList.add(new AuditTask((u) -> livePicCompareRule(u), "LivePicCompareRule", false, "V1.0.1"));
+            taskList.add(new AuditTask((u) -> idPicCompareRule(u), "IdPicCompareRule", false, "V1.0.1"));
+            /**调用第三方黑名单检查 */
+            taskList.add(new AuditTask((u) -> blaceExecute(u), "BlaceExecute", false, "V1.0.2"));
+            for (AuditTask auditTask : taskList) {
+                logger.info("用户userCode={},手动触发，开始执行规则[{}],",userCode, auditTask.getRuleName());
+                AuditResponseEvent res = auditTask.callFunc.apply(userCode);
+                boolean pass = res.isPass();
+                if(isPass == null && !pass){
+                    isPass = pass;
+                }
+                JSONObject obj = new JSONObject();
+                obj.put("ruleName", auditTask.getRuleName());
+                obj.put("pass", res.isPass());
+                obj.put("eventTime", res.getEventTime());
+                obj.put("explanation", res.getExplanation());
+                obj.put("subRule", res.getSubRule());
+                objs.add(obj);
+            }
+        }catch (Exception e){
+            logger.info("手动运动规则，出现异常userCode={}", userCode, e);
+        }
+        if(isPass == null){
+            isPass = true;
+        }
+        jsonObject.put("pass", isPass);
+        jsonObject.put("rules", objs);
+        return jsonObject;
+    }
 }
