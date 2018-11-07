@@ -47,7 +47,7 @@ public class CashAccountServiceImpl implements CashAccountService {
         boolean lock = redisService.lock(lockKey , lockKey , 30*1000L , TimeUnit.MILLISECONDS);
         if(lock){
             try {
-                return this.repayInside(userCode , amount , businessNo);
+                return this.repayInside(userCode , amount , businessNo , BusinessTypeEnum.REPAY);
             } catch (Exception e) {
                 Log.error(logger , new RuntimeException("用户还款锁定现金账户 获取锁异常") ,userCode + "用户还款锁定现金账户 获取锁异常 : " + businessNo);
                 return ResCodeEnum.CASH_ACCOUNT_EXCEPTION ;
@@ -62,6 +62,27 @@ public class CashAccountServiceImpl implements CashAccountService {
 
     }
 
+    @Override
+    public ResCodeEnum underLine(String userCode, BigDecimal amount, String businessNo) {
+        String lockKey = CommonValues.CASH_ACCOUNT + userCode ;
+        //锁定用户现金账户
+        boolean lock = redisService.lock(lockKey , lockKey , 30*1000L , TimeUnit.MILLISECONDS);
+        if(lock){
+            try {
+                return this.repayInside(userCode , amount , businessNo , BusinessTypeEnum.UNDER_LINE);
+            } catch (Exception e) {
+                Log.error(logger , new RuntimeException("用户还款锁定现金账户 获取锁异常") ,userCode + "用户还款锁定现金账户 获取锁异常 : " + businessNo);
+                return ResCodeEnum.CASH_ACCOUNT_EXCEPTION ;
+            }finally {
+                //释放锁
+                redisService.unlock(lockKey);
+            }
+        }else{
+            Log.error(logger , new RuntimeException("用户还款锁定现金账户 获取锁异常") ,userCode + "用户还款锁定现金账户 获取锁异常 : " + businessNo);
+            return ResCodeEnum.CASH_ACCOUNT_LOCK_FAILED ;
+        }
+    }
+
     /**
      * 还款内部方法
      * @param userCode
@@ -69,12 +90,12 @@ public class CashAccountServiceImpl implements CashAccountService {
      * @param businessNo
      * @return
      */
-    private ResCodeEnum repayInside(String userCode, BigDecimal amount , String businessNo) {
+    private ResCodeEnum repayInside(String userCode, BigDecimal amount , String businessNo , BusinessTypeEnum businessTypeEnum) {
         CashAccountEntity cashAccountEntity = this.findByUserCode(userCode);
         if(cashAccountEntity == null){
             cashAccountEntity = this.create(userCode);
         }
-        CashAccountLogEntity cashAccountLogEntity = cashAccountLogRepository.findByBusinessNoAndBusinessType(businessNo , BusinessTypeEnum.REPAY);
+        CashAccountLogEntity cashAccountLogEntity = cashAccountLogRepository.findByBusinessNoAndBusinessType(businessNo , businessTypeEnum);
         if(cashAccountLogEntity != null){
             logger.info("还款 " + businessNo + " 流水号已处理 ");
             return ResCodeEnum.CASH_ACCOUNT_BUSINESS_NO_IS_EXIST ;
@@ -85,7 +106,7 @@ public class CashAccountServiceImpl implements CashAccountService {
         cashAccountEntity.setBalance(afterBalance);
         cashAccountRepository.save(cashAccountEntity);
         //记录日志
-        createLog(userCode , amount , beforeBalance , afterBalance , BalanceTypeEnum.IN , BusinessTypeEnum.REPAY , businessNo );
+        createLog(userCode , amount , beforeBalance , afterBalance , BalanceTypeEnum.IN , businessTypeEnum , businessNo );
         return ResCodeEnum.SUCCESS;
     }
 

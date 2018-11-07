@@ -212,7 +212,7 @@ public class OfflineController {
         payOrderLog.setChannel(channel);
         payOrderLog.create();
         //保存 用户流水
-        ResCodeEnum resCodeEnumRepay = cashAccountService.repay(payOrderLog.getUserCode() , payOrderLog.getChannelRepayNumber(), payOrderLog.getPayOrderId());
+        ResCodeEnum resCodeEnumRepay = cashAccountService.underLine(payOrderLog.getUserCode() , payOrderLog.getChannelRepayNumber(), payOrderLog.getPayOrderId());
         payOrderService.savePayOrderAndLog(payOrder, payOrderLog);
         ResCodeEnum resCodeEnumEntry = cashAccountService.entry(payOrderLog.getUserCode() , payOrderLog.getChannelRepayNumber(), payOrderLog.getPayOrderId());
 
