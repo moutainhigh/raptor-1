@@ -56,13 +56,13 @@ public class QueryLendResultTask {
                 if (orderMsg != null && "failed".equals(orderMsg.getStatus())) {
                     try {
                         LendResponseEvent lendResponse = new LendResponseEvent(
-                                lendOrderEntity.getOrderId(), false,
+                                lendOrderEntity.getApplyUniqueCode(), false,
                                 "先玩后付", null,
                                 null, "放款失败",
                                 lendOrderEntity.getChannel(), "订单未生成");
                         lendEventLauncher.launch(lendResponse);
                     } catch (Exception e) {
-                        logger.error("放款订单失败查询处理异常" + lendOrderEntity.getOrderId());
+                        logger.error("放款订单失败查询处理异常" + lendOrderEntity.getOrderId() , e);
                     }
 
                 }
