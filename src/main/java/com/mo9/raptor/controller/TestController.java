@@ -29,6 +29,7 @@ import com.mo9.raptor.mq.listen.LoanMo9mqListener;
 import com.mo9.raptor.mq.producer.RabbitProducer;
 import com.mo9.raptor.redis.RedisParams;
 import com.mo9.raptor.redis.RedisServiceApi;
+import com.mo9.raptor.service.CashAccountService;
 import com.mo9.raptor.service.PayOrderLogService;
 import com.mo9.raptor.service.RabbitProducerMqService;
 import com.mo9.raptor.service.UserService;
@@ -106,6 +107,9 @@ public class TestController {
 
     @Value("${loan.name.cn}")
     private String loanNameCn ;
+
+    @Autowired
+    private CashAccountService cashAccountService ;
 
     /**
      * 获取短信验证码
@@ -395,7 +399,9 @@ public class TestController {
         payOrderLog.setPayOrderId(payOrder.getOrderId());
         payOrderLog.setChannel(channel);
         payOrderLog.create();
+        ResCodeEnum resCodeEnumRepay = cashAccountService.repay(payOrderLog.getUserCode() , payOrderLog.getChannelRepayNumber(), payOrderLog.getPayOrderId());
         payOrderService.savePayOrderAndLog(payOrder, payOrderLog);
+        ResCodeEnum resCodeEnumEntry = cashAccountService.entry(payOrderLog.getUserCode() , payOrderLog.getChannelRepayNumber(), payOrderLog.getPayOrderId());
 
         // 制作优惠券
         CouponEntity effectiveBundledCoupon = couponService.getEffectiveBundledCoupon(loanOrder.getOrderId());
@@ -490,6 +496,7 @@ public class TestController {
 
             // 通知贷后
             PayOrderLogEntity payOrderLogEntity = payOrderLogService.getByPayOrderId(payOrder.getOrderId());
+            ResCodeEnum resCodeEnumEntry = cashAccountService.entry(payOrderLogEntity.getUserCode() , payOrderLogEntity.getChannelRepayNumber(), payOrderLogEntity.getPayOrderId());
             loanMo9mqListener.notifyMisRepay(payOrderLogEntity, loanOrder.getPostponeCount(), loanOrder);
 
             return response;

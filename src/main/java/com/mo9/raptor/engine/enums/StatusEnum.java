@@ -87,4 +87,16 @@ public enum StatusEnum {
      */
     public static final List<String> EFFECTIVE_PAY = Arrays.asList(ENTRY_DONE.name());
 
+    /**
+     * 放款最终状态
+     */
+    public static final List<String> END_LOAN = Arrays.asList( LENT.name(),  FAILED.name(), PAYOFF.name(), LIQUIDATED_BROKE.name());
+
+    /**
+     * 还款最终状态
+     */
+    public static final List<String> END_REPAY = Arrays.asList( DEDUCTED.name(), DEDUCT_FAILED.name(), ENTRY_DOING.name(),
+            ENTRY_DONE.name(), ENTRY_FAILED.name(), REFUNDED.name());
+
+
 }

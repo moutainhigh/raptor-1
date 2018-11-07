@@ -21,6 +21,7 @@ import com.mo9.raptor.enums.CurrencyEnum;
 import com.mo9.raptor.enums.PayTypeEnum;
 import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.mq.listen.LoanMo9mqListener;
+import com.mo9.raptor.service.CashAccountService;
 import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.IDWorker;
 import com.mo9.raptor.utils.Md5Encrypt;
@@ -68,6 +69,10 @@ public class OfflineController {
 
     @Value("${raptor.sockpuppet}")
     private String sockpuppet;
+
+
+    @Autowired
+    private CashAccountService cashAccountService ;
 
     /**
      * 线下还款
@@ -206,7 +211,10 @@ public class OfflineController {
         payOrderLog.setPayOrderId(payOrder.getOrderId());
         payOrderLog.setChannel(channel);
         payOrderLog.create();
+        //保存 用户流水
+        ResCodeEnum resCodeEnumRepay = cashAccountService.repay(payOrderLog.getUserCode() , payOrderLog.getChannelRepayNumber(), payOrderLog.getPayOrderId());
         payOrderService.savePayOrderAndLog(payOrder, payOrderLog);
+        ResCodeEnum resCodeEnumEntry = cashAccountService.entry(payOrderLog.getUserCode() , payOrderLog.getChannelRepayNumber(), payOrderLog.getPayOrderId());
 
         // 模拟先玩后付mq还款通知
         Map<String, Object> params = new HashMap<String, Object>();
