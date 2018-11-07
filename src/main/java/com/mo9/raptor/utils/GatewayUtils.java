@@ -238,7 +238,7 @@ public class GatewayUtils {
         try {
             String result = httpClientApi.doGet(gatewayUrl + method , params) ;
             LoanOrderLendRes loanOrderLendRes = JSON.parseObject(result, LoanOrderLendRes.class);
-            if ("success".equals(loanOrderLendRes.getStatus())) {
+            if ("success".equals(loanOrderLendRes.getStatus()) || "failed".equals(loanOrderLendRes.getStatus())) {
                 return loanOrderLendRes;
             } else {
                 logger.error("查询放款订单状态报错, 返回为: [{}]", result);

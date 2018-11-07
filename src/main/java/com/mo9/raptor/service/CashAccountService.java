@@ -21,6 +21,14 @@ public interface CashAccountService {
     ResCodeEnum repay(String userCode , BigDecimal amount , String businessNo);
 
     /**
+     * 线下还款
+     * @param userCode
+     * @param amount
+     * @return
+     */
+    ResCodeEnum underLine(String userCode , BigDecimal amount , String businessNo);
+
+    /**
      * 入账
      * @param userCode
      * @param amount

@@ -154,7 +154,12 @@ public class LoanMo9mqListener implements IMqMsgListener{
 		payOrderLog.setChannelRepayNumber(amount);
 		payOrderLog.setFailReason(failReason);
 		payOrderLogService.save(payOrderLog);
-
+		//查询还款订单状态
+		PayOrderEntity payOrderEntity = payOrderService.getByOrderId(orderId);
+		if(StatusEnum.END_REPAY.contains(payOrderEntity.getStatus())){
+			//已处理
+			return MqAction.CommitMessage;
+		}
 		// 发送还款扣款成功事件
 		try {
 			try {
@@ -185,10 +190,9 @@ public class LoanMo9mqListener implements IMqMsgListener{
 			Log.error(logger , e , "发送还款订单[{}]还款成功事件异常", orderId);
 		}
 
-		//修改或者存储银行卡信息 TODO
+		//修改或者存储银行卡信息
 
         if ("success".equals(status)) {
-			PayOrderEntity payOrderEntity = payOrderService.getByOrderId(orderId);
 			LoanOrderEntity loanOrderEntity = loanOrderService.getByOrderId(payOrderEntity.getLoanOrderId());
 			String payOrderStatus = payOrderEntity.getStatus();
 			// 入账成功才向贷后发消息
@@ -345,6 +349,10 @@ public class LoanMo9mqListener implements IMqMsgListener{
 			if (StatusEnum.SUCCESS.name().equals(lendOrderEntity.getStatus()) || StatusEnum.FAILED.name().equals(lendOrderEntity.getStatus())) {
                 logger.warn("接收到了订单[{}]放款的MQ, 然而查到的放款订单状态为[{}], 可能由于状态机报错而未更新借款订单状态", orderId, lendOrderEntity.getStatus());
                 LoanOrderEntity loanOrderEntity = loanOrderService.getByOrderId(orderId);
+				if(StatusEnum.END_LOAN.contains(loanOrderEntity.getStatus())){
+					//已经处理过了
+					return MqAction.CommitMessage;
+				}
                 if (StatusEnum.LENDING.name().equals(loanOrderEntity.getStatus())) {
                     LoanResponseEvent event = null;
                     if (isSucceed) {
