@@ -155,8 +155,8 @@ public class LoanMo9mqListener implements IMqMsgListener{
 		payOrderLog.setFailReason(failReason);
 		payOrderLogService.save(payOrderLog);
 		//查询还款订单状态
-		PayOrderEntity payOrderEntity = payOrderService.getByOrderId(orderId);
-		if(StatusEnum.END_REPAY.contains(payOrderEntity.getStatus())){
+		PayOrderEntity payOrderEntityTemp = payOrderService.getByOrderId(orderId);
+		if(StatusEnum.END_REPAY.contains(payOrderEntityTemp.getStatus())){
 			//已处理
 			return MqAction.CommitMessage;
 		}
@@ -193,6 +193,7 @@ public class LoanMo9mqListener implements IMqMsgListener{
 		//修改或者存储银行卡信息
 
         if ("success".equals(status)) {
+			PayOrderEntity payOrderEntity = payOrderService.getByOrderId(orderId);
 			LoanOrderEntity loanOrderEntity = loanOrderService.getByOrderId(payOrderEntity.getLoanOrderId());
 			String payOrderStatus = payOrderEntity.getStatus();
 			// 入账成功才向贷后发消息
