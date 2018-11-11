@@ -2,8 +2,9 @@ package com.mo9.raptor.service;
 
 import com.mo9.raptor.RaptorApplicationTest;
 import com.mo9.raptor.engine.state.event.impl.AuditResponseEvent;
-import com.mo9.raptor.risk.service.RiskAuditService;
-import com.mo9.raptor.risk.service.RiskRuleEngineService;
+import com.mo9.risk.bean.AuditResponse;
+import com.mo9.risk.service.RiskAuditService;
+import com.mo9.risk.service.RiskRuleEngineService;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -158,7 +159,7 @@ public class FastLoanRuleTest {
      */
     @Test
     public void auditTest(){
-        AuditResponseEvent audit = riskAuditService.audit(userCode);
+        AuditResponse audit = riskAuditService.audit(userCode);
         System.out.println(audit);
     }
 

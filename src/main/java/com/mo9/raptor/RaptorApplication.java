@@ -10,7 +10,7 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
  * @author jyou
  */
 @EnableAspectJAutoProxy
-@SpringBootApplication(scanBasePackages = {"com.mo9.raptor.*"}, exclude = {MongoAutoConfiguration.class, MongoDataAutoConfiguration.class})
+@SpringBootApplication(scanBasePackages = {"com.mo9.raptor.*","com.mo9.risk.*"}, exclude = {MongoAutoConfiguration.class, MongoDataAutoConfiguration.class})
 public class RaptorApplication {
 
 	public static void main(String[] args) {

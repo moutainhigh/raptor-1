@@ -5,14 +5,11 @@ import com.alibaba.fastjson.JSONObject;
 import com.aliyun.oss.OSSClient;
 import com.mo9.raptor.bean.BaseResponse;
 import com.mo9.raptor.engine.enums.StatusEnum;
-import com.mo9.raptor.engine.state.event.impl.AuditResponseEvent;
 import com.mo9.raptor.entity.BankEntity;
 import com.mo9.raptor.entity.CardBinInfoEntity;
 import com.mo9.raptor.entity.UserContactsEntity;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.ResCodeEnum;
-import com.mo9.raptor.risk.service.RiskAuditService;
-import com.mo9.raptor.risk.service.RiskContractInfoService;
 import com.mo9.raptor.service.BankService;
 import com.mo9.raptor.service.CardBinInfoService;
 import com.mo9.raptor.service.UserContactsService;
@@ -22,7 +19,11 @@ import com.mo9.raptor.utils.Md5Util;
 import com.mo9.raptor.utils.RandomUtils;
 import com.mo9.raptor.utils.log.Log;
 import com.mo9.raptor.utils.oss.OSSProperties;
+import com.mo9.risk.app.entity.User;
+import com.mo9.risk.service.RiskAuditService;
+import com.mo9.risk.service.RiskContractInfoService;
 import org.slf4j.Logger;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -119,7 +120,6 @@ public class OutsideController {
         model.addAttribute("source", source);
         model.addAttribute("subSource", subSource);
         model.addAttribute("host", raptorUrl);
-        //返回地址 todo ukar
         return "/test";
     }
 
@@ -191,7 +191,9 @@ public class OutsideController {
                                 continue;
                             }
                             try{
-                                riskContractInfoService.createAll(entity.getContactsList(), userEntity);
+                                User user = new User();
+                                BeanUtils.copyProperties(userEntity, user);
+                                riskContractInfoService.createAll(entity.getContactsList(), user);
                             }catch (Exception e){
                                 logger.error("用户通讯录重新执行,用户执行出现异常,当前第{}条，userCode={}", errorCount++, userEntity.getUserCode(), e);
                             }

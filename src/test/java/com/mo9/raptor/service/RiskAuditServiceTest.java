@@ -1,7 +1,7 @@
 package com.mo9.raptor.service;
 
 import com.mo9.raptor.RaptorApplicationTest;
-import com.mo9.raptor.risk.service.RiskAuditService;
+import com.mo9.risk.service.RiskAuditService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
