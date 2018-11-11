@@ -145,8 +145,8 @@ public class BillServiceImpl implements BillService {
         /**
          *  超额还款控制
          */
-        if (entryItem.sum().compareTo(payOrder.getPayNumber().add(applyAmount)) != 0) {
-            throw new LoanEntryException("订单" + loanOrder.getOrderId() + payType.getExplanation() + payOrder.getPayNumber() + ", 优惠" + applyAmount + ", 与可入账金额: " + entryItem.sum() + "不匹配!");
+        if (entryItem.sum().compareTo(payOrder.getPayNumber().add(applyAmount).add(surplusAmount)) != 0) {
+            throw new LoanEntryException("订单" + loanOrder.getOrderId() + payType.getExplanation() + payOrder.getPayNumber() + ", 优惠" + applyAmount + " , 钱包扣除" + surplusAmount +  ", 与可入账金额: " + entryItem.sum() + "不匹配!");
         }
 
         /****************  扣本金**********************/
