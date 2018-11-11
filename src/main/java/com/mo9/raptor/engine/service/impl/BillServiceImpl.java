@@ -160,19 +160,19 @@ public class BillServiceImpl implements BillService {
                 //线下入账
                 if(PayTypeEnum.REPAY_POSTPONE.name().equals(type)){
                     //延期
-                    resCodeEnum = cashAccountService.entry(payOrder.getOwnerId() , payOrder.getPayNumber(), payOrder.getOrderId() , BusinessTypeEnum.UNDERLINE_BALANCE_POSTPONE);
+                    resCodeEnum = cashAccountService.entry(payOrder.getOwnerId() , surplusAmount, payOrder.getOrderId() , BusinessTypeEnum.UNDERLINE_BALANCE_POSTPONE);
                 }else{
                     //还款
-                    resCodeEnum = cashAccountService.entry(payOrder.getOwnerId() , payOrder.getPayNumber(), payOrder.getOrderId() , BusinessTypeEnum.UNDERLINE_BALANCE_REPAY);
+                    resCodeEnum = cashAccountService.entry(payOrder.getOwnerId() , surplusAmount, payOrder.getOrderId() , BusinessTypeEnum.UNDERLINE_BALANCE_REPAY);
                 }
             }else{
                 //线上入账
                 if(PayTypeEnum.REPAY_POSTPONE.name().equals(type)){
                     //延期
-                    resCodeEnum = cashAccountService.entry(payOrder.getOwnerId() , payOrder.getPayNumber(), payOrder.getOrderId(), BusinessTypeEnum.ONLINE_BALANCE_POSTPONE);
+                    resCodeEnum = cashAccountService.entry(payOrder.getOwnerId() , surplusAmount, payOrder.getOrderId(), BusinessTypeEnum.ONLINE_BALANCE_POSTPONE);
                 }else{
                     //还款
-                    resCodeEnum = cashAccountService.entry(payOrder.getOwnerId() , payOrder.getPayNumber(), payOrder.getOrderId(), BusinessTypeEnum.ONLINE_BALANCE_REPAY);
+                    resCodeEnum = cashAccountService.entry(payOrder.getOwnerId() , surplusAmount, payOrder.getOrderId(), BusinessTypeEnum.ONLINE_BALANCE_REPAY);
                 }
             }
             if(ResCodeEnum.SUCCESS != resCodeEnum && ResCodeEnum.CASH_ACCOUNT_BUSINESS_NO_IS_EXIST != resCodeEnum){
