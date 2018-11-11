@@ -23,6 +23,7 @@ import com.mo9.raptor.engine.structure.field.SourceTypeEnum;
 import com.mo9.raptor.engine.structure.item.Item;
 import com.mo9.raptor.engine.utils.TimeUtils;
 import com.mo9.raptor.entity.*;
+import com.mo9.raptor.enums.BusinessTypeEnum;
 import com.mo9.raptor.enums.CreditStatusEnum;
 import com.mo9.raptor.enums.PayTypeEnum;
 import com.mo9.raptor.enums.ResCodeEnum;
@@ -165,12 +166,18 @@ public class LoanMo9mqListener implements IMqMsgListener{
 			try {
 				if("success".equals(status)){
 					//保存 用户流水
-					ResCodeEnum resCodeEnum = cashAccountService.repay(payOrderLog.getUserCode() , payOrderLog.getChannelRepayNumber(), payOrderLog.getPayOrderId());
-					if(ResCodeEnum.SUCCESS != resCodeEnum){
-						logger.error("用户" + payOrderLog.getUserCode() +  " 还款现金账户处理" + payOrderLog.getPayOrderId()  + "异常 : " + resCodeEnum );
-					}
 					Boolean offline = bodyJson.getBoolean("offline");
 					if (offline == null || !offline) {
+						ResCodeEnum resCodeEnum = ResCodeEnum.SUCCESS ;
+						if(PayTypeEnum.REPAY_POSTPONE.name().equals(payOrderEntityTemp.getType())){
+							resCodeEnum = cashAccountService.recharge(payOrderLog.getUserCode() , payOrderLog.getChannelRepayNumber(), payOrderLog.getPayOrderId() , BusinessTypeEnum.ONLINE_POSTPONE);
+						}else{
+							resCodeEnum = cashAccountService.recharge(payOrderLog.getUserCode() , payOrderLog.getChannelRepayNumber(), payOrderLog.getPayOrderId() , BusinessTypeEnum.ONLINE_REPAY);
+						}
+						if(ResCodeEnum.SUCCESS != resCodeEnum && ResCodeEnum.CASH_ACCOUNT_BUSINESS_NO_IS_EXIST != resCodeEnum){
+							logger.error("用户" + payOrderLog.getUserCode() +  " 还款现金账户处理" + payOrderLog.getPayOrderId()  + "异常 : " + resCodeEnum );
+							return MqAction.ReconsumeLater;
+						}
 						CardBinInfoEntity cardBinInfoEntity = cardBinInfoService.findByCardPrefix(payOrderLog.getBankCard());
 						String bankName = "银行卡" ;
 						if(cardBinInfoEntity != null){
@@ -178,6 +185,17 @@ public class LoanMo9mqListener implements IMqMsgListener{
 						}
 						bankService.createOrUpdateBank( payOrderLog.getBankCard() ,  payOrderLog.getIdCard() ,  payOrderLog.getUserName() ,
 								payOrderLog.getBankMobile() ,  bankName ,  payOrderLog.getUserCode());
+					}else{
+						ResCodeEnum resCodeEnum = ResCodeEnum.SUCCESS ;
+						if(PayTypeEnum.REPAY_POSTPONE.name().equals(payOrderEntityTemp.getType())){
+							resCodeEnum = cashAccountService.recharge(payOrderLog.getUserCode() , payOrderLog.getChannelRepayNumber(), payOrderLog.getPayOrderId() , BusinessTypeEnum.UNDERLINE_POSTPONE);
+						}else{
+							resCodeEnum = cashAccountService.recharge(payOrderLog.getUserCode() , payOrderLog.getChannelRepayNumber(), payOrderLog.getPayOrderId() , BusinessTypeEnum.UNDERLINE_REPAY);
+						}
+						if(ResCodeEnum.SUCCESS != resCodeEnum && ResCodeEnum.CASH_ACCOUNT_BUSINESS_NO_IS_EXIST != resCodeEnum){
+							logger.error("用户" + payOrderLog.getUserCode() +  " 还款现金账户处理" + payOrderLog.getPayOrderId()  + "异常 : " + resCodeEnum );
+							return MqAction.ReconsumeLater;
+						}
 					}
 				}
 
@@ -198,11 +216,6 @@ public class LoanMo9mqListener implements IMqMsgListener{
 			String payOrderStatus = payOrderEntity.getStatus();
 			// 入账成功才向贷后发消息
 			if (StatusEnum.ENTRY_DONE.name().equals(payOrderStatus)) {
-				//保存 用户流水
-				ResCodeEnum resCodeEnum = cashAccountService.entry(payOrderLog.getUserCode() , payOrderLog.getChannelRepayNumber(), payOrderLog.getPayOrderId());
-				if(ResCodeEnum.SUCCESS != resCodeEnum){
-					logger.error("用户" + payOrderLog.getUserCode() +  " 入账现金账户处理" + payOrderLog.getPayOrderId()  + "异常 : " + resCodeEnum );
-				}
 				// 增加延期次数
 				List<FetchPayOrderCondition.Type> type = new ArrayList<FetchPayOrderCondition.Type>();
 				type.add(FetchPayOrderCondition.Type.REPAY_POSTPONE);
