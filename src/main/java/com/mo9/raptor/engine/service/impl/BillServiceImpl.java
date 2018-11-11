@@ -13,8 +13,12 @@ import com.mo9.raptor.engine.structure.field.Field;
 import com.mo9.raptor.engine.structure.field.FieldTypeEnum;
 import com.mo9.raptor.engine.structure.field.SourceTypeEnum;
 import com.mo9.raptor.engine.structure.item.Item;
+import com.mo9.raptor.entity.CashAccountEntity;
+import com.mo9.raptor.enums.BusinessTypeEnum;
 import com.mo9.raptor.enums.PayTypeEnum;
+import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.exception.LoanEntryException;
+import com.mo9.raptor.service.CashAccountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -33,6 +37,9 @@ public class BillServiceImpl implements BillService {
 
     @Autowired
     private CouponService couponService;
+
+    @Autowired
+    private CashAccountService cashAccountService;
 
 
     @Override
@@ -100,6 +107,35 @@ public class BillServiceImpl implements BillService {
                 }
             }
         }
+
+        /****************  计算本金**********************/
+        //获取用户现金钱包剩余金额
+        CashAccountEntity cashAccountEntity = cashAccountService.findByUserCode(loanOrder.getOwnerId()) ;
+        BigDecimal surplusAmount = BigDecimal.ZERO ;
+        if(cashAccountEntity != null && cashAccountEntity.getBalance().compareTo(BigDecimal.ZERO) == 1){
+            //剩余金额大于0
+            BigDecimal cashAmount = cashAccountEntity.getBalance() ;
+            surplusAmount = shouldPay.subtract(entryItem.sum()) ;
+
+            if(surplusAmount.compareTo(BigDecimal.ZERO) == 1 && cashAmount.compareTo(surplusAmount) == 1){
+                //剩余金额大于差额  大于0
+                entryItem = loanCalculator.entryItem(System.currentTimeMillis(), payType.name(), surplusAmount, entryItem, orderRealItem);
+                for (Map.Entry<FieldTypeEnum, Unit> entry : entryItem.entrySet()) {
+                    Unit unit = entry.getValue();
+                    for (Field field : unit) {
+                        if (field.getSourceType() == null) {
+                            field.setDestinationId(loanOrder.getOrderId());
+                            field.setDestinationType(DestinationTypeEnum.LOAN_ORDER);
+                            field.setSourceId(payOrder.getOrderId());
+                            field.setSourceType(SourceTypeEnum.CASH_REPAY);
+                        }
+                    }
+                }
+            }
+        }
+
+        /**************************************/
+
         /**
          * 只有少于应还金额的时候会报错
          */
@@ -112,6 +148,40 @@ public class BillServiceImpl implements BillService {
         if (entryItem.sum().compareTo(payOrder.getPayNumber().add(applyAmount)) != 0) {
             throw new LoanEntryException("订单" + loanOrder.getOrderId() + payType.getExplanation() + payOrder.getPayNumber() + ", 优惠" + applyAmount + ", 与可入账金额: " + entryItem.sum() + "不匹配!");
         }
+
+        /****************  扣本金**********************/
+        if(surplusAmount.compareTo(BigDecimal.ZERO) == 1){
+            //差额大于0 - 减去余额
+            //根据还款类型区分账户出账类型
+            String channel = payOrder.getChannel() ;
+            String type = payOrder.getType() ;
+            ResCodeEnum resCodeEnum = ResCodeEnum.SUCCESS ;
+            if(channel.equals("manual_pay")){
+                //线下入账
+                if(PayTypeEnum.REPAY_POSTPONE.name().equals(type)){
+                    //延期
+                    resCodeEnum = cashAccountService.entry(payOrder.getOwnerId() , payOrder.getPayNumber(), payOrder.getOrderId() , BusinessTypeEnum.UNDERLINE_BALANCE_POSTPONE);
+                }else{
+                    //还款
+                    resCodeEnum = cashAccountService.entry(payOrder.getOwnerId() , payOrder.getPayNumber(), payOrder.getOrderId() , BusinessTypeEnum.UNDERLINE_BALANCE_REPAY);
+                }
+            }else{
+                //线上入账
+                if(PayTypeEnum.REPAY_POSTPONE.name().equals(type)){
+                    //延期
+                    resCodeEnum = cashAccountService.entry(payOrder.getOwnerId() , payOrder.getPayNumber(), payOrder.getOrderId(), BusinessTypeEnum.ONLINE_BALANCE_POSTPONE);
+                }else{
+                    //还款
+                    resCodeEnum = cashAccountService.entry(payOrder.getOwnerId() , payOrder.getPayNumber(), payOrder.getOrderId(), BusinessTypeEnum.ONLINE_BALANCE_REPAY);
+                }
+            }
+            if(ResCodeEnum.SUCCESS != resCodeEnum && ResCodeEnum.CASH_ACCOUNT_BUSINESS_NO_IS_EXIST != resCodeEnum){
+                //未成功 , 也不是已处理过的数据 , 抛异常
+                throw new LoanEntryException("订单" + loanOrder.getOrderId() + payType.getExplanation() + payOrder.getPayNumber() + ", 现金钱包操作入账" + surplusAmount + ", 失败 状态 : " + resCodeEnum);
+            }
+        }
+        /**************************************/
+
         return entryItem;
     }
 
