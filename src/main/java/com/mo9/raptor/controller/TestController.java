@@ -399,9 +399,7 @@ public class TestController {
         payOrderLog.setPayOrderId(payOrder.getOrderId());
         payOrderLog.setChannel(channel);
         payOrderLog.create();
-        ResCodeEnum resCodeEnumRepay = cashAccountService.underLine(payOrderLog.getUserCode() , payOrderLog.getChannelRepayNumber(), payOrderLog.getPayOrderId());
         payOrderService.savePayOrderAndLog(payOrder, payOrderLog);
-        ResCodeEnum resCodeEnumEntry = cashAccountService.entry(payOrderLog.getUserCode() , payOrderLog.getChannelRepayNumber(), payOrderLog.getPayOrderId());
 
         // 制作优惠券
         CouponEntity effectiveBundledCoupon = couponService.getEffectiveBundledCoupon(loanOrder.getOrderId());
@@ -496,7 +494,6 @@ public class TestController {
 
             // 通知贷后
             PayOrderLogEntity payOrderLogEntity = payOrderLogService.getByPayOrderId(payOrder.getOrderId());
-            ResCodeEnum resCodeEnumEntry = cashAccountService.entry(payOrderLogEntity.getUserCode() , payOrderLogEntity.getChannelRepayNumber(), payOrderLogEntity.getPayOrderId());
             loanMo9mqListener.notifyMisRepay(payOrderLogEntity, loanOrder.getPostponeCount(), loanOrder);
 
             return response;

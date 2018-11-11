@@ -1,6 +1,7 @@
 package com.mo9.raptor.service;
 
 import com.mo9.raptor.entity.CashAccountEntity;
+import com.mo9.raptor.enums.BusinessTypeEnum;
 import com.mo9.raptor.enums.ResCodeEnum;
 
 import java.math.BigDecimal;
@@ -13,28 +14,25 @@ import java.math.BigDecimal;
 public interface CashAccountService {
 
     /**
-     * 线上还款
+     * 充值
      * @param userCode
      * @param amount
+     * @param businessNo
+     * @param businessTypeEnum
      * @return
      */
-    ResCodeEnum repay(String userCode , BigDecimal amount , String businessNo);
+    ResCodeEnum recharge(String userCode , BigDecimal amount , String businessNo, BusinessTypeEnum businessTypeEnum);
 
-    /**
-     * 线下还款
-     * @param userCode
-     * @param amount
-     * @return
-     */
-    ResCodeEnum underLine(String userCode , BigDecimal amount , String businessNo);
 
     /**
      * 入账
      * @param userCode
      * @param amount
+     * @param businessNo
+     * @param businessTypeEnum
      * @return
      */
-    ResCodeEnum entry(String userCode , BigDecimal amount , String businessNo);
+    ResCodeEnum entry(String userCode , BigDecimal amount , String businessNo , BusinessTypeEnum businessTypeEnum);
 
     /**
      * 根据用户id查询

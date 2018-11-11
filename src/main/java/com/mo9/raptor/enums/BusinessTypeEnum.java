@@ -9,19 +9,23 @@ public enum BusinessTypeEnum {
     /**
      * 线上还款
      */
-    REPAY(),
+    ONLINE_REPAY(),
+    /**
+     * 线上延期
+     */
+    ONLINE_POSTPONE(),
     /**
      * 代扣
      */
     DEDUCT(),
     /**
-     * 入账
-     */
-    ENTRY(),
-    /**
      * 线下还款
      */
-    UNDER_LINE(),
+    UNDERLINE_REPAY(),
+    /**
+     * 线下延期
+     */
+    UNDERLINE_POSTPONE(),
     /**
      * 充值
      */
@@ -30,5 +34,21 @@ public enum BusinessTypeEnum {
      * 退款
      */
     REFUND(),
+    /**
+     * 线上还款 - 余额
+     */
+    ONLINE_BALANCE_REPAY(),
+    /**
+     * 线上延期 - 余额
+     */
+    ONLINE_BALANCE_POSTPONE(),
+    /**
+     * 线下还款 - 余额
+     */
+    UNDERLINE_BALANCE_REPAY(),
+    /**
+     * 线下延期 - 余额
+     */
+    UNDERLINE_BALANCE_POSTPONE(),
     ;
 }

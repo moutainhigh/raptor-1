@@ -115,5 +115,19 @@ public class SystemController {
         return response;
     }
 
+    /**
+     * 苹果获取强更url
+     */
+    @GetMapping("/get_latest_version")
+    public BaseResponse<JSONObject> getLatestVersion(){
+        BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
+        JSONObject entity = new JSONObject() ;
+        entity.put("latestVersion" , "1.0.0") ;
+        entity.put("desc" , "暂时写死默认版本") ;
+        entity.put("downUrl" , "http://xxxxxxxxx") ;
+        response.setData(entity);
+        return response;
+    }
+
 
 }
