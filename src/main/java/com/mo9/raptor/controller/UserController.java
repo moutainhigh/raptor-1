@@ -1,10 +1,14 @@
 package com.mo9.raptor.controller;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.bean.BaseResponse;
 import com.mo9.raptor.bean.ReqHeaderParams;
 import com.mo9.raptor.bean.req.BankReq;
 import com.mo9.raptor.bean.req.LoginByCodeReq;
 import com.mo9.raptor.bean.req.ModifyCertifyReq;
+import com.mo9.raptor.engine.service.CouponService;
+import com.mo9.raptor.entity.CashAccountEntity;
 import com.mo9.raptor.entity.UserCertifyInfoEntity;
 import com.mo9.raptor.bean.res.AccountBankCardRes;
 import com.mo9.raptor.bean.res.AuditStatusRes;
@@ -65,6 +69,12 @@ public class UserController {
 
     @Autowired
     private CommonUtils commonUtils ;
+
+    @Autowired
+    private CashAccountService cashAccountService ;
+
+    @Autowired
+    private CouponService couponService ;
 
     @Resource
     private UserCertifyInfoService userCertifyInfoService;
@@ -346,6 +356,26 @@ public class UserController {
             return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
         }
         return response.buildSuccessResponse("ok");
+    }
+
+    /**
+     * 告知服务通话记录已上传
+     * @param request
+     * @return
+     */
+    @RequestMapping(value = "/get_balance")
+    public BaseResponse<JSONObject> getBalance(HttpServletRequest request){
+        BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
+        JSONObject entity = new JSONObject() ;
+        String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
+        CashAccountEntity cashAccountEntity = cashAccountService.findByUserCode(userCode);
+        if(cashAccountEntity == null){
+            entity.put("balance" , "0");
+        }else{
+            entity.put("balance" , cashAccountEntity.getBalance().toPlainString());
+        }
+        response.setData(entity);
+        return response;
     }
 
     /**
