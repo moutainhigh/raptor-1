@@ -469,13 +469,11 @@ public class UserController {
             BusinessTypeEnum[] type = BusinessTypeEnum.values() ;
             List<BusinessTypeEnum> list = Arrays.asList(type);
             cashAccountLogCondition.setInType(list);
-            types.remove("RECHARGE_TYPES");
         }
         if(types != null && types.contains("ENTRY_TYPES")){
             BusinessTypeEnum[] type = BusinessTypeEnum.values() ;
             List<BusinessTypeEnum> list = Arrays.asList(type);
             cashAccountLogCondition.setOutType(list);
-            types.remove("ENTRY_TYPES");
         }
         if(types != null && types.size() > 0){
             //遍历
@@ -503,8 +501,12 @@ public class UserController {
                     }
                 }
             }
-            cashAccountLogCondition.setInType(listIn);
-            cashAccountLogCondition.setOutType(listOut);
+            if(!types.contains("RECHARGE_TYPES")){
+                cashAccountLogCondition.setInType(listIn);
+            }
+            if(!types.contains("ENTRY_TYPES")){
+                cashAccountLogCondition.setOutType(listOut);
+            }
         }
     }
 
