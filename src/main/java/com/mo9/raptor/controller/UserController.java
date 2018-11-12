@@ -397,14 +397,18 @@ public class UserController {
                                                  HttpServletRequest request){
         BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
         String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
-        //时间转换
-        Date fromDate = setDateForTime(fromTime);
-        Date toDate = setDateForTime(toTime);
         CashAccountLogCondition cashAccountLogCondition = new CashAccountLogCondition() ;
+        //时间转换
+        if(fromTime != null){
+            Date fromDate = setDateForTime(fromTime);
+            cashAccountLogCondition.setFromDate(fromDate);
+        }
+        if(toTime != null){
+            Date toDate = setDateForTime(toTime);
+            cashAccountLogCondition.setToDate(toDate);
+        }
         cashAccountLogCondition.setPageNumber(pageNumber);
         cashAccountLogCondition.setPageSize(pageSize);
-        cashAccountLogCondition.setFromDate(fromDate);
-        cashAccountLogCondition.setToDate(toDate);
         cashAccountLogCondition.setUserCode(userCode);
         try {
             setInAndOutType(type , cashAccountLogCondition);
