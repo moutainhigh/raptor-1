@@ -187,9 +187,9 @@ public class CashAccountServiceImpl implements CashAccountService {
 
                 Predicate outBusinessType = null ;
                 if(condition.getOutType() != null && condition.getOutType().size() > 0){
-                    List<BusinessTypeEnum> inTypes = condition.getInType() ;
+                    List<BusinessTypeEnum> outTypes = condition.getOutType() ;
                     CriteriaBuilder.In<BusinessTypeEnum> out = cb.in(root.get("businessType").as(BusinessTypeEnum.class));
-                    for (BusinessTypeEnum type : inTypes) {
+                    for (BusinessTypeEnum type : outTypes) {
                         out.value(type);
                     }
                     outBusinessType = cb.and(out , cb.equal(root.get("balanceType").as(BalanceTypeEnum.class),BalanceTypeEnum.OUT));
