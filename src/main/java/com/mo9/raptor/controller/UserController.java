@@ -469,13 +469,15 @@ public class UserController {
             BusinessTypeEnum[] type = BusinessTypeEnum.values() ;
             List<BusinessTypeEnum> list = Arrays.asList(type);
             cashAccountLogCondition.setInType(list);
+            types.remove("RECHARGE_TYPES");
         }
         if(types != null && types.contains("ENTRY_TYPES")){
             BusinessTypeEnum[] type = BusinessTypeEnum.values() ;
             List<BusinessTypeEnum> list = Arrays.asList(type);
             cashAccountLogCondition.setOutType(list);
+            types.remove("ENTRY_TYPES");
         }
-        if(types != null && !(types.contains("ENTRY_TYPES")) && !(types.contains("RECHARGE_TYPES"))){
+        if(types != null && types.size() > 0){
             //遍历
             List<BusinessTypeEnum> listIn = new ArrayList<BusinessTypeEnum>();
             List<BusinessTypeEnum> listOut = new ArrayList<BusinessTypeEnum>();
