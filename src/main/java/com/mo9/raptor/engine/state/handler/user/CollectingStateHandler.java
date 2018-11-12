@@ -10,7 +10,7 @@ import com.mo9.raptor.engine.state.handler.IStateHandler;
 import com.mo9.raptor.engine.state.handler.StateHandler;
 import com.mo9.raptor.engine.state.launcher.IEventLauncher;
 import com.mo9.raptor.entity.UserEntity;
-import com.mo9.raptor.risk.service.RiskAuditService;
+import com.mo9.risk.service.RiskAuditService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

@@ -8,7 +8,7 @@ import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
 @EnableAspectJAutoProxy
-@SpringBootApplication(scanBasePackages = {"com.mo9.raptor.*"})
+@SpringBootApplication(scanBasePackages = {"com.mo9.raptor.*","com.mo9.risk.*"})
 @EnableAutoConfiguration
 public class RaptorApplicationTest {
 	public static void main(String[] args) {

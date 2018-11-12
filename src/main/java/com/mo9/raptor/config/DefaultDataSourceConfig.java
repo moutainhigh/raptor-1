@@ -28,7 +28,7 @@ import java.util.Map;
 @EnableJpaRepositories(
         entityManagerFactoryRef="primaryEntityManagerFactory",
         transactionManagerRef="entityManagerFactoryPrimary",
-        basePackages= { "com.mo9.raptor.repository", "com.mo9.raptor.engine.repository" }) //设置Repository所在位置
+        basePackages= { "com.mo9.raptor.repository", "com.mo9.raptor.engine.repository", "com.mo9.risk.app.repo" }) //设置Repository所在位置
 public class DefaultDataSourceConfig {
 
     @Resource
@@ -41,7 +41,7 @@ public class DefaultDataSourceConfig {
     public LocalContainerEntityManagerFactoryBean primaryEntityManagerFactory(EntityManagerFactoryBuilder builder) {
         return builder
                 .dataSource(primaryDataSource)
-                .packages("com.mo9.raptor.entity", "com.mo9.raptor.engine.entity")
+                .packages("com.mo9.raptor.entity", "com.mo9.raptor.engine.entity", "com.mo9.risk.app.entity")
                 .persistenceUnit("primary")
                 .build();
     }

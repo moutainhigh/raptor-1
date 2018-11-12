@@ -1,7 +1,9 @@
 package com.mo9.raptor.pool;
 
 import com.mo9.raptor.entity.UserEntity;
-import com.mo9.raptor.risk.service.RiskContractInfoService;
+import com.mo9.risk.app.entity.User;
+import com.mo9.risk.service.RiskContractInfoService;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -28,6 +30,8 @@ public class RiskContractTask implements ThreadPoolTask {
 
     @Override
     public void run() {
-        riskContractInfoService.createAll(data, userEntity);
+        User user = new User();
+        BeanUtils.copyProperties(this.userEntity, user);
+        riskContractInfoService.createAll(data, user);
     }
 }

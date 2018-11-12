@@ -2,23 +2,19 @@ package com.mo9.raptor.task;
 
 import com.mo9.raptor.controller.RiskController;
 import com.mo9.raptor.entity.UserEntity;
-import com.mo9.raptor.risk.entity.TRiskTelInfo;
-import com.mo9.raptor.risk.service.RiskTelInfoService;
-import com.mo9.raptor.service.CommonService;
 import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.CommonValues;
-import com.mo9.raptor.utils.httpclient.HttpClientApi;
 import com.mo9.raptor.utils.log.Log;
 import com.mo9.raptor.utils.oss.OSSProperties;
+import com.mo9.risk.entity.TRiskTelInfo;
+import com.mo9.risk.service.RiskTelInfoService;
 import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.util.Calendar;
-import java.util.List;
 import java.util.Set;
 
 /**
