@@ -1,8 +1,11 @@
 package com.mo9.raptor.service;
 
+import com.mo9.raptor.bean.condition.CashAccountLogCondition;
 import com.mo9.raptor.entity.CashAccountEntity;
+import com.mo9.raptor.entity.CashAccountLogEntity;
 import com.mo9.raptor.enums.BusinessTypeEnum;
 import com.mo9.raptor.enums.ResCodeEnum;
+import org.springframework.data.domain.Page;
 
 import java.math.BigDecimal;
 
@@ -41,4 +44,10 @@ public interface CashAccountService {
      */
     CashAccountEntity findByUserCode(String userCode);
 
+    /**
+     * 条件查询日志
+     * @param cashAccountLogCondition
+     * @return
+     */
+    Page<CashAccountLogEntity> findLogByCondition(CashAccountLogCondition cashAccountLogCondition);
 }

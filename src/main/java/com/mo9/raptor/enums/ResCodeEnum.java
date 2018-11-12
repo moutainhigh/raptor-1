@@ -95,6 +95,7 @@ public enum ResCodeEnum {
     CASH_ACCOUNT_BALANCE_LACK(11159001, "现金账户可用金额不够", "现金账户可用金额不够"),
     CASH_ACCOUNT_BUSINESS_NO_IS_EXIST(11159002, "现金账户业务流水号已经处理", "现金账户业务流水号已经处理"),
     CASH_ACCOUNT_EXCEPTION(11159003, "现金账户异常", "现金账户异常"),
+    CASH_ACCOUNT_BUSINESS_TYPE_EXCEPTION(11159004, "现金账户业务类型异常", "现金账户业务类型异常"),
 
   ;
 
