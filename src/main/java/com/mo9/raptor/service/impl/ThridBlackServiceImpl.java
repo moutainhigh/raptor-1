@@ -2,8 +2,8 @@ package com.mo9.raptor.service.impl;
 
 import com.mo9.raptor.entity.ThridBlackEntity;
 import com.mo9.raptor.repository.ThridBlackRepository;
-import com.mo9.raptor.risk.black.channel.KeMi;
 import com.mo9.raptor.service.ThridBlackService;
+import com.mo9.risk.black.channel.KeMi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

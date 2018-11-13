@@ -2,10 +2,12 @@ package com.mo9.raptor.service;
 
 import com.mo9.raptor.RaptorApplicationTest;
 import com.mo9.raptor.entity.UserEntity;
-import com.mo9.raptor.risk.repo.RiskContractInfoRepository;
-import com.mo9.raptor.risk.service.RiskContractInfoService;
+import com.mo9.risk.app.entity.User;
+import com.mo9.risk.repo.RiskContractInfoRepository;
+import com.mo9.risk.service.RiskContractInfoService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.BeanUtils;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -62,7 +64,9 @@ public class RiskContractInfoServiceTest {
         UserEntity userEntity = new UserEntity();
         userEntity.setMobile("13213173517");
         userEntity.setUserCode("DD73904B9D39FD45CD7AC4E54F9576A8");
-        riskContractInfoService.createAll(data, userEntity);
+        User user = new User();
+        BeanUtils.copyProperties(userEntity, user);
+        riskContractInfoService.createAll(data, user);
     }
 
     @Test

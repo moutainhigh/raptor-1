@@ -6,12 +6,13 @@ import com.mo9.raptor.RaptorApplicationTest;
 import com.mo9.raptor.engine.state.event.impl.AuditResponseEvent;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.repository.UserRepository;
-import com.mo9.raptor.risk.entity.TRiskCallLog;
-import com.mo9.raptor.risk.repo.RiskCallLogRepository;
-import com.mo9.raptor.risk.service.RiskAuditService;
-import com.mo9.raptor.risk.service.RiskWordService;
-import com.mo9.raptor.riskdb.repo.RiskThirdBlackListRepository;
 import com.mo9.raptor.utils.MobileUtil;
+import com.mo9.risk.bean.AuditResponse;
+import com.mo9.risk.entity.TRiskCallLog;
+import com.mo9.risk.repo.RiskCallLogRepository;
+import com.mo9.risk.riskdb.repo.RiskThirdBlackListRepository;
+import com.mo9.risk.service.RiskAuditService;
+import com.mo9.risk.service.RiskWordService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -63,7 +64,7 @@ public class AuditServiceTest {
 
     @Test
     public void t2() {
-        AuditResponseEvent audit = riskAuditService.audit("04AB246646B193A4EB82DC509CE942AA");
+        AuditResponse audit = riskAuditService.audit("04AB246646B193A4EB82DC509CE942AA");
         System.out.println(audit);
     }
 

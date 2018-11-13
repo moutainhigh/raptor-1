@@ -27,7 +27,7 @@ import javax.sql.DataSource;
 @EnableJpaRepositories(
         entityManagerFactoryRef = "riskdbEntityManagerFactory",
         transactionManagerRef = "entityManagerFactoryRiskdb",
-        basePackages = {"com.mo9.raptor.riskdb.repo"}) //设置Repository所在位置
+        basePackages = {"com.mo9.risk.riskdb.repo"}) //设置Repository所在位置
 public class RiskDBDataSourceConfig {
 
     @Resource
@@ -39,7 +39,7 @@ public class RiskDBDataSourceConfig {
     public LocalContainerEntityManagerFactoryBean riskdbEntityManagerFactory(EntityManagerFactoryBuilder builder) {
         return builder
                 .dataSource(riskdbDataSource)
-                .packages("com.mo9.raptor.riskdb.entity")
+                .packages("com.mo9.risk.riskdb.entity")
                 .persistenceUnit("riskdb")
                 .build();
     }

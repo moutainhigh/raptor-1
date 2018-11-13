@@ -154,7 +154,11 @@
             <artifactId>ahocorasick</artifactId>
             <version>0.3.0</version>
         </dependency>
-
+        <dependency>
+            <groupId>com.mo9.raptor.risk</groupId>
+            <artifactId>risk</artifactId>
+            <version>0.0.3-RELEASE</version>
+        </dependency>
 
     </dependencies>
 

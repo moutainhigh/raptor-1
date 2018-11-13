@@ -1,5 +1,6 @@
 package com.mo9.raptor.service.impl;
 
+import com.mo9.raptor.bean.condition.CashAccountLogCondition;
 import com.mo9.raptor.entity.CashAccountEntity;
 import com.mo9.raptor.entity.CashAccountLogEntity;
 import com.mo9.raptor.enums.BalanceTypeEnum;
@@ -13,11 +14,22 @@ import com.mo9.raptor.utils.CommonValues;
 import com.mo9.raptor.utils.log.Log;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -146,6 +158,60 @@ public class CashAccountServiceImpl implements CashAccountService {
     @Override
     public CashAccountEntity findByUserCode(String userCode) {
         return cashAccountRepository.findByUserCode(userCode);
+    }
+
+    @Override
+    public Page<CashAccountLogEntity> findLogByCondition(final CashAccountLogCondition condition) {
+        //规格定义
+        Specification<CashAccountLogEntity> specification = new Specification<CashAccountLogEntity>() {
+            @Override
+            public Predicate toPredicate(Root<CashAccountLogEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+                List<Predicate> list = new ArrayList<Predicate>(10);
+                list.add(cb.equal(root.get("userCode").as(String.class),condition.getUserCode()));
+
+                if(condition.getFromDate() != null){
+                    list.add(cb.greaterThanOrEqualTo(root.get("createTime").as(Date.class), condition.getFromDate()));
+                }
+                if(condition.getToDate() != null){
+                    list.add(cb.lessThanOrEqualTo(root.get("createTime").as(Date.class) , condition.getToDate()));
+                }
+                Predicate inBusinessType = null ;
+                if(condition.getInType() != null && condition.getInType().size() > 0){
+                    List<BusinessTypeEnum> inTypes = condition.getInType() ;
+                    CriteriaBuilder.In<BusinessTypeEnum> in = cb.in(root.get("businessType").as(BusinessTypeEnum.class));
+                    for (BusinessTypeEnum type : inTypes) {
+                        in.value(type);
+                    }
+                    inBusinessType = cb.and(in , cb.equal(root.get("balanceType").as(BalanceTypeEnum.class),BalanceTypeEnum.IN));
+                }
+
+                Predicate outBusinessType = null ;
+                if(condition.getOutType() != null && condition.getOutType().size() > 0){
+                    List<BusinessTypeEnum> outTypes = condition.getOutType() ;
+                    CriteriaBuilder.In<BusinessTypeEnum> out = cb.in(root.get("businessType").as(BusinessTypeEnum.class));
+                    for (BusinessTypeEnum type : outTypes) {
+                        out.value(type);
+                    }
+                    outBusinessType = cb.and(out , cb.equal(root.get("balanceType").as(BalanceTypeEnum.class),BalanceTypeEnum.OUT));
+                }
+                if(inBusinessType != null && outBusinessType != null ){
+                    //同时不为null
+                    list.add(cb.or(inBusinessType , outBusinessType));
+                }else if(inBusinessType != null){
+                    list.add(inBusinessType);
+                }else if(outBusinessType != null){
+                    list.add(outBusinessType);
+                }
+
+                Predicate[] predicates = new Predicate[list.size()];
+                predicates = list.toArray(predicates);
+                return cb.and(predicates);
+            }
+        };
+        //分页信息
+        Pageable pageable = PageRequest.of(condition.getPageNumber()-1, condition.getPageSize(), Sort.Direction.DESC, "id");
+        //查询
+        return cashAccountLogRepository.findAll(specification , pageable);
     }
 
     private CashAccountEntity create(String userCode){
