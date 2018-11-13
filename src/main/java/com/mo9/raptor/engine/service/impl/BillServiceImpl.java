@@ -183,6 +183,9 @@ public class BillServiceImpl implements BillService {
             if(ResCodeEnum.SUCCESS != resCodeEnum && ResCodeEnum.CASH_ACCOUNT_BUSINESS_NO_IS_EXIST != resCodeEnum){
                 //未成功 , 也不是已处理过的数据 , 抛异常
                 throw new LoanEntryException("订单" + loanOrder.getOrderId() + payType.getExplanation() + payOrder.getPayNumber() + ", 现金钱包操作入账" + surplusAmount + ", 失败 状态 : " + resCodeEnum);
+            }else{
+                //写入还款订单真实现金钱包金额
+                payOrder.setBalanceNumber(surplusAmount);
             }
         }
         /**************************************/

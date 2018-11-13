@@ -2,6 +2,7 @@ package com.mo9.raptor.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.bean.BaseResponse;
+import com.mo9.raptor.bean.ReqHeaderParams;
 import com.mo9.raptor.engine.utils.TimeUtils;
 import com.mo9.raptor.service.CommonService;
 import com.mo9.raptor.service.DingTalkService;
@@ -116,15 +117,32 @@ public class SystemController {
     }
 
     /**
-     * 苹果获取强更url
+     * 获取最新版本信息
      */
     @GetMapping("/get_latest_version")
-    public BaseResponse<JSONObject> getLatestVersion(){
+    public BaseResponse<JSONObject> getLatestVersion(HttpServletRequest request){
         BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
         JSONObject entity = new JSONObject() ;
-        entity.put("latestVersion" , "1.0.0") ;
-        entity.put("desc" , "暂时写死默认版本") ;
-        entity.put("downUrl" , "http://xxxxxxxxx") ;
+        String clientId = request.getHeader(ReqHeaderParams.CLIENT_ID);
+        String version = "client901_1.0.2_8_测试901_www.baidu.com,client902_1.0.3_9_测试902_www.baidu.com,client911_1.0.4_10_测试9011_www.baidu.com,client912_1.0.4_11_测试9012_www.baidu.com";
+        String[] arr = version.split(",") ;
+        String start = "client"+ clientId ;
+        for(String str : arr){
+            if(str.startsWith(start)){
+                String[] versionArr = str.split("_");
+                entity.put("latestVersion" , versionArr[1]) ;
+                entity.put("latestVersionCode" , versionArr[2]) ;
+                entity.put("desc" , versionArr[3]) ;
+                entity.put("downUrl" , versionArr[4]) ;
+                break;
+            }
+        }
+        if(entity.size() == 0){
+            entity.put("latestVersion" , "0.0.0") ;
+            entity.put("latestVersionCode" , "0") ;
+            entity.put("desc" , "未知渠道") ;
+            entity.put("downUrl" , "") ;
+        }
         response.setData(entity);
         return response;
     }
