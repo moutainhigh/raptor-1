@@ -1,6 +1,8 @@
 package com.mo9.raptor.engine.service;
 
+import com.mo9.raptor.bean.condition.CouponCondition;
 import com.mo9.raptor.engine.entity.CouponEntity;
+import org.springframework.data.domain.Page;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -35,4 +37,19 @@ public interface CouponService {
      * @return
      */
     List<CouponEntity> getByPayOrderId(String payOrderId);
+
+    /**
+     * 根据用户标识查询未删除优惠券
+     * @param userCode
+     * @return
+     */
+    List<CouponEntity> findByUserCodeNotDelete(String userCode);
+
+    /**
+     * 根据条件查询分页
+     * @param couponCondition
+     * @return
+     */
+    Page<CouponEntity> findByCondition(CouponCondition couponCondition);
+
 }

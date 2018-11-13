@@ -8,10 +8,12 @@ import com.mo9.raptor.bean.req.LoanOrderRepay;
 import com.mo9.raptor.bean.req.PayInfoCache;
 import com.mo9.raptor.bean.res.ChannelDetailRes;
 import com.mo9.raptor.bean.res.PayOderChannelRes;
+import com.mo9.raptor.engine.entity.CouponEntity;
 import com.mo9.raptor.engine.entity.LoanOrderEntity;
 import com.mo9.raptor.engine.entity.PayOrderEntity;
 import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.engine.service.BillService;
+import com.mo9.raptor.engine.service.CouponService;
 import com.mo9.raptor.engine.service.ILoanOrderService;
 import com.mo9.raptor.engine.service.IPayOrderService;
 import com.mo9.raptor.engine.structure.item.Item;
@@ -20,6 +22,7 @@ import com.mo9.raptor.enums.*;
 import com.mo9.raptor.redis.RedisParams;
 import com.mo9.raptor.redis.RedisServiceApi;
 import com.mo9.raptor.service.*;
+import com.mo9.raptor.utils.CommonValues;
 import com.mo9.raptor.utils.IDWorker;
 import com.mo9.raptor.utils.log.Log;
 import org.apache.commons.lang.StringUtils;
@@ -74,6 +77,12 @@ public class PayOrderController {
     @Autowired
     private BillService billService;
 
+    @Autowired
+    private CashAccountService cashAccountService ;
+
+    @Autowired
+    private CouponService couponService ;
+
     @Resource
     private RedisServiceApi redisServiceApi;
 
@@ -82,6 +91,12 @@ public class PayOrderController {
 
     @Value("${raptor.sockpuppet}")
     private String sockpuppet;
+
+    /**
+     * 支付版本号
+     */
+    @Value("${raptor.pay.version}")
+    private String raptorPayVersion;
 
     @GetMapping("/download")
     public String download () {
@@ -97,10 +112,13 @@ public class PayOrderController {
     public BaseResponse<JSONObject> repay(@Valid @RequestBody LoanOrderRepay req, HttpServletRequest request) {
         BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
         String loanOrderId = req.getLoanOrderId();
+        String couponId = req.getCouponId();
+        BigDecimal balance = req.getBalance();
         String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
         String clientId = request.getHeader(ReqHeaderParams.CLIENT_ID);
         String clientVersion = request.getHeader(ReqHeaderParams.CLIENT_VERSION);
         logger.info("repay方法开始,userCode:"+userCode+",loanOrderId:"+loanOrderId);
+
         try{
             // 用户没删就行, 拉黑也能还
             //UserEntity user = userService.findByUserCodeAndDeleted(userCode, false);
@@ -136,6 +154,37 @@ public class PayOrderController {
             payInfoCache.setIdCard(userCertifyInfoEntity.getIdCard());
             payInfoCache.setClientId(clientId);
             payInfoCache.setClientVersion(clientVersion);
+            //判断优惠券是否存在
+            if(couponId != null){
+                CouponEntity couponEntity = couponService.getByCouponId(couponId);
+                if(couponEntity.getStatus().equals(StatusEnum.PENDING.name()) && couponEntity.getExpireDate() > System.currentTimeMillis()){
+                    payInfoCache.setCouponId(couponId);
+                }else{
+                    //钱包余额不够
+                    response.setCode(ResCodeEnum.COUPON_IS_EXPIRY.getCode());
+                    response.setMessage(ResCodeEnum.COUPON_IS_EXPIRY.getMessage());
+                    return response ;
+                }
+            }
+            //判断钱包余额是否够
+            if(balance != null && balance.compareTo(BigDecimal.ZERO) == 1){
+                CashAccountEntity cashAccountEntity = cashAccountService.findByUserCode(userCode) ;
+                if(cashAccountEntity ==null || cashAccountEntity.getBalance().compareTo(balance) == -1){
+                    //钱包余额不够
+                    response.setCode(ResCodeEnum.CASH_ACCOUNT_BALANCE_LACK.getCode());
+                    response.setMessage(ResCodeEnum.CASH_ACCOUNT_BALANCE_LACK.getMessage());
+                    return response ;
+                }else{
+                    payInfoCache.setBalance(balance);
+                }
+            }
+
+            /***************** 2018-11-08 顾晓桐增加版本 -- 支付中心********************/
+            if(raptorPayVersion.equals(CommonValues.SEEKER_PAY_VERSION)){
+                //支付中心版本
+                return seekerRepay(payInfoCache , response);
+            }
+            /*************************************/
 
             redisServiceApi.set(RedisParams.PAY_CODE + code, payInfoCache, RedisParams.EXPIRE_5M, raptorRedis);
 
@@ -151,6 +200,68 @@ public class PayOrderController {
     }
 
     /**
+     * 支付中心版本支付
+     * @param payInfoCache
+     * @param response
+     * @return
+     */
+    private BaseResponse<JSONObject> seekerRepay(PayInfoCache payInfoCache , BaseResponse<JSONObject> response) {
+
+        try {
+            //获取手机号
+            BankEntity bank = bankService.findByUserCodeLastOne(payInfoCache.getUserCode()) ;
+
+            String orderId = sockpuppet + "-" + String.valueOf(idWorker.nextId());
+            PayOrderEntity payOrder = new PayOrderEntity();
+            payOrder.setOrderId(orderId);
+            payOrder.setStatus(StatusEnum.PENDING.name());
+
+            String payType = payInfoCache.getPayType();
+            payOrder.setOwnerId(payInfoCache.getUserCode());
+            payOrder.setType(payType);
+            payOrder.setApplyNumber(payInfoCache.getPayNumber());
+            payOrder.setPostponeDays(payInfoCache.getPeriod());
+            payOrder.setLoanOrderId(payInfoCache.getLoanOrderId());
+
+            payOrder.setPayCurrency(CurrencyEnum.getDefaultCurrency().name());
+            payOrder.setChannel("未知");
+            payOrder.create();
+
+            PayOrderLogEntity payOrderLog = new PayOrderLogEntity();
+            payOrderLog.setIdCard(payInfoCache.getIdCard());
+            payOrderLog.setUserName(payInfoCache.getUserName());
+            payOrderLog.setRepayAmount(payInfoCache.getPayNumber());
+            payOrderLog.setUserCode(payInfoCache.getUserCode());
+            payOrderLog.setClientId(payInfoCache.getClientId());
+            payOrderLog.setClientVersion(payInfoCache.getClientVersion());
+            payOrderLog.setOrderId(payInfoCache.getLoanOrderId());
+            if (PayTypeEnum.REPAY_POSTPONE.name().equals(payType)) {
+                LoanOrderEntity loanOrder = loanOrderService.getByOrderId(payInfoCache.getLoanOrderId());
+                payOrderLog.setFormerRepaymentDate(loanOrder.getRepaymentDate());
+            }
+            payOrderLog.setPayOrderId(payOrder.getOrderId());
+            payOrderLog.setChannel("未知");
+            payOrderLog.setBankCard(bank.getBankNo());
+            payOrderLog.setBankMobile(bank.getMobile());
+
+            payOrderLog.create();
+            payOrderService.savePayOrderAndLogAndNotice(payOrder, payOrderLog);
+
+            PayOderChannelRes res = getResBySeeker(orderId);
+
+            JSONObject data = new JSONObject();
+
+            data.put("entities", res);
+            data.put("url", res.getResult());
+            logger.info("repay方法结束,userCode:"+payInfoCache.getUserCode()+",loanOrderId:"+payInfoCache.getLoanOrderId()+",url:"+res.getResult());
+            return response.buildSuccessResponse(data);
+        } catch (Exception e) {
+            Log.error(logger, e,"发起支付出现异常userCode={}", payInfoCache.getUserCode());
+            return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
+        }
+    }
+
+    /**
      * 续期支付
      * @return
      */
@@ -159,6 +270,8 @@ public class PayOrderController {
     public BaseResponse<JSONObject> renewal(@Valid @RequestBody LoanOrderRenewal req, HttpServletRequest request) {
         BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
         String loanOrderId = req.getLoanOrderId();
+        String couponId = req.getCouponId();
+        BigDecimal balance = req.getBalance();
         int period = req.getPeriod();
         String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
         String clientId = request.getHeader(ReqHeaderParams.CLIENT_ID);
@@ -203,6 +316,38 @@ public class PayOrderController {
             payInfoCache.setIdCard(userCertifyInfoEntity.getIdCard());
             payInfoCache.setClientId(clientId);
             payInfoCache.setClientVersion(clientVersion);
+
+            //判断优惠券是否存在
+            if(couponId != null){
+                CouponEntity couponEntity = couponService.getByCouponId(couponId);
+                if(couponEntity.getStatus().equals(StatusEnum.PENDING.name()) && couponEntity.getExpireDate() > System.currentTimeMillis()){
+                    payInfoCache.setCouponId(couponId);
+                }else{
+                    //钱包余额不够
+                    response.setCode(ResCodeEnum.COUPON_IS_EXPIRY.getCode());
+                    response.setMessage(ResCodeEnum.COUPON_IS_EXPIRY.getMessage());
+                    return response ;
+                }
+            }
+            //判断钱包余额是否够
+            if(balance != null && balance.compareTo(BigDecimal.ZERO) == 1){
+                CashAccountEntity cashAccountEntity = cashAccountService.findByUserCode(userCode) ;
+                if(cashAccountEntity ==null || cashAccountEntity.getBalance().compareTo(balance) == -1){
+                    //钱包余额不够
+                    response.setCode(ResCodeEnum.CASH_ACCOUNT_BALANCE_LACK.getCode());
+                    response.setMessage(ResCodeEnum.CASH_ACCOUNT_BALANCE_LACK.getMessage());
+                    return response ;
+                }else{
+                    payInfoCache.setBalance(balance);
+                }
+            }
+
+            /***************** 2018-11-08 顾晓桐增加版本 -- 支付中心********************/
+            if(raptorPayVersion.equals(CommonValues.SEEKER_PAY_VERSION)){
+                //支付中心版本
+                return seekerRepay(payInfoCache , response);
+            }
+            /*************************************/
 
             redisServiceApi.set(RedisParams.PAY_CODE + code, payInfoCache, RedisParams.EXPIRE_5M, raptorRedis);
 
@@ -302,6 +447,7 @@ public class PayOrderController {
             //获取手机号
             BankEntity bank = bankService.findByBankNo(bankNo);
 
+
             String orderId = sockpuppet + "-" + String.valueOf(idWorker.nextId());
             PayOrderEntity payOrder = new PayOrderEntity();
             payOrder.setOrderId(orderId);
@@ -316,6 +462,31 @@ public class PayOrderController {
 
             payOrder.setPayCurrency(CurrencyEnum.getDefaultCurrency().name());
             payOrder.setChannel(channel);
+            String couponId = payInfoCache.getCouponId();
+            BigDecimal balance = payInfoCache.getBalance();
+            //判断优惠券是否存在
+            if(couponId != null){
+                CouponEntity couponEntity = couponService.getByCouponId(couponId);
+                if(couponEntity.getStatus().equals(StatusEnum.PENDING.name()) && couponEntity.getExpireDate() > System.currentTimeMillis()){
+                    payOrder.setCouponId(couponId);
+                }else{
+                    //钱包余额不够
+                    response.setCode(ResCodeEnum.COUPON_IS_EXPIRY.getCode());
+                    response.setMessage(ResCodeEnum.COUPON_IS_EXPIRY.getMessage());
+                    return response ;
+                }
+            }
+            //判断钱包余额是否够
+            if(balance != null && balance.compareTo(BigDecimal.ZERO) == 1){
+                CashAccountEntity cashAccountEntity = cashAccountService.findByUserCode(payInfoCache.getUserCode()) ;
+                if(cashAccountEntity ==null || cashAccountEntity.getBalance().compareTo(balance) == -1){
+                    //钱包余额不够
+                    response.setCode(ResCodeEnum.CASH_ACCOUNT_BALANCE_LACK.getCode());
+                    response.setMessage(ResCodeEnum.CASH_ACCOUNT_BALANCE_LACK.getMessage());
+                    return response ;
+                }
+            }
+
             payOrder.create();
 
             PayOrderLogEntity payOrderLog = new PayOrderLogEntity();
@@ -510,6 +681,34 @@ public class PayOrderController {
                 res.setResult(url);
                 res.setState(true);
                 res.setChannelType(channelId);
+            } else {
+                res.setState(false);
+            }
+        } else {
+            res.setState(false);
+        }
+        return res;
+    }
+
+    /**
+     * 封装 支付中心版本 还款返回数据
+     * @param payOrderId
+     * @return
+     */
+    private PayOderChannelRes getResBySeeker(String payOrderId) {
+        PayOderChannelRes res = new PayOderChannelRes();
+        // 重新查询Log, 返回url
+        PayOrderLogEntity savedOrderLog = payOrderLogService.getByPayOrderId(payOrderId);
+        String channelSyncResponse = savedOrderLog.getChannelSyncResponse();
+        if (StringUtils.isNotBlank(channelSyncResponse)) {
+            JSONObject jsonObject = JSONObject.parseObject(channelSyncResponse);
+            String code = jsonObject.getString("code");
+            if ("0000".equals(code)) {
+                JSONObject data = jsonObject.getJSONObject("data");
+                String url = data.getString("payUrl");
+                res.setUseType(ChannelUseType.LINK.getDesc());
+                res.setResult(url);
+                res.setState(true);
             } else {
                 res.setState(false);
             }

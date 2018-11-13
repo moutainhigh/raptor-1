@@ -78,7 +78,12 @@ public class BillServiceImpl implements BillService {
         Item orderRealItem = this.realItem(loanOrder, payType, payOrder.getPostponeDays());
         BigDecimal shouldPay = orderRealItem.sum();
 
-        CouponEntity couponEntity = couponService.getEffectiveBundledCoupon(loanOrder.getOrderId());
+        //CouponEntity couponEntity = couponService.getEffectiveBundledCoupon(loanOrder.getOrderId());
+        CouponEntity couponEntity = null ;
+        if(payOrder.getCouponId() != null){
+            couponEntity = couponService.getByCouponId(payOrder.getCouponId());
+        }
+
         BigDecimal applyAmount = BigDecimal.ZERO;
         if (couponEntity != null && couponEntity.getApplyAmount() != null) {
             applyAmount = couponEntity.getApplyAmount();

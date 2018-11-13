@@ -5,10 +5,15 @@ import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.bean.BaseResponse;
 import com.mo9.raptor.bean.ReqHeaderParams;
 import com.mo9.raptor.bean.condition.CashAccountLogCondition;
+import com.mo9.raptor.bean.condition.CouponCondition;
+import com.mo9.raptor.bean.condition.FetchPayOrderCondition;
 import com.mo9.raptor.bean.req.BankReq;
 import com.mo9.raptor.bean.req.LoginByCodeReq;
 import com.mo9.raptor.bean.req.ModifyCertifyReq;
 import com.mo9.raptor.bean.res.CashAccountLogRes;
+import com.mo9.raptor.bean.res.CouponRes;
+import com.mo9.raptor.engine.entity.CouponEntity;
+import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.engine.service.CouponService;
 import com.mo9.raptor.entity.*;
 import com.mo9.raptor.bean.res.AccountBankCardRes;
@@ -376,6 +381,93 @@ public class UserController {
         }
         response.setData(entity);
         return response;
+    }
+
+    /**
+     * 获取用户优惠券
+     * @param request
+     * @return
+     */
+    @RequestMapping(value = "/get_coupons")
+    public BaseResponse<JSONObject> getCoupons(@RequestParam(value = "pageNumber")Integer pageNumber ,
+                                               @RequestParam(value = "pageSize")Integer pageSize ,
+                                               @RequestParam(required = false , value = "type")List<String> type ,
+                                               HttpServletRequest request){
+        BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
+        JSONObject entity = new JSONObject() ;
+        String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
+        CouponCondition couponCondition = new CouponCondition() ;
+        couponCondition.setPageNumber(pageNumber);
+        couponCondition.setPageSize(pageSize);
+        //封装状态
+        setStatusCondition(type , couponCondition);
+        Page<CouponEntity> page = couponService.findByCondition(couponCondition);
+        List<CouponRes> returnList = setCounponRes(page);
+        entity.put("coupons" , returnList);
+        entity.put("total" , page.getTotalElements());
+        response.setData(entity);
+        return response;
+    }
+
+    /**
+     * 封装优惠卷返回数据
+     * @param page
+     * @return
+     */
+    private List<CouponRes> setCounponRes(Page<CouponEntity> page) {
+        List<CouponEntity> content = page.getContent();
+        if (content == null || content.size() == 0) {
+            return new ArrayList<CouponRes>();
+        }
+        List<CouponRes> returnList =  new ArrayList<CouponRes>();
+        for(CouponEntity couponEntity : content){
+            CouponRes couponRes = new CouponRes() ;
+            BeanUtils.copyProperties(couponEntity , couponRes);
+            Long expiryDate = couponEntity.getExpireDate() ;
+            couponRes.setExpiryDate(couponEntity.getExpireDate());
+            couponRes.setCouponsAmount(couponEntity.getApplyAmount().toPlainString());
+            //判断时间
+            if(couponEntity.getStatus().equals(StatusEnum.OVERDUE.name()) || System.currentTimeMillis() >= expiryDate){
+                //已经过期
+                couponRes.setType("OVERDUE");
+            }else if(couponEntity.getStatus().equals(StatusEnum.PENDING.name()) ){
+                couponRes.setType("EFFECTIVE");
+            }else{
+                couponRes.setType("USED");
+            }
+        }
+        return returnList ;
+    }
+
+    /**
+     * 封装查询状态参数
+     * @param type
+     * @param couponCondition
+     */
+    private void setStatusCondition(List<String> type, CouponCondition couponCondition) {
+        if(type == null || type.size() == 0){
+            return ;
+        }
+        if(type.contains("OVERDUE") && type.contains("USED") && type.contains("EFFECTIVE")){
+            return ;
+        }
+        List<String> statusList = new ArrayList<String>();
+        //OVERDUE (已过期) , USED (已使用)  , EFFECTIVE (有效) , 不传递查询所有
+        if(type.contains("OVERDUE")){
+            statusList.add(StatusEnum.OVERDUE.name());
+        }
+        if(type.contains("USED")){
+            statusList.add(StatusEnum.EXECUTING.name());
+            statusList.add(StatusEnum.BUNDLED.name());
+            statusList.add(StatusEnum.ENTRY_DOING.name());
+            statusList.add(StatusEnum.ENTRY_DONE.name());
+        }
+        if(type.contains("EFFECTIVE")){
+            statusList.add(StatusEnum.PENDING.name());
+            //查询有效的数据 - 另外增加条件 - 时间
+            couponCondition.setExpiryDate(System.currentTimeMillis());
+        }
+        couponCondition.setStatusList(statusList);
     }
 
 

@@ -24,6 +24,12 @@ public class CouponEntity extends AbstractStateEntity {
     private String couponId;
 
     /**
+     * 用户编号
+     */
+    @Column(name = "user_code")
+    private String userCode;
+
+    /**
      * 绑定订单号
      */
     @Column(name = "bound_order_id")
@@ -150,5 +156,13 @@ public class CouponEntity extends AbstractStateEntity {
 
     public void setReason(String reason) {
         this.reason = reason;
+    }
+
+    public String getUserCode() {
+        return userCode;
+    }
+
+    public void setUserCode(String userCode) {
+        this.userCode = userCode;
     }
 }
