@@ -54,6 +54,9 @@ public class CashAccountServiceImpl implements CashAccountService {
 
     @Override
     public ResCodeEnum recharge(String userCode, BigDecimal amount , String businessNo, BusinessTypeEnum businessTypeEnum) {
+        if(amount.compareTo(BigDecimal.ZERO) == 1){
+            return ResCodeEnum.SUCCESS ;
+        }
         String lockKey = CommonValues.CASH_ACCOUNT + userCode ;
         //锁定用户现金账户
         boolean lock = redisService.lock(lockKey , lockKey , 30*1000L , TimeUnit.MILLISECONDS);
