@@ -55,6 +55,12 @@ public class PayOrderEntity extends AbstractOrderEntity {
     private BigDecimal entryNumber = BigDecimal.ZERO;
 
     /**
+     * 使用现金商户余额
+     */
+    @Column(name = "balance_number")
+    private BigDecimal balanceNumber = BigDecimal.ZERO;
+
+    /**
      * 支付时间
      */
     @Column(name = "pay_time")
@@ -162,5 +168,13 @@ public class PayOrderEntity extends AbstractOrderEntity {
 
     public void setCouponId(String couponId) {
         this.couponId = couponId;
+    }
+
+    public BigDecimal getBalanceNumber() {
+        return balanceNumber;
+    }
+
+    public void setBalanceNumber(BigDecimal balanceNumber) {
+        this.balanceNumber = balanceNumber;
     }
 }

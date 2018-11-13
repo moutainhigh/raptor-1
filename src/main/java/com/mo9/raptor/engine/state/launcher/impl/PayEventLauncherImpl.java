@@ -13,6 +13,8 @@ import com.mo9.raptor.service.CashAccountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
+
 /**
  * Created by gqwu on 2018/4/4.
  */
@@ -33,7 +35,7 @@ public class PayEventLauncherImpl extends AbstractStateEventLauncher<PayOrderEnt
     @Override
     public void saveEntity(PayOrderEntity entity) {
         entity.setUpdateTime(System.currentTimeMillis());
-        if(StatusEnum.ENTRY_DONE.name().equals(entity.getStatus())){
+        if(StatusEnum.ENTRY_DONE.name().equals(entity.getStatus()) && entity.getApplyNumber().compareTo(BigDecimal.ZERO) == 1){
             //根据还款类型区分账户出账类型
             String channel = entity.getChannel() ;
             String type = entity.getType() ;
