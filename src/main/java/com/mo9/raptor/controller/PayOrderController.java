@@ -185,7 +185,7 @@ public class PayOrderController {
                     return response ;
                 }else{
                     payInfoCache.setBalance(balance);
-                    shouldPayAmount = shouldPayAmount.subtract(balance);
+                    shouldPayAmount = shouldPayAmount.subtract(cashAccountEntity.getBalance());
                 }
             }
             payInfoCache.setPayNumber(shouldPayAmount.compareTo(BigDecimal.ZERO) == 1 ? shouldPayAmount : BigDecimal.ZERO);
@@ -432,7 +432,7 @@ public class PayOrderController {
                     return response ;
                 }else{
                     payInfoCache.setBalance(balance);
-                    applyAmount = applyAmount.subtract(balance);
+                    applyAmount = applyAmount.subtract(cashAccountEntity.getBalance());
                 }
             }
 
