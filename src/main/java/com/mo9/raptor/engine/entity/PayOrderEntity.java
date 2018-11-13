@@ -72,6 +72,13 @@ public class PayOrderEntity extends AbstractOrderEntity {
     @Column(name = "postpone_days")
     private Integer postponeDays = 0;
 
+
+    /**
+     * 优惠券优惠码
+     */
+    @Column(name = "coupon_id")
+    private String couponId ;
+
     public String getPayCurrency() {
         return payCurrency;
     }
@@ -147,5 +154,13 @@ public class PayOrderEntity extends AbstractOrderEntity {
     public void create() {
         this.setCreateTime(System.currentTimeMillis());
         this.setUpdateTime(System.currentTimeMillis());
+    }
+
+    public String getCouponId() {
+        return couponId;
+    }
+
+    public void setCouponId(String couponId) {
+        this.couponId = couponId;
     }
 }

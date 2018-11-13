@@ -49,6 +49,11 @@ public enum StatusEnum {
     MANUAL("人工审核"),
     BLACK("拉黑"),
 
+    /**
+     * 优惠券状态
+     */
+    OVERDUE("过期"),
+
     ;
 
     private String explanation;

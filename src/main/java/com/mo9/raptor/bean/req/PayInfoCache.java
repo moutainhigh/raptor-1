@@ -23,6 +23,15 @@ public class PayInfoCache implements Serializable {
 
     private String clientVersion;
 
+    /**
+     * 优惠卷号
+     */
+    private String couponId;
+    /**
+     * 钱包余额
+     */
+    private BigDecimal balance;
+
     public String getLoanOrderId() {
         return loanOrderId;
     }
@@ -93,5 +102,21 @@ public class PayInfoCache implements Serializable {
 
     public void setClientVersion(String clientVersion) {
         this.clientVersion = clientVersion;
+    }
+
+    public String getCouponId() {
+        return couponId;
+    }
+
+    public void setCouponId(String couponId) {
+        this.couponId = couponId;
+    }
+
+    public BigDecimal getBalance() {
+        return balance;
+    }
+
+    public void setBalance(BigDecimal balance) {
+        this.balance = balance;
     }
 }
