@@ -54,7 +54,7 @@ public class CashAccountServiceImpl implements CashAccountService {
 
     @Override
     public ResCodeEnum recharge(String userCode, BigDecimal amount , String businessNo, BusinessTypeEnum businessTypeEnum) {
-        if(amount.compareTo(BigDecimal.ZERO) == 1){
+        if(amount.compareTo(BigDecimal.ZERO) != 1){
             return ResCodeEnum.SUCCESS ;
         }
         String lockKey = CommonValues.CASH_ACCOUNT + userCode ;

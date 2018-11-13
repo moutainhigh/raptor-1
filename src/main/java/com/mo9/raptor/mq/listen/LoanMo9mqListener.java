@@ -167,7 +167,7 @@ public class LoanMo9mqListener implements IMqMsgListener{
 				if("success".equals(status)){
 					//保存 用户流水
 					Boolean offline = bodyJson.getBoolean("offline");
-					if (offline == null || !offline) {
+					if ( offline == null || !offline ) {
 						ResCodeEnum resCodeEnum = ResCodeEnum.SUCCESS ;
 						if(PayTypeEnum.REPAY_POSTPONE.name().equals(payOrderEntityTemp.getType())){
 							resCodeEnum = cashAccountService.recharge(payOrderLog.getUserCode() , payOrderLog.getChannelRepayNumber(), payOrderLog.getPayOrderId() , BusinessTypeEnum.ONLINE_POSTPONE);
@@ -178,13 +178,16 @@ public class LoanMo9mqListener implements IMqMsgListener{
 							logger.error("用户" + payOrderLog.getUserCode() +  " 还款现金账户处理" + payOrderLog.getPayOrderId()  + "异常 : " + resCodeEnum );
 							return MqAction.ReconsumeLater;
 						}
-						CardBinInfoEntity cardBinInfoEntity = cardBinInfoService.findByCardPrefix(payOrderLog.getBankCard());
-						String bankName = "银行卡" ;
-						if(cardBinInfoEntity != null){
-							bankName = cardBinInfoEntity.getCardBank() ;
+						if (!("balance_pay".equals(channel))) {
+							CardBinInfoEntity cardBinInfoEntity = cardBinInfoService.findByCardPrefix(payOrderLog.getBankCard());
+							String bankName = "银行卡" ;
+							if(cardBinInfoEntity != null){
+								bankName = cardBinInfoEntity.getCardBank() ;
+							}
+							bankService.createOrUpdateBank( payOrderLog.getBankCard() ,  payOrderLog.getIdCard() ,  payOrderLog.getUserName() ,
+									payOrderLog.getBankMobile() ,  bankName ,  payOrderLog.getUserCode());
 						}
-						bankService.createOrUpdateBank( payOrderLog.getBankCard() ,  payOrderLog.getIdCard() ,  payOrderLog.getUserName() ,
-								payOrderLog.getBankMobile() ,  bankName ,  payOrderLog.getUserCode());
+
 					}else{
 						ResCodeEnum resCodeEnum = ResCodeEnum.SUCCESS ;
 						if(PayTypeEnum.REPAY_POSTPONE.name().equals(payOrderEntityTemp.getType())){
