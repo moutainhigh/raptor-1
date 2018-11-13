@@ -1,6 +1,8 @@
 package com.mo9.raptor.controller;
 
 import com.alibaba.fastjson.JSONObject;
+import com.mo9.mqclient.MqAction;
+import com.mo9.mqclient.MqMessage;
 import com.mo9.raptor.bean.BaseResponse;
 import com.mo9.raptor.bean.ReqHeaderParams;
 import com.mo9.raptor.bean.req.LoanOrderRenewal;
@@ -19,6 +21,7 @@ import com.mo9.raptor.engine.service.IPayOrderService;
 import com.mo9.raptor.engine.structure.item.Item;
 import com.mo9.raptor.entity.*;
 import com.mo9.raptor.enums.*;
+import com.mo9.raptor.mq.listen.LoanMo9mqListener;
 import com.mo9.raptor.redis.RedisParams;
 import com.mo9.raptor.redis.RedisServiceApi;
 import com.mo9.raptor.service.*;
@@ -39,7 +42,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 还款
@@ -85,6 +90,9 @@ public class PayOrderController {
 
     @Resource
     private RedisServiceApi redisServiceApi;
+
+    @Autowired
+    private LoanMo9mqListener loanMo9mqListener;
 
     @Resource(name = "raptorRedis")
     private RedisTemplate raptorRedis;
@@ -139,6 +147,7 @@ public class PayOrderController {
             }
 
             Item shouldPayItem = billService.payoffShouldPayItem(loanOrder);
+            BigDecimal shouldPayAmount = shouldPayItem.sum() ;
 
             JSONObject data = new JSONObject();
 
@@ -148,7 +157,6 @@ public class PayOrderController {
             payInfoCache.setUserCode(userCode);
             payInfoCache.setLoanOrderId(loanOrderId);
             payInfoCache.setPayType(shouldPayItem.getRepaymentType().name());
-            payInfoCache.setPayNumber(shouldPayItem.sum());
             payInfoCache.setPeriod(0);
             payInfoCache.setUserName(userCertifyInfoEntity.getRealName());
             payInfoCache.setIdCard(userCertifyInfoEntity.getIdCard());
@@ -159,6 +167,7 @@ public class PayOrderController {
                 CouponEntity couponEntity = couponService.getByCouponId(couponId);
                 if(couponEntity.getStatus().equals(StatusEnum.PENDING.name()) && couponEntity.getExpireDate() > System.currentTimeMillis()){
                     payInfoCache.setCouponId(couponId);
+                    shouldPayAmount = shouldPayAmount.subtract(couponEntity.getApplyAmount());
                 }else{
                     //钱包余额不够
                     response.setCode(ResCodeEnum.COUPON_IS_EXPIRY.getCode());
@@ -176,7 +185,14 @@ public class PayOrderController {
                     return response ;
                 }else{
                     payInfoCache.setBalance(balance);
+                    shouldPayAmount = shouldPayAmount.subtract(balance);
                 }
+            }
+            payInfoCache.setPayNumber(shouldPayAmount.compareTo(BigDecimal.ZERO) == 1 ? shouldPayAmount : BigDecimal.ZERO);
+
+            if(shouldPayAmount.compareTo(BigDecimal.ZERO) != 1){
+                //余额足够 直接扣余额 不走第三方
+                return repayForBalance(response , payInfoCache , request);
             }
 
             /***************** 2018-11-08 顾晓桐增加版本 -- 支付中心********************/
@@ -196,6 +212,83 @@ public class PayOrderController {
             Log.error(logger, e,"发起支付出现异常userCode={}", userCode);
             return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
         }
+
+    }
+
+    /**
+     *直接使用余额支付
+     * @param payInfoCache
+     * @return
+     */
+    private BaseResponse<JSONObject> repayForBalance(BaseResponse<JSONObject> response , PayInfoCache payInfoCache , HttpServletRequest request) {
+
+        String channel = "balance_pay" ;
+        // 创建还款
+        String payOrderId = sockpuppet + "-" + String.valueOf(idWorker.nextId());
+        PayOrderEntity payOrder = new PayOrderEntity();
+        payOrder.setOrderId(payOrderId);
+        payOrder.setStatus(StatusEnum.DEDUCTING.name());
+        payOrder.setOwnerId(payInfoCache.getUserCode());
+        payOrder.setType(payInfoCache.getPayType());
+        payOrder.setApplyNumber(payInfoCache.getPayNumber());
+        payOrder.setPostponeDays(payInfoCache.getPeriod());
+        payOrder.setLoanOrderId(payInfoCache.getLoanOrderId());
+        payOrder.setDescription(System.currentTimeMillis() + ":用户线上余额还款" + payInfoCache.getPayNumber().toPlainString() + ", 直接创建扣款中还款订单");
+        payOrder.setPayCurrency(CurrencyEnum.getDefaultCurrency().name());
+        payOrder.setChannel(channel);
+        payOrder.create();
+
+        PayOrderLogEntity payOrderLog = new PayOrderLogEntity();
+        payOrderLog.setIdCard(payInfoCache.getIdCard());
+        payOrderLog.setUserName(payInfoCache.getUserName());
+        payOrderLog.setRepayAmount(payInfoCache.getPayNumber());
+        payOrderLog.setUserCode(payInfoCache.getUserCode());
+        payOrderLog.setClientId(payInfoCache.getClientId());
+        payOrderLog.setClientVersion(payInfoCache.getClientVersion());
+        payOrderLog.setBankCard("余额还款未知");
+        payOrderLog.setBankMobile("余额还款未知");
+        payOrderLog.setOrderId(payInfoCache.getLoanOrderId());
+        if (PayTypeEnum.REPAY_POSTPONE.name().equals(payInfoCache.getPayType())) {
+            LoanOrderEntity loanOrder = loanOrderService.getByOrderId(payInfoCache.getLoanOrderId());
+            payOrderLog.setFormerRepaymentDate(loanOrder.getRepaymentDate());
+        }
+        payOrderLog.setPayOrderId(payOrder.getOrderId());
+        payOrderLog.setChannel(channel);
+        payOrderLog.create();
+        //保存 用户流水
+        payOrderService.savePayOrderAndLog(payOrder, payOrderLog);
+
+        // 模拟先玩后付mq还款通知
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("status", "success");
+        params.put("channel", channel);
+        params.put("amount", payOrder.getApplyNumber());
+        params.put("dealcode", "余额还款未知");
+        params.put("channelDealcode", "余额还款未知");
+        params.put("orderId", payOrder.getOrderId());
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("remark", params);
+
+        JSONObject data = new JSONObject();
+        MqMessage message = new MqMessage("TOPIC", "MQ_RAPTOR_PAYOFF_TAG", jsonObject.toJSONString());
+        String url = request.getScheme()+ "://" + request.getServerName() + request.getContextPath() + "/cash/success?code=" + payOrderId;
+        try {
+            MqAction mqAction = loanMo9mqListener.consume(message, null);
+            if(mqAction == MqAction.ReconsumeLater){
+                payOrder.setStatus(StatusEnum.DEDUCT_FAILED.name());
+                payOrderLog.setFailReason("余额还款失败");
+                //保存 用户流水
+                payOrderService.savePayOrderAndLog(payOrder, payOrderLog);
+                url = request.getScheme()+ "://" + request.getServerName() + request.getContextPath() + "/cash/failed?code=" + payOrderId + "&message=余额还款失败";
+            }
+        } catch (Exception e) {
+            Log.error(logger, e,"发起余额支付出现异常userCode={}", payInfoCache.getUserCode());
+            url = request.getScheme()+ "://" + request.getServerName() + request.getContextPath() + "/cash/failed?code=" + payOrderId + "&message=余额还款异常";
+        }
+
+        data.put("url", url);
+        return response.buildSuccessResponse(data);
 
     }
 
@@ -310,7 +403,6 @@ public class PayOrderController {
             payInfoCache.setUserCode(userCode);
             payInfoCache.setLoanOrderId(loanOrderId);
             payInfoCache.setPayType(PayTypeEnum.REPAY_POSTPONE.name());
-            payInfoCache.setPayNumber(applyAmount);
             payInfoCache.setPeriod(period);
             payInfoCache.setUserName(userCertifyInfoEntity.getRealName());
             payInfoCache.setIdCard(userCertifyInfoEntity.getIdCard());
@@ -322,6 +414,7 @@ public class PayOrderController {
                 CouponEntity couponEntity = couponService.getByCouponId(couponId);
                 if(couponEntity.getStatus().equals(StatusEnum.PENDING.name()) && couponEntity.getExpireDate() > System.currentTimeMillis()){
                     payInfoCache.setCouponId(couponId);
+                    applyAmount = applyAmount.subtract(couponEntity.getApplyAmount());
                 }else{
                     //钱包余额不够
                     response.setCode(ResCodeEnum.COUPON_IS_EXPIRY.getCode());
@@ -339,7 +432,15 @@ public class PayOrderController {
                     return response ;
                 }else{
                     payInfoCache.setBalance(balance);
+                    applyAmount = applyAmount.subtract(balance);
                 }
+            }
+
+            payInfoCache.setPayNumber(applyAmount.compareTo(BigDecimal.ZERO) == 1 ? applyAmount : BigDecimal.ZERO);
+
+            if(applyAmount.compareTo(BigDecimal.ZERO) != 1){
+                //余额足够 直接扣余额 不走第三方
+                return repayForBalance(response , payInfoCache , request);
             }
 
             /***************** 2018-11-08 顾晓桐增加版本 -- 支付中心********************/
@@ -611,6 +712,13 @@ public class PayOrderController {
         model.addAttribute("message", message);
 
         return "cashier/feedback_fail";
+    }
+
+    @GetMapping("/success")
+    public String success (Model model, @RequestParam String code, @RequestParam String message, HttpServletRequest request) {
+
+        model.addAttribute("code", code);
+        return "cashier/feedback_success";
     }
 
     @GetMapping("/cashier/has_repaying")

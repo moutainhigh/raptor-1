@@ -35,13 +35,14 @@ public class UserAuditAction implements IAction {
         try {
             logger.info("开始审核" + userCode);
             AuditResponse response = riskAuditService.audit(this.userCode);
-            com.mo9.risk.enums.AuditResultEnum auditResultEnum = response.getAuditResultEnum();
-            AuditResponseEvent event = new AuditResponseEvent(response.getOrderId(), response.getExplanation(), AuditResultEnum.valueOf(auditResultEnum.name()));
-
-            if (event == null) {
+            if (response == null) {
                 logger.info("发送审核结果返回结果为null，方法结束userCode={}", userCode);
                 return;
             }
+            com.mo9.risk.enums.AuditResultEnum auditResultEnum = response.getAuditResultEnum();
+            AuditResponseEvent event = new AuditResponseEvent(response.getOrderId(), response.getExplanation(), AuditResultEnum.valueOf(auditResultEnum.name()));
+
+
             userEventLauncher.launch(event);
             logger.info("审核" + userCode + "成功,结果:" + event);
         } catch (Exception e) {
