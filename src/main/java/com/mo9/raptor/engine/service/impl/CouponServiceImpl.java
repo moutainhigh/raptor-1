@@ -6,6 +6,10 @@ import com.mo9.raptor.engine.service.CouponService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+
 /**
  * 优惠券service
  * Created by xzhang on 2018/9/28.
@@ -19,6 +23,17 @@ public class CouponServiceImpl implements CouponService {
     @Override
     public CouponEntity getByCouponId(String couponId) {
         return couponRespository.getByCouponId(couponId);
+    }
+
+    @Override
+    public BigDecimal getTotalDeductedAmount(String orderId) {
+        Map<String, BigDecimal> totalDeductedAmount = couponRespository.getTotalDeductedAmount(orderId);
+        return totalDeductedAmount.get("totalEntryAmount");
+    }
+
+    @Override
+    public List<CouponEntity> getByPayOrderId(String payOrderId) {
+        return couponRespository.getByPayOrderId(payOrderId);
     }
 
     @Override

@@ -11,6 +11,11 @@ import java.math.BigDecimal;
  */
 public class LendInfoMqRes {
 
+    /**
+     * 产品类型
+     */
+    private String productType;
+
     /** 请求唯一标识 */
     private String loanOrderId;
 
@@ -87,6 +92,11 @@ public class LendInfoMqRes {
 
     /** 渠道响应时间 */
     private Long chanelResponseTime;
+
+    /**
+     * 创建时间
+     */
+    private Long createTime;
 
     public String getLoanOrderId() {
         return loanOrderId;
@@ -294,5 +304,21 @@ public class LendInfoMqRes {
 
     public void setRepaymentTime(Long repaymentTime) {
         this.repaymentTime = repaymentTime;
+    }
+
+    public String getProductType() {
+        return productType;
+    }
+
+    public void setProductType(String productType) {
+        this.productType = productType;
+    }
+
+    public Long getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Long createTime) {
+        this.createTime = createTime;
     }
 }

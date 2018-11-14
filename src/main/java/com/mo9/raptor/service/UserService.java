@@ -17,8 +17,10 @@ public interface UserService {
 
 
     UserEntity findByUserCode(String userCode);
+
     /**
      * 根据userCode查询是否禁用的用户
+     *
      * @param userCode
      * @param isDelete
      * @return
@@ -120,4 +122,55 @@ public interface UserService {
      * @param desc
      */
     void toBlackUser(UserEntity userEntity, String desc) throws Exception;
+
+    /**
+     * 根据批量手机号查询用户
+     * @param mobiles
+     * @return
+     */
+    List<UserEntity> findByMobiles(List<String> mobiles);
+
+    /**
+     * 查询需要人工审核的用户
+     * @return
+     */
+    List<UserEntity> findManualAuditUser(String source);
+
+    /**
+     * 查询当前操作人待审核的用户
+     * @param source
+     * @param operateId
+     * @return
+     */
+     List<UserEntity> findManualAuditUserBuyOperateId(String source,String operateId);
+    /**
+     * 查询填资料的用户数
+     * @param source
+     * @return
+     */
+    List<Map<String,Object>> toAuditUserCount(String source);
+
+    /**
+     * 查询去借款的用户数
+     * @param source
+     * @return
+     */
+    List<Map<String,Object>> getChannelLoanCount(String source);
+
+    /**
+     * 从审核中状态回退到信息采集中
+     * @param userCode
+     * @return
+     */
+    Boolean backToCollecting(String userCode,String description);
+
+    /**
+     * 审核中直接拒绝
+     * @return
+     */
+    Boolean directRejection(String userCode,String description);
+
+    Long countByStatus(StatusEnum status);
+
+    List<UserEntity> findManualAuditUserBuyOperateId(String operateId);
 }

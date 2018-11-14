@@ -9,6 +9,8 @@ import com.mo9.raptor.engine.service.ILendOrderService;
 import com.mo9.raptor.engine.service.ILoanOrderService;
 import com.mo9.raptor.engine.state.event.impl.AuditLaunchEvent;
 import com.mo9.raptor.engine.state.launcher.IEventLauncher;
+import com.mo9.raptor.engine.utils.EngineStaticValue;
+import com.mo9.raptor.engine.utils.TimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -123,11 +125,24 @@ public class LoanOrderServiceImpl implements ILoanOrderService {
     }
 
     @Override
-    public List<LoanOrderEntity> listByStatus(List<StatusEnum> statusEnums) {
-        List<String> status = new ArrayList<String>();
-        for (StatusEnum statusEnum : statusEnums) {
-            status.add(statusEnum.name());
-        }
-        return loanOrderRepository.listByStatus(status);
+    public List<LoanOrderEntity> listByStatus(List<String> statusEnums) {
+        return loanOrderRepository.listByStatus(statusEnums);
+    }
+
+    @Override
+    public List<LoanOrderEntity> listByUserAndStatus(String userCode, List<String> statusEnums) {
+        return loanOrderRepository.listByUserAndStatus(userCode, statusEnums);
+    }
+
+    @Override
+    public List<LoanOrderEntity> listShouldPayOrder() {
+        Long today = TimeUtils.extractDateTime(System.currentTimeMillis());
+        Long tomorrow = today + EngineStaticValue.DAY_MILLIS;
+        return loanOrderRepository.listShouldPayOrder(today, tomorrow);
+    }
+
+    @Override
+    public List<LoanOrderEntity> listByOverDueOrder(long time) {
+        return loanOrderRepository.listByOverDueOrder(time);
     }
 }

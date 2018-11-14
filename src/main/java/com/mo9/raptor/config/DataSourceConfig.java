@@ -3,8 +3,6 @@ package com.mo9.raptor.config;
 import com.alibaba.druid.pool.DruidDataSource;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -45,6 +43,19 @@ public class DataSourceConfig {
     @Value("${spring.datasource.secondary.jdbc-url}")
     private String riskUrl;
 
+
+    @Value("${spring.datasource.riskdb.driver-class-name}")
+    private String riskDBDriverClassName;
+
+    @Value("${spring.datasource.riskdb.username}")
+    private String riskDBUsername;
+
+    @Value("${spring.datasource.riskdb.password}")
+    private String riskDBPassword;
+
+    @Value("${spring.datasource.riskdb.jdbc-url}")
+    private String riskDBUrl;
+
     @Primary
     @Bean(name = "primaryDataSource")
     @Qualifier("primaryDataSource")
@@ -70,7 +81,21 @@ public class DataSourceConfig {
         dataSource.setUsername(riskUsername);
         dataSource.setPassword(riskPassword);
         dataSource.setUrl(riskUrl);
+        List<String> connectionInitSqls = new ArrayList<>();
+        connectionInitSqls.add("SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci");
+        dataSource.setConnectionInitSqls(connectionInitSqls);
         return dataSource;
     }
 
+    @Bean(name = "riskdbDataSource")
+    @Qualifier("riskdbDataSource")
+//    @ConfigurationProperties(prefix="spring.datasource.riskdb")
+    public DataSource riskdbDataSource() {
+        DruidDataSource dataSource = new DruidDataSource();
+        dataSource.setDriverClassName(riskDBDriverClassName);
+        dataSource.setUsername(riskDBUsername);
+        dataSource.setPassword(riskDBPassword);
+        dataSource.setUrl(riskDBUrl);
+        return dataSource;
+    }
 }

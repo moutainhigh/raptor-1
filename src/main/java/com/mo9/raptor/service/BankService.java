@@ -63,4 +63,11 @@ public interface BankService {
      */
     public void createOrUpdateBank(String bankNo , String cardId , String userName , String mobile , String bankName , String userCode);
 
+    /**
+     * 查询所有银行卡列表
+     * @return
+     */
+    List<BankEntity> findAll();
+
+    void save(BankEntity bankEntity);
 }

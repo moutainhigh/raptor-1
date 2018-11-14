@@ -28,7 +28,6 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
-import org.thymeleaf.spring5.expression.Fields;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -133,19 +132,20 @@ public class CouponController {
                     effectiveCoupon.setCouponId(String.valueOf(idWorker.nextId()));
                     Long today = TimeUtils.extractDateTime(System.currentTimeMillis());
                     effectiveCoupon.setEffectiveDate(today);
-                    effectiveCoupon.setExpireDate(today + EngineStaticValue.DAY_MILLIS);
+                    effectiveCoupon.setExpireDate(today + EngineStaticValue.DAY_MILLIS * 365);
                     effectiveCoupon.setStatus(StatusEnum.BUNDLED.name());
                     effectiveCoupon.setCreator(req.getCreator());
                     effectiveCoupon.setReason(req.getReason());
                     effectiveCoupon.setBoundOrderId(req.getBundleId());
+                    effectiveCoupon.setApplyAmount(req.getNumber());
                 } else {
                     logger.info("操作者[{}]将优惠券[{}]由于[{}]原因将金额由[{}]更改为[{}]", req.getCreator(), effectiveCoupon.getCouponId(), req.getReason(), effectiveCoupon.getApplyAmount(), req.getNumber());
                 }
-
                 /**
                  * 仅仅可以更新金额
                  */
-                effectiveCoupon.setApplyAmount(req.getNumber());
+                BigDecimal number = req.getNumber();
+                effectiveCoupon.setApplyAmount(number);
                 couponService.save(effectiveCoupon);
 
                 response.setCode(0);

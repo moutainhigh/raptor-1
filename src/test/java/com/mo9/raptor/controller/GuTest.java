@@ -20,6 +20,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -42,6 +43,11 @@ public class GuTest {
     @Autowired
     private HttpClientApi httpClientApi ;
 
+    @Value("${loan.name.en}")
+    private String loanNameEn;
+
+    @Value("${loan.name.cn}")
+    private String loanNameCn;
     /**
      * 放款
      */
@@ -61,7 +67,7 @@ public class GuTest {
                 //String url = "http://guxt.local.mo9.com/gateway/proxypay/queryOrderStatus.mhtml";
                 String key = "werocxofsdjnfksdf892349729lkfnnmgn/x,.zx=9=-MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAJGLeWVIS3wo0U2h8lzWjiq5RJJDi14hzsbxxwedhqje123";
                 Map<String, String> payParams = new HashMap<String, String>();
-                payParams.put("bizSys", "RAPTOR");
+                payParams.put("bizSys", loanNameEn);
                 Random random = new Random();
                 payParams.put("invoice",  "990354"+ random.nextInt(9)+ random.nextInt(9)+ random.nextInt(9)+random.nextInt(9)+ random.nextInt(9)+ random.nextInt(9));
                 payParams.put("notifyUrl", notifyUrl);
@@ -233,6 +239,12 @@ public class GuTest {
         System.out.println(sdf.format(new Date()));*/
     }
 
-
+    /**
+     * 查询产品信息
+     */
+    @Test
+    public void printLoanNameTest(){
+        System.out.println(loanNameCn);
+    }
 
 }

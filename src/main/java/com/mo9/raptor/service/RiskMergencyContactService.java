@@ -9,5 +9,5 @@ import com.mo9.raptor.entity.RiskMergencyContact;
  */
 public interface RiskMergencyContactService {
     
-    RiskMergencyContact save(RiskMergencyContact entity);
+    RiskMergencyContact saveOrUpdate(RiskMergencyContact entity);
 }

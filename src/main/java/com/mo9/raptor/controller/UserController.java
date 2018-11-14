@@ -1,16 +1,20 @@
 package com.mo9.raptor.controller;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.bean.BaseResponse;
 import com.mo9.raptor.bean.ReqHeaderParams;
+import com.mo9.raptor.bean.condition.CashAccountLogCondition;
 import com.mo9.raptor.bean.req.BankReq;
 import com.mo9.raptor.bean.req.LoginByCodeReq;
 import com.mo9.raptor.bean.req.ModifyCertifyReq;
-import com.mo9.raptor.entity.UserCertifyInfoEntity;
+import com.mo9.raptor.bean.res.CashAccountLogRes;
+import com.mo9.raptor.engine.service.CouponService;
+import com.mo9.raptor.entity.*;
 import com.mo9.raptor.bean.res.AccountBankCardRes;
 import com.mo9.raptor.bean.res.AuditStatusRes;
-import com.mo9.raptor.entity.BankEntity;
-import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.BankAuthStatusEnum;
+import com.mo9.raptor.enums.BusinessTypeEnum;
 import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.enums.SourceEnum;
 import com.mo9.raptor.redis.RedisParams;
@@ -23,7 +27,9 @@ import com.mo9.raptor.utils.RegexUtils;
 import com.mo9.raptor.utils.log.Log;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -31,9 +37,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * @author zma
@@ -65,6 +69,12 @@ public class UserController {
 
     @Autowired
     private CommonUtils commonUtils ;
+
+    @Autowired
+    private CashAccountService cashAccountService ;
+
+    @Autowired
+    private CouponService couponService ;
 
     @Resource
     private UserCertifyInfoService userCertifyInfoService;
@@ -132,7 +142,7 @@ public class UserController {
             if(isNewUser){
                 userService.addAllowNewUserNum();
             }
-            logger.info("用户登录成功----->>>>手机号=[{}]",mobile);
+            logger.info("用户登录成功----->>>>手机号={},source={},subSource={}",mobile, source, subSource);
         } catch (IOException e) {
             Log.error(logger,e,"用户登录----->>>>验证码发送发生异常,手机号={}",mobile);
             return response.buildFailureResponse(ResCodeEnum.CAPTCHA_SEND_FAILED);
@@ -278,6 +288,11 @@ public class UserController {
                 //用户不存在
                 return response.buildFailureResponse(ResCodeEnum.NOT_WHITE_LIST_USER);
             }
+            /**
+             * 判断当前用户状态是否需要扭转 因新增用户状态，
+             * app无法快速改变，所以添加的临时改变计划，非长久之计
+             */
+            userEntity = UserEntity.changeStatusToAuditing(userEntity.getStatus(), userEntity);
             auditStatusRes.setAuditStatus(userEntity.getStatus());
             auditStatusRes.setCertifyInfo(userEntity.getCertifyInfo());
             auditStatusRes.setCallHistory(userEntity.getCallHistory());
@@ -342,6 +357,170 @@ public class UserController {
         }
         return response.buildSuccessResponse("ok");
     }
+
+    /**
+     * 获取账户余额
+     * @param request
+     * @return
+     */
+    @RequestMapping(value = "/get_balance")
+    public BaseResponse<JSONObject> getBalance(HttpServletRequest request){
+        BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
+        JSONObject entity = new JSONObject() ;
+        String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
+        CashAccountEntity cashAccountEntity = cashAccountService.findByUserCode(userCode);
+        if(cashAccountEntity == null){
+            entity.put("balance" , "0");
+        }else{
+            entity.put("balance" , cashAccountEntity.getBalance().toPlainString());
+        }
+        response.setData(entity);
+        return response;
+    }
+
+
+    /**
+     * 获取用户账户流水
+     * @param pageNumber
+     * @param pageSize
+     * @param fromTime
+     * @param toTime
+     * @param type
+     * @return
+     */
+    @RequestMapping(value = "/get_wallet_log")
+    public BaseResponse<JSONObject> getWalletLog(@RequestParam(value = "pageNumber")Integer pageNumber ,
+                                                 @RequestParam(value = "pageSize")Integer pageSize ,
+                                                 @RequestParam(required = false , value = "fromTime")Long fromTime ,
+                                                 @RequestParam(required = false , value = "toTime")Long toTime ,
+                                                 @RequestParam(required = false , value = "type")List<String> type ,
+                                                 HttpServletRequest request){
+        BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
+        String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
+        CashAccountLogCondition cashAccountLogCondition = new CashAccountLogCondition() ;
+        //时间转换
+        if(fromTime != null){
+            Date fromDate = setDateForTime(fromTime);
+            cashAccountLogCondition.setFromDate(fromDate);
+        }
+        if(toTime != null){
+            Date toDate = setDateForTime(toTime);
+            cashAccountLogCondition.setToDate(toDate);
+        }
+        cashAccountLogCondition.setPageNumber(pageNumber);
+        cashAccountLogCondition.setPageSize(pageSize);
+        cashAccountLogCondition.setUserCode(userCode);
+        try {
+            setInAndOutType(type , cashAccountLogCondition);
+        } catch (Exception e) {
+            logger.error("传递的查询类型异常 : " + type , e);
+            response.setCode(ResCodeEnum.CASH_ACCOUNT_BUSINESS_TYPE_EXCEPTION.getCode());
+            response.setMessage(ResCodeEnum.CASH_ACCOUNT_BUSINESS_TYPE_EXCEPTION.getMessage());
+            return response;
+        }
+        Page<CashAccountLogEntity> page = cashAccountService.findLogByCondition(cashAccountLogCondition);
+        List<CashAccountLogRes> cashAccountLogResList = setLogRes(page);
+        JSONObject returnJson = new JSONObject();
+        returnJson.put("entities",cashAccountLogResList);
+        returnJson.put("total",page.getTotalElements());
+        response.setData(returnJson);
+        return response;
+    }
+
+    /**
+     * 封装返回参数
+     * @param page
+     * @return
+     */
+    private List<CashAccountLogRes> setLogRes(Page<CashAccountLogEntity> page) {
+        List<CashAccountLogEntity> content = page.getContent();
+        if (content == null || content.size() == 0) {
+            return new ArrayList<CashAccountLogRes>();
+        }
+        List<CashAccountLogRes> returnList =  new ArrayList<CashAccountLogRes>();
+        for (CashAccountLogEntity cashAccountLogEntity : content){
+            CashAccountLogRes cashAccountLogRes = new CashAccountLogRes() ;
+            BeanUtils.copyProperties(cashAccountLogEntity , cashAccountLogRes);
+            cashAccountLogRes.setCreateTime(cashAccountLogEntity.getCreateTime().getTime());
+            cashAccountLogRes.setBalanceType(cashAccountLogEntity.getBalanceType().name());
+            if(BusinessTypeEnum.ONLINE_POSTPONE == cashAccountLogEntity.getBusinessType() || BusinessTypeEnum.ONLINE_BALANCE_POSTPONE == cashAccountLogEntity.getBusinessType()){
+                cashAccountLogRes.setType(BusinessTypeEnum.ONLINE_POSTPONE.name());
+            }else if(BusinessTypeEnum.ONLINE_REPAY == cashAccountLogEntity.getBusinessType() || BusinessTypeEnum.ONLINE_BALANCE_REPAY == cashAccountLogEntity.getBusinessType()){
+                cashAccountLogRes.setType(BusinessTypeEnum.ONLINE_REPAY.name());
+            }else if(BusinessTypeEnum.UNDERLINE_POSTPONE == cashAccountLogEntity.getBusinessType() || BusinessTypeEnum.UNDERLINE_BALANCE_POSTPONE == cashAccountLogEntity.getBusinessType()){
+                cashAccountLogRes.setType(BusinessTypeEnum.UNDERLINE_POSTPONE.name());
+            }else if(BusinessTypeEnum.UNDERLINE_REPAY == cashAccountLogEntity.getBusinessType() || BusinessTypeEnum.UNDERLINE_BALANCE_REPAY == cashAccountLogEntity.getBusinessType()){
+                cashAccountLogRes.setType(BusinessTypeEnum.UNDERLINE_REPAY.name());
+            }else{
+                cashAccountLogRes.setType(cashAccountLogEntity.getBusinessType().name());
+            }
+            returnList.add(cashAccountLogRes);
+        }
+        return returnList ;
+    }
+
+    /**
+     * 设置出账入账类型
+     * @param types
+     * @param cashAccountLogCondition
+     */
+    private void setInAndOutType(List<String> types, CashAccountLogCondition cashAccountLogCondition) {
+        if(types != null && types.contains("RECHARGE_TYPES")){
+            BusinessTypeEnum[] type = BusinessTypeEnum.values() ;
+            List<BusinessTypeEnum> list = Arrays.asList(type);
+            cashAccountLogCondition.setInType(list);
+        }
+        if(types != null && types.contains("ENTRY_TYPES")){
+            BusinessTypeEnum[] type = BusinessTypeEnum.values() ;
+            List<BusinessTypeEnum> list = Arrays.asList(type);
+            cashAccountLogCondition.setOutType(list);
+        }
+        if(types != null && types.size() > 0){
+            //遍历
+            List<BusinessTypeEnum> listIn = new ArrayList<BusinessTypeEnum>();
+            List<BusinessTypeEnum> listOut = new ArrayList<BusinessTypeEnum>();
+            for(String type : types){
+                if(type.startsWith("IN_")){
+                    listIn.add(BusinessTypeEnum.valueOf(type.split("IN_")[1])) ;
+                }
+                if(type.startsWith("OUT_")){
+                    if(type.contains("ONLINE_REPAY")){
+                        listOut.add(BusinessTypeEnum.ONLINE_REPAY) ;
+                        listOut.add(BusinessTypeEnum.ONLINE_BALANCE_REPAY) ;
+                    }else if(type.contains("ONLINE_POSTPONE")){
+                        listOut.add(BusinessTypeEnum.ONLINE_POSTPONE) ;
+                        listOut.add(BusinessTypeEnum.ONLINE_BALANCE_POSTPONE) ;
+                    }else if(type.contains("UNDERLINE_REPAY")){
+                        listOut.add(BusinessTypeEnum.UNDERLINE_REPAY) ;
+                        listOut.add(BusinessTypeEnum.UNDERLINE_BALANCE_REPAY) ;
+                    }else if(type.contains("UNDERLINE_POSTPONE")){
+                        listOut.add(BusinessTypeEnum.UNDERLINE_POSTPONE) ;
+                        listOut.add(BusinessTypeEnum.UNDERLINE_BALANCE_POSTPONE) ;
+                    }else{
+                        listOut.add(BusinessTypeEnum.valueOf(type.split("OUT_")[1])) ;
+                    }
+                }
+            }
+            if(!types.contains("RECHARGE_TYPES")){
+                cashAccountLogCondition.setInType(listIn);
+            }
+            if(!types.contains("ENTRY_TYPES")){
+                cashAccountLogCondition.setOutType(listOut);
+            }
+        }
+    }
+
+    /**
+     * 转换时间 - Long - String
+     * @param fromTime
+     * @return
+     */
+    private Date setDateForTime(Long fromTime) {
+        Calendar calendar = Calendar.getInstance() ;
+        calendar.setTimeInMillis(fromTime);
+        return calendar.getTime() ;
+    }
+
 
     /**
      * 校验图形验证码是否正确

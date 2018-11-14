@@ -1,9 +1,11 @@
 package com.mo9.raptor.engine.state.action.impl.user;
 
+import com.mo9.raptor.engine.enums.AuditResultEnum;
 import com.mo9.raptor.engine.state.action.IAction;
 import com.mo9.raptor.engine.state.event.impl.AuditResponseEvent;
 import com.mo9.raptor.engine.state.launcher.IEventLauncher;
-import com.mo9.raptor.risk.service.RiskAuditService;
+import com.mo9.risk.bean.AuditResponse;
+import com.mo9.risk.service.RiskAuditService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +34,10 @@ public class UserAuditAction implements IAction {
         /** 发送审核结果 */
         try {
             logger.info("开始审核" + userCode);
-            AuditResponseEvent event = riskAuditService.audit(this.userCode);
+            AuditResponse response = riskAuditService.audit(this.userCode);
+            com.mo9.risk.enums.AuditResultEnum auditResultEnum = response.getAuditResultEnum();
+            AuditResponseEvent event = new AuditResponseEvent(response.getOrderId(), response.getExplanation(), AuditResultEnum.valueOf(auditResultEnum.name()));
+
             if (event == null) {
                 logger.info("发送审核结果返回结果为null，方法结束userCode={}", userCode);
                 return;

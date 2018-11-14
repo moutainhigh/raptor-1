@@ -10,6 +10,11 @@ import java.util.List;
 public class RepayInfoMqRes {
 
     /**
+     * 产品类型
+     */
+    private String productType;
+
+    /**
      * 还的借款订单号
      */
     private String orderId;
@@ -23,6 +28,16 @@ public class RepayInfoMqRes {
      * 还款订单号
      */
     private String payOrderId;
+
+    /**
+     * 目前为止所减免的所有金额
+     */
+    private BigDecimal totalReliefAmount;
+
+    /**
+     * 本次减免金额
+     */
+    private BigDecimal reliefAmount;
 
     /**
      * 还款类型
@@ -114,6 +129,15 @@ public class RepayInfoMqRes {
      */
     private Long payoffTime;
 
+    /**
+     * 创建时间
+     */
+    private Long createTime;
+
+    /**
+     * 用入账时间
+     */
+    private Long postponeTime;
 
     public String getOrderId() {
         return orderId;
@@ -281,5 +305,45 @@ public class RepayInfoMqRes {
 
     public void setPayoffTime(Long payoffTime) {
         this.payoffTime = payoffTime;
+    }
+
+    public BigDecimal getTotalReliefAmount() {
+        return totalReliefAmount;
+    }
+
+    public void setTotalReliefAmount(BigDecimal totalReliefAmount) {
+        this.totalReliefAmount = totalReliefAmount;
+    }
+
+    public String getProductType() {
+        return productType;
+    }
+
+    public void setProductType(String productType) {
+        this.productType = productType;
+    }
+
+    public Long getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Long createTime) {
+        this.createTime = createTime;
+    }
+
+    public BigDecimal getReliefAmount() {
+        return reliefAmount;
+    }
+
+    public void setReliefAmount(BigDecimal reliefAmount) {
+        this.reliefAmount = reliefAmount;
+    }
+
+    public Long getPostponeTime() {
+        return postponeTime;
+    }
+
+    public void setPostponeTime(Long postponeTime) {
+        this.postponeTime = postponeTime;
     }
 }

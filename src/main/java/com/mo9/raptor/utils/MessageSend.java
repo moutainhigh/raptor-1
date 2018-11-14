@@ -13,7 +13,6 @@ import com.mo9.raptor.utils.httpclient.HttpClientApi;
 import com.mo9.raptor.utils.httpclient.bean.HttpResult;
 import com.mo9.raptor.utils.log.Log;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.NoSuchMessageException;
@@ -50,6 +49,9 @@ public class MessageSend {
     @Value("${suona.send.message.url}")
     private String messageSendUrl;
 
+    @Value("${loan.name.en}")
+    private String systemCode;
+
 
     public Boolean sendMobileSmsCN(String mobile, MessageNotifyEventEnum event,JSONObject variableValues) {
         return sendMobileSms(mobile,event, AreaCodeEnum.CN,variableValues);
@@ -81,6 +83,7 @@ public class MessageSend {
         requestVo.setTransMode(type);
         requestVo.setBusinessCode(event);
         requestVo.setVariableValues(variableValues);
+        requestVo.setSystemCode(systemCode);
         return sendMessageInside(requestVo);
     }
 
@@ -94,7 +97,7 @@ public class MessageSend {
     private Boolean sendMessageInside(MessageNotifyRequestVo requestVo) {
 
         //设置消息id
-        String messageId = "Raptor_" + idWorker.nextId();
+        String messageId = systemCode+"_" + idWorker.nextId();
         requestVo.setMessageId(messageId);
         //设置短信或邮件发送
         //TODO 短信网关待配置

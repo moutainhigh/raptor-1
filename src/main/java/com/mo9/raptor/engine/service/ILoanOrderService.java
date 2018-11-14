@@ -70,5 +70,20 @@ public interface ILoanOrderService {
      * @param statusEnums
      * @return
      */
-    List<LoanOrderEntity> listByStatus(List<StatusEnum> statusEnums);
+    List<LoanOrderEntity> listByStatus(List<String> statusEnums);
+
+    List<LoanOrderEntity> listByUserAndStatus (String userCode, List<String> statusEnums);
+
+    /**
+     * 查询所有今天还款的订单
+     * @return
+     */
+    List<LoanOrderEntity> listShouldPayOrder();
+
+    /**
+     * 查询所有逾期订单
+     * @param time
+     * @return
+     */
+    List<LoanOrderEntity> listByOverDueOrder(long time);
 }

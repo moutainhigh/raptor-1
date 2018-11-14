@@ -1,87 +1,115 @@
 package com.mo9.raptor.controller;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.aliyun.oss.OSSClient;
 import com.mo9.raptor.bean.BaseResponse;
-import com.mo9.raptor.bean.req.PageReq;
 import com.mo9.raptor.engine.enums.StatusEnum;
-import com.mo9.raptor.entity.SpreadChannelEntity;
+import com.mo9.raptor.entity.BankEntity;
+import com.mo9.raptor.entity.CardBinInfoEntity;
+import com.mo9.raptor.entity.UserContactsEntity;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.ResCodeEnum;
-import com.mo9.raptor.redis.RedisParams;
-import com.mo9.raptor.redis.RedisServiceApi;
-import com.mo9.raptor.service.SpreadChannelService;
+import com.mo9.raptor.service.BankService;
+import com.mo9.raptor.service.CardBinInfoService;
+import com.mo9.raptor.service.UserContactsService;
 import com.mo9.raptor.service.UserService;
-import com.mo9.raptor.utils.IpUtils;
+import com.mo9.raptor.utils.DateUtils;
 import com.mo9.raptor.utils.Md5Util;
+import com.mo9.raptor.utils.RandomUtils;
 import com.mo9.raptor.utils.log.Log;
+import com.mo9.raptor.utils.oss.OSSProperties;
+import com.mo9.risk.app.entity.User;
+import com.mo9.risk.service.RiskAuditService;
+import com.mo9.risk.service.RiskContractInfoService;
 import org.slf4j.Logger;
-import org.springframework.data.domain.Page;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import java.util.List;
-import java.util.Map;
+import java.io.*;
+import java.util.*;
 
 /**
  * Created by jyou on 2018/9/29.
  *
  * @author jyou
- * 对外暴露接口
+ *         对外暴露接口
  */
 @Controller
 @RequestMapping(value = "/outside")
 public class OutsideController {
 
     private static final String salt = "rtsDDcogZcPCu!NYkfgfjQq6O;~2Brtr";
-
     private static Logger logger = Log.get();
-
-//    @Value("${raptor.url}")
+    //    @Value("${raptor.url}")
     private String raptorUrl;
 
     @Resource
     private UserService userService;
 
     @Resource
-    private SpreadChannelService spreadChannelService;
+    private BankService bankService;
 
     @Resource
-    private RedisServiceApi redisServiceApi;
+    private CardBinInfoService cardBinInfoService;
 
-    @Resource(name = "raptorRedis")
-    private RedisTemplate raptorRedis;
+    @Resource
+    private RiskContractInfoService riskContractInfoService;
 
+    @Resource
+    private UserContactsService userContactsService;
+
+    @Resource
+    private RiskAuditService riskAuditService;
+
+    @Resource
+    private OSSProperties ossProperties;
+
+    @Value("${raptor.sockpuppet}")
+    private String sockpuppet;
+
+    private int LIMIT = 0;
+    /**
+     * 拉黑用户
+     *
+     * @param userCode
+     * @param desc
+     * @param sign
+     * @return
+     */
     @GetMapping(value = "/to_black_user")
     @ResponseBody
-    public BaseResponse<Boolean> toBlackUser(@RequestParam("userCode") String userCode, @RequestParam("desc")String desc, @RequestParam("sign")String sign){
+    public BaseResponse<Boolean> toBlackUser(@RequestParam("userCode") String userCode, @RequestParam("desc") String desc, @RequestParam("sign") String sign) {
         BaseResponse<Boolean> response = new BaseResponse<Boolean>();
-        try{
+        try {
             String str = userCode + desc + salt;
             String md5 = Md5Util.getMD5(str);
-            if(!md5.equals(sign)){
+            if (!md5.equals(sign)) {
                 return response.buildFailureResponse(ResCodeEnum.SIGN_CHECK_ERROR);
             }
             UserEntity userEntity = userService.findByUserCodeAndDeleted(userCode, false);
-            if(userEntity == null){
+            if (userEntity == null) {
                 return response.buildFailureResponse(ResCodeEnum.USER_NOT_EXIST);
             }
-            if(!StatusEnum.PASSED.name().equals(userEntity.getStatus())){
+            if (!StatusEnum.PASSED.name().equals(userEntity.getStatus())) {
                 return response.buildFailureResponse(ResCodeEnum.NOT_SUPPORT_TO_BLACK);
             }
             userService.toBlackUser(userEntity, desc);
             return response.buildSuccessResponse(true);
-        }catch (Exception e){
-            Log.error(logger,e,"拉黑用户----->>>>发生异常,userCode={}", userCode);
+        } catch (Exception e) {
+            Log.error(logger, e, "拉黑用户----->>>>发生异常,userCode={}", userCode);
             return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
         }
     }
 
     /**
      * 暂时无用 TODO
+     *
      * @param model
      * @param source
      * @param subSource
@@ -89,62 +117,181 @@ public class OutsideController {
      */
     @GetMapping(value = "/to_source_login")
     public String toSourceLogin(Model model, @RequestParam("source") String source, @RequestParam("subSource") String subSource) {
-        model.addAttribute("source",source);
+        model.addAttribute("source", source);
         model.addAttribute("subSource", subSource);
-        model.addAttribute("host",raptorUrl);
-        //返回地址 todo ukar
+        model.addAttribute("host", raptorUrl);
         return "/test";
     }
-    /**
-     * 根据日期条件分页获取新用户注册数
-     */
-    @GetMapping("/get_register_number")
-    public String getRegisterUserNumber(Model model,HttpServletRequest request, PageReq pageReq){
-        String source = request.getParameter("source");
-        Page<Map<String, Object>> registerUser = userService.getRegisterUserNumber(source,  pageReq);
-        List<Map<String, Object>> content = registerUser.getContent();
-        model.addAttribute("resultList",content);
-        return "channel/show";
-    }
 
-    /**
-     * 登录页面
-     * @param model
-     * @param request
-     * @return
-     */
-    @RequestMapping("/to_login")
-    public String toLogin(Model model,HttpServletRequest request){
-        String userName = request.getParameter("userName");
-        String password = request.getParameter("password");
-        String remoteHost = IpUtils.getRemoteHost(request);
-        //查看是否在登录状态
-        SpreadChannelEntity spreadChannelUser = (SpreadChannelEntity)redisServiceApi.get(RedisParams.ACTION_TOKEN_LONG + remoteHost, raptorRedis);
-        //非登录状态去登录
-        if (spreadChannelUser == null){
-            if (StringUtils.isEmpty(userName)||StringUtils.isEmpty(password)){
-                model.addAttribute("message","帐号或密码错误");
-                return "channel/login";
-            }
-            spreadChannelUser = spreadChannelService.findByLoginNameAndPassword(userName,password);
-            if (spreadChannelUser == null){
-                model.addAttribute("message","帐号或密码错误");
-                return "channel/login";
-            }
+
+    @GetMapping("/update_all_bank_name")
+    @ResponseBody
+    public BaseResponse<Boolean> updateAllBankName(String password) {
+        BaseResponse<Boolean> response = new BaseResponse<Boolean>();
+        if (!password.equals("mo9@2018")) {
+            return response.buildFailureResponse(ResCodeEnum.INVALID_SIGN);
         }
-        //设置登录成功
-        redisServiceApi.set(RedisParams.ACTION_TOKEN_LONG+remoteHost,spreadChannelUser,RedisParams.EXPIRE_30M,raptorRedis);
-        logger.info("渠道推广登录接口-------->>>>>渠道[{}]登录成功,ip为[{}]",spreadChannelUser.getSource(),remoteHost);
-        Page<Map<String, Object>> registerUser = userService.getRegisterUserNumber(spreadChannelUser.getSource(),  new PageReq());
-        List<Map<String, Object>> content = registerUser.getContent();
-        model.addAttribute("resultList",content);
-        model.addAttribute("code",0);
-        return "channel/show";
-    }
-    @GetMapping("/login")
-    public String loginIndex(Model model,HttpServletRequest request){
-        redisServiceApi.remove(RedisParams.ACTION_TOKEN_LONG+IpUtils.getRemoteHost(request),raptorRedis);
-        return "channel/login";
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                List<BankEntity> list = bankService.findAll();
+                if (list == null || list.size() == 0) {
+                    return;
+                }
+
+                for (BankEntity bankEntity : list) {
+                    String bankNo = bankEntity.getBankNo();
+                    if (org.apache.commons.lang.StringUtils.isBlank(bankNo) || bankNo.length() < 6) {
+                        continue;
+                    }
+                    CardBinInfoEntity cardBinInfoEntity = cardBinInfoService.findByCardPrefix(bankNo.substring(0, 6));
+                    if (cardBinInfoEntity == null) {
+                        bankEntity.setBankName("未知");
+                    } else {
+                        String bankName = bankEntity.getBankName();
+                        String cardBank = cardBinInfoEntity.getCardBank();
+                        if (cardBank.equals(bankName)) {
+                            continue;
+                        }
+                        bankEntity.setBankName(cardBank);
+                    }
+                    bankService.save(bankEntity);
+                }
+            }
+        });
+        t.start();
+        return response.buildSuccessResponse(true);
     }
 
+    @GetMapping("/update_all_mobile_contact")
+    @ResponseBody
+    public BaseResponse<Boolean> updateAllMobileContact(@RequestParam("password") String password, @RequestParam(value = "start", defaultValue = "0")String start){
+        BaseResponse<Boolean> response = new BaseResponse<Boolean>();
+        if (!password.equals("mo9@2018")) {
+            return response.buildFailureResponse(ResCodeEnum.INVALID_SIGN);
+        }
+        int s = Integer.valueOf(start);
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                int startLimit = s;
+                int limit = 100;
+                boolean boo = true;
+                int count = 0;
+                int errorCount = 0;
+                int userNullCount = 0;
+                while(boo){
+                    List<UserContactsEntity> userContactsList = userContactsService.findByLimit(startLimit, limit);
+                    logger.info("用户通讯录重新执行，查询开始条数{}，每页条数{}, 当前集合长度size={}", startLimit, limit, userContactsList == null ? 0 : userContactsList.size());
+                    if(userContactsList != null && userContactsList.size() > 0){
+                        for(UserContactsEntity entity : userContactsList){
+                            UserEntity userEntity = userService.findByUserCode(entity.getUserCode());
+                            if(userEntity == null){
+                                logger.info("用户通讯录重新执行，当前查询用户不存在,userNullCount={}", userNullCount++);
+                                continue;
+                            }
+                            try{
+                                User user = new User();
+                                BeanUtils.copyProperties(userEntity, user);
+                                riskContractInfoService.createAll(entity.getContactsList(), user);
+                            }catch (Exception e){
+                                logger.error("用户通讯录重新执行,用户执行出现异常,当前第{}条，userCode={}", errorCount++, userEntity.getUserCode(), e);
+                            }
+                            logger.info("用户通讯录重新执行，当前执行到第{}条,userCode={}", count++, userEntity.getUserCode());
+                        }
+                        startLimit = startLimit + limit;
+                        try {
+                            Thread.sleep(500);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }else {
+                        boo = false;
+                    }
+                    LIMIT = count;
+                }
+                logger.info("用户通讯录重新执行，执行完毕,共执行{}条", count);
+            }
+        });
+        t.start();
+        return response;
+    }
+
+    @RequestMapping("/manual_audit")
+    @ResponseBody
+    public BaseResponse<Boolean> manualAudit(@RequestParam("file") MultipartFile file, @RequestParam("password")String password,
+                                             @RequestParam(value = "limit", required = false, defaultValue = "1000")String limit){
+        BaseResponse<Boolean> response = new BaseResponse<Boolean>();
+        if (!password.equals("mo9@2018")) {
+            return response.buildFailureResponse(ResCodeEnum.INVALID_SIGN);
+        }
+
+        if(file.getSize() == 0){
+            return response.buildSuccessResponse(true);
+        }
+        Integer limitNum = Integer.valueOf(limit);
+        Thread t = new Thread(() -> {
+            List<JSONObject> list = new ArrayList<>();
+            try {
+                InputStream inputStream = file.getInputStream();
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+                String userCode = null;
+                String dateStr = DateUtils.formartDate(new Date());
+                while((userCode = bufferedReader.readLine()) != null){
+                    userCode = userCode.trim();
+                    JSONObject res = riskAuditService.manualAudit(userCode);
+                    if(res != null){
+                        JSONObject json = new JSONObject();
+                        json.put(userCode, res);
+                        list.add(json);
+                    }
+                    if(list.size() % limitNum == 0){
+                        //上传到oss
+                        String fileName = ossProperties.getCatalogCallRule() + "/" + sockpuppet + "-" + dateStr + "-" + System.currentTimeMillis() + ".json";
+                        uploadFile2Oss(JSON.toJSONString(list), fileName);
+                        list = new ArrayList();
+                    }
+                }
+                if(list.size() > 0){
+                    //上传到oss
+                    String fileName = ossProperties.getCatalogCallRule() + "/" + sockpuppet + "-" + dateStr + "-" + System.currentTimeMillis() + ".json";
+                    uploadFile2Oss(JSON.toJSONString(list), fileName);
+                }
+            } catch (IOException e) {
+                logger.error("手动触发风控规则-->获取文件流出现异常", e);
+            }
+        });
+
+
+        t.start();
+        return response.buildSuccessResponse(true);
+    }
+
+    @GetMapping("/test")
+    @ResponseBody
+    public String test() {
+        return String.valueOf(LIMIT);
+    }
+
+    private void uploadFile2Oss(String str, String fileName){
+
+        try {
+            OSSClient ossClient = new OSSClient(ossProperties.getWriteEndpoint(), ossProperties.getAccessKeyId(), ossProperties.getAccessKeySecret());
+            ossClient
+                    .putObject(
+                            ossProperties.getBucketName(),
+                            fileName,
+                            new ByteArrayInputStream(str.getBytes())
+                    );
+            ossClient.shutdown();
+
+            StringBuilder sb = new StringBuilder();
+            sb.append(ossProperties.getHttpPrefix())
+                    .append(ossProperties.getReadEndpoint().substring(ossProperties.getHttpPrefix().length()))
+                    .append("/").append(fileName);
+            logger.info("手动触发风控规则-->上传oss,日期：{}，返回地址：{}" ,DateUtils.formartDate(new Date()) ,sb.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

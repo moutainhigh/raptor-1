@@ -3,6 +3,7 @@ package com.mo9.raptor.controller;
 import com.alibaba.fastjson.JSONObject;
 import com.mo9.raptor.bean.BaseResponse;
 import com.mo9.raptor.bean.ReqHeaderParams;
+import com.mo9.raptor.bean.condition.StrategyCondition;
 import com.mo9.raptor.bean.req.OrderAddReq;
 import com.mo9.raptor.bean.res.LoanOrderRes;
 import com.mo9.raptor.engine.entity.LendOrderEntity;
@@ -13,30 +14,24 @@ import com.mo9.raptor.engine.service.ILendOrderService;
 import com.mo9.raptor.engine.service.ILoanOrderService;
 import com.mo9.raptor.engine.structure.item.Item;
 import com.mo9.raptor.engine.utils.EngineStaticValue;
-import com.mo9.raptor.entity.BankEntity;
-import com.mo9.raptor.entity.DictDataEntity;
-import com.mo9.raptor.entity.LoanProductEntity;
-import com.mo9.raptor.entity.UserEntity;
+import com.mo9.raptor.entity.*;
 import com.mo9.raptor.enums.DictTypeNoEnum;
-import com.mo9.raptor.enums.PayTypeEnum;
 import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.lock.Lock;
 import com.mo9.raptor.lock.RedisService;
 import com.mo9.raptor.redis.RedisLockKeySuffix;
-import com.mo9.raptor.service.BankService;
-import com.mo9.raptor.service.DictService;
-import com.mo9.raptor.service.LoanProductService;
-import com.mo9.raptor.service.UserService;
+import com.mo9.raptor.service.*;
 import com.mo9.raptor.utils.IDWorker;
+import com.mo9.raptor.utils.RiskUtilsV2;
 import com.mo9.raptor.utils.log.Log;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -73,6 +68,9 @@ public class LoanOrderController {
     private DictService dictService;
 
     @Autowired
+    private SpreadChannelService spreadChannelService;
+
+    @Autowired
     private RedisService redisService;
 
     @Autowired
@@ -81,8 +79,20 @@ public class LoanOrderController {
     @Value("${raptor.sockpuppet}")
     private String sockpuppet;
 
+    @Value("${loan.name.en}")
+    private String loanNameEn;
+
     @Autowired
     private BankService bankService;
+
+    @Autowired
+    private StrategyService strategyService;
+
+    @Autowired
+    private CardBinInfoService cardBinInfoService;
+
+    @Autowired
+    private RiskUtilsV2 riskUtilsV2 ;
 
     /**
      * 下单
@@ -91,7 +101,7 @@ public class LoanOrderController {
      * @return
      */
     @PostMapping("/add")
-    public BaseResponse<JSONObject> add(@Valid @RequestBody OrderAddReq req, HttpServletRequest request) {
+    public BaseResponse<JSONObject> add(@Validated @RequestBody OrderAddReq req, HttpServletRequest request) {
         BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
         String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
         String clientId = request.getHeader(ReqHeaderParams.CLIENT_ID);
@@ -129,10 +139,13 @@ public class LoanOrderController {
         Lock lock = new Lock(userCode + RedisLockKeySuffix.PRE_LOAN_ORDER_KEY, idWorker.nextId() + "");
         try {
             if (redisService.lock(lock.getName(), lock.getValue(), 1500000, TimeUnit.MILLISECONDS)) {
-
                 LoanOrderEntity payoffOrder = loanOrderService.getLastIncompleteOrder(userCode, StatusEnum.OLD_PAYOFF);
                 //没有payoff订单的用户不可以借款
                 if (null == payoffOrder) {
+                    if(StringUtils.isBlank(user.getSource()) || !spreadChannelService.checkSourceIsAllow(user.getSource())) {
+                        logger.warn("用户渠道[{}], 不放款!", user.getSource());
+                        return response.buildFailureResponse(ResCodeEnum.NO_LEND_AMOUNT);
+                    }
                     // 锁定后检查今天是否还有限额
                     BigDecimal dailyLendAmount = lendOrderService.getDailyLendAmount();
                     if (new BigDecimal(dictData.getName()).compareTo(dailyLendAmount.add(actuallyGetAmount)) < 0) {
@@ -152,10 +165,22 @@ public class LoanOrderController {
                     return response.buildFailureResponse(ResCodeEnum.ONLY_ONE_ORDER);
                 }
 
+                //查询最后一笔订单
+                LoanOrderEntity lastLoanOrder = loanOrderService.getLastIncompleteOrder(userCode);
+                if(lastLoanOrder != null){
+                    if(StatusEnum.PAYOFF.name().equals(lastLoanOrder.getStatus()) || StatusEnum.LENT.name().equals(lastLoanOrder.getStatus())){
+                        Boolean canLoan = riskUtilsV2.verifyNeedToBlack(lastLoanOrder) ;
+                        if(canLoan){
+                            //黑名单
+                            return response.buildFailureResponse(ResCodeEnum.NOT_WHITE_LIST_USER);
+                        }
+                    }
+                }
+
                 LoanOrderEntity loanOrder = new LoanOrderEntity();
                 loanOrder.setOrderId(orderId);
                 loanOrder.setOwnerId(userCode);
-                loanOrder.setType("RAPTOR");
+                loanOrder.setType(loanNameEn);
                 loanOrder.setLoanNumber(principal);
                 loanOrder.setPostponeUnitCharge(product.getRenewalBaseAmount());
                 loanOrder.setLoanTerm(loanTerm);
@@ -183,11 +208,21 @@ public class LoanOrderController {
                 }
                 lendOrder.setUserName(bankEntity.getUserName());
                 lendOrder.setIdCard(bankEntity.getCardId());
-                lendOrder.setBankName(bankEntity.getBankName());
                 if (StringUtils.isBlank(req.getCard())) {
                     lendOrder.setBankCard(bankEntity.getBankNo());
+                    lendOrder.setBankName(bankEntity.getBankName());
                 } else {
+                    if(req.getCard().length() < 7){
+                        return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
+                    }
+                    CardBinInfoEntity byCardPrefix = cardBinInfoService.findByCardPrefix(req.getCard().substring(0, 6));
                     lendOrder.setBankCard(req.getCard());
+                    if(byCardPrefix == null){
+                        lendOrder.setBankName("银行卡");
+                    }else{
+                        lendOrder.setBankName(byCardPrefix.getCardBank());
+                    }
+
                 }
                 if (StringUtils.isBlank(req.getCardMobile())) {
                     lendOrder.setBankMobile(bankEntity.getMobile());
@@ -198,6 +233,17 @@ public class LoanOrderController {
                 lendOrder.setType("");
                 lendOrder.setCreateTime(now);
                 lendOrder.setUpdateTime(now);
+
+                //检查银行卡是否支持
+                StrategyCondition condition = new StrategyCondition(true);
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put(StrategyCondition.BANK_NAME_CONDITION, lendOrder.getBankName());
+                condition.setCondition(jsonObject);
+                ResCodeEnum resCodeEnum = strategyService.loanOrderStrategy(condition);
+                if(resCodeEnum != ResCodeEnum.SUCCESS){
+                    logger.warn("借款订单银行卡不支持userCode={}, bankName={},bankNo={}", userCode, lendOrder.getBankName(), lendOrder.getBankCard());
+                    return response.buildFailureResponse(resCodeEnum);
+                }
 
                 // 保存借款订单, 还款订单
                 loanOrderService.saveLendOrder(loanOrder, lendOrder);

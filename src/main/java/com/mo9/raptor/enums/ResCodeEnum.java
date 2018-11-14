@@ -19,6 +19,7 @@ public enum ResCodeEnum {
     BANK_VERIFY_EXCEPTION(11151002, "银行卡验证超时", "银行卡验证超时"),
     BANK_CARD_NOT_EXIST(11151003,"银行卡查询不存在","银行卡查询不存在"),
     BANK_VERIFY_TOO_FREQUENTLY(11151004, "银行卡验证频繁 , 请稍后再试", "银行卡验证频繁 , 请稍后再试"),
+    LOAN_BANK_LIST_NOT_SUPPORT(11151005, "借款银行卡列表不支持", "借款银行卡列表不支持"),
 
     // xx=20 验证码
     CAPTCHA_GET_TOO_OFTEN(11152001, "验证码获取过于频繁", "验证码获取过于频繁"),
@@ -57,6 +58,10 @@ public enum ResCodeEnum {
     CHANNEL_REPAY_FAILED(11155007, "渠道下单失败", "渠道下单失败"),
     INVALID_REPAY_INFO(11155008, "支付信息非法", "支付信息非法"),
     ERROR_BANK_CARD(11155009, "非法银行卡", "支付银行卡"),
+    ILLEGAL_REQUEST_PRARM(11155010, "非法的请求参数", "非法的请求参数"),
+    ILLEGAL_COUPON_AMOUNT(11155011, "非法的优惠金额", "非法的优惠金额"),
+    MISMATCH_USER(11155012, "不匹配的用户和订单", "不匹配的用户和订单"),
+    UNSUPPORTED_TYPE(11155013, "不支持的线下还款类型", "不支持的线下还款类型"),
 
     /**
      * xx=60, 借款
@@ -67,6 +72,7 @@ public enum ResCodeEnum {
     PRODUCT_ERROR(11156003, "产品配置表错误", "系统繁忙，请稍后重试"),
     NO_LEND_INFO(11156004, "放款银行信息不存在", "放款失败"),
     LOAN_ORDER_NOT_EXISTED(11156005, "借款订单不存在", "借款订单不存在"),
+    NO_LEND(11156006, "暂不支持借款", "暂不支持借款"),
 
     /**
      * xx=70,文件
@@ -79,7 +85,18 @@ public enum ResCodeEnum {
     EFFECTIVE_COUPON_EXISTED(11158000, "已存在可用优惠券", "已存在可用优惠券"),
     INVALID_COUPON_NUMBER(11158001, "优惠额度不合法", "优惠额度不合法"),
     INVALID_SIGN(11158002, "签名非法", "签名非法"),
-    SIGN_PARAMS_EXTRACT_ERROR(11158003, "签名参数获取", "签名参数获取")
+    SIGN_PARAMS_EXTRACT_ERROR(11158003, "签名参数获取", "签名参数获取"),
+
+
+    /**
+     * xx=90, 现金账户
+     */
+    CASH_ACCOUNT_LOCK_FAILED(11159000, "现金账户获取锁失败", "现金账户获取锁失败"),
+    CASH_ACCOUNT_BALANCE_LACK(11159001, "现金账户可用金额不够", "现金账户可用金额不够"),
+    CASH_ACCOUNT_BUSINESS_NO_IS_EXIST(11159002, "现金账户业务流水号已经处理", "现金账户业务流水号已经处理"),
+    CASH_ACCOUNT_EXCEPTION(11159003, "现金账户异常", "现金账户异常"),
+    CASH_ACCOUNT_BUSINESS_TYPE_EXCEPTION(11159004, "现金账户业务类型异常", "现金账户业务类型异常"),
+
   ;
 
 

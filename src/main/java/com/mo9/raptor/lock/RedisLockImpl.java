@@ -74,7 +74,7 @@ public class RedisLockImpl implements RedisService {
             return;
         }
         if (redisTemplate.hasKey(lock.getName())) {
-            String value = (String) redisTemplate.opsForValue().get(lock.getName());
+            String value = redisTemplate.opsForValue().get(lock.getName()) + "";
             if (lock.getValue().equals(value)) {
                 redisTemplate.delete(lock.getName());
             }

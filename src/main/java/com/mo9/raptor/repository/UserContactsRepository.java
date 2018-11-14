@@ -4,6 +4,8 @@ import com.mo9.raptor.entity.UserContactsEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
+
 /**
  * Created by jyou on 2018/9/17.
  *
@@ -15,4 +17,7 @@ public interface UserContactsRepository extends JpaRepository<UserContactsEntity
 
     @Query(value = "select * from t_raptor_user_contacts t where t.user_code = ?1 order by t.id desc limit 1",nativeQuery = true)
     UserContactsEntity getByUserCode(String userCode);
+
+    @Query(value = "select * from t_raptor_user_contacts limit ?1, ?2",nativeQuery = true)
+    List<UserContactsEntity> findByLimit(int startLimit, int endLimit);
 }

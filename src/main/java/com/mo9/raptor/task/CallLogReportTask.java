@@ -2,23 +2,19 @@ package com.mo9.raptor.task;
 
 import com.mo9.raptor.controller.RiskController;
 import com.mo9.raptor.entity.UserEntity;
-import com.mo9.raptor.risk.entity.TRiskTelInfo;
-import com.mo9.raptor.risk.service.RiskTelInfoService;
-import com.mo9.raptor.service.CommonService;
 import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.CommonValues;
-import com.mo9.raptor.utils.httpclient.HttpClientApi;
 import com.mo9.raptor.utils.log.Log;
 import com.mo9.raptor.utils.oss.OSSProperties;
+import com.mo9.risk.entity.TRiskTelInfo;
+import com.mo9.risk.service.RiskTelInfoService;
 import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.util.Calendar;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -79,13 +75,6 @@ public class CallLogReportTask {
                 sid = noReportRecord.getSid();
                 uid = noReportRecord.getUid();
                 mobile = noReportRecord.getMobile();
-                if (userEntity.getReceiveCallHistory()){
-                    noReportRecord.setReportReceived(true);
-                    riskTelInfoService.update(noReportRecord);
-
-                    logger.info("-----运营商报告补偿任务-->用户表已更新报告状态，跳过。mobile: {}, userCode: {}", mobile, uid);
-                    continue;
-                }
                 
                 //入库不到一小时的跳过
                 if (nowTime - noReportRecord.getUpdatedAt().getTime() < 60 * 60 * 1000){
@@ -95,23 +84,19 @@ public class CallLogReportTask {
 
                 String report = riskController.getCallLogReport(sid, "report");
                 
-                if (report == null){
-                    logger.info("-----运营商报告补偿任务-->运营商报告未生成，tel: {}, uid: {}, sid: {}", mobile, uid, sid);
-                    continue;
-                }
-
-                String fileName = ossProperties.getCatalogCallLog() + "/" + sockpuppet + "-" + mobile + "-report.json";
-                
-                riskController.uploadFile2Oss(report, fileName);
-
                 //通知用户状态，报告已生成
                 try {
-                    
-                    if (noReportRecord != null){
-                        userService.updateReceiveCallHistory(noReportRecord.getUid(), true);
+                    if (report != null){
+                        String fileName = ossProperties.getCatalogCallLog() + "/" + sockpuppet + "-" + mobile + "-report.json";
+                        riskController.uploadFile2Oss(report, fileName);
+                        
+                        userService.updateReceiveCallHistory(uid, true);
                         noReportRecord.setReportReceived(true);
                         riskTelInfoService.update(noReportRecord);
                         logger.info("-----运营商报告补偿任务-->定时任务更新用户运营商报告获取状态成功，tel: " + mobile + ", uid: " + uid + ", sid: " + sid);
+                    }else {
+                        logger.info("-----运营商报告补偿任务-->用户提交认证后1小时内未获取到有效的运营商报告, 回退用户状态，tel: {}, uid: {}, sid: {}", mobile, uid, sid);
+                        userService.backToCollecting(uid, "用户提交认证后1小时内未获取到有效的运营商报告");
                     }
                     
                 } catch (Exception e) {

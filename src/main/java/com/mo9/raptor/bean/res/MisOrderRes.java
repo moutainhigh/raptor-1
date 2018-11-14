@@ -23,7 +23,7 @@ public class MisOrderRes {
     /**
      * 类型
      */
-    private String productType = "RAPTOR";
+    private String productType;
 
     /**
      * 状态

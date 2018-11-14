@@ -340,7 +340,7 @@ public class UserEntity extends AbstractStateEntity implements IStateEntity {
             subSource = null;
         }
         userEntity.setMobile(mobile);
-        userEntity.setUserCode(Md5Util.getMD5(mobile).toUpperCase());
+        userEntity.setUserCode(Md5Util.getMD5(mobile + String.valueOf(System.currentTimeMillis())).toUpperCase());
         userEntity.setStatus(StatusEnum.COLLECTING.name());
         userEntity.setSource(source);
         userEntity.setSubSource(subSource);
@@ -348,5 +348,18 @@ public class UserEntity extends AbstractStateEntity implements IStateEntity {
         userEntity.setCreateTime(now);
         userEntity.setUpdateTime(now);
         return userEntity;
+    }
+
+    /**
+     * 判断是否需要将用户当前状态修改为Auditing
+     * @param status
+     * @return
+     */
+    public static UserEntity changeStatusToAuditing(String status, UserEntity entity){
+        if(status.equals(StatusEnum.MANUAL.name())){
+            status = StatusEnum.AUDITING.name();
+        }
+        entity.setStatus(status);
+        return entity;
     }
 }

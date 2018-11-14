@@ -10,9 +10,7 @@ import com.mo9.raptor.bean.res.LendInfoMqRes;
 import com.mo9.raptor.bean.res.RepayDetailRes;
 import com.mo9.raptor.bean.res.RepayInfoMqRes;
 import com.mo9.raptor.bean.res.UserInfoMqRes;
-import com.mo9.raptor.engine.entity.LendOrderEntity;
-import com.mo9.raptor.engine.entity.LoanOrderEntity;
-import com.mo9.raptor.engine.entity.PayOrderEntity;
+import com.mo9.raptor.engine.entity.*;
 import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.engine.service.*;
 import com.mo9.raptor.engine.state.event.impl.lend.LendResponseEvent;
@@ -21,11 +19,14 @@ import com.mo9.raptor.engine.state.event.impl.pay.DeductResponseEvent;
 import com.mo9.raptor.engine.state.launcher.IEventLauncher;
 import com.mo9.raptor.engine.structure.Unit;
 import com.mo9.raptor.engine.structure.field.FieldTypeEnum;
+import com.mo9.raptor.engine.structure.field.SourceTypeEnum;
 import com.mo9.raptor.engine.structure.item.Item;
 import com.mo9.raptor.engine.utils.TimeUtils;
 import com.mo9.raptor.entity.*;
+import com.mo9.raptor.enums.BusinessTypeEnum;
 import com.mo9.raptor.enums.CreditStatusEnum;
 import com.mo9.raptor.enums.PayTypeEnum;
+import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.mq.producer.RabbitProducer;
 import com.mo9.raptor.service.*;
 import com.mo9.raptor.utils.log.Log;
@@ -33,6 +34,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
@@ -93,7 +95,16 @@ public class LoanMo9mqListener implements IMqMsgListener{
 	@Resource
 	private CardBinInfoService cardBinInfoService;
 
-	@Override
+	@Autowired
+    private CouponService couponService;
+
+	@Autowired
+	private CashAccountService cashAccountService ;
+
+	@Value("${raptor.sockpuppet}")
+	private String sockpuppet;
+
+    @Override
 	 public MqAction consume(MqMessage msg, Object consumeContext) {
 		String tag = msg.getTag() ;
 		logger.info("获取tag -- " + tag);
@@ -144,20 +155,50 @@ public class LoanMo9mqListener implements IMqMsgListener{
 		payOrderLog.setChannelRepayNumber(amount);
 		payOrderLog.setFailReason(failReason);
 		payOrderLogService.save(payOrderLog);
-
+		//查询还款订单状态
+		PayOrderEntity payOrderEntityTemp = payOrderService.getByOrderId(orderId);
+		if(StatusEnum.END_REPAY.contains(payOrderEntityTemp.getStatus())){
+			//已处理
+			return MqAction.CommitMessage;
+		}
 		// 发送还款扣款成功事件
 		try {
 			try {
-                Boolean offline = bodyJson.getBoolean("offline");
-			    if (offline == null || !offline) {
-                    CardBinInfoEntity cardBinInfoEntity = cardBinInfoService.findByCardPrefix(payOrderLog.getBankCard());
-                    String bankName = "银行卡" ;
-                    if(cardBinInfoEntity != null){
-                        bankName = cardBinInfoEntity.getCardBank() ;
-                    }
-                    bankService.createOrUpdateBank( payOrderLog.getBankCard() ,  payOrderLog.getIdCard() ,  payOrderLog.getUserName() ,
-                            payOrderLog.getBankMobile() ,  bankName ,  payOrderLog.getUserCode());
-                }
+				if("success".equals(status)){
+					//保存 用户流水
+					Boolean offline = bodyJson.getBoolean("offline");
+					if (offline == null || !offline) {
+						ResCodeEnum resCodeEnum = ResCodeEnum.SUCCESS ;
+						if(PayTypeEnum.REPAY_POSTPONE.name().equals(payOrderEntityTemp.getType())){
+							resCodeEnum = cashAccountService.recharge(payOrderLog.getUserCode() , payOrderLog.getChannelRepayNumber(), payOrderLog.getPayOrderId() , BusinessTypeEnum.ONLINE_POSTPONE);
+						}else{
+							resCodeEnum = cashAccountService.recharge(payOrderLog.getUserCode() , payOrderLog.getChannelRepayNumber(), payOrderLog.getPayOrderId() , BusinessTypeEnum.ONLINE_REPAY);
+						}
+						if(ResCodeEnum.SUCCESS != resCodeEnum && ResCodeEnum.CASH_ACCOUNT_BUSINESS_NO_IS_EXIST != resCodeEnum){
+							logger.error("用户" + payOrderLog.getUserCode() +  " 还款现金账户处理" + payOrderLog.getPayOrderId()  + "异常 : " + resCodeEnum );
+							return MqAction.ReconsumeLater;
+						}
+						CardBinInfoEntity cardBinInfoEntity = cardBinInfoService.findByCardPrefix(payOrderLog.getBankCard());
+						String bankName = "银行卡" ;
+						if(cardBinInfoEntity != null){
+							bankName = cardBinInfoEntity.getCardBank() ;
+						}
+						bankService.createOrUpdateBank( payOrderLog.getBankCard() ,  payOrderLog.getIdCard() ,  payOrderLog.getUserName() ,
+								payOrderLog.getBankMobile() ,  bankName ,  payOrderLog.getUserCode());
+					}else{
+						ResCodeEnum resCodeEnum = ResCodeEnum.SUCCESS ;
+						if(PayTypeEnum.REPAY_POSTPONE.name().equals(payOrderEntityTemp.getType())){
+							resCodeEnum = cashAccountService.recharge(payOrderLog.getUserCode() , payOrderLog.getChannelRepayNumber(), payOrderLog.getPayOrderId() , BusinessTypeEnum.UNDERLINE_POSTPONE);
+						}else{
+							resCodeEnum = cashAccountService.recharge(payOrderLog.getUserCode() , payOrderLog.getChannelRepayNumber(), payOrderLog.getPayOrderId() , BusinessTypeEnum.UNDERLINE_REPAY);
+						}
+						if(ResCodeEnum.SUCCESS != resCodeEnum && ResCodeEnum.CASH_ACCOUNT_BUSINESS_NO_IS_EXIST != resCodeEnum){
+							logger.error("用户" + payOrderLog.getUserCode() +  " 还款现金账户处理" + payOrderLog.getPayOrderId()  + "异常 : " + resCodeEnum );
+							return MqAction.ReconsumeLater;
+						}
+					}
+				}
+
 			} catch (Exception e) {
 				Log.error(logger , e , "还款成功保存银行卡异常 orderId : " + orderId);
 			}
@@ -167,63 +208,69 @@ public class LoanMo9mqListener implements IMqMsgListener{
 			Log.error(logger , e , "发送还款订单[{}]还款成功事件异常", orderId);
 		}
 
-		//修改或者存储银行卡信息 TODO
+		//修改或者存储银行卡信息
 
         if ("success".equals(status)) {
 			PayOrderEntity payOrderEntity = payOrderService.getByOrderId(orderId);
 			LoanOrderEntity loanOrderEntity = loanOrderService.getByOrderId(payOrderEntity.getLoanOrderId());
-			// 增加延期次数
-			List<FetchPayOrderCondition.Type> type = new ArrayList<FetchPayOrderCondition.Type>();
-			type.add(FetchPayOrderCondition.Type.REPAY_POSTPONE);
-			List<FetchPayOrderCondition.Status> statuses = new ArrayList<FetchPayOrderCondition.Status>();
-			statuses.add(FetchPayOrderCondition.Status.ENTRY_DONE);
-			FetchPayOrderCondition condition = new FetchPayOrderCondition();
-			condition.setTypes(type);
-			condition.setStates(statuses);
-			condition.setLoanOrderNumber(payOrderEntity.getLoanOrderId());
-			Page<PayOrderEntity> payOrderEntities = payOrderService.listPayOrderByCondition(condition);
-			int count = payOrderEntities.getContent().size();
-			loanOrderEntity.setPostponeCount(count);
-            loanOrderEntity.setUpdateTime(System.currentTimeMillis());
-            loanOrderService.save(loanOrderEntity);
+			String payOrderStatus = payOrderEntity.getStatus();
+			// 入账成功才向贷后发消息
+			if (StatusEnum.ENTRY_DONE.name().equals(payOrderStatus)) {
+				// 增加延期次数
+				List<FetchPayOrderCondition.Type> type = new ArrayList<FetchPayOrderCondition.Type>();
+				type.add(FetchPayOrderCondition.Type.REPAY_POSTPONE);
+				List<FetchPayOrderCondition.Status> statuses = new ArrayList<FetchPayOrderCondition.Status>();
+				statuses.add(FetchPayOrderCondition.Status.ENTRY_DONE);
+				FetchPayOrderCondition condition = new FetchPayOrderCondition();
+				condition.setTypes(type);
+				condition.setStates(statuses);
+				condition.setLoanOrderNumber(payOrderEntity.getLoanOrderId());
+				Page<PayOrderEntity> payOrderEntities = payOrderService.listPayOrderByCondition(condition);
+				int count = payOrderEntities.getContent().size();
+				loanOrderEntity.setPostponeCount(count);
+				loanOrderEntity.setUpdateTime(System.currentTimeMillis());
+				loanOrderService.save(loanOrderEntity);
 
-			try {
-				// 发送消息给贷后
-				notifyMisRepay(payOrderLog, count, loanOrderEntity);
-			} catch (Exception e) {
-				logger.error("向贷后发送还款信息失败   ", e);
-			}
+				try {
+					// 发送消息给贷后
+					notifyMisRepay(payOrderLog, count, loanOrderEntity);
+				} catch (Exception e) {
+					logger.error("向贷后发送还款信息失败   ", e);
+				}
 
-			// 修改用户信用状态
-			String userCode = payOrderEntity.getOwnerId();
-			UserEntity userEntity = userService.findByUserCodeAndDeleted(userCode, false);
-			if (userEntity != null) {
-				String newCreditStatus = null;
-				String creditStatus = userEntity.getCreditStatus();
-				String payOrderType = payOrderEntity.getType();
-				if (PayTypeEnum.REPAY_POSTPONE.name().equals(payOrderType)) {
-					Long formerRepaymentDate = TimeUtils.extractDateTime(payOrderLog.getFormerRepaymentDate());
-					Long createTime = TimeUtils.extractDateTime(payOrderEntity.getCreateTime());
-					if (formerRepaymentDate < createTime) {
+				// 修改用户信用状态
+				String userCode = payOrderEntity.getOwnerId();
+				UserEntity userEntity = userService.findByUserCodeAndDeleted(userCode, false);
+				if (userEntity != null) {
+					String newCreditStatus = null;
+					String creditStatus = userEntity.getCreditStatus();
+					String payOrderType = payOrderEntity.getType();
+					if (PayTypeEnum.REPAY_POSTPONE.name().equals(payOrderType)) {
+						Long formerRepaymentDate = TimeUtils.extractDateTime(payOrderLog.getFormerRepaymentDate());
+						Long createTime = TimeUtils.extractDateTime(payOrderEntity.getCreateTime());
+						if (formerRepaymentDate < createTime) {
+							newCreditStatus = CreditStatusEnum.REPAY_OVERDUE.name();
+						} else {
+							newCreditStatus = CreditStatusEnum.REPAY_REGULAR.name();
+						}
+					} else if (PayTypeEnum.REPAY_OVERDUE.name().equals(payOrderType)) {
 						newCreditStatus = CreditStatusEnum.REPAY_OVERDUE.name();
 					} else {
 						newCreditStatus = CreditStatusEnum.REPAY_REGULAR.name();
 					}
-				} else if (PayTypeEnum.REPAY_OVERDUE.name().equals(payOrderType)) {
-					newCreditStatus = CreditStatusEnum.REPAY_OVERDUE.name();
+					if (StringUtils.isBlank(creditStatus) || CreditStatusEnum.INITIAL.name().equals(creditStatus)) {
+						userEntity.setCreditStatus(newCreditStatus);
+					}
+					if (CreditStatusEnum.REPAY_REGULAR.name().equals(creditStatus) && CreditStatusEnum.REPAY_OVERDUE.name().equals(newCreditStatus)) {
+						userEntity.setCreditStatus(newCreditStatus);
+					}
+					userEntity.setUpdateTime(System.currentTimeMillis());
+					userService.save(userEntity);
 				} else {
-					newCreditStatus = CreditStatusEnum.REPAY_REGULAR.name();
+					logger.error("userCode[{}] 查不到用户实体", userCode);
 				}
-				if (StringUtils.isBlank(creditStatus) || CreditStatusEnum.INITIAL.name().equals(creditStatus)) {
-					userEntity.setCreditStatus(newCreditStatus);
-				}
-				if (CreditStatusEnum.REPAY_REGULAR.name().equals(creditStatus) && CreditStatusEnum.REPAY_OVERDUE.name().equals(newCreditStatus)) {
-					userEntity.setCreditStatus(newCreditStatus);
-				}
-				userEntity.setUpdateTime(System.currentTimeMillis());
-				userService.save(userEntity);
 			} else {
-				logger.error("userCode[{}] 查不到用户实体", userCode);
+				logger.warn("还款订单[{}]入账出现问题, 不向贷后发送mq以及更改用户信用状态", payOrderEntity.getOrderId());
 			}
 		}
 		return MqAction.CommitMessage;
@@ -316,6 +363,10 @@ public class LoanMo9mqListener implements IMqMsgListener{
 			if (StatusEnum.SUCCESS.name().equals(lendOrderEntity.getStatus()) || StatusEnum.FAILED.name().equals(lendOrderEntity.getStatus())) {
                 logger.warn("接收到了订单[{}]放款的MQ, 然而查到的放款订单状态为[{}], 可能由于状态机报错而未更新借款订单状态", orderId, lendOrderEntity.getStatus());
                 LoanOrderEntity loanOrderEntity = loanOrderService.getByOrderId(orderId);
+				if(StatusEnum.END_LOAN.contains(loanOrderEntity.getStatus())){
+					//已经处理过了
+					return MqAction.CommitMessage;
+				}
                 if (StatusEnum.LENDING.name().equals(loanOrderEntity.getStatus())) {
                     LoanResponseEvent event = null;
                     if (isSucceed) {
@@ -339,7 +390,11 @@ public class LoanMo9mqListener implements IMqMsgListener{
 		// TODO: 发送消息给贷后
         if ("1".equals(status)) {
 			try {
-				notifyMisLend(orderId);
+				LoanOrderEntity loanOrderEntity = loanOrderService.getByOrderId(orderId);
+				if (StatusEnum.LENT.name().equals(loanOrderEntity.getStatus())) {
+					// 放款成功才想贷后发信息
+					notifyMisLend(orderId);
+				}
 			} catch (Exception e) {
 				logger.error("向贷后发送放款信息失败  ", e);
 			}
@@ -369,8 +424,8 @@ public class LoanMo9mqListener implements IMqMsgListener{
         List<PayOrderEntity> payOrderEntities = payOrderService.listByLoanOrderIdAndType(orderId, PayTypeEnum.REPAY_POSTPONE);
         lendInfo.setPostponeCount(payOrderEntities.size());
         lendInfo.setRepaymentTime(loanOrderEntity.getRepaymentDate());
-
-
+        lendInfo.setProductType(sockpuppet);
+        lendInfo.setCreateTime(lendOrderEntity.getCreateTime());
 
         String ownerId = lendOrderEntity.getOwnerId();
         UserEntity userEntity = userService.findByUserCode(ownerId);
@@ -390,6 +445,7 @@ public class LoanMo9mqListener implements IMqMsgListener{
 //        userInfo.setContactsList(userContactsEntity.getContactsList());
         userInfo.setGender(userCertifyInfoEntity.getOcrGender());
         userInfo.setDeleted(userEntity.getDeleted());
+		userInfo.setProductType(sockpuppet);
 
         JSONObject result = new JSONObject();
         result.put("lendInfo", lendInfo);
@@ -412,7 +468,8 @@ public class LoanMo9mqListener implements IMqMsgListener{
         String status = payOrderEntity.getStatus();
         repayInfo.setEntryDone(StatusEnum.ENTRY_DONE.name().equals(status));
         repayInfo.setPayType(payOrderEntity.getType());
-        repayInfo.setPostponeDays(postponeCount);
+        repayInfo.setPostponeCount(postponeCount);
+        repayInfo.setPostponeDays(payOrderEntity.getPostponeDays());
 
         List<RepayDetailRes> repayDetail = payOrderDetailService.getRepayDetail(payOrderEntity.getOrderId());
         repayInfo.setRepayDetail(repayDetail);
@@ -431,11 +488,24 @@ public class LoanMo9mqListener implements IMqMsgListener{
         }
         repayInfo.setShouldPay(shouldPay);
 		repayInfo.setRepaymentDate(loanOrderEntity.getRepaymentDate());
+        repayInfo.setPayoffTime(loanOrderEntity.getPayoffTime());
 
-		// TODO:增加还清时间
-		if (StatusEnum.PAYOFF.name().equals(loanOrderEntity.getStatus())) {
-			repayInfo.setPayoffTime(loanOrderEntity.getUpdateTime());
+        // 设置减免金额
+        BigDecimal totalDeductedAmount = couponService.getTotalDeductedAmount(loanOrderEntity.getOrderId());
+        repayInfo.setTotalReliefAmount(totalDeductedAmount);
+
+		List<CouponEntity> couponEntities = couponService.getByPayOrderId(payOrderLog.getPayOrderId());
+		BigDecimal reliefAmount = BigDecimal.ZERO;
+		if (couponEntities != null && couponEntities.size() > 0) {
+			for (CouponEntity couponEntity : couponEntities) {
+				reliefAmount = reliefAmount.add(couponEntity.getEntryAmount());
+			}
 		}
+		repayInfo.setReliefAmount(reliefAmount);
+		repayInfo.setProductType(sockpuppet);
+		repayInfo.setCreateTime(payOrderEntity.getCreateTime());
+		repayInfo.setPostponeTime(payOrderEntity.getEntryOverTime());
+
 
         JSONObject result = new JSONObject();
         result.put("repayInfo", repayInfo);

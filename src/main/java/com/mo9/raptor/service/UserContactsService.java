@@ -2,6 +2,8 @@ package com.mo9.raptor.service;
 
 import com.mo9.raptor.entity.UserContactsEntity;
 
+import java.util.List;
+
 /**
  * Created by jyou on 2018/9/17.
  *
@@ -31,4 +33,6 @@ public interface UserContactsService {
      * @return
      */
     UserContactsEntity getByUserCode(String userCode);
+
+    List<UserContactsEntity> findByLimit(int startLimit, int endLimit);
 }

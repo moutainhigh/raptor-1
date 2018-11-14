@@ -2,6 +2,7 @@ package com.mo9.raptor.engine.service;
 
 import com.mo9.raptor.engine.entity.CouponEntity;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -21,4 +22,17 @@ public interface CouponService {
      */
     CouponEntity getByCouponId(String couponId);
 
+    /**
+     * 获得此订单所有的减免金额
+     * @param orderId
+     * @return
+     */
+    BigDecimal getTotalDeductedAmount(String orderId);
+
+    /**
+     * 根据还款订单号查询优惠券
+     * @param payOrderId
+     * @return
+     */
+    List<CouponEntity> getByPayOrderId(String payOrderId);
 }

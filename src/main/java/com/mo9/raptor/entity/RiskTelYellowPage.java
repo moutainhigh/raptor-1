@@ -15,10 +15,6 @@ import javax.persistence.*;
 public class RiskTelYellowPage {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    
-    
     @Column(name = "format_tel")
     private String formatTel;
     
@@ -30,22 +26,21 @@ public class RiskTelYellowPage {
     
     @Column(name = "tags_financial")
     private String tagsFinancial;
+    
+    @Column(name = "tags_label_times")
+    private Integer tagsLabelTimes;
+    
+    @Column(name = "fancha_telloc")
+    private String fanchaTelloc;
 
 
     @Column(name = "update_time")
     private Long updateTime = System.currentTimeMillis();
 
     @Column(name = "create_time")
-    private Long createTime = System.currentTimeMillis();
+    private Long createTime;
 
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
+    
 
     public String getFormatTel() {
         return formatTel;
@@ -77,6 +72,22 @@ public class RiskTelYellowPage {
 
     public void setTagsFinancial(String tagsFinancial) {
         this.tagsFinancial = tagsFinancial;
+    }
+
+    public Integer getTagsLabelTimes() {
+        return tagsLabelTimes;
+    }
+
+    public void setTagsLabelTimes(Integer tagsLabelTimes) {
+        this.tagsLabelTimes = tagsLabelTimes;
+    }
+
+    public String getFanchaTelloc() {
+        return fanchaTelloc;
+    }
+
+    public void setFanchaTelloc(String fanchaTelloc) {
+        this.fanchaTelloc = fanchaTelloc;
     }
 
     public Long getUpdateTime() {

@@ -1,5 +1,6 @@
 package com.mo9.raptor.engine.state.event.impl;
 
+import com.mo9.raptor.engine.enums.AuditResultEnum;
 import com.mo9.raptor.engine.state.event.AbstractStateEvent;
 import com.mo9.raptor.engine.state.event.IStateEvent;
 
@@ -9,14 +10,49 @@ import com.mo9.raptor.engine.state.event.IStateEvent;
  */
 public class AuditResponseEvent extends AbstractStateEvent implements IStateEvent {
 
-    private final boolean isPass;
+    private boolean isPass;
 
     private final String explanation;
 
+    private AuditResultEnum auditResultEnum;
+
+    private String subRule;
+
+    /**
+     * 订单状态机专业
+     * @param orderId
+     * @param isPass
+     * @param explanation
+     */
     public AuditResponseEvent(String orderId, boolean isPass, String explanation) {
         super(orderId);
         this.isPass = isPass;
         this.explanation = explanation;
+    }
+
+    /**
+     * 订单状态机专业,用于记录子规则
+     * @param orderId
+     * @param isPass
+     * @param explanation
+     */
+    public AuditResponseEvent(String orderId, boolean isPass, String explanation, String subRule) {
+        super(orderId);
+        this.isPass = isPass;
+        this.explanation = explanation;
+        this.subRule = subRule;
+    }
+
+    /**
+     * 用户状态机专用
+     * @param userCode
+     * @param explanation
+     * @param auditResultEnum
+     */
+    public AuditResponseEvent(String userCode, String explanation, AuditResultEnum auditResultEnum) {
+        super(userCode);
+        this.explanation = explanation;
+        this.auditResultEnum = auditResultEnum;
     }
 
     public boolean isPass() {
@@ -25,6 +61,14 @@ public class AuditResponseEvent extends AbstractStateEvent implements IStateEven
 
     public String getExplanation() {
         return explanation;
+    }
+
+    public AuditResultEnum getAuditResultEnum() {
+        return auditResultEnum;
+    }
+
+    public String getSubRule() {
+        return subRule;
     }
 
     @Override

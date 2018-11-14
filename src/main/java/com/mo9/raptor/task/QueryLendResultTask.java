@@ -2,10 +2,15 @@ package com.mo9.raptor.task;
 
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.mo9.mqclient.MqAction;
 import com.mo9.raptor.bean.res.LoanOrderLendRes;
 import com.mo9.raptor.engine.entity.LendOrderEntity;
+import com.mo9.raptor.engine.entity.LoanOrderEntity;
 import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.engine.service.ILendOrderService;
+import com.mo9.raptor.engine.state.event.impl.lend.LendResponseEvent;
+import com.mo9.raptor.engine.state.event.impl.loan.LoanResponseEvent;
+import com.mo9.raptor.engine.state.launcher.IEventLauncher;
 import com.mo9.raptor.utils.CommonValues;
 import com.mo9.raptor.utils.GatewayUtils;
 import org.slf4j.Logger;
@@ -15,6 +20,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -35,6 +41,9 @@ public class QueryLendResultTask {
     @Value("${task.open}")
     private String taskOpen ;
 
+    @Autowired
+    private IEventLauncher lendEventLauncher;
+
     @Scheduled(cron = "0 0/10 * * * ?")
     //@Scheduled(cron = "0 0/1 * * * ?")
     public void doTask() {
@@ -43,13 +52,19 @@ public class QueryLendResultTask {
             List<LendOrderEntity> lendOrderEntities = lendOrderService.listAllLendingOrder();
             for (LendOrderEntity lendOrderEntity : lendOrderEntities) {
                 LoanOrderLendRes orderMsg = gatewayUtils.getOrderMsg(lendOrderEntity.getApplyUniqueCode());
-                if (orderMsg == null || "failed".equals(orderMsg.getOrderStatus())) {
-                    logger.warn("借款订单[{}]放款失败, 等待放款失败MQ", lendOrderEntity.getApplyUniqueCode());
-//                lendOrderEntity.setFailReason(orderMsg.getFailReason());
-//                lendOrderEntity.setChannel(orderMsg.getChannel());
-//                lendOrderEntity.setDealCode(orderMsg.getDealcode());
-//                lendOrderEntity.setStatus(StatusEnum.FAILED.name());
-//                lendOrderService.save(lendOrderEntity);
+                //查单失败 , 订单不存在
+                if (orderMsg != null && "failed".equals(orderMsg.getStatus())) {
+                    try {
+                        LendResponseEvent lendResponse = new LendResponseEvent(
+                                lendOrderEntity.getApplyUniqueCode(), false,
+                                "先玩后付", null,
+                                null, "放款失败",
+                                lendOrderEntity.getChannel(), "订单未生成");
+                        lendEventLauncher.launch(lendResponse);
+                    } catch (Exception e) {
+                        logger.error("放款订单失败查询处理异常" + lendOrderEntity.getOrderId() , e);
+                    }
+
                 }
             }
         }

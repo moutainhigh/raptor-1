@@ -79,4 +79,12 @@ public class PageReq {
     public void setEndTime(Long endTime) {
         this.endTime = endTime;
     }
+
+    public PageReq(Integer page, Integer size) {
+        this.page = page;
+        this.size = size;
+    }
+
+    public PageReq() {
+    }
 }

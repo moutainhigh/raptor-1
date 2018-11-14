@@ -4,14 +4,17 @@ import com.alibaba.fastjson.JSONObject;
 import com.mo9.mqclient.MqMessage;
 import com.mo9.raptor.bean.BaseResponse;
 import com.mo9.raptor.bean.ReqHeaderParams;
+import com.mo9.raptor.bean.res.RepayDetailRes;
+import com.mo9.raptor.bean.res.RepayInfoMqRes;
 import com.mo9.raptor.engine.entity.CouponEntity;
 import com.mo9.raptor.engine.entity.LoanOrderEntity;
 import com.mo9.raptor.engine.entity.PayOrderEntity;
 import com.mo9.raptor.engine.enums.StatusEnum;
-import com.mo9.raptor.engine.service.BillService;
-import com.mo9.raptor.engine.service.CouponService;
-import com.mo9.raptor.engine.service.ILoanOrderService;
-import com.mo9.raptor.engine.service.IPayOrderService;
+import com.mo9.raptor.engine.service.*;
+import com.mo9.raptor.engine.state.event.impl.loan.LoanEntryEvent;
+import com.mo9.raptor.engine.state.launcher.IEventLauncher;
+import com.mo9.raptor.engine.structure.Unit;
+import com.mo9.raptor.engine.structure.field.FieldTypeEnum;
 import com.mo9.raptor.engine.structure.item.Item;
 import com.mo9.raptor.engine.utils.EngineStaticValue;
 import com.mo9.raptor.engine.utils.TimeUtils;
@@ -26,6 +29,7 @@ import com.mo9.raptor.mq.listen.LoanMo9mqListener;
 import com.mo9.raptor.mq.producer.RabbitProducer;
 import com.mo9.raptor.redis.RedisParams;
 import com.mo9.raptor.redis.RedisServiceApi;
+import com.mo9.raptor.service.CashAccountService;
 import com.mo9.raptor.service.PayOrderLogService;
 import com.mo9.raptor.service.RabbitProducerMqService;
 import com.mo9.raptor.service.UserService;
@@ -33,6 +37,7 @@ import com.mo9.raptor.utils.IDWorker;
 import com.mo9.raptor.utils.Md5Encrypt;
 import com.mo9.raptor.utils.log.Log;
 import org.slf4j.Logger;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -65,9 +70,6 @@ public class TestController {
     private RabbitProducerMqService rabbitProducerMqService;
 
     @Autowired
-    private RabbitProducer rabbitProducer;
-
-    @Autowired
     private PayOrderLogService payOrderLogService;
 
     @Autowired
@@ -77,10 +79,19 @@ public class TestController {
     private IPayOrderService payOrderService;
 
     @Autowired
+    private CouponService couponService;
+
+    @Autowired
     private BillService billService;
 
     @Autowired
-    private CouponService couponService;
+    private IEventLauncher loanEventLauncher;
+
+    @Autowired
+    private IPayOrderDetailService payOrderDetailService;
+
+    @Autowired
+    private RabbitProducer rabbitProducer;
 
     @Autowired
     private IDWorker idWorker;
@@ -93,6 +104,12 @@ public class TestController {
 
     @Value("${raptor.sockpuppet}")
     private String sockpuppet;
+
+    @Value("${loan.name.cn}")
+    private String loanNameCn ;
+
+    @Autowired
+    private CashAccountService cashAccountService ;
 
     /**
      * 获取短信验证码
@@ -138,6 +155,11 @@ public class TestController {
     @RequestMapping("/test")
     public String test(){
         return "1";
+    }
+
+    @RequestMapping("/getNameCn")
+    public String getNameCn(){
+        return loanNameCn;
     }
 
     private String getRedisKey(String redisKey, String receive, CaptchaBusinessEnum businessCode){
@@ -212,7 +234,7 @@ public class TestController {
             return response;
         }
 
-        List<LoanOrderEntity> loanOrderEntities = loanOrderService.listByStatus(Arrays.asList(StatusEnum.PAYOFF));
+        List<LoanOrderEntity> loanOrderEntities = loanOrderService.listByStatus(StatusEnum.OLD_PAYOFF);
         if (loanOrderEntities == null || loanOrderEntities.size() == 0) {
             response.setMessage("无订单");
             return response;
@@ -226,6 +248,28 @@ public class TestController {
             }
             loanMo9mqListener.notifyMisLend(loanOrderEntity.getOrderId());
         }
+
+        response.setMessage("ok");
+        return response;
+    }
+
+    @RequestMapping("/push_lent_mq")
+    public BaseResponse<JSONObject> pushLentMq(
+            @RequestParam("sign") String sign,
+            @RequestParam("orderId") String orderId,
+            HttpServletRequest request){
+        BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
+        if (!"28B21099FBDD85467CC01E7B80146FF0".equals(sign)) {
+            response.setMessage("验签错误");
+            return response;
+        }
+        LoanOrderEntity loanOrderEntity = loanOrderService.getByOrderId(orderId);
+        if (loanOrderEntity == null || !StatusEnum.LENT.name().equals(loanOrderEntity.getStatus())) {
+            response.setMessage("无订单");
+            return response;
+        }
+
+        loanMo9mqListener.notifyMisLend(orderId);
 
         response.setMessage("ok");
         return response;
@@ -399,4 +443,128 @@ public class TestController {
         logger.info("offline_repay接口结束");
         return response;
     }
+
+    /**
+     * 入账中的还款订单再次入账
+     * @param sign
+     * @param payOrderId
+     * @param request
+     * @return
+     */
+    @RequestMapping("/entry_again")
+    public BaseResponse<JSONObject> entryAgain(
+            @RequestParam("sign") String sign,
+            @RequestParam("payOrderId") String payOrderId,
+            HttpServletRequest request){
+        BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
+        if (!"28B21099FBDD85467CC01E7B80146FF0".equals(sign)) {
+            response.setMessage("验签错误");
+            return response;
+        }
+
+        PayOrderEntity payOrder = payOrderService.getByOrderId(payOrderId);
+        if (!StatusEnum.ENTRY_DOING.name().equals(payOrder.getStatus())) {
+            // 只有 ENTRY_DOING 状态的订单才可以再次入账
+            response.setMessage("还款订单状态" + payOrder.getStatus());
+            response.setCode(ResCodeEnum.EXCEPTION_CODE.getCode());
+            return response;
+        }
+        String orderId = payOrder.getLoanOrderId();
+        LoanOrderEntity loanOrder = loanOrderService.getByOrderId(orderId);
+        if (!StatusEnum.LENT.name().equals(loanOrder.getStatus())) {
+            // 只有 ENTRY_DOING 状态的订单才可以再次入账
+            response.setMessage("借款订单状态" + loanOrder.getStatus());
+            response.setCode(ResCodeEnum.EXCEPTION_CODE.getCode());
+            return response;
+        }
+
+        try {
+            PayTypeEnum payTypeEnum = PayTypeEnum.valueOf(payOrder.getType());
+            Item realItem = billService.realItem(loanOrder, payTypeEnum, 7);
+            if (realItem.sum().compareTo(payOrder.getPayNumber()) != 0) {
+                response.setMessage("订单可还金额" + realItem.sum().toPlainString() + "与还款金额" + payOrder.getPayNumber().toPlainString() + "不相等!");
+                response.setCode(ResCodeEnum.EXCEPTION_CODE.getCode());
+                return response;
+            }
+
+            Item entryItem = billService.entryItem(payTypeEnum, payOrder, loanOrder);
+
+            LoanEntryEvent event = new LoanEntryEvent(orderId, payOrderId, payOrder.getType(), entryItem);
+            loanEventLauncher.launch(event);
+
+            // 通知贷后
+            PayOrderLogEntity payOrderLogEntity = payOrderLogService.getByPayOrderId(payOrder.getOrderId());
+            loanMo9mqListener.notifyMisRepay(payOrderLogEntity, loanOrder.getPostponeCount(), loanOrder);
+
+            return response;
+        } catch (Exception e) {
+            logger.error("再次入账失败 payOrderId[{}]", payOrderId, e);
+            response.setMessage("再次入账失败 payOrderId" + payOrderId);
+            response.setCode(ResCodeEnum.EXCEPTION_CODE.getCode());
+            return response;
+        }
+    }
+
+
+    /**
+     * 通知贷后还款
+     * @param payOrderId
+     * @param request
+     */
+    @RequestMapping("/notify_mis_repay")
+    public BaseResponse notifyMisRepay(
+            @RequestParam("payOrderId") String payOrderId ,
+            HttpServletRequest request) {
+        logger.info("手动mq补漏还款传递贷后开始 payOrderId : " + payOrderId );
+        PayOrderLogEntity payOrderLog = payOrderLogService.getByPayOrderId(payOrderId) ;
+        PayOrderEntity payOrderEntity = payOrderService.getByOrderId(payOrderLog.getPayOrderId());
+        if(!StatusEnum.ENTRY_DONE.name().equals(payOrderEntity.getStatus())){
+            logger.info("手动mq补漏还款传递贷后开始 payOrderId : " + payOrderId + "状态不正确");
+            return new BaseResponse();
+        }
+        LoanOrderEntity loanOrderEntity = loanOrderService.getByOrderId(payOrderEntity.getLoanOrderId()) ;
+
+        RepayInfoMqRes repayInfo = new RepayInfoMqRes();
+        BeanUtils.copyProperties(payOrderLog, repayInfo);
+
+        repayInfo.setPostponeDays(payOrderEntity.getPostponeDays());
+        String status = payOrderEntity.getStatus();
+        repayInfo.setEntryDone(StatusEnum.ENTRY_DONE.name().equals(status));
+        repayInfo.setPayType(payOrderEntity.getType());
+        repayInfo.setPostponeCount(loanOrderEntity.getPostponeCount());
+        repayInfo.setPostponeDays(payOrderEntity.getPostponeDays());
+
+        List<RepayDetailRes> repayDetail = payOrderDetailService.getRepayDetail(payOrderEntity.getOrderId());
+        repayInfo.setRepayDetail(repayDetail);
+
+        Item realItem = billService.payoffRealItem(loanOrderEntity);
+        List<RepayDetailRes> shouldPay = new ArrayList<RepayDetailRes>();
+
+        for (Map.Entry<FieldTypeEnum, Unit> entry : realItem.entrySet()) {
+            BigDecimal number = entry.getValue().sum();
+            if (BigDecimal.ZERO.compareTo(number) < 0) {
+                RepayDetailRes res = new RepayDetailRes();
+                res.setFieldType(entry.getKey().name());
+                res.setNumber(number);
+                shouldPay.add(res);
+            }
+        }
+        repayInfo.setShouldPay(shouldPay);
+        repayInfo.setRepaymentDate(loanOrderEntity.getRepaymentDate());
+        repayInfo.setPayoffTime(loanOrderEntity.getPayoffTime());
+
+        // 设置减免金额
+        BigDecimal totalDeductedAmount = couponService.getTotalDeductedAmount(loanOrderEntity.getOrderId());
+        repayInfo.setTotalReliefAmount(totalDeductedAmount);
+        repayInfo.setProductType(sockpuppet);
+        repayInfo.setPostponeTime(payOrderEntity.getEntryOverTime());
+
+        JSONObject result = new JSONObject();
+        result.put("repayInfo", repayInfo);
+        logger.info(result.toJSONString());
+        rabbitProducer.sendMessageRepay(payOrderLog.getPayOrderId(), result.toJSONString());
+        logger.info("手动mq补漏还款传递贷后结束 payOrderId : " + payOrderId );
+        return new BaseResponse();
+    }
+
 }

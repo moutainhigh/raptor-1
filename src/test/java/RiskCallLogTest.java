@@ -1,14 +1,13 @@
 import com.alibaba.fastjson.JSONObject;
-import com.mo9.raptor.risk.entity.TRiskCallLog;
-import com.mo9.raptor.risk.entity.TRiskTelBill;
-import com.mo9.raptor.risk.entity.TRiskTelInfo;
-import com.mo9.raptor.risk.repo.RiskCallLogRepository;
-import com.mo9.raptor.risk.repo.RiskTelInfoRepository;
-import com.mo9.raptor.risk.service.RiskCallLogService;
-import com.mo9.raptor.risk.service.RiskTelBillService;
-import com.mo9.raptor.risk.service.RiskTelInfoService;
 import com.mo9.raptor.utils.httpclient.HttpClientApi;
 import com.mo9.raptor.utils.httpclient.bean.HttpResult;
+import com.mo9.risk.entity.TRiskCallLog;
+import com.mo9.risk.entity.TRiskTelBill;
+import com.mo9.risk.entity.TRiskTelInfo;
+import com.mo9.risk.repo.RiskTelInfoRepository;
+import com.mo9.risk.service.RiskCallLogService;
+import com.mo9.risk.service.RiskTelBillService;
+import com.mo9.risk.service.RiskTelInfoService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
@@ -19,10 +18,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author wtwei .
@@ -92,7 +88,7 @@ public class RiskCallLogTest extends BaseTest{
             riskTelBillList.add(callLog);
         }
         
-        riskTelBillService.batchSave(riskTelBillList);
+        riskTelBillService.insertIfNotExists(riskTelBillList);
     }
     
     @Test
@@ -106,6 +102,19 @@ public class RiskCallLogTest extends BaseTest{
         riskTelInfoRepository.saveAndFlush(telInfo);
         
         
+    }
+    
+    @Test
+    public void findNoReportRecords(){
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.DATE, -30);
+        Set<String> noReportRecords = riskTelInfoService.findNoReportMobiles(calendar.getTime());
+
+        System.out.println(noReportRecords.size());
+        for (String mobile : noReportRecords) {
+            System.out.println(mobile);
+        }
+
     }
 
 
