@@ -1,5 +1,7 @@
 package com.mo9.raptor.bean.res;
 
+import java.math.BigDecimal;
+
 /**
  * Created by xtgu on 2018/11/12.
  * 优惠券
@@ -21,6 +23,17 @@ public class CouponRes {
      * 金额
      */
     private String  couponsAmount ;
+
+    /**
+     * 限制金额
+     */
+    private BigDecimal limitAmount ;
+
+    /**
+     * 行为
+     */
+    private String action ;
+
 
     public String getCouponsId() {
         return couponsId;
@@ -52,5 +65,21 @@ public class CouponRes {
 
     public void setCouponsAmount(String couponsAmount) {
         this.couponsAmount = couponsAmount;
+    }
+
+    public BigDecimal getLimitAmount() {
+        return limitAmount;
+    }
+
+    public void setLimitAmount(BigDecimal limitAmount) {
+        this.limitAmount = limitAmount;
+    }
+
+    public String getAction() {
+        return action;
+    }
+
+    public void setAction(String action) {
+        this.action = action;
     }
 }
