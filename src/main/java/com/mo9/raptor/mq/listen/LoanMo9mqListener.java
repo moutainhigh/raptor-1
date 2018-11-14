@@ -446,7 +446,7 @@ public class LoanMo9mqListener implements IMqMsgListener{
         userInfo.setGender(userCertifyInfoEntity.getOcrGender());
         userInfo.setDeleted(userEntity.getDeleted());
 		userInfo.setProductType(sockpuppet);
-
+		userInfo.setSource(userEntity.getSource());
         JSONObject result = new JSONObject();
         result.put("lendInfo", lendInfo);
         result.put("userInfo", userInfo);
