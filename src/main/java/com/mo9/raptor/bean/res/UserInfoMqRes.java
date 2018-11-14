@@ -53,6 +53,11 @@ public class UserInfoMqRes {
     private Integer gender;
 
     /**
+     * 注册来源
+     */
+    private String source ;
+
+    /**
      * 是否已删除
      */
     private Boolean deleted;
@@ -159,5 +164,13 @@ public class UserInfoMqRes {
 
     public void setProductType(String productType) {
         this.productType = productType;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
     }
 }
