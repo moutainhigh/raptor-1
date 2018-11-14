@@ -166,10 +166,16 @@ public class PayOrderController {
             if(couponId != null){
                 CouponEntity couponEntity = couponService.getByCouponId(couponId);
                 if(couponEntity.getStatus().equals(StatusEnum.PENDING.name()) && couponEntity.getExpireDate() > System.currentTimeMillis()){
-                    payInfoCache.setCouponId(couponId);
-                    shouldPayAmount = shouldPayAmount.subtract(couponEntity.getApplyAmount());
+                    //判断类型是否匹配
+                    if(CouponTypeEnum.REPAY.name().equals(couponEntity.getUseType())){
+                        payInfoCache.setCouponId(couponId);
+                        shouldPayAmount = shouldPayAmount.subtract(couponEntity.getApplyAmount());
+                    }else{
+                        response.setCode(ResCodeEnum.INVALID_COUPON_TYPE.getCode());
+                        response.setMessage(ResCodeEnum.INVALID_COUPON_TYPE.getMessage());
+                        return response ;
+                    }
                 }else{
-                    //钱包余额不够
                     response.setCode(ResCodeEnum.COUPON_IS_EXPIRY.getCode());
                     response.setMessage(ResCodeEnum.COUPON_IS_EXPIRY.getMessage());
                     return response ;
@@ -413,8 +419,15 @@ public class PayOrderController {
             if(couponId != null){
                 CouponEntity couponEntity = couponService.getByCouponId(couponId);
                 if(couponEntity.getStatus().equals(StatusEnum.PENDING.name()) && couponEntity.getExpireDate() > System.currentTimeMillis()){
-                    payInfoCache.setCouponId(couponId);
-                    applyAmount = applyAmount.subtract(couponEntity.getApplyAmount());
+                    //判断类型是否匹配
+                    if(CouponTypeEnum.RENEWAL.name().equals(couponEntity.getUseType())){
+                        payInfoCache.setCouponId(couponId);
+                        applyAmount = applyAmount.subtract(couponEntity.getApplyAmount());
+                    }else{
+                        response.setCode(ResCodeEnum.INVALID_COUPON_TYPE.getCode());
+                        response.setMessage(ResCodeEnum.INVALID_COUPON_TYPE.getMessage());
+                        return response ;
+                    }
                 }else{
                     //钱包余额不够
                     response.setCode(ResCodeEnum.COUPON_IS_EXPIRY.getCode());
