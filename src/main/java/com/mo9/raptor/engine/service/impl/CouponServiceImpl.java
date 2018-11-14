@@ -66,9 +66,14 @@ public class CouponServiceImpl implements CouponService {
                 list.add(cb.equal(root.get("userCode").as(String.class),condition.getUserCode()));
                 list.add(cb.equal(root.get("deleted").as(Boolean.class),false));
                 if(condition.getExpiryDate() != null){
-                    list.add(cb.ge(root.get("expiryDate").as(Long.class), condition.getExpiryDate()));
+                    list.add(cb.ge(root.get("expireDate").as(Long.class), condition.getExpiryDate()));
                 }
-
+                if(condition.getLimitAmount() != null){
+                    list.add(cb.le(root.get("limitAmount").as(BigDecimal.class), condition.getLimitAmount()));
+                }
+                if(condition.getUseType() != null){
+                    list.add(cb.equal(root.get("useType").as(String.class),condition.getUseType()));
+                }
                 if(condition.getStatusList() != null && condition.getStatusList().size() > 0){
                     List<String> statusList = condition.getStatusList() ;
                     CriteriaBuilder.In<String> in = cb.in(root.get("status").as(String.class));
@@ -84,7 +89,7 @@ public class CouponServiceImpl implements CouponService {
             }
         };
         //分页信息
-        Pageable pageable = PageRequest.of(condition.getPageNumber()-1, condition.getPageSize(), Sort.Direction.DESC, "apply_amount");
+        Pageable pageable = PageRequest.of(condition.getPageNumber()-1, condition.getPageSize(), Sort.Direction.DESC, "applyAmount");
         //查询
         return couponRespository.findAll(specification , pageable);
     }

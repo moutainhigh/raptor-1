@@ -2,6 +2,8 @@ package com.mo9.raptor.bean.condition;
 
 import com.mo9.raptor.enums.BusinessTypeEnum;
 
+import javax.persistence.Column;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
@@ -34,6 +36,16 @@ public class CouponCondition {
      * 状态
      */
     private List<String> statusList ;
+
+    /**
+     * 优惠券使用限定金额
+     */
+    private BigDecimal limitAmount;
+
+    /**
+     * 优惠券使用类型
+     */
+    private String useType;
 
     public String getUserCode() {
         return userCode;
@@ -73,5 +85,21 @@ public class CouponCondition {
 
     public void setStatusList(List<String> statusList) {
         this.statusList = statusList;
+    }
+
+    public BigDecimal getLimitAmount() {
+        return limitAmount;
+    }
+
+    public void setLimitAmount(BigDecimal limitAmount) {
+        this.limitAmount = limitAmount;
+    }
+
+    public String getUseType() {
+        return useType;
+    }
+
+    public void setUseType(String useType) {
+        this.useType = useType;
     }
 }
