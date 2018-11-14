@@ -30,6 +30,12 @@ public class CouponEntity extends AbstractStateEntity {
     private String userCode;
 
     /**
+     * 优惠券使用类型
+     */
+    @Column(name = "use_type")
+    private String useType;
+
+    /**
      * 绑定订单号
      */
     @Column(name = "bound_order_id")
@@ -40,6 +46,12 @@ public class CouponEntity extends AbstractStateEntity {
      */
     @Column(name = "pay_order_id")
     private String payOrderId;
+
+    /**
+     * 优惠券使用限定金额 大于此金额才能使用
+     */
+    @Column(name = "limit_amount")
+    private BigDecimal limitAmount = BigDecimal.ZERO;
 
     /**
      * 优惠券面值
@@ -164,5 +176,21 @@ public class CouponEntity extends AbstractStateEntity {
 
     public void setUserCode(String userCode) {
         this.userCode = userCode;
+    }
+
+    public String getUseType() {
+        return useType;
+    }
+
+    public void setUseType(String useType) {
+        this.useType = useType;
+    }
+
+    public BigDecimal getLimitAmount() {
+        return limitAmount;
+    }
+
+    public void setLimitAmount(BigDecimal limitAmount) {
+        this.limitAmount = limitAmount;
     }
 }

@@ -12,16 +12,17 @@ import com.mo9.raptor.bean.req.LoginByCodeReq;
 import com.mo9.raptor.bean.req.ModifyCertifyReq;
 import com.mo9.raptor.bean.res.CashAccountLogRes;
 import com.mo9.raptor.bean.res.CouponRes;
+import com.mo9.raptor.engine.calculator.ILoanCalculator;
 import com.mo9.raptor.engine.entity.CouponEntity;
+import com.mo9.raptor.engine.entity.LoanOrderEntity;
 import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.engine.service.CouponService;
+import com.mo9.raptor.engine.service.ILoanOrderService;
+import com.mo9.raptor.engine.structure.item.Item;
 import com.mo9.raptor.entity.*;
 import com.mo9.raptor.bean.res.AccountBankCardRes;
 import com.mo9.raptor.bean.res.AuditStatusRes;
-import com.mo9.raptor.enums.BankAuthStatusEnum;
-import com.mo9.raptor.enums.BusinessTypeEnum;
-import com.mo9.raptor.enums.ResCodeEnum;
-import com.mo9.raptor.enums.SourceEnum;
+import com.mo9.raptor.enums.*;
 import com.mo9.raptor.redis.RedisParams;
 import com.mo9.raptor.redis.RedisServiceApi;
 import com.mo9.raptor.service.*;
@@ -42,6 +43,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.*;
 
 /**
@@ -80,6 +82,11 @@ public class UserController {
 
     @Autowired
     private CouponService couponService ;
+
+    @Autowired
+    private ILoanOrderService loanOrderService ;
+    @Autowired
+    private ILoanCalculator loanCalculator;
 
     @Resource
     private UserCertifyInfoService userCertifyInfoService;
@@ -392,6 +399,9 @@ public class UserController {
     public BaseResponse<JSONObject> getCoupons(@RequestParam(value = "pageNumber")Integer pageNumber ,
                                                @RequestParam(value = "pageSize")Integer pageSize ,
                                                @RequestParam(required = false , value = "type")List<String> type ,
+                                               @RequestParam(required = false , value = "orderId")String orderId ,
+                                               @RequestParam(required = false , value = "action")String action ,
+                                               @RequestParam(required = false , value = "period")Integer period ,
                                                HttpServletRequest request){
         BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
         JSONObject entity = new JSONObject() ;
@@ -399,8 +409,34 @@ public class UserController {
         CouponCondition couponCondition = new CouponCondition() ;
         couponCondition.setPageNumber(pageNumber);
         couponCondition.setPageSize(pageSize);
+        couponCondition.setUserCode(userCode);
         //封装状态
         setStatusCondition(type , couponCondition);
+
+        if(action != null && !("ALL".equals(action))){
+            couponCondition.setUseType(action);
+            if(orderId != null){
+                //查询 订单金额
+                LoanOrderEntity loanOrderEntity = loanOrderService.getByOrderId(orderId);
+                if(loanOrderEntity == null){
+                    response.setCode(ResCodeEnum.LOAN_ORDER_NOT_EXISTED.getCode());
+                    response.setMessage(ResCodeEnum.LOAN_ORDER_NOT_EXISTED.getMessage());
+                    return response ;
+                }
+                String payType = PayTypeEnum.REPAY_IN_ADVANCE.name() ;
+                if("RENEWAL".equals(action)){
+                    payType = PayTypeEnum.REPAY_POSTPONE.name() ;
+                    if(period == null ){
+                        //默认7天 - 暂时业务只有7天
+                        period = 7 ;
+                    }
+                }
+                Item orderRealItem =loanCalculator.realItem(System.currentTimeMillis(), loanOrderEntity, payType, period);
+                BigDecimal shouldPay = orderRealItem.sum();
+                couponCondition.setLimitAmount(shouldPay);
+            }
+        }
+
         Page<CouponEntity> page = couponService.findByCondition(couponCondition);
         List<CouponRes> returnList = setCounponRes(page);
         entity.put("coupons" , returnList);
