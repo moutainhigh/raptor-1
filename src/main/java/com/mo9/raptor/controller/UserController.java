@@ -471,6 +471,8 @@ public class UserController {
             }else{
                 couponRes.setType("USED");
             }
+            couponRes.setAction(couponEntity.getUseType());
+            returnList.add(couponRes) ;
         }
         return returnList ;
     }
