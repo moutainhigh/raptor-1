@@ -742,14 +742,10 @@ public class PayOrderController {
 
     @GetMapping("/cashier/has_repaying")
     @ResponseBody
-    public BaseResponse<Boolean> hasRepaying ( @RequestParam String code , HttpServletRequest request) {
+    public BaseResponse<Boolean> hasRepaying ( HttpServletRequest request) {
         //获取userCode
         BaseResponse<Boolean> response = new BaseResponse<Boolean>();
-        PayInfoCache payInfoCache =  (PayInfoCache) redisServiceApi.get(RedisParams.PAY_CODE + code, raptorRedis);
-        if (payInfoCache == null) {
-            return response.buildFailureResponse(ResCodeEnum.PAY_INFO_EXPIRED);
-        }
-        String userCode = payInfoCache.getUserCode() ;
+        String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
         List<String> statusEnums = new ArrayList<String>() ;
         statusEnums.add(StatusEnum.DEDUCTING.name()) ;
         List<PayOrderEntity> payOrderEntities = payOrderService.listByUserAndStatus(userCode , statusEnums);
