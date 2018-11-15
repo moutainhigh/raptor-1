@@ -159,7 +159,7 @@ public class SeekerUtils {
             /*交易目的*/
             String purpose = "猛禽支付" ;
             /*返回地址, 即支付完成之后调用的返回地址*/
-            String returnUrl = "https://tiantianyouqian" ;
+            String returnUrl = "http://www.tiantianyouqian.com/repay_finish" ;
 
             List<BankEntity> bankEntityList = bankService.findByUserCode(payOrderLog.getUserCode()) ;
             /*银行卡列表, 包含默认银行卡 list*/

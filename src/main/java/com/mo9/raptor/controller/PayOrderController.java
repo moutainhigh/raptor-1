@@ -838,9 +838,11 @@ public class PayOrderController {
                 res.setMessage(jsonObject.getString("message"));
                 res.setState(true);
             } else {
+                res.setMessage(jsonObject.getString("message"));
                 res.setState(false);
             }
         } else {
+            res.setMessage("请求超时请重试");
             res.setState(false);
         }
         return res;
