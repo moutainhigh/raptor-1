@@ -14,6 +14,11 @@ public enum CouponTypeEnum {
      * 延期
      */
     RENEWAL(),
+
+    /**
+     * 通用
+     */
+    DEFAULT(),
     ;
 
 
