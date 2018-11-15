@@ -87,6 +87,7 @@ public enum ResCodeEnum {
     INVALID_SIGN(11158002, "签名非法", "签名非法"),
     SIGN_PARAMS_EXTRACT_ERROR(11158003, "签名参数获取", "签名参数获取"),
     COUPON_IS_EXPIRY(11158004, "优惠券已失效", "优惠券已失效"),
+    INVALID_COUPON_TYPE(11158005, "优惠类型不合法", "优惠类型不合法"),
 
 
     /**
