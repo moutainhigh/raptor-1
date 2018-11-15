@@ -167,7 +167,7 @@ public class PayOrderController {
                 CouponEntity couponEntity = couponService.getByCouponId(couponId);
                 if(couponEntity.getStatus().equals(StatusEnum.PENDING.name()) && couponEntity.getExpireDate() > System.currentTimeMillis()){
                     //判断类型是否匹配
-                    if(CouponTypeEnum.REPAY.name().equals(couponEntity.getUseType())){
+                    if(CouponTypeEnum.REPAY.name().equals(couponEntity.getUseType()) || CouponTypeEnum.DEFAULT.name().equals(couponEntity.getUseType())){
                         payInfoCache.setCouponId(couponId);
                         shouldPayAmount = shouldPayAmount.subtract(couponEntity.getApplyAmount());
                     }else{
@@ -420,7 +420,7 @@ public class PayOrderController {
                 CouponEntity couponEntity = couponService.getByCouponId(couponId);
                 if(couponEntity.getStatus().equals(StatusEnum.PENDING.name()) && couponEntity.getExpireDate() > System.currentTimeMillis()){
                     //判断类型是否匹配
-                    if(CouponTypeEnum.RENEWAL.name().equals(couponEntity.getUseType())){
+                    if(CouponTypeEnum.RENEWAL.name().equals(couponEntity.getUseType()) || CouponTypeEnum.DEFAULT.name().equals(couponEntity.getUseType())){
                         payInfoCache.setCouponId(couponId);
                         applyAmount = applyAmount.subtract(couponEntity.getApplyAmount());
                     }else{
