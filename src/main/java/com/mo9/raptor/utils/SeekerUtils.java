@@ -3,28 +3,37 @@ package com.mo9.raptor.utils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.aliyun.openservices.shade.com.alibaba.rocketmq.shade.io.netty.handler.timeout.ReadTimeoutException;
+import com.mo9.raptor.bean.req.BankSeekerReq;
 import com.mo9.raptor.bean.res.LoanOrderLendRes;
 import com.mo9.raptor.engine.entity.LendOrderEntity;
 import com.mo9.raptor.engine.entity.PayOrderEntity;
 import com.mo9.raptor.engine.service.ILendOrderService;
 import com.mo9.raptor.engine.service.IPayOrderService;
+import com.mo9.raptor.entity.BankEntity;
 import com.mo9.raptor.entity.CardBinInfoEntity;
 import com.mo9.raptor.entity.PayOrderLogEntity;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.ResCodeEnum;
+import com.mo9.raptor.service.BankService;
 import com.mo9.raptor.service.CardBinInfoService;
 import com.mo9.raptor.service.PayOrderLogService;
 import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.httpclient.HttpClientApi;
+import com.mo9.raptor.utils.httpclient.bean.HttpResult;
 import com.mo9.raptor.utils.log.Log;
+import com.sun.org.apache.xpath.internal.operations.Bool;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.net.SocketTimeoutException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -43,6 +52,15 @@ public class SeekerUtils {
     @Value("${seeker.url}")
     private String seekerUrl ;
 
+    @Value("${raptor.sockpuppet}")
+    private String sockpuppet;
+
+    /**
+     * signKey
+     */
+    @Value("${seeker.sign.key}")
+    private String signKey ;
+
     @Autowired
     private UserService userService;
 
@@ -57,6 +75,9 @@ public class SeekerUtils {
 
     @Autowired
     private HttpClientApi httpClientApi ;
+
+    @Autowired
+    private BankService bankService ;
 
     @Resource
     private CardBinInfoService cardBinInfoService;
@@ -124,70 +145,127 @@ public class SeekerUtils {
     public ResCodeEnum payoff(PayOrderLogEntity payOrderLog){
         ResCodeEnum resCodeEnum;
         try {
-            Map<String,String> params = new HashMap<String,String>();
-            params.put("m", "newPayGu");
+            /*订单附加信息*/
+            JSONObject addition = new JSONObject() ;
+            /*是否允许新加银行卡*/
+            Boolean allowAddCard = true ;
+            /*金额 元*/
+            BigDecimal amount = payOrderLog.getRepayAmount() ;
+            /*业务单号*/
+            String businessCode = payOrderLog.getPayOrderId() ;
+            /*币种*/
+            String currency = "CNY";
 
-            /**
-             * addition	string
-             非必须
-             订单附加信息
-             allowAddCard	boolean
-             必须
-             是否允许新加银行卡
-             allowChangeCard	boolean
-             必须
-             是否允许换卡
-             amount	number
-             必须
-             收款金额(单位: 元)
-             bankCards	object []
-             必须
-             银行卡列表, 包含默认银行卡
-             item 类型: object
+            /*交易目的*/
+            String purpose = "猛禽支付" ;
+            /*返回地址, 即支付完成之后调用的返回地址*/
+            String returnUrl = "https://tiantianyouqian" ;
 
-             businessCode	string
-             必须
-             业务单号
-             currency	string
-             必须
-             币种, 默认CNY
-             defaultCard	object
-             必须
-             默认银行卡
-             备注: 默认银行卡
-
-             purpose	string
-             必须
-             交易目的
-             */
-
-            String mysig = Md5Encrypt.sign(params, "643138394F10DA5E9647709A3FA8DD7F");
-            params.put("sign", mysig);
-            String gatewayUrl = this.seekerUrl + "/pay.shtml";
-            String resJson = httpClientApi.doGet(gatewayUrl, params);
-
-
-            JSONObject jsonObject = JSONObject.parseObject(resJson);
-            String code = jsonObject.getString("code");
-            String dealCode = null;
-            if ("0000".equals(code)) {
-                logger.info("还款订单[{}]还款请求发送成功, 返回为[{}]", payOrderLog.getPayOrderId(), resJson);
-                dealCode = jsonObject.getJSONObject("data").getString("dealcode");
-                resCodeEnum = ResCodeEnum.SUCCESS;
-            } else {
-                logger.info("还款订单[{}]还款请求发送失败, 返回为[{}]", payOrderLog.getPayOrderId(), resJson);
-                // return ResCodeEnum.SUCCESS;
-                resCodeEnum = ResCodeEnum.EXCEPTION_CODE;
+            List<BankEntity> bankEntityList = bankService.findByUserCode(payOrderLog.getUserCode()) ;
+            /*银行卡列表, 包含默认银行卡 list*/
+            List<BankSeekerReq> bankCards = setBankReq(bankEntityList);
+            /*默认银行卡*/
+            BankSeekerReq defaultCard = new BankSeekerReq() ;
+            if(bankEntityList != null && bankEntityList.size() > 0){
+                defaultCard = setBankReq(bankEntityList.get(0));
             }
-            payOrderLog.setChannelSyncResponse(resJson);
-            payOrderLog.setUpdateTime(System.currentTimeMillis());
-            payOrderLog.setDealCode(dealCode);
-            payOrderLogService.save(payOrderLog);
+
+            JSONObject params = new JSONObject();
+            params.put("addition", addition.toJSONString());
+            params.put("allowAddCard", allowAddCard);
+            params.put("amount", amount);
+            params.put("bankCards", bankCards);
+            params.put("businessCode", businessCode);
+            params.put("currency", currency);
+            params.put("defaultCard", defaultCard);
+            params.put("purpose", purpose);
+            params.put("returnUrl", returnUrl);
+
+            Map<String,String> headers = this.setHeadMap(params.toJSONString());
+            String url = this.seekerUrl + "/api/seeker/v1/remit/create_remit_h5";
+            logger.info("请求参数" + params.toJSONString());
+            HttpResult result = httpClientApi.doPostJson(url , params.toJSONString() , headers) ;
+            if(result != null ){
+                logger.info("请求支付中心还款返回数据 code = " + result.getCode() + " data = " + result.getData());
+                if( result.getCode() == 200){
+                    String resJson = result.getData();
+                    JSONObject jsonObject = JSONObject.parseObject(resJson);
+                    String code = jsonObject.getString("code");
+                    String dealCode = null;
+                    if ("0".equals(code)) {
+                        logger.info("还款订单[{}]还款请求发送成功, 返回为[{}]", payOrderLog.getPayOrderId(), resJson);
+                        dealCode = jsonObject.getJSONObject("data").getString("orderCode");
+                        resCodeEnum = ResCodeEnum.SUCCESS;
+                    } else {
+                        logger.info("还款订单[{}]还款请求发送失败, 返回为[{}]", payOrderLog.getPayOrderId(), resJson);
+                        // return ResCodeEnum.SUCCESS;
+                        resCodeEnum = ResCodeEnum.EXCEPTION_CODE;
+                    }
+                    payOrderLog.setChannelSyncResponse(resJson);
+                    payOrderLog.setUpdateTime(System.currentTimeMillis());
+                    payOrderLog.setDealCode(dealCode);
+                    payOrderLogService.save(payOrderLog);
+                }else{
+                    resCodeEnum = ResCodeEnum.EXCEPTION_CODE;
+                }
+            }else{
+                resCodeEnum = ResCodeEnum.EXCEPTION_CODE;
+                logger.info("请求支付中心失败 还款返回数据 null") ;
+            }
+
         } catch (Exception e) {
             Log.error(logger , e , "还款订单[{}]还款报错", payOrderLog.getPayOrderId());
             resCodeEnum = ResCodeEnum.EXCEPTION_CODE;
         }
         return resCodeEnum;
+    }
+
+    /**
+     * 封装请求银行卡参数
+     * @param bankEntityList
+     */
+    private List<BankSeekerReq> setBankReq(List<BankEntity> bankEntityList) {
+        if(bankEntityList == null || bankEntityList.size() == 0){
+            return new ArrayList<BankSeekerReq>() ;
+        }
+        List<BankSeekerReq> returnList = new ArrayList<BankSeekerReq>() ;
+        for(BankEntity bankEntity : bankEntityList){
+            BankSeekerReq bankSeekerReq = this.setBankReq(bankEntity);
+            returnList.add(bankSeekerReq) ;
+        }
+
+        return returnList ;
+    }
+
+    /**
+     * 封装请求银行卡参数
+     * @param bankEntity
+     */
+    private BankSeekerReq setBankReq(BankEntity bankEntity) {
+        if(bankEntity == null){
+            return null ;
+        }
+        BankSeekerReq bankSeekerReq = new BankSeekerReq() ;
+        bankSeekerReq.setBankCardNo(bankEntity.getBankNo());
+        bankSeekerReq.setBankMobile(bankEntity.getMobile());
+        bankSeekerReq.setIdCard(bankEntity.getCardId());
+        bankSeekerReq.setRealName(bankEntity.getUserName());
+        bankSeekerReq.setBankOfDeposit(bankEntity.getBankName());
+        return bankSeekerReq ;
+    }
+
+    /**
+     * 封装头信息
+     * @param paramJson
+     * @return
+     */
+    private Map<String,String> setHeadMap(String paramJson){
+        Map<String,String> headers = new HashMap<String,String>() ;
+        Long time = System.currentTimeMillis() ;
+        headers.put("Timestamp" , time.toString());
+        headers.put("App-Code" , sockpuppet);
+        headers.put("sign" , DigestUtils.md5Hex(paramJson + time + signKey));
+        return headers ;
     }
 
 

@@ -12,11 +12,14 @@ import com.mo9.raptor.enums.PayTypeEnum;
 import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.repository.PayOrderRepository;
 import com.mo9.raptor.service.PayOrderLogService;
+import com.mo9.raptor.utils.CommonValues;
 import com.mo9.raptor.utils.GatewayUtils;
+import com.mo9.raptor.utils.SeekerUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -52,6 +55,15 @@ public class PayOrderServiceImpl implements IPayOrderService {
 
     @Autowired
     private GatewayUtils gatewayUtils;
+
+    @Autowired
+    private SeekerUtils seekerUtils;
+
+    /**
+     * 支付版本号
+     */
+    @Value("${raptor.pay.version}")
+    private String raptorPayVersion;
 
     @Override
     public List<PayOrderEntity> listEntryDonePayLoan(String loanOrderId, List<String> types) {
@@ -174,7 +186,15 @@ public class PayOrderServiceImpl implements IPayOrderService {
     @Override
     public void repayNotice(String payOrderId) {
         PayOrderLogEntity payOrderLog = payOrderLogService.getByPayOrderId(payOrderId);
-        ResCodeEnum isPayoff = gatewayUtils.payoff(payOrderLog);
+        /***************** 2018-11-08 顾晓桐增加版本 -- 支付中心********************/
+        ResCodeEnum isPayoff = ResCodeEnum.SUCCESS ;
+        if(raptorPayVersion.equals(CommonValues.SEEKER_PAY_VERSION)){
+            //支付中心版本
+            isPayoff = seekerUtils.payoff(payOrderLog);
+        }else{
+            isPayoff = gatewayUtils.payoff(payOrderLog);
+        }
+        /********************************************************************/
         if (!ResCodeEnum.SUCCESS.equals(isPayoff)) {
             try {
                 DeductResponseEvent event= new DeductResponseEvent(payOrderId, BigDecimal.ZERO, false, System.currentTimeMillis() + ":扣款失败");

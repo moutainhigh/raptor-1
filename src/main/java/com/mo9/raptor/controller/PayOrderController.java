@@ -824,7 +824,7 @@ public class PayOrderController {
         if (StringUtils.isNotBlank(channelSyncResponse)) {
             JSONObject jsonObject = JSONObject.parseObject(channelSyncResponse);
             String code = jsonObject.getString("code");
-            if ("0000".equals(code)) {
+            if ("0".equals(code)) {
                 JSONObject data = jsonObject.getJSONObject("data");
                 String url = data.getString("payUrl");
                 res.setUseType(ChannelUseType.LINK.getDesc());

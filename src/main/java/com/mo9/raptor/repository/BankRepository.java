@@ -26,7 +26,7 @@ public interface BankRepository extends JpaRepository<BankEntity,Long> {
      * @param mobile
      * @return
      */
-    @Query(value = "select t from BankEntity t where t.mobile = ?1 order by t.updateTime")
+    @Query(value = "select t from BankEntity t where t.mobile = ?1 order by t.updateTime desc")
     List<BankEntity> findByMobile(String mobile);
 
     /**
