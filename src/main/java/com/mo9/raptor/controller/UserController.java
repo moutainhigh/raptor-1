@@ -460,7 +460,8 @@ public class UserController {
             CouponRes couponRes = new CouponRes() ;
             BeanUtils.copyProperties(couponEntity , couponRes);
             Long expiryDate = couponEntity.getExpireDate() ;
-            couponRes.setExpiryDate(couponEntity.getExpireDate());
+            couponRes.setEndTime(couponEntity.getExpireDate());
+            couponRes.setStartTime(couponEntity.getEffectiveDate());
             couponRes.setCouponsAmount(couponEntity.getApplyAmount().toPlainString());
             //判断时间
             if(couponEntity.getStatus().equals(StatusEnum.OVERDUE.name()) || System.currentTimeMillis() >= expiryDate){
@@ -471,6 +472,7 @@ public class UserController {
             }else{
                 couponRes.setType("USED");
             }
+            couponRes.setCouponsId(couponEntity.getCouponId());
             couponRes.setAction(couponEntity.getUseType());
             returnList.add(couponRes) ;
         }

@@ -16,9 +16,13 @@ public class CouponRes {
      */
     private String  type ;
     /**
+     * 开始时间
+     */
+    private Long  startTime ;
+    /**
      * 失效时间
      */
-    private Long  expiryDate ;
+    private Long  endTime ;
     /**
      * 金额
      */
@@ -51,12 +55,20 @@ public class CouponRes {
         this.type = type;
     }
 
-    public Long getExpiryDate() {
-        return expiryDate;
+    public Long getStartTime() {
+        return startTime;
     }
 
-    public void setExpiryDate(Long expiryDate) {
-        this.expiryDate = expiryDate;
+    public void setStartTime(Long startTime) {
+        this.startTime = startTime;
+    }
+
+    public Long getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(Long endTime) {
+        this.endTime = endTime;
     }
 
     public String getCouponsAmount() {
@@ -73,6 +85,7 @@ public class CouponRes {
 
     public void setLimitAmount(BigDecimal limitAmount) {
         this.limitAmount = limitAmount;
+
     }
 
     public String getAction() {
