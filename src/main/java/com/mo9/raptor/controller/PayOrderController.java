@@ -204,7 +204,7 @@ public class PayOrderController {
             /***************** 2018-11-08 顾晓桐增加版本 -- 支付中心********************/
             if(raptorPayVersion.equals(CommonValues.SEEKER_PAY_VERSION)){
                 //支付中心版本
-                return seekerRepay(payInfoCache , response);
+                return seekerRepay(payInfoCache , response,request);
             }
             /*************************************/
 
@@ -304,7 +304,7 @@ public class PayOrderController {
      * @param response
      * @return
      */
-    private BaseResponse<JSONObject> seekerRepay(PayInfoCache payInfoCache , BaseResponse<JSONObject> response) {
+    private BaseResponse<JSONObject> seekerRepay(PayInfoCache payInfoCache , BaseResponse<JSONObject> response , HttpServletRequest request) {
 
         try {
             //获取手机号
@@ -351,6 +351,12 @@ public class PayOrderController {
             JSONObject data = new JSONObject();
 
             data.put("entities", res);
+            if(res.getResult() == null){
+                String url = request.getScheme()+ "://" + request.getServerName() + request.getContextPath() + "/cash/failed?code=" + orderId + "&message=" + res.getMessage();
+                data.put("url", url);
+            }else{
+                data.put("url", res.getResult());
+            }
             data.put("url", res.getResult());
             logger.info("repay方法结束,userCode:"+payInfoCache.getUserCode()+",loanOrderId:"+payInfoCache.getLoanOrderId()+",url:"+res.getResult());
             return response.buildSuccessResponse(data);
@@ -459,7 +465,7 @@ public class PayOrderController {
             /***************** 2018-11-08 顾晓桐增加版本 -- 支付中心********************/
             if(raptorPayVersion.equals(CommonValues.SEEKER_PAY_VERSION)){
                 //支付中心版本
-                return seekerRepay(payInfoCache , response);
+                return seekerRepay(payInfoCache , response ,request);
             }
             /*************************************/
 
@@ -829,6 +835,7 @@ public class PayOrderController {
                 String url = data.getString("payUrl");
                 res.setUseType(ChannelUseType.LINK.getDesc());
                 res.setResult(url);
+                res.setMessage(jsonObject.getString("message"));
                 res.setState(true);
             } else {
                 res.setState(false);

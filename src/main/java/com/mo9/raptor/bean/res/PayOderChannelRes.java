@@ -15,6 +15,11 @@ public class PayOderChannelRes extends ChannelDetailRes {
      */
     private Boolean state;
 
+    /**
+     * 失败描述
+     */
+    private String message;
+
     public String getResult() {
         return result;
     }
@@ -29,5 +34,13 @@ public class PayOderChannelRes extends ChannelDetailRes {
 
     public void setState(Boolean state) {
         this.state = state;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
     }
 }
