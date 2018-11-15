@@ -109,7 +109,7 @@ public class SeekerListener {
          */
         String messageTag = message.getMessageProperties().getReceivedRoutingKey();
         JSONObject mqMessage = JSON.parseObject(new String(message.getBody() , "UTF-8")) ;
-        if("REMIT_NOTICE".equals(messageTag)){
+        if("REMIT_NOTICE_TTYQ".equals(messageTag)){
             //充值
             payoff(mqMessage , channel , tag) ;
         }
