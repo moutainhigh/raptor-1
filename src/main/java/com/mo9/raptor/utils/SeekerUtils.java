@@ -300,12 +300,12 @@ public class SeekerUtils {
     public void gatewayMqPush(String gatewayDealcode){
         try {
             logger.info(gatewayDealcode + "触发定时器发送") ;
-            JSONObject params = new JSONObject();
+            Map<String,String> params = new HashMap<String,String>();
             params.put("orderCode", gatewayDealcode);
-            Map<String,String> headers = this.setHeadMap(params.toJSONString());
-            String url = this.seekerUrl + "/trade/fetch_remit_order?orderCode=" + gatewayDealcode;
-            logger.info("请求参数" + params.toJSONString());
-            String result = httpClientApi.doGetByHeader(url, headers);
+            Map<String,String> headers = this.setHeadMap("orderCode="+gatewayDealcode);
+            String url = this.seekerUrl + "/api/seeker/v1/trade/fetch_remit_order";
+            logger.info("请求参数" + params.toString());
+            String result = httpClientApi.doGet(url , params , headers);
             logger.info(gatewayDealcode + "查询还款返回数据 " + result);
         } catch (Exception e) {
             logger.error("触发支付中心mq异常"+ gatewayDealcode , e);
