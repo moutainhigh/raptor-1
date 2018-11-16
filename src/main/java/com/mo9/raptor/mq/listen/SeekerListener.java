@@ -127,7 +127,7 @@ public class SeekerListener {
 
         String status = mqMessage.getString("status");
         String orderId = mqMessage.getString("businessCode");
-        String channel = mqMessage.getString("channelCode");
+        String channel = StringUtils.isBlank(mqMessage.getString("channelCode")) ? "未知":mqMessage.getString("channelCode");
         BigDecimal amount = mqMessage.getBigDecimal("orderAmount");
         String dealcode = mqMessage.getString("orderCode");
         String channelDealcode = mqMessage.getString("invoice");

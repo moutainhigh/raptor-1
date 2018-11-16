@@ -4,10 +4,13 @@ import com.mo9.raptor.engine.entity.PayOrderEntity;
 import com.mo9.raptor.engine.enums.StatusEnum;
 import com.mo9.raptor.engine.service.IPayOrderService;
 import com.mo9.raptor.engine.service.impl.PayOrderServiceImpl;
+import com.mo9.raptor.entity.ChannelEntity;
 import com.mo9.raptor.entity.PayOrderLogEntity;
+import com.mo9.raptor.service.ChannelService;
 import com.mo9.raptor.service.PayOrderLogService;
 import com.mo9.raptor.utils.CommonValues;
 import com.mo9.raptor.utils.GatewayUtils;
+import com.mo9.raptor.utils.SeekerUtils;
 import com.mo9.raptor.utils.log.Log;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -37,6 +40,12 @@ public class PayOrderTask {
     @Autowired
     private GatewayUtils gatewayUtils ;
 
+    @Autowired
+    private SeekerUtils seekerUtils ;
+
+    @Autowired
+    private ChannelService channelService ;
+
     @Value("${task.open}")
     private String taskOpen ;
 
@@ -45,11 +54,22 @@ public class PayOrderTask {
 
         if(CommonValues.TRUE.equals(taskOpen)){
             logger.info("还款未最终状态定时器开启");
+            List<ChannelEntity> channels = channelService.listAllAvailableChannels() ;
+            StringBuffer channelStr = new StringBuffer() ;
+            for(ChannelEntity channelEntity : channels){
+                channelStr.append(channelEntity.getChannel()) ;
+            }
+            String channel = channelStr.toString() ;
             List<PayOrderEntity> list = payOrderService.findByStatus(StatusEnum.DEDUCTING.name()) ;
             for(PayOrderEntity payOrderEntity : list){
                 PayOrderLogEntity payOrderLogEntity = payOrderLogService.getByPayOrderId(payOrderEntity.getOrderId());
                 if(!StringUtils.isBlank(payOrderLogEntity.getDealCode())){
-                    gatewayUtils.gatewayMqPush(payOrderLogEntity.getDealCode());
+                    if(channel.contains(payOrderLogEntity.getChannel())){
+                        gatewayUtils.gatewayMqPush(payOrderLogEntity.getDealCode());
+                    }else{
+                        seekerUtils.gatewayMqPush(payOrderLogEntity.getDealCode());
+                    }
+
                 }
             }
             logger.info("还款未最终状态定时器结束 共处理 " + list.size() + "条数据");
