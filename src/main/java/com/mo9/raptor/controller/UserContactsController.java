@@ -5,13 +5,13 @@ import com.mo9.raptor.bean.ReqHeaderParams;
 import com.mo9.raptor.bean.req.UserContactsReq;
 import com.mo9.raptor.entity.UserEntity;
 import com.mo9.raptor.enums.ResCodeEnum;
-import com.mo9.raptor.pool.RiskContractTask;
-import com.mo9.raptor.pool.ThreadPool;
 import com.mo9.raptor.service.UserContactsService;
 import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.log.Log;
+import com.mo9.risk.app.entity.User;
+import com.mo9.risk.service.RiskContractInfoService;
 import org.slf4j.Logger;
-import org.springframework.context.annotation.Scope;
+import org.springframework.beans.BeanUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,6 +19,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by jyou on 2018/9/17.
@@ -37,10 +40,15 @@ public class UserContactsController {
     private UserContactsService userContactsService;
 
     @Resource
-    private ThreadPool threadPool;
+    private RiskContractInfoService riskContractInfoService;
 
-    @Resource
-    private RiskContractTask contractTask;
+    private ThreadPoolExecutor poolExecutor = new ThreadPoolExecutor(
+            5,
+            50,
+            10,
+            TimeUnit.SECONDS,
+            new ArrayBlockingQueue<Runnable>(200),
+            new ThreadPoolExecutor.AbortPolicy());
 
     /**
      * 提交手机通讯录
@@ -66,9 +74,12 @@ public class UserContactsController {
                 //更新用户表通讯录状态
                 userService.updateMobileContacts(userEntity, true);
             }
-            logger.info("手机通讯录更新完毕，开始存放mycat开始，userCode={},data是否为空={}", userEntity.getUserCode(), req.getData() == null ? true : false);
-            contractTask.build(req.getData(), userEntity);
-            threadPool.execute(contractTask);
+            poolExecutor.execute(() -> {
+                logger.info("手机通讯录更新完毕，开始存放mycat开始，userCode={},data是否为空={}", userEntity.getUserCode(), req.getData() == null ? true : false);
+                User user = new User();
+                BeanUtils.copyProperties(userEntity, user);
+                riskContractInfoService.createAll(req.getData(), user);
+            });
             return response.buildSuccessResponse(true);
         }catch (Exception e){
             Log.error(logger, e, "提交通讯录-->系统内部异常");
