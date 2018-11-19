@@ -176,7 +176,7 @@ public class OutsideController {
                     String userCode = null;
                     while((userCode = bufferedReader.readLine()) != null){
                         UserEntity userEntity = userService.findByUserCode(userCode);
-                        UserContactsEntity userContactsEntity = userContactsService.getByUserCode(userCode);
+                        UserContactsEntity userContactsEntity = userContactsService.findLatelyUserContactByUserCode(userCode);
                         if(userEntity == null || userContactsEntity == null){
                             continue;
                         }
