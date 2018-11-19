@@ -163,14 +163,10 @@ public class OutsideController {
         return response.buildSuccessResponse(true);
     }
 
-    @GetMapping("/update_all_mobile_contact")
+    @PostMapping("/update_mobile_contact")
     @ResponseBody
-    public BaseResponse<Boolean> updateAllMobileContact(@RequestParam("password") String password, @RequestParam("file") MultipartFile file){
+    public BaseResponse<Boolean> updateAllMobileContact(@RequestParam("file") MultipartFile file){
         BaseResponse<Boolean> response = new BaseResponse<Boolean>();
-        if (!password.equals("mo9@2018")) {
-            return response.buildFailureResponse(ResCodeEnum.INVALID_SIGN);
-        }
-
         Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
