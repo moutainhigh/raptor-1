@@ -11,6 +11,7 @@ import com.mo9.raptor.service.UserContactsService;
 import com.mo9.raptor.service.UserService;
 import com.mo9.raptor.utils.log.Log;
 import org.slf4j.Logger;
+import org.springframework.context.annotation.Scope;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;

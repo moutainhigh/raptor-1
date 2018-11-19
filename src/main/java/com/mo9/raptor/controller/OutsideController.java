@@ -165,52 +165,34 @@ public class OutsideController {
 
     @GetMapping("/update_all_mobile_contact")
     @ResponseBody
-    public BaseResponse<Boolean> updateAllMobileContact(@RequestParam("password") String password, @RequestParam(value = "start", defaultValue = "0")String start){
+    public BaseResponse<Boolean> updateAllMobileContact(@RequestParam("password") String password, @RequestParam("file") MultipartFile file){
         BaseResponse<Boolean> response = new BaseResponse<Boolean>();
         if (!password.equals("mo9@2018")) {
             return response.buildFailureResponse(ResCodeEnum.INVALID_SIGN);
         }
-        int s = Integer.valueOf(start);
+
         Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
-                int startLimit = s;
-                int limit = 100;
-                boolean boo = true;
-                int count = 0;
-                int errorCount = 0;
-                int userNullCount = 0;
-                while(boo){
-                    List<UserContactsEntity> userContactsList = userContactsService.findByLimit(startLimit, limit);
-                    logger.info("用户通讯录重新执行，查询开始条数{}，每页条数{}, 当前集合长度size={}", startLimit, limit, userContactsList == null ? 0 : userContactsList.size());
-                    if(userContactsList != null && userContactsList.size() > 0){
-                        for(UserContactsEntity entity : userContactsList){
-                            UserEntity userEntity = userService.findByUserCode(entity.getUserCode());
-                            if(userEntity == null){
-                                logger.info("用户通讯录重新执行，当前查询用户不存在,userNullCount={}", userNullCount++);
-                                continue;
-                            }
-                            try{
-                                User user = new User();
-                                BeanUtils.copyProperties(userEntity, user);
-                                riskContractInfoService.createAll(entity.getContactsList(), user);
-                            }catch (Exception e){
-                                logger.error("用户通讯录重新执行,用户执行出现异常,当前第{}条，userCode={}", errorCount++, userEntity.getUserCode(), e);
-                            }
-                            logger.info("用户通讯录重新执行，当前执行到第{}条,userCode={}", count++, userEntity.getUserCode());
+                try{
+                    InputStream inputStream = file.getInputStream();
+                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+                    String userCode = null;
+                    while((userCode = bufferedReader.readLine()) != null){
+                        UserEntity userEntity = userService.findByUserCode(userCode);
+                        UserContactsEntity userContactsEntity = userContactsService.getByUserCode(userCode);
+                        if(userEntity == null || userContactsEntity == null){
+                            continue;
                         }
-                        startLimit = startLimit + limit;
-                        try {
-                            Thread.sleep(500);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }else {
-                        boo = false;
+                        User user = new User();
+                        BeanUtils.copyProperties(userEntity, user);
+                        riskContractInfoService.createAll(userContactsEntity.getContactsList(), user);
                     }
-                    LIMIT = count;
+
+                }catch (Exception e){
+
                 }
-                logger.info("用户通讯录重新执行，执行完毕,共执行{}条", count);
+                logger.info("同步通讯录重新执行，执行完毕");
             }
         });
         t.start();
