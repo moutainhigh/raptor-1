@@ -83,10 +83,14 @@ public class BillServiceImpl implements BillService {
         Item orderRealItem = this.realItem(loanOrder, payType, payOrder.getPostponeDays());
         BigDecimal shouldPay = orderRealItem.sum();
 
-        //CouponEntity couponEntity = couponService.getEffectiveBundledCoupon(loanOrder.getOrderId());
         CouponEntity couponEntity = null ;
-        if(payOrder.getCouponId() != null){
-            couponEntity = couponService.getByCouponId(payOrder.getCouponId());
+        String channel = payOrder.getChannel() ;
+        if("manual_pay".equals(channel)){
+            couponEntity = couponService.getEffectiveBundledCoupon(loanOrder.getOrderId());
+        }else{
+            if(payOrder.getCouponId() != null){
+                couponEntity = couponService.getByCouponId(payOrder.getCouponId());
+            }
         }
 
         BigDecimal applyAmount = BigDecimal.ZERO;
@@ -163,7 +167,6 @@ public class BillServiceImpl implements BillService {
         if(surplusAmount.compareTo(BigDecimal.ZERO) == 1){
             //差额大于0 - 减去余额
             //根据还款类型区分账户出账类型
-            String channel = payOrder.getChannel() ;
             String type = payOrder.getType() ;
             ResCodeEnum resCodeEnum = ResCodeEnum.SUCCESS ;
             if(channel.equals("manual_pay")){
