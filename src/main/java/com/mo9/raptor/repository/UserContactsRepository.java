@@ -20,4 +20,7 @@ public interface UserContactsRepository extends JpaRepository<UserContactsEntity
 
     @Query(value = "select * from t_raptor_user_contacts limit ?1, ?2",nativeQuery = true)
     List<UserContactsEntity> findByLimit(int startLimit, int endLimit);
+
+    @Query(value = "select * from t_raptor_user_contacts where user_code = ?1 order by id desc limit 1",nativeQuery = true)
+    UserContactsEntity findLatelyUserContactByUserCode(String userCode);
 }

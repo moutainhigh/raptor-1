@@ -54,4 +54,9 @@ public class UserContactsServiceImpl implements UserContactsService {
     public List<UserContactsEntity> findByLimit(int startLimit, int endLimit) {
         return userContactsRepository.findByLimit(startLimit, endLimit);
     }
+
+    @Override
+    public UserContactsEntity findLatelyUserContactByUserCode(String userCode) {
+        return userContactsRepository.findLatelyUserContactByUserCode(userCode);
+    }
 }

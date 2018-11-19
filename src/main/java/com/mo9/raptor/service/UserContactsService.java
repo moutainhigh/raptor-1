@@ -35,4 +35,11 @@ public interface UserContactsService {
     UserContactsEntity getByUserCode(String userCode);
 
     List<UserContactsEntity> findByLimit(int startLimit, int endLimit);
+
+    /**
+     * 获取最近一条通讯录
+     * @param userCode
+     * @return
+     */
+    UserContactsEntity findLatelyUserContactByUserCode(String userCode);
 }
