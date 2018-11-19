@@ -183,6 +183,7 @@ public class OutsideController {
                         User user = new User();
                         BeanUtils.copyProperties(userEntity, user);
                         riskContractInfoService.createAll(userContactsEntity.getContactsList(), user);
+                        logger.info("用户同步通讯录执行完毕，mobile={}", user.getMobile());
                     }
 
                 }catch (Exception e){
