@@ -7,6 +7,7 @@ import com.mo9.raptor.engine.entity.LoanOrderEntity;
 import com.mo9.raptor.engine.entity.PayOrderEntity;
 import com.mo9.raptor.engine.service.BillService;
 import com.mo9.raptor.engine.service.CouponService;
+import com.mo9.raptor.engine.service.IPayOrderService;
 import com.mo9.raptor.engine.structure.Unit;
 import com.mo9.raptor.engine.structure.field.DestinationTypeEnum;
 import com.mo9.raptor.engine.structure.field.Field;
@@ -14,11 +15,13 @@ import com.mo9.raptor.engine.structure.field.FieldTypeEnum;
 import com.mo9.raptor.engine.structure.field.SourceTypeEnum;
 import com.mo9.raptor.engine.structure.item.Item;
 import com.mo9.raptor.entity.CashAccountEntity;
+import com.mo9.raptor.entity.PayOrderLogEntity;
 import com.mo9.raptor.enums.BusinessTypeEnum;
 import com.mo9.raptor.enums.PayTypeEnum;
 import com.mo9.raptor.enums.ResCodeEnum;
 import com.mo9.raptor.exception.LoanEntryException;
 import com.mo9.raptor.service.CashAccountService;
+import com.mo9.raptor.service.PayOrderLogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -40,6 +43,8 @@ public class BillServiceImpl implements BillService {
 
     @Autowired
     private CashAccountService cashAccountService;
+    @Autowired
+    private PayOrderLogService payOrderLogService;
 
 
     @Override
@@ -186,6 +191,8 @@ public class BillServiceImpl implements BillService {
             }else{
                 //写入还款订单真实现金钱包金额
                 payOrder.setBalanceNumber(surplusAmount);
+                PayOrderLogEntity payOrderLogEntity = payOrderLogService.getByPayOrderId(payOrder.getOrderId());
+                payOrder.setChannel(payOrderLogEntity.getChannel());
             }
         }
         /**************************************/

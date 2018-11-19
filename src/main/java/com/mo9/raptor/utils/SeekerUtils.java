@@ -294,20 +294,21 @@ public class SeekerUtils {
 
 
     /**
-     * 触发先玩后付mq
+     * 触发支付中心mq
      * @return
      */
     public void gatewayMqPush(String gatewayDealcode){
         try {
             logger.info(gatewayDealcode + "触发定时器发送") ;
-            Map<String,String> params = new HashMap<String,String>(10);
-            params.put("m", "topupRemoteChecking");
-            params.put("dealcode", gatewayDealcode);
-            String gatewayUrl = this.seekerUrl + "/pay.shtml";
-            String reeult = httpClientApi.doGet(gatewayUrl, params);
-            logger.info(gatewayDealcode + "查询还款返回数据 " + reeult);
+            Map<String,String> params = new HashMap<String,String>();
+            params.put("orderCode", gatewayDealcode);
+            Map<String,String> headers = this.setHeadMap("orderCode="+gatewayDealcode);
+            String url = this.seekerUrl + "/api/seeker/v1/trade/fetch_remit_order";
+            logger.info("请求参数" + params.toString());
+            String result = httpClientApi.doGet(url , params , headers);
+            logger.info(gatewayDealcode + "查询还款返回数据 " + result);
         } catch (Exception e) {
-            logger.error("触发先玩后付mq异常"+ gatewayDealcode , e);
+            logger.error("触发支付中心mq异常"+ gatewayDealcode , e);
         }
     }
 
