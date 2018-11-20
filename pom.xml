@@ -157,7 +157,7 @@
         <dependency>
             <groupId>com.mo9.raptor.risk</groupId>
             <artifactId>risk</artifactId>
-            <version>0.0.4-RELEASE</version>
+            <version>0.0.6-RELEASE</version>
         </dependency>
 
     </dependencies>
