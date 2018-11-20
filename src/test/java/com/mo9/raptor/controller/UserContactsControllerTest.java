@@ -27,6 +27,7 @@ import java.util.Map;
 public class UserContactsControllerTest {
 
     private static  final String localHostUrl = "http://localhost/raptorApi/";
+    private static  final String cloneHostUrl = "https://riskclone.mo9.com/raptorApi/";
 
     @Autowired
     private HttpClientApi httpClientApi;

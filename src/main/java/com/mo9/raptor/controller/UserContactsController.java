@@ -48,7 +48,7 @@ public class UserContactsController {
             10,
             TimeUnit.SECONDS,
             new ArrayBlockingQueue<Runnable>(200),
-            new ThreadPoolExecutor.AbortPolicy());
+            new ThreadPoolExecutor.CallerRunsPolicy());
 
     /**
      * 提交手机通讯录
