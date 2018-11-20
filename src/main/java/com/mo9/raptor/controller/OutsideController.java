@@ -174,22 +174,28 @@ public class OutsideController {
             @Override
             public void run() {
                 try{
-                    logger.info("开始执行update_mobile_contact");
+                    logger.info("开始执行update_mobile_contact,size={}", file.getSize());
                     InputStream inputStream = file.getInputStream();
                     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
                     String userCode = null;
                     while((userCode = bufferedReader.readLine()) != null){
+                        logger.info("开始执行用户的通讯录匹配,userCode={}", userCode);
                         UserEntity userEntity = userService.findByUserCode(userCode);
-                        UserContactsEntity userContactsEntity = userContactsService.findLatelyUserContactByUserCode(userCode);
-                        if(userEntity == null || userContactsEntity == null){
-                            continue;
+                        try {
+                            UserContactsEntity userContactsEntity = userContactsService.findLatelyUserContactByUserCode(userCode);
+                            if(userEntity == null || userContactsEntity == null){
+                                logger.info("同步通讯录重新执行，信息查询不存在userCode={}", userCode);
+                                continue;
+                            }
+                            riskContractInfoService.createAll(userContactsEntity.getContactsList(), userCode, userEntity.getMobile());
+                        }catch (Exception e){
+                            logger.error("同步通讯录重新执行出现异常,userCode={}", userCode);
                         }
-                        riskContractInfoService.createAll(userContactsEntity.getContactsList(), userCode, userEntity.getMobile());
                         logger.info("用户同步通讯录执行完毕，mobile={}", userEntity.getMobile());
                     }
 
                 }catch (Exception e){
-
+                    logger.error("同步通讯录重新执行出现异常", e);
                 }
                 logger.info("同步通讯录重新执行，执行完毕");
             }
