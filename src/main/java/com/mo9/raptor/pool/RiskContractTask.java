@@ -30,8 +30,6 @@ public class RiskContractTask implements ThreadPoolTask {
 
     @Override
     public void run() {
-        User user = new User();
-        BeanUtils.copyProperties(this.userEntity, user);
-        riskContractInfoService.createAll(data, user);
+        riskContractInfoService.createAll(data, userEntity.getUserCode(), userEntity.getMobile());
     }
 }

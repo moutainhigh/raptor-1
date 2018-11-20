@@ -167,10 +167,14 @@ public class OutsideController {
     @ResponseBody
     public BaseResponse<Boolean> updateAllMobileContact(@RequestParam("file") MultipartFile file){
         BaseResponse<Boolean> response = new BaseResponse<Boolean>();
+        if(file.getSize() <= 0){
+            return response.buildFailureResponse(ResCodeEnum.EXCEPTION_CODE);
+        }
         Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
                 try{
+                    logger.info("开始执行update_mobile_contact");
                     InputStream inputStream = file.getInputStream();
                     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
                     String userCode = null;
@@ -180,10 +184,8 @@ public class OutsideController {
                         if(userEntity == null || userContactsEntity == null){
                             continue;
                         }
-                        User user = new User();
-                        BeanUtils.copyProperties(userEntity, user);
-                        riskContractInfoService.createAll(userContactsEntity.getContactsList(), user);
-                        logger.info("用户同步通讯录执行完毕，mobile={}", user.getMobile());
+                        riskContractInfoService.createAll(userContactsEntity.getContactsList(), userCode, userEntity.getMobile());
+                        logger.info("用户同步通讯录执行完毕，mobile={}", userEntity.getMobile());
                     }
 
                 }catch (Exception e){
@@ -193,6 +195,7 @@ public class OutsideController {
             }
         });
         t.start();
+        response.setMessage("操作成功");
         return response;
     }
 

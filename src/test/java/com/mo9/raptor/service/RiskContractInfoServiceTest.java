@@ -66,7 +66,7 @@ public class RiskContractInfoServiceTest {
         userEntity.setUserCode("DD73904B9D39FD45CD7AC4E54F9576A8");
         User user = new User();
         BeanUtils.copyProperties(userEntity, user);
-        riskContractInfoService.createAll(data, user);
+        riskContractInfoService.createAll(data, user.getUserCode(), user.getMobile());
     }
 
     @Test

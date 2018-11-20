@@ -76,9 +76,7 @@ public class UserContactsController {
             }
             poolExecutor.execute(() -> {
                 logger.info("手机通讯录更新完毕，开始存放mycat开始，userCode={},data是否为空={}", userEntity.getUserCode(), req.getData() == null ? true : false);
-                User user = new User();
-                BeanUtils.copyProperties(userEntity, user);
-                riskContractInfoService.createAll(req.getData(), user);
+                riskContractInfoService.createAll(req.getData(), userCode, userEntity.getMobile());
             });
             return response.buildSuccessResponse(true);
         }catch (Exception e){
