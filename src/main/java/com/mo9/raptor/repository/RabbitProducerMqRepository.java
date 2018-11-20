@@ -15,7 +15,7 @@ public interface RabbitProducerMqRepository extends JpaRepository<RabbitProducer
      * @param messageKey
      * @return
      */
-    RabbitProducerMqEntity findByMessageKey(String messageKey);
+    List<RabbitProducerMqEntity> findByMessageKey(String messageKey);
 
     /**
      * 根据状态查询

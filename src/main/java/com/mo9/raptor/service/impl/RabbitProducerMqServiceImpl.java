@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 /**
  * Created by xtgu on 2018/7/26.
  * @author xtgu
@@ -32,7 +34,12 @@ public class RabbitProducerMqServiceImpl implements RabbitProducerMqService {
 
     @Override
     public RabbitProducerMqEntity findByMessageKey(String messageKey) {
-        return rabbitProducerMqRepository.findByMessageKey( messageKey);
+        List<RabbitProducerMqEntity> list = rabbitProducerMqRepository.findByMessageKey( messageKey);
+        if(list != null && list.size() > 0){
+            return list.get(0);
+        }else{
+            return null ;
+        }
     }
 
 
