@@ -71,8 +71,13 @@ public class CouponServiceImpl implements CouponService {
                 if(condition.getLimitAmount() != null){
                     list.add(cb.le(root.get("limitAmount").as(BigDecimal.class), condition.getLimitAmount()));
                 }
-                if(condition.getUseType() != null){
-                    list.add(cb.equal(root.get("useType").as(String.class),condition.getUseType()));
+                if(condition.getUseType() != null && condition.getUseType().size() > 0){
+                    List<String> useTypeList = condition.getUseType() ;
+                    CriteriaBuilder.In<String> in = cb.in(root.get("useType").as(String.class));
+                    for (String useType : useTypeList) {
+                        in.value(useType);
+                    }
+                    list.add(in);
                 }
                 if(condition.getStatusList() != null && condition.getStatusList().size() > 0){
                     List<String> statusList = condition.getStatusList() ;
