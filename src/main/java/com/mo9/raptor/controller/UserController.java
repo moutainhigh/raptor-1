@@ -378,6 +378,7 @@ public class UserController {
     @RequestMapping(value = "/get_balance")
     public BaseResponse<JSONObject> getBalance(HttpServletRequest request){
         BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
+        JSONObject returnEntity = new JSONObject() ;
         JSONObject entity = new JSONObject() ;
         String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
         CashAccountEntity cashAccountEntity = cashAccountService.findByUserCode(userCode);
@@ -386,7 +387,8 @@ public class UserController {
         }else{
             entity.put("balance" , cashAccountEntity.getBalance().toPlainString());
         }
-        response.setData(entity);
+        returnEntity.put("entity" , entity);
+        response.setData(returnEntity);
         return response;
     }
 
