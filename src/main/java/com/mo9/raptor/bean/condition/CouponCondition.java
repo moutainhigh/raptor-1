@@ -45,7 +45,7 @@ public class CouponCondition {
     /**
      * 优惠券使用类型
      */
-    private String useType;
+    private List<String> useType;
 
     public String getUserCode() {
         return userCode;
@@ -95,11 +95,11 @@ public class CouponCondition {
         this.limitAmount = limitAmount;
     }
 
-    public String getUseType() {
+    public List<String> getUseType() {
         return useType;
     }
 
-    public void setUseType(String useType) {
+    public void setUseType(List<String> useType) {
         this.useType = useType;
     }
 }
