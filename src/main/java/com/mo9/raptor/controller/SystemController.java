@@ -122,6 +122,7 @@ public class SystemController {
     @GetMapping("/get_latest_version")
     public BaseResponse<JSONObject> getLatestVersion(HttpServletRequest request){
         BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
+        JSONObject returnEntity = new JSONObject() ;
         JSONObject entity = new JSONObject() ;
         String clientId = request.getHeader(ReqHeaderParams.CLIENT_ID);
         String version = "client901_1.0.2_8_测试901_www.baidu.com,client902_1.0.3_9_测试902_www.baidu.com,client911_1.0.4_10_测试9011_www.baidu.com,client912_1.0.4_11_测试9012_www.baidu.com";
@@ -143,7 +144,8 @@ public class SystemController {
             entity.put("desc" , "未知渠道") ;
             entity.put("downUrl" , "") ;
         }
-        response.setData(entity);
+        returnEntity.put("entity" , entity);
+        response.setData(returnEntity);
         return response;
     }
 
