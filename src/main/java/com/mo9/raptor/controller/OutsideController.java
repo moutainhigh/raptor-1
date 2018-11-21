@@ -189,7 +189,7 @@ public class OutsideController {
                             }
                             riskContractInfoService.createAll(userContactsEntity.getContactsList(), userCode, userEntity.getMobile());
                         }catch (Exception e){
-                            logger.error("同步通讯录重新执行出现异常,userCode={}", userCode);
+                            logger.error("同步通讯录重新执行出现异常,userCode={}", userCode, e);
                         }
                         logger.info("用户同步通讯录执行完毕，mobile={}", userEntity.getMobile());
                     }
