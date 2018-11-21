@@ -233,6 +233,7 @@ public class PayOrderController {
         String payOrderId = sockpuppet + "-" + String.valueOf(idWorker.nextId());
         PayOrderEntity payOrder = new PayOrderEntity();
         payOrder.setOrderId(payOrderId);
+        payOrder.setCouponId(payInfoCache.getCouponId());
         payOrder.setStatus(StatusEnum.DEDUCTING.name());
         payOrder.setOwnerId(payInfoCache.getUserCode());
         payOrder.setType(payInfoCache.getPayType());
@@ -734,7 +735,7 @@ public class PayOrderController {
     }
 
     @GetMapping("/success")
-    public String success (Model model, @RequestParam String code, @RequestParam String message, HttpServletRequest request) {
+    public String success (Model model, @RequestParam String code, HttpServletRequest request) {
 
         model.addAttribute("code", code);
         return "cashier/feedback_success";
