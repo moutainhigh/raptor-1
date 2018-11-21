@@ -378,6 +378,7 @@ public class UserController {
     @RequestMapping(value = "/get_balance")
     public BaseResponse<JSONObject> getBalance(HttpServletRequest request){
         BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
+        JSONObject returnEntity = new JSONObject() ;
         JSONObject entity = new JSONObject() ;
         String userCode = request.getHeader(ReqHeaderParams.ACCOUNT_CODE);
         CashAccountEntity cashAccountEntity = cashAccountService.findByUserCode(userCode);
@@ -386,7 +387,8 @@ public class UserController {
         }else{
             entity.put("balance" , cashAccountEntity.getBalance().toPlainString());
         }
-        response.setData(entity);
+        returnEntity.put("entity" , entity);
+        response.setData(returnEntity);
         return response;
     }
 
@@ -400,7 +402,7 @@ public class UserController {
                                                @RequestParam(value = "pageSize")Integer pageSize ,
                                                @RequestParam(required = false , value = "type")List<String> type ,
                                                @RequestParam(required = false , value = "orderId")String orderId ,
-                                               @RequestParam(required = false , value = "action")String action ,
+                                               @RequestParam(required = false , value = "action")List<String> action ,
                                                @RequestParam(required = false , value = "period")Integer period ,
                                                HttpServletRequest request){
         BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
@@ -413,7 +415,7 @@ public class UserController {
         //封装状态
         setStatusCondition(type , couponCondition);
 
-        if(action != null && !("ALL".equals(action))){
+        if(action != null){
             couponCondition.setUseType(action);
             if(orderId != null){
                 //查询 订单金额
@@ -424,7 +426,7 @@ public class UserController {
                     return response ;
                 }
                 String payType = PayTypeEnum.REPAY_IN_ADVANCE.name() ;
-                if("RENEWAL".equals(action)){
+                if(action.contains("RENEWAL")){
                     payType = PayTypeEnum.REPAY_POSTPONE.name() ;
                     if(period == null ){
                         //默认7天 - 暂时业务只有7天

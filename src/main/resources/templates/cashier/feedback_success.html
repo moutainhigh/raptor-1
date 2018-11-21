@@ -6,11 +6,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Document</title>
-  <link rel="stylesheet" href="./styles/normalize.css">
-  <link rel="stylesheet" href="./styles/feedback.css">
-  <style>
+  <link rel="stylesheet" href="https://ttyq.mo9.com/static/styles/normalize.css">
+  <link rel="stylesheet" href="https://ttyq.mo9.com/static/styles/feedback.css">
+  <script src="https://ttyq.mo9.com/static/js/jquery-3.1.1.min.js"></script>
+  <script src="https://ttyq.mo9.com/static/scripts/index.js"></script>
+  <style >
     .logo-status {
-      background-image: url(./images/success.png);
+      background-image: url(https://ttyq.mo9.com/static/images/success.png);
     }
   </style>
 </head>
@@ -21,11 +23,11 @@
     <div class="msg-part">
       <div class="msg">支付成功</div>
       <div class="order">
-        交易号: <span class="order-number">MLAISJAODOADA</span>
+        交易号: <span class="order-number" th:text="${code}"></span>
       </div>
     </div>
     <!-- <div class="tip">请稍后重新尝试，或联系客服</div> -->
-    <div class="btn green btn-next">
+    <div class="btn green btn-next" id="go-pay-again">
       返回首页
     </div>
     <div class="info-part">
