@@ -84,13 +84,13 @@ public class BillServiceImpl implements BillService {
         BigDecimal shouldPay = orderRealItem.sum();
 
         CouponEntity couponEntity = null ;
+        //优惠券形式只存在一种
         String channel = payOrder.getChannel() ;
-        if("manual_pay".equals(channel)){
+        if(payOrder.getCouponId() != null){
+            couponEntity = couponService.getByCouponId(payOrder.getCouponId());
+        }
+        if(couponEntity == null){
             couponEntity = couponService.getEffectiveBundledCoupon(loanOrder.getOrderId());
-        }else{
-            if(payOrder.getCouponId() != null){
-                couponEntity = couponService.getByCouponId(payOrder.getCouponId());
-            }
         }
 
         BigDecimal applyAmount = BigDecimal.ZERO;
