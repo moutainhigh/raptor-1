@@ -57,7 +57,7 @@ public class EntryDoingStateHandler implements IStateHandler<PayOrderEntity> {
             if (payOrder.getEntryNumber().compareTo(payOrder.getPayNumber()) == 0) {
                 payOrder.setStatus(StatusEnum.ENTRY_DONE.name());
                 // 发送还款成功消息
-                actionExecutor.append(new RepaySuccessNoticeAction(payOrder.getOrderId(), payOrder.getOwnerId(), pushUtils));
+                actionExecutor.append(new RepaySuccessNoticeAction(payOrder, loanOrderService, pushUtils));
                 actionExecutor.append(new WhiteUserAction(loanOrderService, payOrderService, payOrderLogService, userService, httpClientApi, payOrder.getOwnerId(), whiteBaseUrl));
             } else {
                 payOrder.setStatus(StatusEnum.ENTRY_FAILED.name());
